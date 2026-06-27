@@ -190,3 +190,52 @@ curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:00:00Z/0/0/
 - Tiles are generated stub PNGs, not georeferenced MapLibre tiles
 - Seeded demo frames need raw stub files on disk before processing
 - Access plans still not enforced on API routes
+
+## Phase 5 - MapLibre Integration
+
+Replaced the static map preview with an interactive MapLibre map that requests placeholder raster tiles from the backend.
+
+### Backend
+- No API contract changes
+- CORS updated to allow `http://127.0.0.1:5173` tile/image requests
+
+### Frontend
+- MapLibre GL JS map with free demo basemap (`demotiles.maplibre.org`)
+- Raster overlay from `/tiles/{layer}/{timestamp}/{z}/{x}/{y}.png`
+- Tile source refreshes when the selected timestamp changes
+- Only `mrms_reflectivity` is selectable for tiles; other layers show “tiles later”
+- Radar opacity slider (0–100%)
+- Map badge: “Placeholder tiles — not real radar”
+- Status message when no processed tiles exist
+
+### Run commands
+
+```bash
+make setup
+make seed
+make process-once
+make test
+make backend
+```
+
+In another terminal:
+
+```bash
+make frontend
+```
+
+Open http://127.0.0.1:5173
+
+### Test commands
+
+```bash
+make test
+make lint
+cd frontend && npm run build
+```
+
+### Known limitations
+- Placeholder tiles are not georeferenced to real MRMS extent
+- Basemap uses MapLibre demo tiles (not production map hosting)
+- No auto-play animation yet
+- Still no real GRIB2 processing or NOAA downloads

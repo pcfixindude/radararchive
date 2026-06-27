@@ -33,6 +33,12 @@ export function tileUrl(layer: string, timestamp: string, z = 0, x = 0, y = 0): 
   return `${API_BASE}/tiles/${encodeURIComponent(layer)}/${encoded}/${z}/${x}/${y}.png`;
 }
 
+/** MapLibre raster template with {z}/{x}/{y} placeholders. */
+export function tileUrlTemplate(layer: string, timestamp: string): string {
+  const encoded = encodeURIComponent(timestamp);
+  return `${API_BASE}/tiles/${encodeURIComponent(layer)}/${encoded}/{z}/{x}/{y}.png`;
+}
+
 export async function tilesAvailable(layer: string, timestamp: string): Promise<boolean> {
   if (!timestamp) {
     return false;

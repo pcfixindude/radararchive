@@ -5,6 +5,7 @@ import WeatherMap from './map/WeatherMap';
 import LayerPanel from './components/LayerPanel';
 import TimeSlider from './components/TimeSlider';
 import PlaybackControls from './components/PlaybackControls';
+import RadarOpacityControl from './components/RadarOpacityControl';
 import { DEFAULT_LAYER } from './map/layers';
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
   const [selectedTime, setSelectedTime] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [radarOpacity, setRadarOpacity] = useState(0.65);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,13 +76,24 @@ export default function App() {
       <header>
         <h1>RadarArchive</h1>
         <p>Historical weather replay app</p>
-        <p className="demo-banner">Demo/stub pipeline only — seeded catalog, collector stubs, placeholder tiles. Not live NOAA/MRMS.</p>
+        <p className="demo-banner">Placeholder tiles on MapLibre — not real NOAA/MRMS radar imagery.</p>
       </header>
       <main>
-        <WeatherMap selectedTime={selectedTime} selectedLayer={selectedLayer} loading={loading} />
+        <WeatherMap
+          selectedTime={selectedTime}
+          selectedLayer={selectedLayer}
+          layerAvailable={layers.find((layer) => layer.id === selectedLayer)?.available ?? false}
+          loading={loading}
+          opacity={radarOpacity}
+        />
         <aside>
           {error ? <p className="error-banner">{error}</p> : null}
           <LayerPanel layers={layers} selectedLayer={selectedLayer} onSelect={setSelectedLayer} />
+          <RadarOpacityControl
+            opacity={radarOpacity}
+            onChange={setRadarOpacity}
+            disabled={loading || times.length === 0}
+          />
           <TimeSlider times={times} selectedTime={selectedTime} onSelect={setSelectedTime} disabled={loading || times.length === 0} />
           <PlaybackControls times={times} selectedTime={selectedTime} onSelect={setSelectedTime} disabled={loading || times.length === 0} />
         </aside>

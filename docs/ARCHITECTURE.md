@@ -69,7 +69,15 @@ Flow:
 Tiles are generated on demand by `backend/app/services/tile_service.py` using pure Python PNG encoding (no GDAL/rasterio).
 
 ## Frontend
-Mobile-first PWA using MapLibre or Leaflet. Phase 4 shows a placeholder map panel with tile availability and a preview image from the tile endpoint.
+Mobile-first PWA using MapLibre GL JS (Phase 5).
+
+### Map (Phase 5)
+- Basemap: MapLibre demo style (`https://demotiles.maplibre.org/style.json`) — no API key
+- Raster overlay: `GET /tiles/{layer}/{timestamp}/{z}/{x}/{y}.png`
+- Only `mrms_reflectivity` is tile-enabled in the UI
+- Timestamp changes rebuild the raster tile source URL
+- Radar opacity slider controls `raster-opacity`
+- Map badge labels tiles as placeholders (not real radar)
 
 ## Data Rule
 Raw source files are immutable. Processed files can be regenerated. Database records point to both raw and processed paths.

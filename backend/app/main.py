@@ -6,7 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.app.api.routes import router as api_router
 from backend.app.api.tiles import router as tiles_router
 from backend.app.config import settings
-from backend.app.config import settings
 from backend.app.database import get_db, init_db
 from backend.app.demo.seed import catalog_is_empty, seed_demo_catalog
 from backend.app.services.storage import LocalStorage
@@ -28,7 +27,11 @@ app = FastAPI(title="RadarArchive API", version=settings.version, lifespan=lifes
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.frontend_origin, "http://localhost:5173"],
+    allow_origins=[
+        settings.frontend_origin,
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -6,10 +6,34 @@ header p { margin: 0.25rem 0 0; color: #cbd5e1; }
 .demo-banner { margin-top: 0.5rem; padding: 0.35rem 0.6rem; border-radius: 8px; background: #422006; color: #fde68a; font-size: 0.85rem; }
 .error-banner { margin: 0 0 1rem; padding: 0.6rem 0.75rem; border-radius: 8px; background: #450a0a; color: #fecaca; }
 main { flex: 1; display: grid; grid-template-columns: 1fr 340px; min-height: 0; }
-.map-placeholder { display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1f2937, #030712); min-height: 480px; padding: 1rem; }
-.map-preview-wrap { position: relative; width: min(100%, 420px); }
-.tile-preview { width: 100%; border-radius: 12px; border: 2px dashed #64748b; opacity: 0.85; image-rendering: pixelated; }
-.map-preview-caption { margin-top: 0.75rem; text-align: center; }
+.map-panel { position: relative; min-height: 480px; background: #030712; }
+.map-container { position: absolute; inset: 0; }
+.map-badge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 2;
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  background: rgba(67, 20, 7, 0.92);
+  color: #fde68a;
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+.map-status {
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 2;
+  margin: 0;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.88);
+  color: #cbd5e1;
+  font-size: 0.8rem;
+  pointer-events: none;
+}
 aside { padding: 1rem; background: #0f172a; overflow: auto; }
 .panel { padding: 1rem; margin-bottom: 1rem; background: #1e293b; border-radius: 12px; }
 .panel h2 { margin-top: 0; font-size: 1rem; }
@@ -19,4 +43,8 @@ label { display: block; margin: 0.5rem 0; }
 button { padding: 0.55rem 0.75rem; border-radius: 8px; border: none; }
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 footer { padding: 0.75rem 1rem; color: #94a3b8; font-size: 0.85rem; border-top: 1px solid #374151; }
-@media (max-width: 800px) { main { grid-template-columns: 1fr; } aside { order: -1; } .map-placeholder { min-height: 360px; } }
+@media (max-width: 800px) {
+  main { grid-template-columns: 1fr; }
+  aside { order: -1; }
+  .map-panel { min-height: 360px; }
+}

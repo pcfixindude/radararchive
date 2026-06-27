@@ -1,15 +1,15 @@
 # Next Steps
 
-## Phase 5 - MapLibre Integration + Real Tile Grid
+## Phase 6 - Georeferenced Tiles + Playback Polish
 
-Goal: Replace the static placeholder map preview with a MapLibre map that requests placeholder tiles from the backend tile endpoint using the selected layer/timestamp.
+Goal: Align placeholder tiles to a real CONUS (or regional) bounding box, add smooth time-slider playback (auto-play/pause), and improve mobile map UX — still without real GRIB2 or NOAA downloads.
 
 Suggested work:
-1. Wire MapLibre raster source to `/tiles/{layer}/{timestamp}/{z}/{x}/{y}.png`
-2. Sync map timestamp with the time slider
-3. Keep tiles as obvious placeholders until real GRIB2 processing lands
-4. Add frontend tests or smoke checks for tile URL wiring
-5. Preserve existing API contracts
+1. Define MRMS reflectivity tile bounds and zoom range in backend tile metadata
+2. Constrain MapLibre raster source bounds so overlays align with the basemap
+3. Wire play/pause to advance timestamps on an interval
+4. Add keyboard/touch-friendly playback controls for mobile PWA
+5. Keep tiles as obvious placeholders until real processing lands
 
 Do not start yet:
 - Real MRMS S3/AWS downloads
@@ -18,12 +18,11 @@ Do not start yet:
 - Auth
 - HRRR / WPC / native Android
 
-## Phase 4 verification commands
+## Phase 5 verification commands
 
 ```bash
 make setup
 make seed
-make collect-once
 make process-once
 make test
 make backend
@@ -35,21 +34,17 @@ In another terminal:
 make frontend
 ```
 
+Open http://127.0.0.1:5173 and verify:
+1. MapLibre basemap loads
+2. Selected timestamp shows in map status bar
+3. Browser network tab requests `/tiles/mrms_reflectivity/.../{z}/{x}/{y}.png`
+4. Moving the time slider changes tile URLs
+5. Opacity slider adjusts radar overlay
+
 Manual API checks:
 
 ```bash
 curl http://127.0.0.1:8000/api/health
-curl http://127.0.0.1:8000/api/layers
 curl "http://127.0.0.1:8000/api/times?layer=mrms_reflectivity"
-curl "http://127.0.0.1:8000/api/latest?layer=mrms_reflectivity"
 curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:00:00Z/0/0/0.png"
-```
-
-Pipeline maintenance:
-
-```bash
-make seed
-make collect-once
-make process-once
-make db-reset
 ```
