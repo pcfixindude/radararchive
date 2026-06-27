@@ -1,15 +1,16 @@
 # Project State
 
-Current phase: Phase 8 complete
+Current phase: Phase 9 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
 - FastAPI backend enforces demo access plans on times, latest, and tile endpoints
-- Plan selection via `?plan=` or `X-Demo-Plan` header (default `pro` for local dev)
-- MRMS discovery module lists public NOAA AWS object metadata (no GRIB2 download/parse)
-- `MRMS_SOURCE_MODE=stub|real` — stub works offline; real mode uses anonymous S3 ListObjectsV2
-- Optional catalog registration for discovered files (`source: mrms_discovered`)
+- MRMS discovery lists public NOAA AWS object metadata (no GRIB2 parse)
+- MRMS downloader stores GRIB2.gz (or stub placeholders) under `data/raw/mrms/reflectivity/`
+- Catalog rows track `download_status`, `sha256`, `file_size_bytes`, `downloaded_at`
+- `MRMS_SOURCE_MODE=stub|real` — stub works offline; real mode downloads from public URLs
+- Processor stub can turn downloaded raw files into placeholder PNGs (not real radar)
 - MapLibre frontend with playback controls and demo plan selector
 - No real auth, Stripe, GRIB2 parsing, or rendered radar tiles
 
@@ -19,7 +20,8 @@ Current status:
 make setup
 make seed
 make process-once
-make discover-mrms
+make discover-mrms -- --register --limit 5
+make download-mrms -- --limit 5
 make test
 make backend
 ```
@@ -37,24 +39,29 @@ Open http://127.0.0.1:5173
 ```bash
 make test
 make lint
-make discover-mrms
+make download-mrms -- --register-discovered --limit 3
 cd frontend && npm run build
 ```
 
-## MRMS discovery
+## MRMS pipeline (discovery → download)
 
 ```bash
-# Offline-safe stub listings (default)
-make discover-mrms
-
-# Register discovered metadata in catalog
+# Discover + register metadata
 make discover-mrms -- --register --limit 5
 
-# Live NOAA AWS listing (requires network)
-MRMS_SOURCE_MODE=real make discover-mrms -- --limit 5
+# Download stub placeholders (offline)
+make download-mrms -- --limit 5
+
+# One-shot discover + register + download
+make download-mrms -- --register-discovered --limit 5
+
+# Live NOAA download (requires network)
+MRMS_SOURCE_MODE=real make download-mrms -- --register-discovered --limit 3
 ```
 
-Dev API: `GET /api/sources/mrms/latest?product=MRMS_ReflectivityAtLowestAltitude&limit=5`
+Dev APIs:
+- `GET /api/sources/mrms/latest?limit=5`
+- `GET /api/sources/mrms/download-status`
 
 ## Demo plans
 

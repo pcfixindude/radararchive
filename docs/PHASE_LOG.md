@@ -409,3 +409,64 @@ MRMS_SOURCE_MODE=real make discover-mrms -- --limit 5
 - Stub mode uses sample 2026-06-26 timestamps (avoids demo seed collision)
 - Discovered catalog rows are not processed; map still shows demo processed frames
 - Real mode requires network; fails gracefully with clear message when offline
+
+## Phase 9 - MRMS Download (GRIB2.gz to local raw storage, no parse)
+
+Added MRMS download support for discovered catalog rows — stores GRIB2.gz (or stub placeholders) locally without GRIB2 parsing.
+
+### Backend
+- `backend/app/services/mrms_downloader.py` — download, SHA256, duplicate skip, force re-download
+- `RadarFile` columns: `sha256`, `download_status`, `downloaded_at`
+- Local paths: `data/raw/mrms/reflectivity/{timestamp}_{filename}[.stub]`
+- `GET /api/sources/mrms/download-status` — dev download counts
+
+### Scripts / Makefile
+- `scripts/download_mrms.py` — `--limit`, `--register-discovered`, `--force`, `--mode stub|real`
+- `make download-mrms`
+
+### Frontend
+- Banner updated: “MRMS discovery/download available; rendering still placeholder”
+
+### Run commands
+
+```bash
+make setup
+make seed
+make process-once
+make test
+make download-mrms -- --register-discovered --limit 5
+make backend
+```
+
+In another terminal:
+
+```bash
+make frontend
+```
+
+Open http://127.0.0.1:5173
+
+### Test commands
+
+```bash
+make test
+make lint
+make download-mrms -- --register-discovered --limit 3
+cd frontend && npm run build
+```
+
+Download checks:
+
+```bash
+make download-mrms -- --register-discovered --limit 5
+make download-mrms -- --limit 5
+curl "http://127.0.0.1:8000/api/sources/mrms/download-status"
+MRMS_SOURCE_MODE=real make download-mrms -- --register-discovered --limit 3
+```
+
+### Known limitations
+- Downloads GRIB2.gz only — no parse, GDAL/rasterio, or real radar tiles
+- Stub mode writes labeled `.stub` gzip placeholders, not real NOAA data
+- Processor stub produces placeholder PNGs even from real downloads
+- Failed downloads marked `download_status=failed`; retry without `--force` on next run
+- Real mode requires network; short timeout with friendly errors when offline

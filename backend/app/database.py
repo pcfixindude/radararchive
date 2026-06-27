@@ -69,6 +69,14 @@ def _ensure_radar_file_columns(engine) -> None:
         statements.append("ALTER TABLE radar_files ADD COLUMN source_url VARCHAR")
     if "file_size_bytes" not in columns:
         statements.append("ALTER TABLE radar_files ADD COLUMN file_size_bytes INTEGER")
+    if "sha256" not in columns:
+        statements.append("ALTER TABLE radar_files ADD COLUMN sha256 VARCHAR")
+    if "download_status" not in columns:
+        statements.append(
+            "ALTER TABLE radar_files ADD COLUMN download_status VARCHAR NOT NULL DEFAULT 'pending'"
+        )
+    if "downloaded_at" not in columns:
+        statements.append("ALTER TABLE radar_files ADD COLUMN downloaded_at VARCHAR")
 
     if not statements:
         return

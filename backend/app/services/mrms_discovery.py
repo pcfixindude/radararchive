@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from backend.app.models import RadarFile
-from backend.app.models.radar_file import PROCESSED_STATUS_PENDING
+from backend.app.models.radar_file import DOWNLOAD_STATUS_PENDING, PROCESSED_STATUS_PENDING
 from backend.app.schemas.mrms import RegisterDiscoveredResult
 from backend.app.sources.mrms import MRMS_CATALOG_SOURCE, MrmsDiscoveredFile
 
@@ -42,6 +42,7 @@ def register_discovered_files(
                 source_provider=item.source_provider,
                 source_url=item.source_url,
                 file_size_bytes=item.size_bytes,
+                download_status=DOWNLOAD_STATUS_PENDING,
             )
         )
         created += 1

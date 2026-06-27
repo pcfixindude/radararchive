@@ -156,3 +156,26 @@ Example:
 ```bash
 curl "http://127.0.0.1:8000/api/sources/mrms/latest?limit=3"
 ```
+
+## MRMS download status (Phase 9 — dev/metadata)
+
+GET /api/sources/mrms/download-status
+
+Returns download counts for `mrms_discovered` catalog rows.
+
+Response:
+```json
+{
+  "mode": "stub",
+  "total": 5,
+  "pending": 2,
+  "downloaded": 3,
+  "failed": 0,
+  "note": "Download status for mrms_discovered catalog rows. Rendering remains placeholder."
+}
+```
+
+Example:
+```bash
+curl "http://127.0.0.1:8000/api/sources/mrms/download-status"
+```

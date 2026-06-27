@@ -21,7 +21,18 @@ class MrmsDiscoveryResponse(BaseModel):
     count: int
     items: list[MrmsDiscoveredFileSchema]
     note: str = Field(
-        default="Discovery metadata only. GRIB2 files are not downloaded or parsed in Phase 8."
+        default="Discovery metadata only. Use download-mrms to fetch GRIB2.gz files (no parse yet)."
+    )
+
+
+class MrmsDownloadStatusResponse(BaseModel):
+    mode: str
+    total: int
+    pending: int
+    downloaded: int
+    failed: int
+    note: str = Field(
+        default="Download status for mrms_discovered catalog rows. Rendering remains placeholder."
     )
 
 

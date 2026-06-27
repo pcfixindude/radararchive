@@ -1,7 +1,14 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
 
 from backend.app.config import settings
-from backend.app.schemas.mrms import MrmsDiscoveredFileSchema, MrmsDiscoveryResponse
+from backend.app.database import get_db
+from backend.app.schemas.mrms import (
+    MrmsDiscoveredFileSchema,
+    MrmsDiscoveryResponse,
+    MrmsDownloadStatusResponse,
+)
+from backend.app.services.mrms_downloader import download_status_summary
 from backend.app.sources.mrms import MrmsDiscoveryError, discover_latest_mrms
 
 router = APIRouter()
@@ -38,3 +45,10 @@ def mrms_latest_sources(
         count=len(items),
         items=items,
     )
+
+
+@router.get("/sources/mrms/download-status", response_model=MrmsDownloadStatusResponse)
+def mrms_download_status(session: Session = Depends(get_db)) -> MrmsDownloadStatusResponse:
+    """Dev endpoint: download status counts for mrms_discovered catalog rows."""
+    summary = download_status_summary(session)
+    return MrmsDownloadStatusResponse(mode=settings.mrms_source_mode, **summary)

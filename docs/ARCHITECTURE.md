@@ -15,7 +15,7 @@ Local development uses SQLite at `data/radararchive.sqlite`.
 Tables:
 - `layers` — map layer metadata (`id`, `name`, `type`, `available`, `source`)
 - `products` — product records linked to a layer (`layer_id`)
-- `radar_files` — indexed frames with UTC ISO timestamps, raw/processed paths, `processed_status`, `processed_at`, `source`, `source_provider`, `source_url`, `file_size_bytes`
+- `radar_files` — indexed frames with UTC ISO timestamps, raw/processed paths, `processed_status`, `processed_at`, `source`, `source_provider`, `source_url`, `file_size_bytes`, `sha256`, `download_status`, `downloaded_at`
 - `access_plans` — subscription plan history limits (`free`, `basic`, `pro`, `business`)
 
 API routes read from `backend/app/services/catalog.py`; they do not collect or process radar data during requests.
@@ -109,6 +109,23 @@ Flow:
 CLI: `make discover-mrms` (`scripts/discover_mrms.py`) with optional `--register`.
 
 Dev API: `GET /api/sources/mrms/latest?product=...&limit=...` — metadata only, not radar rendering.
+
+### MRMS download (Phase 9)
+`backend/app/services/mrms_downloader.py` downloads discovered GRIB2.gz files to local raw storage.
+
+Modes (`MRMS_SOURCE_MODE` or script `--mode`):
+- `stub` — writes gzip stub placeholders under `data/raw/mrms/reflectivity/*.stub`
+- `real` — downloads from public `source_url` via HTTPS
+
+Flow:
+1. Select `mrms_discovered` catalog rows with `source_url`
+2. Skip when already downloaded (checksum/size match) unless `--force`
+3. Write local raw file, compute SHA256, update `raw_path`, `file_size_bytes`, `download_status`, `downloaded_at`
+4. Rows remain `processed_status=pending` until processor stub runs (placeholder PNG only)
+
+CLI: `make download-mrms` (`scripts/download_mrms.py`) with `--limit`, `--register-discovered`, `--force`, `--mode`.
+
+Dev API: `GET /api/sources/mrms/download-status` — pending/downloaded/failed counts.
 
 ## Frontend
 Mobile-first PWA using MapLibre GL JS (Phase 5).

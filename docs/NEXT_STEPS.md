@@ -1,31 +1,30 @@
 # Next Steps
 
-## Phase 9 - MRMS Download Stub (no GRIB2 parse)
+## Phase 10 - GRIB2 Processing Stub (metadata only or minimal decode planning)
 
-Goal: Download discovered MRMS GRIB2.gz files from NOAA AWS to local raw storage and update catalog rows with real file paths — still no GDAL/rasterio or real tile rendering.
+Goal: Design the GRIB2 → raster processing path without committing to GDAL/rasterio yet — or add a minimal metadata-only GRIB2 header read if a lightweight stdlib-safe approach exists. Real radar rendering remains out of scope until a dedicated processing phase.
 
 Suggested work:
-1. Add download service that fetches GRIB2.gz from `source_url` for `mrms_discovered` rows
-2. Stream to `data/raw/mrms/reflectivity/{timestamp}.grib2.gz` with checksum
-3. Wire collector or new `make download-mrms` script with safe limits and timeouts
-4. Keep processor/tile pipeline on placeholders until GRIB2 decode phase
-5. Add tests with mocked HTTP responses (no live network)
+1. Document GRIB2 processing architecture and tile pyramid strategy in `docs/ARCHITECTURE.md`
+2. Evaluate processing libraries and memory constraints for CONUS MRMS grids
+3. Wire processor to distinguish stub raw files (`.grib2.gz.stub`) from real downloads
+4. Add catalog flags for processing readiness vs placeholder processing
+5. Keep tile output as placeholders until real decode is approved
 
 Do not start yet:
-- Full GRIB2 decoding (GDAL/rasterio)
-- Real radar tile rendering
+- Full GDAL/rasterio tile pyramid rendering
 - Stripe billing integration
 - Real auth / user accounts
 - HRRR / WPC / native Android
 
-## Phase 8 verification commands
+## Phase 9 verification commands
 
 ```bash
 make setup
 make seed
 make process-once
 make test
-make discover-mrms
+make download-mrms -- --register-discovered --limit 3
 make backend
 ```
 
@@ -35,29 +34,32 @@ In another terminal:
 make frontend
 ```
 
-MRMS discovery checks:
+MRMS download checks:
 
 ```bash
-# Offline stub mode (default)
-make discover-mrms -- --limit 5
+# Offline stub download (discover + register + download)
+make download-mrms -- --register-discovered --limit 5
 
-# Register discovered metadata in catalog
+# Download already-registered rows
 make discover-mrms -- --register --limit 5
+make download-mrms -- --limit 5
 
-# Live NOAA AWS listing (requires network)
-MRMS_SOURCE_MODE=real make discover-mrms -- --limit 5
+# Force re-download
+make download-mrms -- --limit 5 --force
 
-curl "http://127.0.0.1:8000/api/sources/mrms/latest?product=MRMS_ReflectivityAtLowestAltitude&limit=3"
+# Live NOAA download (requires network)
+MRMS_SOURCE_MODE=real make download-mrms -- --register-discovered --limit 3
+
+curl "http://127.0.0.1:8000/api/sources/mrms/download-status"
 ```
 
 Plan API checks (unchanged):
 
 ```bash
-curl http://127.0.0.1:8000/api/access/plans
-curl "http://127.0.0.1:8000/api/times?layer=mrms_reflectivity&plan=free"
-curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:20:00Z/0/0/0.png?plan=free"
+curl "http://127.0.0.1:8000/api/times?layer=mrms_reflectivity&plan=pro"
+curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:20:00Z/0/0/0.png?plan=pro"
 ```
 
 In the UI:
-1. Confirm demo banner mentions MRMS discovery available, rendering still placeholder
+1. Confirm banner: “MRMS discovery/download available; rendering still placeholder”
 2. Demo playback and plan limits still work on processed demo timestamps

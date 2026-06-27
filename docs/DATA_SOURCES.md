@@ -28,8 +28,38 @@ Catalog registration fields:
 - `source`: `mrms_discovered`
 - `source_provider`: `noaa_aws`
 - `source_url`: full HTTPS URL
-- `raw_path`: S3 object key (not downloaded yet in Phase 8)
-- `processed_status`: `pending` (not processed)
+- `raw_path`: S3 object key until downloaded; local path after download
+- `download_status`: `pending` | `downloaded` | `failed`
+- `processed_status`: `pending` (not real radar processing yet)
+
+### Download (Phase 9)
+Downloads GRIB2.gz from `source_url` into local raw storage — **no GRIB2 parse**.
+
+Local layout:
+```
+data/raw/mrms/reflectivity/{timestamp_token}_{original_filename}.stub   # stub mode
+data/raw/mrms/reflectivity/{timestamp_token}_{original_filename}        # real mode
+```
+
+Example stub file:
+```
+data/raw/mrms/reflectivity/20260626T200000Z_MRMS_ReflectivityAtLowestAltitude_00.50_20260626-200000.grib2.gz.stub
+```
+
+Stub files are gzip-compressed text placeholders labeled as demo/stub — not real NOAA data.
+
+Real mode streams the public HTTPS object with short timeout; SHA256 and size stored on the catalog row.
+
+Commands:
+```bash
+make download-mrms -- --register-discovered --limit 5
+MRMS_SOURCE_MODE=real make download-mrms -- --limit 5
+```
+
+Limitations:
+- No GRIB2 decoding, GDAL/rasterio, or real radar tiles
+- Processor stub may create placeholder PNGs from downloaded raw files
+- Duplicate downloads skipped when checksum/size matches (use `--force` to re-download)
 
 Config:
 - `MRMS_SOURCE_MODE=stub` — offline sample listings (default for local dev)
