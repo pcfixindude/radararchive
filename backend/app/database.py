@@ -63,6 +63,12 @@ def _ensure_radar_file_columns(engine) -> None:
         )
     if "processed_at" not in columns:
         statements.append("ALTER TABLE radar_files ADD COLUMN processed_at VARCHAR")
+    if "source_provider" not in columns:
+        statements.append("ALTER TABLE radar_files ADD COLUMN source_provider VARCHAR")
+    if "source_url" not in columns:
+        statements.append("ALTER TABLE radar_files ADD COLUMN source_url VARCHAR")
+    if "file_size_bytes" not in columns:
+        statements.append("ALTER TABLE radar_files ADD COLUMN file_size_bytes INTEGER")
 
     if not statements:
         return

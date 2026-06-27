@@ -118,3 +118,41 @@ curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:20:00Z/0/0/
 Note: URL-encode the timestamp if needed.
 
 Access plan enforcement uses demo plans only — no real auth, JWT, or Stripe yet.
+
+## MRMS source discovery (Phase 8 — dev/metadata)
+
+GET /api/sources/mrms/latest?product=MRMS_ReflectivityAtLowestAltitude&limit=5
+
+Lists latest discovered MRMS object metadata. Does not download or render GRIB2.
+
+Query params:
+- `product` — MRMS product name (default `MRMS_ReflectivityAtLowestAltitude`)
+- `limit` — max files (1–50, default 5)
+
+Response:
+```json
+{
+  "mode": "stub",
+  "product": "MRMS_ReflectivityAtLowestAltitude",
+  "count": 3,
+  "items": [
+    {
+      "product": "MRMS_ReflectivityAtLowestAltitude",
+      "timestamp": "2026-06-26T20:00:00Z",
+      "object_key": "CONUS/ReflectivityAtLowestAltitude_00.50/20260626/MRMS_ReflectivityAtLowestAltitude_00.50_20260626-200000.grib2.gz",
+      "source_url": "https://noaa-mrms-pds.s3.amazonaws.com/CONUS/ReflectivityAtLowestAltitude_00.50/20260626/MRMS_ReflectivityAtLowestAltitude_00.50_20260626-200000.grib2.gz",
+      "file_name": "MRMS_ReflectivityAtLowestAltitude_00.50_20260626-200000.grib2.gz",
+      "size_bytes": 123456,
+      "source_provider": "noaa_aws",
+      "catalog_product_id": "mrms_reflectivity"
+    }
+  ]
+}
+```
+
+Network failure in `MRMS_SOURCE_MODE=real` → `503` with friendly message. Use `stub` mode for offline dev.
+
+Example:
+```bash
+curl "http://127.0.0.1:8000/api/sources/mrms/latest?limit=3"
+```

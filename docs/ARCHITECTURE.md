@@ -15,7 +15,7 @@ Local development uses SQLite at `data/radararchive.sqlite`.
 Tables:
 - `layers` — map layer metadata (`id`, `name`, `type`, `available`, `source`)
 - `products` — product records linked to a layer (`layer_id`)
-- `radar_files` — indexed frames with UTC ISO timestamps, raw/processed paths, `processed_status`, `processed_at`
+- `radar_files` — indexed frames with UTC ISO timestamps, raw/processed paths, `processed_status`, `processed_at`, `source`, `source_provider`, `source_url`, `file_size_bytes`
 - `access_plans` — subscription plan history limits (`free`, `basic`, `pro`, `business`)
 
 API routes read from `backend/app/services/catalog.py`; they do not collect or process radar data during requests.
@@ -92,6 +92,23 @@ Flow:
 4. Return 404 when unavailable
 
 Tiles are generated on demand by `backend/app/services/tile_service.py` using pure Python PNG encoding (no GDAL/rasterio).
+
+### MRMS source discovery (Phase 8)
+`backend/app/sources/mrms.py` discovers public MRMS object metadata without downloading GRIB2.
+
+Modes (`MRMS_SOURCE_MODE`):
+- `stub` — offline sample listings for tests and local dev
+- `real` — anonymous ListObjectsV2 against `noaa-mrms-pds` via HTTPS (short timeout)
+
+Flow:
+1. List recent object keys under `CONUS/ReflectivityAtLowestAltitude_00.50/{YYYYMMDD}/`
+2. Parse filename timestamps and normalize metadata (product, UTC timestamp, URL, size)
+3. Optionally register catalog rows via `backend/app/services/mrms_discovery.py`
+4. Discovered rows use `source: mrms_discovered`, `source_provider: noaa_aws`, `processed_status: pending`
+
+CLI: `make discover-mrms` (`scripts/discover_mrms.py`) with optional `--register`.
+
+Dev API: `GET /api/sources/mrms/latest?product=...&limit=...` — metadata only, not radar rendering.
 
 ## Frontend
 Mobile-first PWA using MapLibre GL JS (Phase 5).

@@ -12,6 +12,12 @@ class Settings(BaseSettings):
     local_storage_root: str = "./data"
     testing: bool = False
     default_demo_plan: str = "pro"
+    mrms_source_mode: str = "stub"
+    mrms_discovery_limit: int = 5
+    mrms_s3_bucket: str = "noaa-mrms-pds"
+    mrms_s3_region_prefix: str = "CONUS"
+    mrms_request_timeout_seconds: float = 5.0
+    mrms_discovery_lookback_days: int = 3
 
     @property
     def sqlite_path(self) -> Optional[Path]:
@@ -24,3 +30,6 @@ class Settings(BaseSettings):
 settings = Settings()
 
 VALID_DEMO_PLANS = frozenset({"free", "basic", "pro", "business"})
+
+MRMS_SOURCE_MODE_STUB = "stub"
+MRMS_SOURCE_MODE_REAL = "real"

@@ -35,6 +35,19 @@ make collect-once
 make process-once
 ```
 
+Discover MRMS object metadata (Phase 8 — no GRIB2 download):
+
+```bash
+make discover-mrms
+make discover-mrms -- --register --limit 5
+MRMS_SOURCE_MODE=real make discover-mrms -- --limit 5
+```
+
+Limitations:
+- Default `MRMS_SOURCE_MODE=stub` uses offline sample listings
+- Real mode lists public NOAA AWS objects but does not download or parse GRIB2
+- Map tiles remain placeholders until GRIB2 processing is implemented
+
 In another terminal:
 
 ```bash

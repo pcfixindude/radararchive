@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import ForeignKey, String, UniqueConstraint
+from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.database import Base
@@ -21,5 +21,8 @@ class RadarFile(Base):
     processed_status: Mapped[str] = mapped_column(String, nullable=False, default=PROCESSED_STATUS_PENDING)
     processed_at: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     source: Mapped[str] = mapped_column(String, nullable=False, default="demo")
+    source_provider: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    source_url: Mapped[Optional[str]] = mapped_column(String, nullable=True, index=True)
+    file_size_bytes: Mapped[Optional[int]] = mapped_column(nullable=True)
 
     product: Mapped["Product"] = relationship(back_populates="radar_files")

@@ -1,4 +1,4 @@
-.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once
+.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once discover-mrms
 
 setup:
 	python3 -m venv .venv
@@ -29,3 +29,6 @@ collect-once:
 
 process-once:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/process_once.py
+
+discover-mrms:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/discover_mrms.py

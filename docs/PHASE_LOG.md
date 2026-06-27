@@ -346,3 +346,66 @@ curl "http://127.0.0.1:8000/api/times?layer=mrms_reflectivity&plan=free"
 - Demo plan selector only — no accounts, JWT, or Stripe
 - Plan limits use catalog latest timestamp as reference (dev/test behavior)
 - Still no real MRMS collection or GRIB2 processing
+
+## Phase 8 - MRMS Source Discovery (Real listing, no GRIB2)
+
+Added real MRMS object discovery from public NOAA AWS without downloading or parsing GRIB2.
+
+### Backend
+- `backend/app/sources/mrms.py` — parse S3 keys, list objects, normalize metadata
+- `backend/app/services/mrms_discovery.py` — optional catalog registration with dedupe
+- `backend/app/api/sources.py` — `GET /api/sources/mrms/latest`
+- Config: `MRMS_SOURCE_MODE=stub|real`, `MRMS_DISCOVERY_LIMIT`, lookback days, request timeout
+- `RadarFile` columns: `source_provider`, `source_url`, `file_size_bytes`
+- Discovered rows: `source=mrms_discovered`, `source_provider=noaa_aws`, `processed_status=pending`
+
+### Scripts / Makefile
+- `scripts/discover_mrms.py` — discover with optional `--register`
+- `make discover-mrms`
+
+### Frontend
+- Demo banner notes MRMS discovery is available; rendering still placeholder
+
+### Run commands
+
+```bash
+make setup
+make seed
+make process-once
+make discover-mrms
+make test
+make backend
+```
+
+In another terminal:
+
+```bash
+make frontend
+```
+
+Open http://127.0.0.1:5173
+
+### Test commands
+
+```bash
+make test
+make lint
+make discover-mrms
+cd frontend && npm run build
+```
+
+Discovery checks:
+
+```bash
+make discover-mrms -- --limit 5
+make discover-mrms -- --register --limit 5
+curl "http://127.0.0.1:8000/api/sources/mrms/latest?limit=3"
+MRMS_SOURCE_MODE=real make discover-mrms -- --limit 5
+```
+
+### Known limitations
+- Lists metadata only — no GRIB2 download, parse, or real radar tiles
+- Initial product: `MRMS_ReflectivityAtLowestAltitude` only
+- Stub mode uses sample 2026-06-26 timestamps (avoids demo seed collision)
+- Discovered catalog rows are not processed; map still shows demo processed frames
+- Real mode requires network; fails gracefully with clear message when offline
