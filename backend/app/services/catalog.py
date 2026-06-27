@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.demo.layer_metadata import get_layer_tile_metadata
 from backend.app.models import Layer, Product, RadarFile
-from backend.app.models.radar_file import PROCESSED_STATUS_PROCESSED
+from backend.app.models.radar_file import is_placeholder_tile_status
 from backend.app.schemas.catalog import Layer as LayerSchema
 
 MRMS_REFLECTIVITY_LAYER_ID = "mrms_reflectivity"
@@ -40,11 +40,10 @@ def list_times(session: Session, layer_id: str, *, processed_only: bool = False)
     if not product_ids:
         return []
 
-    query = session.query(RadarFile.timestamp).filter(RadarFile.product_id.in_(product_ids))
-    if processed_only:
-        query = query.filter(RadarFile.processed_status == PROCESSED_STATUS_PROCESSED)
-
+    query = session.query(RadarFile).filter(RadarFile.product_id.in_(product_ids))
     rows = query.order_by(RadarFile.timestamp.asc()).all()
+    if processed_only:
+        return [row.timestamp for row in rows if is_placeholder_tile_status(row.processed_status)]
     return [row.timestamp for row in rows]
 
 
@@ -69,15 +68,17 @@ def get_frame_for_layer_timestamp(
     if not product_ids:
         return None
 
-    return (
+    frame = (
         session.query(RadarFile)
         .filter(
             RadarFile.product_id.in_(product_ids),
             RadarFile.timestamp == timestamp,
-            RadarFile.processed_status == PROCESSED_STATUS_PROCESSED,
         )
         .one_or_none()
     )
+    if frame is None or not is_placeholder_tile_status(frame.processed_status):
+        return None
+    return frame
 
 
 def frame_has_processed_tiles(session: Session, layer_id: str, timestamp: str) -> bool:

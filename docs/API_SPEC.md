@@ -179,3 +179,33 @@ Example:
 ```bash
 curl "http://127.0.0.1:8000/api/sources/mrms/download-status"
 ```
+
+## MRMS processing status (Phase 10 — dev/metadata)
+
+GET /api/sources/mrms/processing-status
+
+Returns processing status counts for all catalog rows.
+
+Response:
+```json
+{
+  "total": 8,
+  "pending": 0,
+  "placeholder_processed": 5,
+  "placeholder_for_real_raw": 3,
+  "real_decode_not_implemented": 3,
+  "failed": 0,
+  "note": "Processing status for catalog rows. GRIB2 decode and real radar rendering are not implemented."
+}
+```
+
+Tile response headers when placeholders are served:
+- `X-RadarArchive-Tile: placeholder` — stub/demo processed frames
+- `X-RadarArchive-Tile: placeholder_for_real_raw` — real GRIB2.gz with preview only
+- `X-RadarArchive-Raw-Kind: mrms_real_grib2` — raw file kind hint
+
+Example:
+```bash
+curl "http://127.0.0.1:8000/api/sources/mrms/processing-status"
+curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:00:00Z/0/0/0.png"
+```

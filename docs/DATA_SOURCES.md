@@ -59,6 +59,7 @@ MRMS_SOURCE_MODE=real make download-mrms -- --limit 5
 Limitations:
 - No GRIB2 decoding, GDAL/rasterio, or real radar tiles
 - Processor stub may create placeholder PNGs from downloaded raw files
+- Real `.grib2.gz` files get `placeholder_for_real_raw` status — preview only, not decoded radar
 - Duplicate downloads skipped when checksum/size matches (use `--force` to re-download)
 
 Config:

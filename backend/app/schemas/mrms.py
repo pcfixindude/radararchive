@@ -36,6 +36,18 @@ class MrmsDownloadStatusResponse(BaseModel):
     )
 
 
+class MrmsProcessingStatusResponse(BaseModel):
+    total: int
+    pending: int
+    placeholder_processed: int
+    placeholder_for_real_raw: int
+    real_decode_not_implemented: int
+    failed: int
+    note: str = Field(
+        default="Processing status for catalog rows. GRIB2 decode and real radar rendering are not implemented."
+    )
+
+
 @dataclass
 class RegisterDiscoveredResult:
     created: int

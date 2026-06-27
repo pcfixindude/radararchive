@@ -77,13 +77,21 @@ def _ensure_radar_file_columns(engine) -> None:
         )
     if "downloaded_at" not in columns:
         statements.append("ALTER TABLE radar_files ADD COLUMN downloaded_at VARCHAR")
-
-    if not statements:
-        return
+    if "raw_kind" not in columns:
+        statements.append("ALTER TABLE radar_files ADD COLUMN raw_kind VARCHAR")
 
     with engine.begin() as connection:
         for statement in statements:
             connection.execute(text(statement))
+
+    # Migrate legacy processed status from Phase 4–9.
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "UPDATE radar_files SET processed_status = 'placeholder_processed' "
+                "WHERE processed_status = 'processed'"
+            )
+        )
 
 
 def get_db() -> Generator[Session, None, None]:

@@ -1,17 +1,16 @@
 # Project State
 
-Current phase: Phase 9 complete
+Current phase: Phase 10 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
-- FastAPI backend enforces demo access plans on times, latest, and tile endpoints
-- MRMS discovery lists public NOAA AWS object metadata (no GRIB2 parse)
-- MRMS downloader stores GRIB2.gz (or stub placeholders) under `data/raw/mrms/reflectivity/`
-- Catalog rows track `download_status`, `sha256`, `file_size_bytes`, `downloaded_at`
-- `MRMS_SOURCE_MODE=stub|real` — stub works offline; real mode downloads from public URLs
-- Processor stub can turn downloaded raw files into placeholder PNGs (not real radar)
-- MapLibre frontend with playback controls and demo plan selector
+- MRMS discovery + download pipeline (metadata → local GRIB2.gz or stub files)
+- Processor distinguishes raw file kinds and records processing status cleanly
+- Stub/demo raw files → `placeholder_processed` placeholder PNGs (tiles work)
+- Real downloaded `.grib2.gz` → `placeholder_for_real_raw` preview only (GRIB2 decode not implemented)
+- Dev APIs for discovery, download, and processing status
+- MapLibre frontend with playback and demo plan selector
 - No real auth, Stripe, GRIB2 parsing, or rendered radar tiles
 
 ## Local run
@@ -19,9 +18,8 @@ Current status:
 ```bash
 make setup
 make seed
+make download-mrms -- --register-discovered --limit 3
 make process-once
-make discover-mrms -- --register --limit 5
-make download-mrms -- --limit 5
 make test
 make backend
 ```
@@ -39,29 +37,31 @@ Open http://127.0.0.1:5173
 ```bash
 make test
 make lint
-make download-mrms -- --register-discovered --limit 3
+make process-once
 cd frontend && npm run build
 ```
 
-## MRMS pipeline (discovery → download)
+## MRMS pipeline (discovery → download → process)
 
 ```bash
-# Discover + register metadata
-make discover-mrms -- --register --limit 5
-
-# Download stub placeholders (offline)
-make download-mrms -- --limit 5
-
-# One-shot discover + register + download
 make download-mrms -- --register-discovered --limit 5
-
-# Live NOAA download (requires network)
-MRMS_SOURCE_MODE=real make download-mrms -- --register-discovered --limit 3
+make process-once
 ```
 
 Dev APIs:
 - `GET /api/sources/mrms/latest?limit=5`
 - `GET /api/sources/mrms/download-status`
+- `GET /api/sources/mrms/processing-status`
+
+## Processing statuses
+
+| Status | Meaning |
+|--------|---------|
+| `pending` | Raw file present but not yet processed |
+| `placeholder_processed` | Stub/demo raw → placeholder PNG (tiles available) |
+| `placeholder_for_real_raw` | Real GRIB2.gz → labeled placeholder preview (decode not implemented) |
+| `real_decode_not_implemented` | Real GRIB2 awaiting decode (no tiles unless preview created) |
+| `failed` | Processing failed |
 
 ## Demo plans
 

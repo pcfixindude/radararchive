@@ -7,8 +7,10 @@ from backend.app.schemas.mrms import (
     MrmsDiscoveredFileSchema,
     MrmsDiscoveryResponse,
     MrmsDownloadStatusResponse,
+    MrmsProcessingStatusResponse,
 )
 from backend.app.services.mrms_downloader import download_status_summary
+from backend.app.services.processor import processing_status_summary
 from backend.app.sources.mrms import MrmsDiscoveryError, discover_latest_mrms
 
 router = APIRouter()
@@ -52,3 +54,10 @@ def mrms_download_status(session: Session = Depends(get_db)) -> MrmsDownloadStat
     """Dev endpoint: download status counts for mrms_discovered catalog rows."""
     summary = download_status_summary(session)
     return MrmsDownloadStatusResponse(mode=settings.mrms_source_mode, **summary)
+
+
+@router.get("/sources/mrms/processing-status", response_model=MrmsProcessingStatusResponse)
+def mrms_processing_status(session: Session = Depends(get_db)) -> MrmsProcessingStatusResponse:
+    """Dev endpoint: processing status counts for all catalog rows."""
+    summary = processing_status_summary(session)
+    return MrmsProcessingStatusResponse(**summary)

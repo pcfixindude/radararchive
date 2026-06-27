@@ -470,3 +470,56 @@ MRMS_SOURCE_MODE=real make download-mrms -- --register-discovered --limit 3
 - Processor stub produces placeholder PNGs even from real downloads
 - Failed downloads marked `download_status=failed`; retry without `--force` on next run
 - Real mode requires network; short timeout with friendly errors when offline
+
+## Phase 10 - Processing Status Pipeline (placeholder only, no GRIB2 decode)
+
+Prepared the processor for future real GRIB2 decoding while keeping tile output as placeholders.
+
+### Backend
+- `processed_status` values: `pending`, `placeholder_processed`, `placeholder_for_real_raw`, `real_decode_not_implemented`, `failed`
+- `raw_kind` column: `demo_seeded_stub`, `collector_stub`, `mrms_download_stub`, `mrms_real_grib2`
+- `backend/app/services/raw_file_classifier.py` — raw file type detection
+- Updated `backend/app/services/processor.py` — stub rows → placeholder PNG; real `.grib2.gz` → labeled preview only
+- `GET /api/sources/mrms/processing-status` — dev processing counts
+- Tile headers: `X-RadarArchive-Tile: placeholder` or `placeholder_for_real_raw`
+- Legacy `processed` status migrated to `placeholder_processed`
+
+### Scripts
+- `scripts/process_once.py` — summary counts (processed, skipped, real_decode_pending, failed)
+
+### Frontend
+- Banner: “Placeholder tiles only — GRIB2 rendering not implemented. MRMS discovery/download available.”
+
+### Run commands
+
+```bash
+make setup
+make seed
+make download-mrms -- --register-discovered --limit 3
+make process-once
+make test
+make backend
+```
+
+### Test commands
+
+```bash
+make test
+make lint
+make process-once
+cd frontend && npm run build
+```
+
+Processing checks:
+
+```bash
+make process-once
+curl "http://127.0.0.1:8000/api/sources/mrms/processing-status"
+curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:00:00Z/0/0/0.png"
+```
+
+### Known limitations
+- No GRIB2 decode, GDAL/rasterio, or real radar rendering
+- Real `.grib2.gz` files get `placeholder_for_real_raw` preview PNGs only
+- `real_decode_not_implemented` rows without preview do not serve tiles
+- All map tiles remain programmatic placeholders

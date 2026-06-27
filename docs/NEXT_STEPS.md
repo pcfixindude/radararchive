@@ -1,30 +1,28 @@
 # Next Steps
 
-## Phase 10 - GRIB2 Processing Stub (metadata only or minimal decode planning)
+## Phase 11 - GRIB2 Decode Evaluation + Real Raster Pipeline Design
 
-Goal: Design the GRIB2 → raster processing path without committing to GDAL/rasterio yet — or add a minimal metadata-only GRIB2 header read if a lightweight stdlib-safe approach exists. Real radar rendering remains out of scope until a dedicated processing phase.
+Goal: Evaluate and prototype GRIB2 decoding for MRMS reflectivity (likely GDAL/rasterio or equivalent), define tile pyramid generation, and replace placeholder tiles with real radar imagery for downloaded frames.
 
 Suggested work:
-1. Document GRIB2 processing architecture and tile pyramid strategy in `docs/ARCHITECTURE.md`
-2. Evaluate processing libraries and memory constraints for CONUS MRMS grids
-3. Wire processor to distinguish stub raw files (`.grib2.gz.stub`) from real downloads
-4. Add catalog flags for processing readiness vs placeholder processing
-5. Keep tile output as placeholders until real decode is approved
+1. Spike GRIB2 decode on a single downloaded CONUS MRMS file; document memory/time constraints
+2. Choose processing library and document in `docs/ARCHITECTURE.md` and `docs/DATA_SOURCES.md`
+3. Add worker step: `real_decode_pending` → decoded raster → tile pyramid
+4. Update processor to transition `placeholder_for_real_raw` → real processed status when decode succeeds
+5. Keep stub/demo paths on placeholder tiles for offline dev
 
 Do not start yet:
-- Full GDAL/rasterio tile pyramid rendering
 - Stripe billing integration
 - Real auth / user accounts
 - HRRR / WPC / native Android
 
-## Phase 9 verification commands
+## Phase 10 verification commands
 
 ```bash
 make setup
 make seed
 make process-once
 make test
-make download-mrms -- --register-discovered --limit 3
 make backend
 ```
 
@@ -34,32 +32,22 @@ In another terminal:
 make frontend
 ```
 
-MRMS download checks:
+Processing checks:
 
 ```bash
-# Offline stub download (discover + register + download)
-make download-mrms -- --register-discovered --limit 5
-
-# Download already-registered rows
-make discover-mrms -- --register --limit 5
-make download-mrms -- --limit 5
-
-# Force re-download
-make download-mrms -- --limit 5 --force
-
-# Live NOAA download (requires network)
-MRMS_SOURCE_MODE=real make download-mrms -- --register-discovered --limit 3
-
-curl "http://127.0.0.1:8000/api/sources/mrms/download-status"
+make download-mrms -- --register-discovered --limit 3
+make process-once
+curl "http://127.0.0.1:8000/api/sources/mrms/processing-status"
+curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:00:00Z/0/0/0.png"
 ```
 
 Plan API checks (unchanged):
 
 ```bash
-curl "http://127.0.0.1:8000/api/times?layer=mrms_reflectivity&plan=pro"
+curl "http://127.0.0.1:8000/api/times?layer=mrms_reflectivity&processed_only=true&plan=pro"
 curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:20:00Z/0/0/0.png?plan=pro"
 ```
 
 In the UI:
-1. Confirm banner: “MRMS discovery/download available; rendering still placeholder”
-2. Demo playback and plan limits still work on processed demo timestamps
+1. Confirm banner mentions placeholder tiles and GRIB2 rendering not implemented
+2. Demo playback and plan limits still work on placeholder-processed timestamps

@@ -41,9 +41,17 @@ def get_tile(
     if frame is None:
         raise HTTPException(status_code=404, detail="Tile unavailable for layer/timestamp")
 
+    tile_kind = "placeholder"
+    if frame.processed_status == "placeholder_for_real_raw":
+        tile_kind = "placeholder_for_real_raw"
+
     png_bytes = generate_placeholder_tile_png(z=z, x=x, y=y)
     return Response(
         content=png_bytes,
         media_type="image/png",
-        headers={"Cache-Control": "no-store", "X-RadarArchive-Tile": "placeholder"},
+        headers={
+            "Cache-Control": "no-store",
+            "X-RadarArchive-Tile": tile_kind,
+            "X-RadarArchive-Raw-Kind": frame.raw_kind or "",
+        },
     )

@@ -15,7 +15,7 @@ Local development uses SQLite at `data/radararchive.sqlite`.
 Tables:
 - `layers` — map layer metadata (`id`, `name`, `type`, `available`, `source`)
 - `products` — product records linked to a layer (`layer_id`)
-- `radar_files` — indexed frames with UTC ISO timestamps, raw/processed paths, `processed_status`, `processed_at`, `source`, `source_provider`, `source_url`, `file_size_bytes`, `sha256`, `download_status`, `downloaded_at`
+- `radar_files` — indexed frames with UTC ISO timestamps, raw/processed paths, `processed_status`, `processed_at`, `source`, `source_provider`, `source_url`, `file_size_bytes`, `sha256`, `download_status`, `downloaded_at`, `raw_kind`
 - `access_plans` — subscription plan history limits (`free`, `basic`, `pro`, `business`)
 
 API routes read from `backend/app/services/catalog.py`; they do not collect or process radar data during requests.
@@ -73,23 +73,37 @@ Flow:
 3. Write raw placeholder file (immutable; not overwritten if present)
 4. Insert `radar_files` row with `processed_status: pending` and `source: collector_stub`
 
-### Processor stub (Phase 4)
-`backend/app/services/processor.py` processes pending raw frames via CLI (`make process-once`).
+### Processor (Phase 4, updated Phase 10)
+`backend/app/services/processor.py` processes raw files via CLI (`make process-once`).
+
+Raw file kinds (`backend/app/services/raw_file_classifier.py`):
+- `demo_seeded_stub` — seeded demo raw under `data/raw/demo/`
+- `collector_stub` — collector stub under `data/raw/mrms/reflectivity/*.grib2.stub`
+- `mrms_download_stub` — MRMS download stub mode (`*.stub`)
+- `mrms_real_grib2` — real downloaded `.grib2.gz`
+
+Processing statuses (`processed_status`):
+- `pending` — not yet processed
+- `placeholder_processed` — stub/demo raw → placeholder PNG (tiles available)
+- `placeholder_for_real_raw` — real GRIB2.gz → labeled placeholder preview (decode not implemented)
+- `real_decode_not_implemented` — awaiting real decode (no tiles unless preview exists)
+- `failed` — processing error
 
 Flow:
-1. Find catalog rows with raw files present and not yet processed
-2. Write processed placeholder PNG under `data/processed/mrms/reflectivity/`
-3. Update row with `processed_path`, `processed_status: processed`, and `processed_at`
-4. Idempotent: already-processed rows are skipped (no duplicate DB rows)
+1. Classify raw file kind from `source` + `raw_path`
+2. Stub kinds → placeholder PNG at `data/processed/mrms/reflectivity/{token}.png`, status `placeholder_processed`
+3. Real `.grib2.gz` → labeled preview at `*.placeholder_for_real_raw.png`, status `placeholder_for_real_raw`
+4. Idempotent: already placeholder-processed rows are skipped
 
-### Tile server stub (Phase 4)
+### Tile server stub (Phase 4, updated Phase 10)
 `GET /tiles/{layer}/{timestamp}/{z}/{x}/{y}.png`
 
 Flow:
 1. Validate layer exists and is available
-2. Validate timestamp exists and `processed_status == processed`
+2. Validate timestamp has placeholder tile status (`placeholder_processed` or `placeholder_for_real_raw`)
 3. Return generated stub PNG tile (not real radar imagery)
-4. Return 404 when unavailable
+4. Response headers: `X-RadarArchive-Tile: placeholder` or `placeholder_for_real_raw`
+5. Return 404 when unavailable or `real_decode_not_implemented` without preview
 
 Tiles are generated on demand by `backend/app/services/tile_service.py` using pure Python PNG encoding (no GDAL/rasterio).
 
@@ -126,6 +140,13 @@ Flow:
 CLI: `make download-mrms` (`scripts/download_mrms.py`) with `--limit`, `--register-discovered`, `--force`, `--mode`.
 
 Dev API: `GET /api/sources/mrms/download-status` — pending/downloaded/failed counts.
+
+### MRMS processing status (Phase 10)
+Processor distinguishes stub vs real raw files. No GRIB2 decode yet.
+
+Dev API: `GET /api/sources/mrms/processing-status` — processing counts by status.
+
+CLI: `make process-once` prints summary counts.
 
 ## Frontend
 Mobile-first PWA using MapLibre GL JS (Phase 5).

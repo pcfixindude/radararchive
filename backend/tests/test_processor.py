@@ -1,5 +1,8 @@
 from backend.app.models import RadarFile
-from backend.app.models.radar_file import PROCESSED_STATUS_PROCESSED, PROCESSED_STATUS_PENDING
+from backend.app.models.radar_file import (
+    PROCESSED_STATUS_PENDING,
+    PROCESSED_STATUS_PLACEHOLDER_PROCESSED,
+)
 from backend.app.services.processor import process_pending_frames
 
 
@@ -8,7 +11,7 @@ def test_processor_creates_processed_placeholder(db_session, storage):
 
     assert len(result.processed) == 5
     frame = db_session.query(RadarFile).filter(RadarFile.timestamp == "2026-06-27T20:00:00Z").one()
-    assert frame.processed_status == PROCESSED_STATUS_PROCESSED
+    assert frame.processed_status == PROCESSED_STATUS_PLACEHOLDER_PROCESSED
     assert frame.processed_at is not None
     assert frame.processed_path is not None
     assert storage.path_exists(frame.processed_path)

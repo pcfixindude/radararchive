@@ -1,16 +1,35 @@
 from typing import Optional
 
-from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.database import Base
 
 PROCESSED_STATUS_PENDING = "pending"
-PROCESSED_STATUS_PROCESSED = "processed"
+PROCESSED_STATUS_PLACEHOLDER_PROCESSED = "placeholder_processed"
+PROCESSED_STATUS_REAL_DECODE_PENDING = "real_decode_pending"
+PROCESSED_STATUS_REAL_DECODE_NOT_IMPLEMENTED = "real_decode_not_implemented"
+PROCESSED_STATUS_PLACEHOLDER_FOR_REAL_RAW = "placeholder_for_real_raw"
+PROCESSED_STATUS_FAILED = "failed"
+
+# Legacy alias kept for migration/tests referencing old value.
+PROCESSED_STATUS_PROCESSED = PROCESSED_STATUS_PLACEHOLDER_PROCESSED
+
+PLACEHOLDER_TILE_STATUSES = frozenset(
+    {
+        PROCESSED_STATUS_PLACEHOLDER_PROCESSED,
+        PROCESSED_STATUS_PLACEHOLDER_FOR_REAL_RAW,
+        "processed",  # legacy rows before Phase 10 migration
+    }
+)
 
 DOWNLOAD_STATUS_PENDING = "pending"
 DOWNLOAD_STATUS_DOWNLOADED = "downloaded"
 DOWNLOAD_STATUS_FAILED = "failed"
+
+
+def is_placeholder_tile_status(status: str) -> bool:
+    return status in PLACEHOLDER_TILE_STATUSES
 
 
 class RadarFile(Base):
@@ -31,5 +50,6 @@ class RadarFile(Base):
     sha256: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     download_status: Mapped[str] = mapped_column(String, nullable=False, default=DOWNLOAD_STATUS_PENDING)
     downloaded_at: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    raw_kind: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     product: Mapped["Product"] = relationship(back_populates="radar_files")

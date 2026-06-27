@@ -52,10 +52,22 @@ make download-mrms -- --limit 5 --force
 MRMS_SOURCE_MODE=real make download-mrms -- --register-discovered --limit 3
 ```
 
+Process raw files into placeholder PNGs (Phase 10 — no GRIB2 decode):
+
+```bash
+make process-once
+```
+
+Behavior:
+- Demo/collector/MRMS stub raw files → `placeholder_processed` (map tiles work)
+- Real downloaded `.grib2.gz` → `placeholder_for_real_raw` preview only (GRIB2 decode not implemented)
+- All tiles remain programmatic placeholders — not real radar
+
 Limitations:
 - Default `MRMS_SOURCE_MODE=stub` uses offline sample listings and stub downloads
 - Real mode downloads public NOAA AWS GRIB2.gz but does not parse or render radar
-- Map tiles remain placeholders until GRIB2 processing is implemented
+- Processor creates placeholder PNGs only; real GRIB2 decode not implemented
+- Map tiles remain placeholders until Phase 11 GRIB2 decode
 
 In another terminal:
 
