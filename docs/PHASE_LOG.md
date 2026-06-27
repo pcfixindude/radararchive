@@ -131,3 +131,62 @@ cd frontend && npm run build
 - Placeholder `.stub` files, not GRIB2 or PNG radar imagery
 - No tile rendering or processor worker yet
 - Access plans still not enforced on API routes
+
+## Phase 4 - Processor Stub + Tile Placeholder
+
+Added processor stub and placeholder tile endpoint proving raw → processed → tile pipeline.
+
+### Backend
+- `backend/app/services/processor.py` — processes pending raw frames into PNG placeholders
+- `backend/app/services/tile_service.py` — generates obvious stub PNG tiles (pure Python, no GDAL)
+- `GET /tiles/{layer}/{timestamp}/{z}/{x}/{y}.png` — returns PNG for processed frames, 404 otherwise
+- `RadarFile.processed_status` and `processed_at` catalog fields
+- `scripts/process_once.py` and `make process-once`
+- Seed now writes demo raw stub files so processor can run after `make seed`
+
+### Frontend
+- Map placeholder shows tile availability and preview image when processed tiles exist
+- Demo/stub labeling remains obvious
+
+### Run commands
+
+```bash
+make setup
+make seed
+make collect-once
+make process-once
+make test
+make backend
+```
+
+In another terminal:
+
+```bash
+make frontend
+```
+
+Open http://127.0.0.1:5173
+
+### Test commands
+
+```bash
+make test
+make lint
+make seed
+make collect-once
+make process-once
+make db-reset
+cd frontend && npm run build
+```
+
+Manual tile check:
+
+```bash
+curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:00:00Z/0/0/0.png"
+```
+
+### Known limitations
+- Processor writes placeholder PNGs, not real GRIB2-derived radar
+- Tiles are generated stub PNGs, not georeferenced MapLibre tiles
+- Seeded demo frames need raw stub files on disk before processing
+- Access plans still not enforced on API routes

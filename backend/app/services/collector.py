@@ -3,6 +3,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
+from backend.app.models.radar_file import PROCESSED_STATUS_PENDING
 from backend.app.models import RadarFile
 from backend.app.services import catalog as catalog_service
 from backend.app.services.storage import LocalStorage
@@ -70,18 +71,13 @@ def collect_mrms_reflectivity_once(
 
     processed_dir = "/".join(processed_path.split("/")[:-1])
     storage.ensure_directories(processed_dir)
-    if not storage.path_exists(processed_path):
-        storage.write_text(
-            processed_path,
-            f"# processed placeholder for {frame_timestamp}\n",
-            overwrite=False,
-        )
 
     row = RadarFile(
         product_id=MRMS_REFLECTIVITY_PRODUCT_ID,
         timestamp=frame_timestamp,
         raw_path=raw_path,
         processed_path=processed_path,
+        processed_status=PROCESSED_STATUS_PENDING,
         source=COLLECTOR_SOURCE,
     )
     session.add(row)

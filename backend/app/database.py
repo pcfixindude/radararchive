@@ -43,7 +43,33 @@ def get_session_factory() -> sessionmaker[Session]:
 def init_db() -> None:
     from backend.app import models  # noqa: F401
 
-    Base.metadata.create_all(bind=get_engine())
+    engine = get_engine()
+    Base.metadata.create_all(bind=engine)
+    _ensure_radar_file_columns(engine)
+
+
+def _ensure_radar_file_columns(engine) -> None:
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(engine)
+    if "radar_files" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("radar_files")}
+    statements = []
+    if "processed_status" not in columns:
+        statements.append(
+            "ALTER TABLE radar_files ADD COLUMN processed_status VARCHAR NOT NULL DEFAULT 'pending'"
+        )
+    if "processed_at" not in columns:
+        statements.append("ALTER TABLE radar_files ADD COLUMN processed_at VARCHAR")
+
+    if not statements:
+        return
+
+    with engine.begin() as connection:
+        for statement in statements:
+            connection.execute(text(statement))
 
 
 def get_db() -> Generator[Session, None, None]:

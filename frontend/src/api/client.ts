@@ -27,3 +27,16 @@ export function fetchTimes(layer: string): Promise<string[]> {
 export function fetchLatest(layer: string): Promise<{ layer: string; timestamp: string | null }> {
   return getJson(`/api/latest?layer=${encodeURIComponent(layer)}`);
 }
+
+export function tileUrl(layer: string, timestamp: string, z = 0, x = 0, y = 0): string {
+  const encoded = encodeURIComponent(timestamp);
+  return `${API_BASE}/tiles/${encodeURIComponent(layer)}/${encoded}/${z}/${x}/${y}.png`;
+}
+
+export async function tilesAvailable(layer: string, timestamp: string): Promise<boolean> {
+  if (!timestamp) {
+    return false;
+  }
+  const response = await fetch(tileUrl(layer, timestamp), { method: 'HEAD' });
+  return response.ok;
+}

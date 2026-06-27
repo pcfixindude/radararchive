@@ -1,5 +1,7 @@
 """Seed demo catalog rows into SQLite for local development."""
 
+from typing import Optional
+
 from sqlalchemy.orm import Session
 
 from backend.app.demo.catalog import (
@@ -9,6 +11,8 @@ from backend.app.demo.catalog import (
     DEMO_TIMES,
 )
 from backend.app.models import AccessPlan, Layer, Product, RadarFile
+from backend.app.models.radar_file import PROCESSED_STATUS_PENDING
+from backend.app.services.storage import LocalStorage
 
 
 def _demo_storage_paths(product_id: str, timestamp: str) -> tuple[str, str]:
@@ -18,7 +22,23 @@ def _demo_storage_paths(product_id: str, timestamp: str) -> tuple[str, str]:
     return raw_path, processed_path
 
 
-def seed_demo_catalog(session: Session, *, reset: bool = False) -> dict[str, int]:
+def seed_demo_raw_files(storage: LocalStorage) -> int:
+    """Write demo raw stub files so the processor stub can run after seed."""
+    storage.ensure_storage_layout()
+    written = 0
+    for timestamp in DEMO_TIMES:
+        raw_path, _ = _demo_storage_paths("mrms_reflectivity", timestamp)
+        if not storage.path_exists(raw_path):
+            storage.write_text(
+                raw_path,
+                f"# demo raw stub - not real MRMS data\ntimestamp: {timestamp}\n",
+                overwrite=False,
+            )
+            written += 1
+    return written
+
+
+def seed_demo_catalog(session: Session, *, reset: bool = False, storage: Optional[LocalStorage] = None) -> dict[str, int]:
     """Insert demo layers, products, radar files, and access plans."""
     if reset:
         session.query(RadarFile).delete()
@@ -62,12 +82,15 @@ def seed_demo_catalog(session: Session, *, reset: bool = False) -> dict[str, int
                     timestamp=timestamp,
                     raw_path=raw_path,
                     processed_path=processed_path,
+                    processed_status=PROCESSED_STATUS_PENDING,
                     source="demo",
                 )
             )
         else:
             existing.raw_path = raw_path
             existing.processed_path = processed_path
+            existing.processed_status = PROCESSED_STATUS_PENDING
+            existing.processed_at = None
             existing.source = "demo"
 
     for row in DEMO_ACCESS_PLANS:
@@ -81,11 +104,16 @@ def seed_demo_catalog(session: Session, *, reset: bool = False) -> dict[str, int
 
     session.commit()
 
+    raw_files_written = 0
+    if storage is not None:
+        raw_files_written = seed_demo_raw_files(storage)
+
     return {
         "layers": session.query(Layer).count(),
         "products": session.query(Product).count(),
         "radar_files": session.query(RadarFile).count(),
         "access_plans": session.query(AccessPlan).count(),
+        "raw_files_written": raw_files_written,
     }
 
 

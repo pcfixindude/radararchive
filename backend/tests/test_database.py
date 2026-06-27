@@ -35,5 +35,4 @@ def test_seed_demo_data(tmp_path):
     assert frame.source == "demo"
     assert frame.raw_path.startswith("data/raw/demo/")
     assert frame.processed_path.startswith("data/processed/demo/")
-
-    session.close()
+    assert frame.processed_status == "pending"

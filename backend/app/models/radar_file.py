@@ -5,6 +5,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.database import Base
 
+PROCESSED_STATUS_PENDING = "pending"
+PROCESSED_STATUS_PROCESSED = "processed"
+
 
 class RadarFile(Base):
     __tablename__ = "radar_files"
@@ -15,6 +18,8 @@ class RadarFile(Base):
     timestamp: Mapped[str] = mapped_column(String, nullable=False, index=True)
     raw_path: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     processed_path: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    processed_status: Mapped[str] = mapped_column(String, nullable=False, default=PROCESSED_STATUS_PENDING)
+    processed_at: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     source: Mapped[str] = mapped_column(String, nullable=False, default="demo")
 
     product: Mapped["Product"] = relationship(back_populates="radar_files")

@@ -3,10 +3,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.app.api.routes import router
+from backend.app.api.routes import router as api_router
+from backend.app.api.tiles import router as tiles_router
+from backend.app.config import settings
 from backend.app.config import settings
 from backend.app.database import get_db, init_db
 from backend.app.demo.seed import catalog_is_empty, seed_demo_catalog
+from backend.app.services.storage import LocalStorage
 
 
 @asynccontextmanager
@@ -15,7 +18,7 @@ async def lifespan(_: FastAPI):
     session = next(get_db())
     try:
         if not settings.testing and catalog_is_empty(session):
-            seed_demo_catalog(session)
+            seed_demo_catalog(session, storage=LocalStorage(settings.local_storage_root))
     finally:
         session.close()
     yield
@@ -31,4 +34,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router, prefix="/api")
+app.include_router(api_router, prefix="/api")
+app.include_router(tiles_router)

@@ -1,30 +1,30 @@
 # Next Steps
 
-## Phase 4 - Processor Stub + Tile Placeholder
+## Phase 5 - MapLibre Integration + Real Tile Grid
 
-Goal: Add a processor worker stub that reads collector placeholder raw files and produces processed placeholders or simple tile metadata, still without real GRIB2 parsing or MapLibre tile rendering.
+Goal: Replace the static placeholder map preview with a MapLibre map that requests placeholder tiles from the backend tile endpoint using the selected layer/timestamp.
 
 Suggested work:
-1. Implement `backend/app/services/tile_service.py` stub and `scripts/process_once.py`
-2. Wire `backend/app/workers/processor.py` to regenerate processed paths from raw catalog rows
-3. Add a placeholder tile endpoint shape per `docs/API_SPEC.md` (static/404 stub acceptable)
-4. Keep processing out of API request paths; use CLI/worker only
-5. Add processor tests; preserve existing API response shapes
+1. Wire MapLibre raster source to `/tiles/{layer}/{timestamp}/{z}/{x}/{y}.png`
+2. Sync map timestamp with the time slider
+3. Keep tiles as obvious placeholders until real GRIB2 processing lands
+4. Add frontend tests or smoke checks for tile URL wiring
+5. Preserve existing API contracts
 
 Do not start yet:
 - Real MRMS S3/AWS downloads
-- Real GRIB2 decoding
-- MapLibre raster tile rendering
+- Real GRIB2 decoding (GDAL/rasterio)
 - Stripe billing
 - Auth
 - HRRR / WPC / native Android
 
-## Phase 3 verification commands
+## Phase 4 verification commands
 
 ```bash
 make setup
 make seed
 make collect-once
+make process-once
 make test
 make backend
 ```
@@ -42,12 +42,14 @@ curl http://127.0.0.1:8000/api/health
 curl http://127.0.0.1:8000/api/layers
 curl "http://127.0.0.1:8000/api/times?layer=mrms_reflectivity"
 curl "http://127.0.0.1:8000/api/latest?layer=mrms_reflectivity"
+curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:00:00Z/0/0/0.png"
 ```
 
-Database & collection maintenance:
+Pipeline maintenance:
 
 ```bash
 make seed
 make collect-once
+make process-once
 make db-reset
 ```

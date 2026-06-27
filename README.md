@@ -32,6 +32,7 @@ Simulate one collector run (optional):
 
 ```bash
 make collect-once
+make process-once
 ```
 
 In another terminal:

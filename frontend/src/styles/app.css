@@ -6,7 +6,10 @@ header p { margin: 0.25rem 0 0; color: #cbd5e1; }
 .demo-banner { margin-top: 0.5rem; padding: 0.35rem 0.6rem; border-radius: 8px; background: #422006; color: #fde68a; font-size: 0.85rem; }
 .error-banner { margin: 0 0 1rem; padding: 0.6rem 0.75rem; border-radius: 8px; background: #450a0a; color: #fecaca; }
 main { flex: 1; display: grid; grid-template-columns: 1fr 340px; min-height: 0; }
-.map-placeholder { display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1f2937, #030712); min-height: 480px; }
+.map-placeholder { display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1f2937, #030712); min-height: 480px; padding: 1rem; }
+.map-preview-wrap { position: relative; width: min(100%, 420px); }
+.tile-preview { width: 100%; border-radius: 12px; border: 2px dashed #64748b; opacity: 0.85; image-rendering: pixelated; }
+.map-preview-caption { margin-top: 0.75rem; text-align: center; }
 aside { padding: 1rem; background: #0f172a; overflow: auto; }
 .panel { padding: 1rem; margin-bottom: 1rem; background: #1e293b; border-radius: 12px; }
 .panel h2 { margin-top: 0; font-size: 1rem; }

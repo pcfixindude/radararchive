@@ -15,7 +15,7 @@ def test_collector_creates_catalog_row_and_files(db_session, tmp_path):
     assert result.timestamp == "2026-06-27T20:25:00Z"
     assert db_session.query(RadarFile).count() == before_count + 1
     assert storage.path_exists(result.raw_path)
-    assert storage.path_exists(result.processed_path)
+    assert result.processed_path.endswith(".png.stub")
     assert result.raw_sha256 is not None
 
 
