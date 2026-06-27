@@ -23,6 +23,7 @@ Not initial scope:
 
 ```bash
 make setup
+make seed
 make test
 make backend
 ```

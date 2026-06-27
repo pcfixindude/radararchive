@@ -1,0 +1,20 @@
+from typing import Optional
+
+from sqlalchemy import ForeignKey, String, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from backend.app.database import Base
+
+
+class RadarFile(Base):
+    __tablename__ = "radar_files"
+    __table_args__ = (UniqueConstraint("product_id", "timestamp", name="uq_radar_files_product_timestamp"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    product_id: Mapped[str] = mapped_column(ForeignKey("products.id"), nullable=False, index=True)
+    timestamp: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    raw_path: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    processed_path: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    source: Mapped[str] = mapped_column(String, nullable=False, default="demo")
+
+    product: Mapped["Product"] = relationship(back_populates="radar_files")

@@ -1,9 +1,9 @@
-.PHONY: setup backend frontend test lint dev seed
+.PHONY: setup backend frontend test lint dev seed db-reset
 
 setup:
 	python3 -m venv .venv
 	. .venv/bin/activate && pip install -U pip
-	. .venv/bin/activate && pip install fastapi uvicorn pydantic pydantic-settings pytest httpx python-dotenv
+	. .venv/bin/activate && pip install fastapi uvicorn pydantic pydantic-settings sqlalchemy pytest httpx python-dotenv
 	cd frontend && npm install
 
 backend:
@@ -20,3 +20,6 @@ lint:
 
 seed:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/seed_demo_data.py
+
+db-reset:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/db_reset.py

@@ -1,27 +1,28 @@
 # Next Steps
 
-## Phase 2 - Catalog + Storage Foundation
+## Phase 3 - Local Storage + Collector Stub
 
-Goal: Replace hard-coded demo timestamps with a database-backed catalog and local/raw storage layout, still without full NOAA download automation.
+Goal: Wire the collector worker stub to write immutable raw file placeholders and register new frames in the catalog, still without real NOAA/MRMS S3 downloads.
 
 Suggested work:
-1. Wire SQLAlchemy models in `backend/app/models/` to a local SQLite/Postgres database
-2. Implement `backend/app/services/catalog.py` to read layers/timestamps from the DB
-3. Seed demo catalog rows via `scripts/seed_demo_data.py` instead of in-memory lists
-4. Keep API response shapes stable (`/api/layers`, `/api/times`, `/api/latest`)
-5. Add catalog service tests; keep collection out of API request paths
+1. Implement `backend/app/services/storage.py` for local path layout under `data/raw/` and `data/processed/`
+2. Implement `scripts/collect_once.py` to simulate a collection run and insert a new demo `RadarFile` row
+3. Keep raw paths immutable; allow processed paths to be regenerated later
+4. Add collector/storage tests; keep collection out of API request paths
+5. Optionally expose a dev-only script endpoint or CLI only (not public API)
 
 Do not start yet:
-- Real MRMS S3 downloads
-- Tile rendering pipeline
+- Real MRMS S3/AWS downloads
+- GRIB2 parsing or tile rendering
 - Stripe billing
 - Auth
 - HRRR / WPC / native Android
 
-## Phase 1 verification commands
+## Phase 2 verification commands
 
 ```bash
 make setup
+make seed
 make test
 make backend
 ```
@@ -39,4 +40,11 @@ curl http://127.0.0.1:8000/api/health
 curl http://127.0.0.1:8000/api/layers
 curl "http://127.0.0.1:8000/api/times?layer=mrms_reflectivity"
 curl "http://127.0.0.1:8000/api/latest?layer=mrms_reflectivity"
+```
+
+Database maintenance:
+
+```bash
+make seed
+make db-reset
 ```

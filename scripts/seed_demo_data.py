@@ -1,7 +1,21 @@
-"""Print where Phase 1 demo catalog data lives."""
+"""Create or reset the local SQLite catalog with demo rows."""
 
-from backend.app.demo.catalog import DEMO_LAYERS, DEMO_TIMES
+from backend.app.database import get_session_factory, init_db
+from backend.app.demo.seed import seed_demo_catalog
 
-print("Phase 1 demo catalog (stub data, not real NOAA/MRMS downloads):")
-print(f"  layers: {len(DEMO_LAYERS)}")
-print(f"  mrms demo timestamps: {len(DEMO_TIMES)}")
+
+def main(*, reset: bool = False) -> None:
+    init_db()
+    session = get_session_factory()()
+    try:
+        counts = seed_demo_catalog(session, reset=reset)
+    finally:
+        session.close()
+
+    print("Phase 2 demo catalog seeded into SQLite (stub data, not real NOAA/MRMS downloads):")
+    for key, value in counts.items():
+        print(f"  {key}: {value}")
+
+
+if __name__ == "__main__":
+    main()

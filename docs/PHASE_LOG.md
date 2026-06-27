@@ -26,10 +26,32 @@ Built and verified the local demo stack without real NOAA/MRMS downloads.
 - PWA manifest at `frontend/public/manifest.webmanifest`
 - Demo banner and NOAA/NWS attribution footer
 
+### Known limitations
+- Demo timestamps were hard-coded in memory
+- No database-backed catalog yet
+
+## Phase 2 - Catalog + Storage Foundation
+
+Replaced in-memory demo catalog with a SQLite-backed catalog while keeping API response shapes stable.
+
+### Backend
+- SQLAlchemy models: `Layer`, `Product`, `RadarFile`, `AccessPlan`
+- SQLite database at `data/radararchive.sqlite`
+- Catalog service reads layers/timestamps/latest from the database
+- Access control service reads plan limits (`free`, `basic`, `pro`, `business`)
+- Demo seed via `scripts/seed_demo_data.py` with stub raw/processed storage paths
+- Auto-seed on app startup when catalog is empty
+- `make db-reset` clears and re-seeds demo rows
+
+### Frontend
+- No API contract changes; frontend still loads layers and timestamps from existing endpoints
+- Disabled layers remain visibly disabled in the layer panel
+
 ### Run commands
 
 ```bash
 make setup
+make seed
 make test
 make backend
 ```
@@ -47,12 +69,13 @@ Open http://127.0.0.1:5173
 ```bash
 make test
 make lint
-cd frontend && npm run build
 make seed
+make db-reset
+cd frontend && npm run build
 ```
 
 ### Known limitations
-- Demo timestamps are hard-coded UTC values, not collected MRMS frames
-- No tile endpoint implementation yet
-- No database-backed catalog yet
-- Empty worker/service/model stubs exist for later phases
+- Demo rows only; no real MRMS collection or GRIB2 processing
+- Stub storage paths recorded but files are not created
+- No tile endpoint or rendering yet
+- Access plans stored but not enforced on API routes yet

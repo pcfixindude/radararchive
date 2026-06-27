@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
 
 from backend.app.config import settings
-from backend.app.demo.catalog import DEMO_LAYERS, DEMO_TIMES
+from backend.app.database import get_db
 from backend.app.schemas.catalog import HealthResponse, LatestResponse, Layer
+from backend.app.services import catalog as catalog_service
 
 router = APIRouter()
 
@@ -13,18 +15,16 @@ def health() -> HealthResponse:
 
 
 @router.get("/layers", response_model=list[Layer])
-def layers() -> list[Layer]:
-    return [Layer.model_validate(layer) for layer in DEMO_LAYERS]
+def layers(db: Session = Depends(get_db)) -> list[Layer]:
+    return catalog_service.list_layers(db)
 
 
 @router.get("/times", response_model=list[str])
-def times(layer: str = Query(...)) -> list[str]:
-    if layer != "mrms_reflectivity":
-        return []
-    return DEMO_TIMES
+def times(layer: str = Query(...), db: Session = Depends(get_db)) -> list[str]:
+    return catalog_service.list_times(db, layer)
 
 
 @router.get("/latest", response_model=LatestResponse)
-def latest(layer: str = Query(...)) -> LatestResponse:
-    timestamp = DEMO_TIMES[-1] if layer == "mrms_reflectivity" else None
+def latest(layer: str = Query(...), db: Session = Depends(get_db)) -> LatestResponse:
+    timestamp = catalog_service.latest_timestamp(db, layer)
     return LatestResponse(layer=layer, timestamp=timestamp)
