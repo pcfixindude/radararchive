@@ -1,9 +1,9 @@
-import { TILE_SUPPORTED_LAYERS } from '../map/layers';
+import type { Layer } from '../api/client';
 
-type Layer = { id: string; name: string; available: boolean };
+type PanelLayer = Pick<Layer, 'id' | 'name' | 'available' | 'tile_support' | 'placeholder'>;
 
-function isLayerSelectable(layer: Layer): boolean {
-  return layer.available && TILE_SUPPORTED_LAYERS.has(layer.id);
+function isLayerSelectable(layer: PanelLayer): boolean {
+  return Boolean(layer.available && layer.tile_support);
 }
 
 export default function LayerPanel({
@@ -11,7 +11,7 @@ export default function LayerPanel({
   selectedLayer,
   onSelect,
 }: {
-  layers: Layer[];
+  layers: PanelLayer[];
   selectedLayer: string;
   onSelect: (id: string) => void;
 }) {
@@ -29,7 +29,7 @@ export default function LayerPanel({
               onChange={() => onSelect(layer.id)}
             />{' '}
             {layer.name}
-            {!TILE_SUPPORTED_LAYERS.has(layer.id) ? ' (tiles later)' : ''}
+            {!layer.tile_support ? ' (future layer)' : layer.placeholder ? ' (placeholder tiles)' : ''}
           </label>
         );
       })}

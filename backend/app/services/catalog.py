@@ -2,6 +2,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
+from backend.app.demo.layer_metadata import get_layer_tile_metadata
 from backend.app.models import Layer, Product, RadarFile
 from backend.app.models.radar_file import PROCESSED_STATUS_PROCESSED
 from backend.app.schemas.catalog import Layer as LayerSchema
@@ -11,19 +12,27 @@ MRMS_REFLECTIVITY_LAYER_ID = "mrms_reflectivity"
 
 def list_layers(session: Session) -> list[LayerSchema]:
     rows = session.query(Layer).order_by(Layer.id).all()
-    return [
-        LayerSchema(
-            id=row.id,
-            name=row.name,
-            type=row.type,
-            available=row.available,
-            source=row.source,
+    result: list[LayerSchema] = []
+    for row in rows:
+        metadata = get_layer_tile_metadata(row.id)
+        result.append(
+            LayerSchema(
+                id=row.id,
+                name=row.name,
+                type=row.type,
+                available=row.available,
+                source=row.source,
+                bounds=metadata.get("bounds"),
+                minzoom=metadata.get("minzoom"),
+                maxzoom=metadata.get("maxzoom"),
+                tile_support=bool(metadata.get("tile_support")),
+                placeholder=bool(metadata.get("placeholder")),
+            )
         )
-        for row in rows
-    ]
+    return result
 
 
-def list_times(session: Session, layer_id: str) -> list[str]:
+def list_times(session: Session, layer_id: str, *, processed_only: bool = False) -> list[str]:
     product_ids = [
         product.id
         for product in session.query(Product).filter(Product.layer_id == layer_id).all()
@@ -31,12 +40,11 @@ def list_times(session: Session, layer_id: str) -> list[str]:
     if not product_ids:
         return []
 
-    rows = (
-        session.query(RadarFile.timestamp)
-        .filter(RadarFile.product_id.in_(product_ids))
-        .order_by(RadarFile.timestamp.asc())
-        .all()
-    )
+    query = session.query(RadarFile.timestamp).filter(RadarFile.product_id.in_(product_ids))
+    if processed_only:
+        query = query.filter(RadarFile.processed_status == PROCESSED_STATUS_PROCESSED)
+
+    rows = query.order_by(RadarFile.timestamp.asc()).all()
     return [row.timestamp for row in rows]
 
 

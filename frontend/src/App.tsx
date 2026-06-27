@@ -1,26 +1,57 @@
-import { useEffect, useState } from 'react';
-import { fetchLayers, fetchTimes } from './api/client';
+import { useEffect, useMemo, useState } from 'react';
+import { checkBackendHealth, fetchLayers, fetchTimes } from './api/client';
 import type { Layer } from './api/client';
 import WeatherMap from './map/WeatherMap';
 import LayerPanel from './components/LayerPanel';
 import TimeSlider from './components/TimeSlider';
 import PlaybackControls from './components/PlaybackControls';
 import RadarOpacityControl from './components/RadarOpacityControl';
+import TimestampDisplay from './components/TimestampDisplay';
+import { usePlayback } from './hooks/usePlayback';
 import { DEFAULT_LAYER } from './map/layers';
+
+type LoadState = 'loading' | 'ready' | 'backend_down' | 'error';
 
 export default function App() {
   const [layers, setLayers] = useState<Layer[]>([]);
   const [times, setTimes] = useState<string[]>([]);
+  const [processedTimes, setProcessedTimes] = useState<string[]>([]);
   const [selectedLayer, setSelectedLayer] = useState(DEFAULT_LAYER);
   const [selectedTime, setSelectedTime] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loadState, setLoadState] = useState<LoadState>('loading');
   const [error, setError] = useState('');
   const [radarOpacity, setRadarOpacity] = useState(0.65);
+
+  const selectedLayerMeta = useMemo(
+    () => layers.find((layer) => layer.id === selectedLayer),
+    [layers, selectedLayer],
+  );
+
+  const {
+    playing,
+    speed,
+    setSpeed,
+    togglePlay,
+    stepBackward,
+    stepForward,
+    jumpToLatest,
+    setPlaying,
+  } = usePlayback(processedTimes, selectedTime, setSelectedTime);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadLayers() {
+      setLoadState('loading');
+      const healthy = await checkBackendHealth();
+      if (!healthy) {
+        if (!cancelled) {
+          setLoadState('backend_down');
+          setError('Backend unavailable. Start it with make backend.');
+        }
+        return;
+      }
+
       try {
         const nextLayers = await fetchLayers();
         if (!cancelled) {
@@ -29,6 +60,7 @@ export default function App() {
         }
       } catch (err) {
         if (!cancelled) {
+          setLoadState('error');
           setError(err instanceof Error ? err.message : 'Failed to load layers');
         }
       }
@@ -44,23 +76,32 @@ export default function App() {
     let cancelled = false;
 
     async function loadTimes() {
-      setLoading(true);
+      if (loadState === 'backend_down') {
+        return;
+      }
+
+      setLoadState('loading');
       try {
-        const nextTimes = await fetchTimes(selectedLayer);
+        const [nextTimes, nextProcessed] = await Promise.all([
+          fetchTimes(selectedLayer),
+          fetchTimes(selectedLayer, true),
+        ]);
         if (!cancelled) {
           setTimes(nextTimes);
-          setSelectedTime(nextTimes[nextTimes.length - 1] ?? '');
+          setProcessedTimes(nextProcessed);
+          const preferred = nextProcessed[nextProcessed.length - 1] ?? nextTimes[nextTimes.length - 1] ?? '';
+          setSelectedTime(preferred);
+          setLoadState('ready');
           setError('');
+          setPlaying(false);
         }
       } catch (err) {
         if (!cancelled) {
           setTimes([]);
+          setProcessedTimes([]);
           setSelectedTime('');
+          setLoadState('error');
           setError(err instanceof Error ? err.message : 'Failed to load timestamps');
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
         }
       }
     }
@@ -69,33 +110,82 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [selectedLayer]);
+  }, [selectedLayer, setPlaying]);
+
+  const controlsDisabled = loadState !== 'ready' || times.length === 0;
+  const noProcessedTiles = loadState === 'ready' && times.length > 0 && processedTimes.length === 0;
+  const selectedNotProcessed =
+    loadState === 'ready' && Boolean(selectedTime) && !processedTimes.includes(selectedTime);
 
   return (
     <div className="app-shell">
-      <header>
+      <header className="app-header">
         <h1>RadarArchive</h1>
-        <p>Historical weather replay app</p>
-        <p className="demo-banner">Placeholder tiles on MapLibre — not real NOAA/MRMS radar imagery.</p>
+        <p className="demo-banner">Placeholder tiles — not real radar</p>
       </header>
-      <main>
+      <main className="app-main">
         <WeatherMap
           selectedTime={selectedTime}
           selectedLayer={selectedLayer}
-          layerAvailable={layers.find((layer) => layer.id === selectedLayer)?.available ?? false}
-          loading={loading}
+          layerMeta={selectedLayerMeta}
+          loading={loadState === 'loading'}
+          backendDown={loadState === 'backend_down'}
+          noProcessedTiles={noProcessedTiles}
+          selectedNotProcessed={selectedNotProcessed}
           opacity={radarOpacity}
         />
-        <aside>
-          {error ? <p className="error-banner">{error}</p> : null}
+        <aside className="app-controls">
+          {loadState === 'backend_down' ? (
+            <p className="error-banner">Backend unavailable. Run <code>make backend</code>.</p>
+          ) : null}
+          {error && loadState !== 'backend_down' ? <p className="error-banner">{error}</p> : null}
+          {noProcessedTiles ? (
+            <p className="warn-banner">No processed tiles yet. Run <code>make process-once</code>.</p>
+          ) : null}
+          {selectedNotProcessed ? (
+            <p className="warn-banner">Selected timestamp is not processed yet. Choose a processed frame or run process-once.</p>
+          ) : null}
           <LayerPanel layers={layers} selectedLayer={selectedLayer} onSelect={setSelectedLayer} />
+          <TimestampDisplay
+            timestamp={selectedTime}
+            processedCount={processedTimes.length}
+            totalCount={times.length}
+          />
+          <TimeSlider
+            times={times}
+            selectedTime={selectedTime}
+            onSelect={(time) => {
+              setPlaying(false);
+              setSelectedTime(time);
+            }}
+            disabled={controlsDisabled}
+          />
+          <PlaybackControls
+            times={processedTimes.length > 0 ? processedTimes : times}
+            selectedTime={selectedTime}
+            disabled={controlsDisabled || (processedTimes.length === 0 && times.length === 0)}
+            playing={playing}
+            speed={speed}
+            onTogglePlay={togglePlay}
+            onStepBackward={() => {
+              setPlaying(false);
+              stepBackward();
+            }}
+            onStepForward={() => {
+              setPlaying(false);
+              stepForward();
+            }}
+            onJumpLatest={() => {
+              setPlaying(false);
+              jumpToLatest();
+            }}
+            onSpeedChange={setSpeed}
+          />
           <RadarOpacityControl
             opacity={radarOpacity}
             onChange={setRadarOpacity}
-            disabled={loading || times.length === 0}
+            disabled={controlsDisabled || noProcessedTiles}
           />
-          <TimeSlider times={times} selectedTime={selectedTime} onSelect={setSelectedTime} disabled={loading || times.length === 0} />
-          <PlaybackControls times={times} selectedTime={selectedTime} onSelect={setSelectedTime} disabled={loading || times.length === 0} />
         </aside>
       </main>
       <footer>

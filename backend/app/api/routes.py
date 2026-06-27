@@ -20,8 +20,12 @@ def layers(db: Session = Depends(get_db)) -> list[Layer]:
 
 
 @router.get("/times", response_model=list[str])
-def times(layer: str = Query(...), db: Session = Depends(get_db)) -> list[str]:
-    return catalog_service.list_times(db, layer)
+def times(
+    layer: str = Query(...),
+    processed_only: bool = Query(False),
+    db: Session = Depends(get_db),
+) -> list[str]:
+    return catalog_service.list_times(db, layer, processed_only=processed_only)
 
 
 @router.get("/latest", response_model=LatestResponse)

@@ -11,12 +11,36 @@ Response:
 ## Layers
 GET /api/layers
 
-Returns layer metadata including `id`, `name`, `type`, `available`, and `source`.
+Returns layer metadata including:
+- `id`, `name`, `type`, `available`, `source`
+- `bounds` — optional `[west, south, east, north]` for tile-enabled layers
+- `minzoom`, `maxzoom` — optional zoom range hints
+- `tile_support` — whether placeholder tiles are available
+- `placeholder` — true when tiles are stubs, not real radar
+
+Example (`mrms_reflectivity`):
+```json
+{
+  "id": "mrms_reflectivity",
+  "name": "MRMS Reflectivity",
+  "type": "raster",
+  "available": true,
+  "source": "demo",
+  "bounds": [-125.0, 24.0, -66.0, 50.0],
+  "minzoom": 3,
+  "maxzoom": 8,
+  "tile_support": true,
+  "placeholder": true
+}
+```
 
 ## Times
 GET /api/times?layer=mrms_reflectivity
 
 Returns ascending UTC ISO timestamp strings for the layer.
+
+Optional query param (backward-compatible):
+- `processed_only=true` — return only timestamps with `processed_status=processed`
 
 ## Latest
 GET /api/latest?layer=mrms_reflectivity
@@ -29,7 +53,7 @@ Response:
 ## Tiles
 GET /tiles/{layer}/{timestamp}/{z}/{x}/{y}.png
 
-Behavior (Phase 4 placeholder):
+Behavior (Phase 4+ placeholder):
 - Returns `image/png` when the layer is available and the timestamp has been processed
 - Returns `404` when the layer is unknown, unavailable, or the timestamp is missing/unprocessed
 - Tiles are generated stub PNG placeholders (not real radar imagery)

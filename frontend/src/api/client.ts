@@ -6,6 +6,11 @@ export type Layer = {
   type: string;
   available: boolean;
   source?: string;
+  bounds?: [number, number, number, number] | null;
+  minzoom?: number | null;
+  maxzoom?: number | null;
+  tile_support?: boolean;
+  placeholder?: boolean;
 };
 
 async function getJson<T>(path: string): Promise<T> {
@@ -16,12 +21,25 @@ async function getJson<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+export async function checkBackendHealth(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/api/health`);
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 export function fetchLayers(): Promise<Layer[]> {
   return getJson<Layer[]>('/api/layers');
 }
 
-export function fetchTimes(layer: string): Promise<string[]> {
-  return getJson<string[]>(`/api/times?layer=${encodeURIComponent(layer)}`);
+export function fetchTimes(layer: string, processedOnly = false): Promise<string[]> {
+  const params = new URLSearchParams({ layer });
+  if (processedOnly) {
+    params.set('processed_only', 'true');
+  }
+  return getJson<string[]>(`/api/times?${params.toString()}`);
 }
 
 export function fetchLatest(layer: string): Promise<{ layer: string; timestamp: string | null }> {
@@ -43,6 +61,10 @@ export async function tilesAvailable(layer: string, timestamp: string): Promise<
   if (!timestamp) {
     return false;
   }
-  const response = await fetch(tileUrl(layer, timestamp), { method: 'HEAD' });
-  return response.ok;
+  try {
+    const response = await fetch(tileUrl(layer, timestamp), { method: 'HEAD' });
+    return response.ok;
+  } catch {
+    return false;
+  }
 }

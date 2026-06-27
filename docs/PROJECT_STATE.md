@@ -1,22 +1,15 @@
 # Project State
 
-Current phase: Phase 5 complete
+Current phase: Phase 6 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
-- FastAPI backend serves catalog API and placeholder tile endpoint (unchanged contracts)
-- Collector/processor stubs populate SQLite catalog and processed PNG placeholders
-- React PWA uses MapLibre GL JS with raster overlay from backend tile endpoint
-- Time slider updates the active tile timestamp on the map
-- Only `mrms_reflectivity` has tile support in the UI
-- Real MRMS collection, GRIB2 parsing, georeferenced tiles, auth, and Stripe are not started
-
-Architecture decision:
-- PWA first, native Android later
-- Cloud collection, not phone/local collection
-- MRMS first, HRRR/WPC/NWS layers later
-- SQLite catalog for local dev; Postgres later for production
+- FastAPI backend serves catalog API with layer tile metadata and optional processed-only times filter
+- Placeholder tile endpoint serves stub PNGs for processed timestamps
+- MapLibre map with CONUS-bounded raster overlay and full playback controls
+- Autoplay, speed control, UTC/local timestamp display, and mobile-friendly layout
+- Real MRMS collection, GRIB2 parsing, auth, and Stripe are not started
 
 ## Local run
 
@@ -44,10 +37,9 @@ make lint
 cd frontend && npm run build
 ```
 
-## Pipeline (before viewing tiles on map)
+## Pipeline (before tiles + autoplay)
 
 ```bash
 make seed
-make collect-once   # optional
-make process-once   # required for tile overlay
+make process-once
 ```

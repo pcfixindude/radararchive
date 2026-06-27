@@ -1,12 +1,13 @@
 html, body, #root { height: 100%; margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 .app-shell { min-height: 100%; display: flex; flex-direction: column; background: #111827; color: #f9fafb; }
-header { padding: 1rem; border-bottom: 1px solid #374151; }
-header h1 { margin: 0; }
-header p { margin: 0.25rem 0 0; color: #cbd5e1; }
-.demo-banner { margin-top: 0.5rem; padding: 0.35rem 0.6rem; border-radius: 8px; background: #422006; color: #fde68a; font-size: 0.85rem; }
-.error-banner { margin: 0 0 1rem; padding: 0.6rem 0.75rem; border-radius: 8px; background: #450a0a; color: #fecaca; }
-main { flex: 1; display: grid; grid-template-columns: 1fr 340px; min-height: 0; }
-.map-panel { position: relative; min-height: 480px; background: #030712; }
+.app-header { padding: 0.75rem 1rem; border-bottom: 1px solid #374151; }
+.app-header h1 { margin: 0; font-size: 1.25rem; }
+.demo-banner { margin: 0.35rem 0 0; padding: 0.35rem 0.6rem; border-radius: 8px; background: #422006; color: #fde68a; font-size: 0.85rem; display: inline-block; }
+.error-banner { margin: 0 0 0.75rem; padding: 0.6rem 0.75rem; border-radius: 8px; background: #450a0a; color: #fecaca; font-size: 0.9rem; }
+.warn-banner { margin: 0 0 0.75rem; padding: 0.6rem 0.75rem; border-radius: 8px; background: #422006; color: #fde68a; font-size: 0.9rem; }
+.warn-banner code, .error-banner code { font-size: 0.85em; }
+.app-main { flex: 1; display: grid; grid-template-columns: 1fr 360px; min-height: 0; }
+.map-panel { position: relative; min-height: 420px; background: #030712; }
 .map-container { position: absolute; inset: 0; }
 .map-badge {
   position: absolute;
@@ -34,17 +35,30 @@ main { flex: 1; display: grid; grid-template-columns: 1fr 340px; min-height: 0; 
   font-size: 0.8rem;
   pointer-events: none;
 }
-aside { padding: 1rem; background: #0f172a; overflow: auto; }
-.panel { padding: 1rem; margin-bottom: 1rem; background: #1e293b; border-radius: 12px; }
-.panel h2 { margin-top: 0; font-size: 1rem; }
+.app-controls { padding: 0.75rem; background: #0f172a; overflow: auto; max-height: 100%; }
+.panel { padding: 0.85rem; margin-bottom: 0.75rem; background: #1e293b; border-radius: 12px; }
+.panel h2 { margin-top: 0; font-size: 0.95rem; }
 label { display: block; margin: 0.5rem 0; }
 .disabled { color: #64748b; }
 .controls { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-button { padding: 0.55rem 0.75rem; border-radius: 8px; border: none; }
-button:disabled { opacity: 0.5; cursor: not-allowed; }
+.playback-buttons button { min-width: 3rem; }
+button, select { padding: 0.55rem 0.75rem; border-radius: 8px; border: none; font-size: 0.95rem; }
+button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
+.speed-label { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.75rem; font-size: 0.9rem; }
+.timestamp-local { margin: 0.25rem 0; font-size: 1rem; font-weight: 600; }
+.timestamp-utc, .timestamp-meta, .playback-meta { margin: 0.25rem 0 0; color: #cbd5e1; font-size: 0.85rem; }
 footer { padding: 0.75rem 1rem; color: #94a3b8; font-size: 0.85rem; border-top: 1px solid #374151; }
+
 @media (max-width: 800px) {
-  main { grid-template-columns: 1fr; }
-  aside { order: -1; }
-  .map-panel { min-height: 360px; }
+  .app-main { grid-template-columns: 1fr; grid-template-rows: minmax(45vh, 1fr) auto; }
+  .map-panel { min-height: 45vh; }
+  .app-controls { max-height: none; padding-bottom: 1rem; }
+  .panel { margin-bottom: 0.65rem; }
+  .playback-buttons { justify-content: space-between; }
+  .playback-buttons button { flex: 1; }
+}
+
+@media (max-width: 480px) {
+  .app-header h1 { font-size: 1.1rem; }
+  .demo-banner { font-size: 0.8rem; }
 }

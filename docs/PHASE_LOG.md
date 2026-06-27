@@ -239,3 +239,53 @@ cd frontend && npm run build
 - Basemap uses MapLibre demo tiles (not production map hosting)
 - No auto-play animation yet
 - Still no real GRIB2 processing or NOAA downloads
+
+## Phase 6 - Playback Polish + Tile Bounds
+
+Added playback controls, mobile-friendly layout, layer tile metadata, and CONUS bounds for placeholder tiles.
+
+### Backend
+- `/api/layers` now includes optional metadata: `bounds`, `minzoom`, `maxzoom`, `tile_support`, `placeholder`
+- `/api/times?processed_only=true` returns only processed timestamps (backward-compatible optional param)
+- Tile endpoint unchanged (PNG for processed, 404 otherwise)
+
+### Frontend
+- Play/pause, step forward/back, speed selector (0.5x–4x), jump to latest
+- Autoplay loops through processed timestamps; slider stays synced
+- UTC + local timestamp display
+- CONUS bounds applied to raster overlay; map fits bounds on load
+- Mobile layout: map on top (~45vh), scrollable controls below
+- No-data states: backend down, no processed tiles, unprocessed timestamp selected
+- Future layers visible but disabled with “(future layer)” label
+
+### Run commands
+
+```bash
+make setup
+make seed
+make process-once
+make test
+make backend
+```
+
+In another terminal:
+
+```bash
+make frontend
+```
+
+Open http://127.0.0.1:5173
+
+### Test commands
+
+```bash
+make test
+make lint
+cd frontend && npm run build
+```
+
+### Known limitations
+- Bounds are approximate CONUS placeholders, not real MRMS grid alignment
+- Autoplay uses processed timestamps only
+- Still no real GRIB2 processing or NOAA downloads
+- Access plans not enforced on tile/history endpoints

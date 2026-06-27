@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import type { Layer } from '../api/client';
 import { tileUrlTemplate, tilesAvailable } from '../api/client';
-import { layerHasTileSupport } from './layers';
 import {
   BASEMAP_STYLE,
   DEFAULT_CENTER,
@@ -11,24 +11,36 @@ import {
   RADAR_SOURCE_ID,
 } from './mapConfig';
 
+type LayerMeta = Pick<Layer, 'available' | 'tile_support' | 'bounds' | 'minzoom' | 'maxzoom' | 'placeholder'>;
+
 export default function WeatherMap({
   selectedTime,
   selectedLayer,
-  layerAvailable,
+  layerMeta,
   loading,
+  backendDown,
+  noProcessedTiles,
+  selectedNotProcessed,
   opacity,
 }: {
   selectedTime: string;
   selectedLayer: string;
-  layerAvailable: boolean;
+  layerMeta?: LayerMeta;
   loading: boolean;
+  backendDown: boolean;
+  noProcessedTiles: boolean;
+  selectedNotProcessed: boolean;
   opacity: number;
 }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [tilesReady, setTilesReady] = useState(false);
-  const tileSupport = layerHasTileSupport(selectedLayer, layerAvailable);
+
+  const tileSupport = Boolean(layerMeta?.available && layerMeta?.tile_support);
+  const bounds = layerMeta?.bounds ?? undefined;
+  const minzoom = layerMeta?.minzoom ?? undefined;
+  const maxzoom = layerMeta?.maxzoom ?? undefined;
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) {
@@ -58,7 +70,7 @@ export default function WeatherMap({
     let cancelled = false;
 
     async function checkTiles() {
-      if (!selectedTime || loading || !tileSupport) {
+      if (!selectedTime || loading || !tileSupport || backendDown || noProcessedTiles) {
         if (!cancelled) {
           setTilesReady(false);
         }
@@ -75,7 +87,7 @@ export default function WeatherMap({
     return () => {
       cancelled = true;
     };
-  }, [selectedLayer, selectedTime, loading, tileSupport]);
+  }, [selectedLayer, selectedTime, loading, tileSupport, backendDown, noProcessedTiles]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -92,7 +104,7 @@ export default function WeatherMap({
       }
     };
 
-    if (!tilesReady || !selectedTime || !tileSupport) {
+    if (!tilesReady || !selectedTime || !tileSupport || selectedNotProcessed) {
       removeRadarLayer();
       return;
     }
@@ -103,6 +115,9 @@ export default function WeatherMap({
       type: 'raster',
       tiles: [tileUrlTemplate(selectedLayer, selectedTime)],
       tileSize: 256,
+      ...(bounds ? { bounds } : {}),
+      ...(minzoom !== undefined ? { minzoom } : {}),
+      ...(maxzoom !== undefined ? { maxzoom } : {}),
     });
 
     map.addLayer({
@@ -113,7 +128,21 @@ export default function WeatherMap({
         'raster-opacity': opacity,
       },
     });
-  }, [mapReady, selectedLayer, selectedTime, tilesReady, tileSupport, opacity]);
+  }, [mapReady, selectedLayer, selectedTime, tilesReady, tileSupport, selectedNotProcessed, opacity, bounds, minzoom, maxzoom]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady || !bounds) {
+      return;
+    }
+    map.fitBounds(
+      [
+        [bounds[0], bounds[1]],
+        [bounds[2], bounds[3]],
+      ],
+      { padding: 24, duration: 0 },
+    );
+  }, [mapReady, bounds]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -123,15 +152,21 @@ export default function WeatherMap({
     map.setPaintProperty(RADAR_LAYER_ID, 'raster-opacity', opacity);
   }, [opacity, mapReady]);
 
-  const statusMessage = loading
-    ? 'Loading timestamps...'
-    : !selectedTime
-      ? 'No timestamps loaded.'
-      : !tileSupport
-        ? 'Selected layer has no placeholder tile support yet.'
-        : tilesReady
-          ? `Placeholder tiles active for ${selectedTime}`
-          : 'No processed tiles for this timestamp — run make process-once.';
+  const statusMessage = backendDown
+    ? 'Backend unavailable.'
+    : loading
+      ? 'Loading timestamps...'
+      : noProcessedTiles
+        ? 'No processed placeholder tiles. Run make process-once.'
+        : !selectedTime
+          ? 'No timestamps loaded.'
+          : !tileSupport
+            ? 'Selected layer has no tile support yet.'
+            : selectedNotProcessed
+              ? 'Selected timestamp is not processed.'
+              : tilesReady
+                ? `Placeholder tiles active`
+                : 'Checking tile availability...';
 
   return (
     <section className="map-panel" aria-label="Weather map">
