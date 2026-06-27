@@ -49,4 +49,4 @@ Process frames before tiles appear on the map:
 make process-once
 ```
 
-Then open http://127.0.0.1:5173 — use Play to animate through processed timestamps.
+Then open http://127.0.0.1:5173 — use **Play** for playback and the **Demo Plan** selector to test Free vs Pro history limits.

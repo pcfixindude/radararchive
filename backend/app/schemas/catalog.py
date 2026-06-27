@@ -30,3 +30,22 @@ class Layer(BaseModel):
 class LatestResponse(BaseModel):
     layer: str
     timestamp: Optional[str]
+
+
+class AccessPlanResponse(BaseModel):
+    id: str
+    name: str
+    history_days: Optional[int] = Field(
+        default=None,
+        description="None means unrestricted; 0 means latest frame only",
+    )
+
+
+class AccessCurrentResponse(BaseModel):
+    plan: str
+    name: str
+    history_days: Optional[int]
+    history_limit_label: str
+    reference_latest: Optional[str]
+    demo_mode: bool = True
+    upgrade_message: str

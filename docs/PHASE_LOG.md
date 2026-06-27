@@ -289,3 +289,60 @@ cd frontend && npm run build
 - Autoplay uses processed timestamps only
 - Still no real GRIB2 processing or NOAA downloads
 - Access plans not enforced on tile/history endpoints
+
+## Phase 7 - Access Plan Enforcement (Stub)
+
+Added demo subscription-style history limits without real auth or Stripe billing.
+
+### Backend
+- Demo plan via `?plan=` query param or `X-Demo-Plan` header (default: `pro`)
+- Plan windows enforced on `/api/times`, `/api/latest`, and `/tiles`
+- Reference time for limits: latest catalog timestamp (not wall clock)
+- `free` = latest frame only (`history_days=0`); `basic`=7d; `pro`=90d; `business`=unrestricted
+- `GET /api/access/plans` and `GET /api/access/current?plan=pro`
+- Tile requests outside plan return `403` JSON with upgrade message
+
+### Frontend
+- Demo plan selector (Free / Basic / Pro / Business)
+- Plan limit messaging and upgrade-style warnings
+- Plan passed on all API/tile requests
+- Clear message when timestamp is outside plan limit
+
+### Run commands
+
+```bash
+make setup
+make seed
+make process-once
+make test
+make backend
+```
+
+In another terminal:
+
+```bash
+make frontend
+```
+
+Open http://127.0.0.1:5173
+
+### Test commands
+
+```bash
+make test
+make lint
+cd frontend && npm run build
+```
+
+Plan API checks:
+
+```bash
+curl http://127.0.0.1:8000/api/access/plans
+curl "http://127.0.0.1:8000/api/access/current?plan=free"
+curl "http://127.0.0.1:8000/api/times?layer=mrms_reflectivity&plan=free"
+```
+
+### Known limitations
+- Demo plan selector only — no accounts, JWT, or Stripe
+- Plan limits use catalog latest timestamp as reference (dev/test behavior)
+- Still no real MRMS collection or GRIB2 processing

@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { checkBackendHealth, fetchLayers, fetchTimes } from './api/client';
+import {
+  checkBackendHealth,
+  DEFAULT_DEMO_PLAN,
+  fetchAccessCurrent,
+  fetchLayers,
+  fetchTimes,
+  type AccessCurrentInfo,
+  type DemoPlan,
+} from './api/client';
 import type { Layer } from './api/client';
 import WeatherMap from './map/WeatherMap';
 import LayerPanel from './components/LayerPanel';
@@ -7,6 +15,7 @@ import TimeSlider from './components/TimeSlider';
 import PlaybackControls from './components/PlaybackControls';
 import RadarOpacityControl from './components/RadarOpacityControl';
 import TimestampDisplay from './components/TimestampDisplay';
+import PlanSelector from './components/PlanSelector';
 import { usePlayback } from './hooks/usePlayback';
 import { DEFAULT_LAYER } from './map/layers';
 
@@ -18,6 +27,8 @@ export default function App() {
   const [processedTimes, setProcessedTimes] = useState<string[]>([]);
   const [selectedLayer, setSelectedLayer] = useState(DEFAULT_LAYER);
   const [selectedTime, setSelectedTime] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState<DemoPlan>(DEFAULT_DEMO_PLAN);
+  const [accessInfo, setAccessInfo] = useState<AccessCurrentInfo | null>(null);
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [error, setError] = useState('');
   const [radarOpacity, setRadarOpacity] = useState(0.65);
@@ -26,6 +37,8 @@ export default function App() {
     () => layers.find((layer) => layer.id === selectedLayer),
     [layers, selectedLayer],
   );
+
+  const playbackTimes = processedTimes.length > 0 ? processedTimes : times;
 
   const {
     playing,
@@ -36,7 +49,7 @@ export default function App() {
     stepForward,
     jumpToLatest,
     setPlaying,
-  } = usePlayback(processedTimes, selectedTime, setSelectedTime);
+  } = usePlayback(playbackTimes, selectedTime, setSelectedTime);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,7 +66,7 @@ export default function App() {
       }
 
       try {
-        const nextLayers = await fetchLayers();
+        const nextLayers = await fetchLayers(selectedPlan);
         if (!cancelled) {
           setLayers(nextLayers);
           setError('');
@@ -70,7 +83,29 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [selectedPlan]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAccessInfo() {
+      try {
+        const info = await fetchAccessCurrent(selectedPlan);
+        if (!cancelled) {
+          setAccessInfo(info);
+        }
+      } catch {
+        if (!cancelled) {
+          setAccessInfo(null);
+        }
+      }
+    }
+
+    loadAccessInfo();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedPlan]);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,8 +118,8 @@ export default function App() {
       setLoadState('loading');
       try {
         const [nextTimes, nextProcessed] = await Promise.all([
-          fetchTimes(selectedLayer),
-          fetchTimes(selectedLayer, true),
+          fetchTimes(selectedLayer, selectedPlan),
+          fetchTimes(selectedLayer, selectedPlan, true),
         ]);
         if (!cancelled) {
           setTimes(nextTimes);
@@ -110,12 +145,14 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [selectedLayer, setPlaying]);
+  }, [selectedLayer, selectedPlan, setPlaying]);
 
   const controlsDisabled = loadState !== 'ready' || times.length === 0;
   const noProcessedTiles = loadState === 'ready' && times.length > 0 && processedTimes.length === 0;
   const selectedNotProcessed =
-    loadState === 'ready' && Boolean(selectedTime) && !processedTimes.includes(selectedTime);
+    loadState === 'ready' && Boolean(selectedTime) && processedTimes.length > 0 && !processedTimes.includes(selectedTime);
+  const selectedOutsidePlan =
+    loadState === 'ready' && Boolean(selectedTime) && times.length > 0 && !times.includes(selectedTime);
 
   return (
     <div className="app-shell">
@@ -127,11 +164,14 @@ export default function App() {
         <WeatherMap
           selectedTime={selectedTime}
           selectedLayer={selectedLayer}
+          selectedPlan={selectedPlan}
           layerMeta={selectedLayerMeta}
           loading={loadState === 'loading'}
           backendDown={loadState === 'backend_down'}
           noProcessedTiles={noProcessedTiles}
           selectedNotProcessed={selectedNotProcessed}
+          selectedOutsidePlan={selectedOutsidePlan}
+          accessInfo={accessInfo}
           opacity={radarOpacity}
         />
         <aside className="app-controls">
@@ -142,9 +182,15 @@ export default function App() {
           {noProcessedTiles ? (
             <p className="warn-banner">No processed tiles yet. Run <code>make process-once</code>.</p>
           ) : null}
+          {selectedOutsidePlan ? (
+            <p className="warn-banner">
+              Selected timestamp is outside your {selectedPlan} plan limit. Choose an allowed frame or upgrade plan.
+            </p>
+          ) : null}
           {selectedNotProcessed ? (
             <p className="warn-banner">Selected timestamp is not processed yet. Choose a processed frame or run process-once.</p>
           ) : null}
+          <PlanSelector plan={selectedPlan} accessInfo={accessInfo} onChange={setSelectedPlan} />
           <LayerPanel layers={layers} selectedLayer={selectedLayer} onSelect={setSelectedLayer} />
           <TimestampDisplay
             timestamp={selectedTime}
@@ -161,9 +207,9 @@ export default function App() {
             disabled={controlsDisabled}
           />
           <PlaybackControls
-            times={processedTimes.length > 0 ? processedTimes : times}
+            times={playbackTimes}
             selectedTime={selectedTime}
-            disabled={controlsDisabled || (processedTimes.length === 0 && times.length === 0)}
+            disabled={controlsDisabled || playbackTimes.length === 0}
             playing={playing}
             speed={speed}
             onTogglePlay={togglePlay}

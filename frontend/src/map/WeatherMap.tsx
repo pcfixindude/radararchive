@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import type { Layer } from '../api/client';
-import { tileUrlTemplate, tilesAvailable } from '../api/client';
+import type { AccessCurrentInfo, DemoPlan, Layer } from '../api/client';
+import { tileUrlTemplate, tilesAvailable, tileBlockedByPlan } from '../api/client';
 import {
   BASEMAP_STYLE,
   DEFAULT_CENTER,
@@ -16,26 +16,33 @@ type LayerMeta = Pick<Layer, 'available' | 'tile_support' | 'bounds' | 'minzoom'
 export default function WeatherMap({
   selectedTime,
   selectedLayer,
+  selectedPlan,
   layerMeta,
   loading,
   backendDown,
   noProcessedTiles,
   selectedNotProcessed,
+  selectedOutsidePlan,
+  accessInfo,
   opacity,
 }: {
   selectedTime: string;
   selectedLayer: string;
+  selectedPlan: DemoPlan;
   layerMeta?: LayerMeta;
   loading: boolean;
   backendDown: boolean;
   noProcessedTiles: boolean;
   selectedNotProcessed: boolean;
+  selectedOutsidePlan: boolean;
+  accessInfo: AccessCurrentInfo | null;
   opacity: number;
 }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [tilesReady, setTilesReady] = useState(false);
+  const [planBlocked, setPlanBlocked] = useState(false);
 
   const tileSupport = Boolean(layerMeta?.available && layerMeta?.tile_support);
   const bounds = layerMeta?.bounds ?? undefined;
@@ -70,15 +77,26 @@ export default function WeatherMap({
     let cancelled = false;
 
     async function checkTiles() {
-      if (!selectedTime || loading || !tileSupport || backendDown || noProcessedTiles) {
+      if (!selectedTime || loading || !tileSupport || backendDown || noProcessedTiles || selectedOutsidePlan) {
         if (!cancelled) {
           setTilesReady(false);
+          setPlanBlocked(selectedOutsidePlan);
         }
         return;
       }
 
-      const ready = await tilesAvailable(selectedLayer, selectedTime);
+      const blocked = await tileBlockedByPlan(selectedLayer, selectedTime, selectedPlan);
+      if (blocked) {
+        if (!cancelled) {
+          setTilesReady(false);
+          setPlanBlocked(true);
+        }
+        return;
+      }
+
+      const ready = await tilesAvailable(selectedLayer, selectedTime, selectedPlan);
       if (!cancelled) {
+        setPlanBlocked(false);
         setTilesReady(ready);
       }
     }
@@ -87,7 +105,7 @@ export default function WeatherMap({
     return () => {
       cancelled = true;
     };
-  }, [selectedLayer, selectedTime, loading, tileSupport, backendDown, noProcessedTiles]);
+  }, [selectedLayer, selectedTime, selectedPlan, loading, tileSupport, backendDown, noProcessedTiles, selectedOutsidePlan]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -104,7 +122,7 @@ export default function WeatherMap({
       }
     };
 
-    if (!tilesReady || !selectedTime || !tileSupport || selectedNotProcessed) {
+    if (!tilesReady || !selectedTime || !tileSupport || selectedNotProcessed || planBlocked) {
       removeRadarLayer();
       return;
     }
@@ -113,7 +131,7 @@ export default function WeatherMap({
 
     map.addSource(RADAR_SOURCE_ID, {
       type: 'raster',
-      tiles: [tileUrlTemplate(selectedLayer, selectedTime)],
+      tiles: [tileUrlTemplate(selectedLayer, selectedTime, selectedPlan)],
       tileSize: 256,
       ...(bounds ? { bounds } : {}),
       ...(minzoom !== undefined ? { minzoom } : {}),
@@ -128,7 +146,20 @@ export default function WeatherMap({
         'raster-opacity': opacity,
       },
     });
-  }, [mapReady, selectedLayer, selectedTime, tilesReady, tileSupport, selectedNotProcessed, opacity, bounds, minzoom, maxzoom]);
+  }, [
+    mapReady,
+    selectedLayer,
+    selectedTime,
+    selectedPlan,
+    tilesReady,
+    tileSupport,
+    selectedNotProcessed,
+    planBlocked,
+    opacity,
+    bounds,
+    minzoom,
+    maxzoom,
+  ]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -158,15 +189,17 @@ export default function WeatherMap({
       ? 'Loading timestamps...'
       : noProcessedTiles
         ? 'No processed placeholder tiles. Run make process-once.'
-        : !selectedTime
-          ? 'No timestamps loaded.'
-          : !tileSupport
-            ? 'Selected layer has no tile support yet.'
-            : selectedNotProcessed
-              ? 'Selected timestamp is not processed.'
-              : tilesReady
-                ? `Placeholder tiles active`
-                : 'Checking tile availability...';
+        : selectedOutsidePlan || planBlocked
+          ? `${selectedPlan} plan blocked this timestamp. ${accessInfo?.upgrade_message ?? 'Choose a higher plan.'}`
+          : !selectedTime
+            ? 'No timestamps loaded.'
+            : !tileSupport
+              ? 'Selected layer has no tile support yet.'
+              : selectedNotProcessed
+                ? 'Selected timestamp is not processed.'
+                : tilesReady
+                  ? 'Placeholder tiles active'
+                  : 'Checking tile availability...';
 
   return (
     <section className="map-panel" aria-label="Weather map">

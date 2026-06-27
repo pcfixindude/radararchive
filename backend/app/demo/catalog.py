@@ -51,7 +51,7 @@ DEMO_TIMES: List[str] = [
 ]
 
 DEMO_ACCESS_PLANS: List[Dict[str, object]] = [
-    {"id": "free", "name": "Free", "history_days": 1},
+    {"id": "free", "name": "Free", "history_days": 0},
     {"id": "basic", "name": "Basic", "history_days": 7},
     {"id": "pro", "name": "Pro", "history_days": 90},
     {"id": "business", "name": "Business", "history_days": None},

@@ -1,24 +1,23 @@
 # Next Steps
 
-## Phase 7 - Access Plan Enforcement + History Limits
+## Phase 8 - Real MRMS Collection Stub (S3 listing only)
 
-Goal: Enforce subscription plan history limits on `/api/times` and `/tiles` using the existing `access_plans` table, with clear frontend messaging when frames are outside the user's plan — still without Stripe billing or real NOAA downloads.
+Goal: Add a collector path that lists or discovers real MRMS object keys from public AWS/NCEP sources without full GRIB2 parsing — register discovered frames in the catalog while keeping processing/tiles as placeholders.
 
 Suggested work:
-1. Apply `access_control` service to times and tile endpoints (dev plan selector or default `free`)
-2. Filter timestamps returned by `/api/times` based on plan history window
-3. Return 403/404 on tile requests outside plan window with helpful error detail
-4. Add frontend plan indicator and “upgrade” placeholder messaging
-5. Add tests for plan-limited times and tiles
+1. Research public MRMS S3 bucket layout and document in `docs/DATA_SOURCES.md`
+2. Add collector module that lists recent object keys (no download or parse yet)
+3. Register discovered keys as catalog rows with real raw paths
+4. Keep processor/tile pipeline on placeholders until GRIB2 phase
+5. Add tests with mocked S3 listing responses
 
 Do not start yet:
-- Real MRMS S3/AWS downloads
-- Real GRIB2 decoding (GDAL/rasterio)
+- Full GRIB2 decoding (GDAL/rasterio)
 - Stripe billing integration
-- Auth / user accounts
+- Real auth / user accounts
 - HRRR / WPC / native Android
 
-## Phase 6 verification commands
+## Phase 7 verification commands
 
 ```bash
 make setup
@@ -34,20 +33,19 @@ In another terminal:
 make frontend
 ```
 
-Manual checks at http://127.0.0.1:5173:
-1. Map loads with CONUS-fit placeholder overlay (after `make process-once`)
-2. Play advances timestamps; Pause stops autoplay
-3. Step ◀/▶ and Latest work
-4. Speed selector changes autoplay rate
-5. Time slider stays synced during autoplay
-6. UTC + local time shown in Selected Time panel
-7. Opacity slider still adjusts overlay
-8. Resize to mobile width — map visible, controls scroll below
-9. Network tab shows `/tiles/.../{z}/{x}/{y}.png` URL changes with timestamp
-
-API checks:
+Manual plan checks:
 
 ```bash
-curl http://127.0.0.1:8000/api/layers
-curl "http://127.0.0.1:8000/api/times?layer=mrms_reflectivity&processed_only=true"
+curl http://127.0.0.1:8000/api/access/plans
+curl "http://127.0.0.1:8000/api/access/current?plan=free"
+curl "http://127.0.0.1:8000/api/times?layer=mrms_reflectivity&plan=free"
+curl "http://127.0.0.1:8000/api/times?layer=mrms_reflectivity&plan=pro"
+curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:00:00Z/0/0/0.png?plan=free"
+curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:20:00Z/0/0/0.png?plan=free"
 ```
+
+In the UI:
+1. Select **Free** — time slider shows one timestamp; older frames hidden
+2. Select **Pro** — all demo timestamps available
+3. Confirm upgrade messaging in plan panel
+4. Confirm map status when plan blocks a timestamp

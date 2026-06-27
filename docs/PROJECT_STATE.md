@@ -1,15 +1,15 @@
 # Project State
 
-Current phase: Phase 6 complete
+Current phase: Phase 7 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
-- FastAPI backend serves catalog API with layer tile metadata and optional processed-only times filter
-- Placeholder tile endpoint serves stub PNGs for processed timestamps
-- MapLibre map with CONUS-bounded raster overlay and full playback controls
-- Autoplay, speed control, UTC/local timestamp display, and mobile-friendly layout
-- Real MRMS collection, GRIB2 parsing, auth, and Stripe are not started
+- FastAPI backend enforces demo access plans on times, latest, and tile endpoints
+- Plan selection via `?plan=` or `X-Demo-Plan` header (default `pro` for local dev)
+- Access plan metadata from SQLite (`free`, `basic`, `pro`, `business`)
+- MapLibre frontend with playback controls and demo plan selector
+- No real auth, Stripe, MRMS collection, or GRIB2 processing
 
 ## Local run
 
@@ -37,9 +37,13 @@ make lint
 cd frontend && npm run build
 ```
 
-## Pipeline (before tiles + autoplay)
+## Demo plans
 
-```bash
-make seed
-make process-once
-```
+| Plan | History window (demo) |
+|------|------------------------|
+| free | Latest frame only |
+| basic | 7 days from catalog latest |
+| pro | 90 days from catalog latest (default) |
+| business | Unrestricted |
+
+Reference timestamp for limits: latest frame in catalog, not wall-clock now.

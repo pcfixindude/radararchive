@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./data/radararchive.sqlite"
     local_storage_root: str = "./data"
     testing: bool = False
+    default_demo_plan: str = "pro"
 
     @property
     def sqlite_path(self) -> Optional[Path]:
@@ -21,3 +22,5 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+VALID_DEMO_PLANS = frozenset({"free", "basic", "pro", "business"})

@@ -25,6 +25,31 @@ Seeding:
 - `make db-reset` clears and re-seeds demo rows
 - App startup auto-seeds when the catalog is empty (non-test environments)
 
+### Access control (Phase 7)
+Demo plan enforcement without real auth or Stripe.
+
+Plan selection:
+- Query param: `?plan=free|basic|pro|business`
+- Header: `X-Demo-Plan: pro`
+- Default local dev plan: `pro` (`DEFAULT_DEMO_PLAN` in config)
+
+Reference time for history windows: latest catalog timestamp for the requested layer (not wall-clock `now`).
+
+Plan windows (from SQLite `access_plans`):
+- `free` — `history_days=0` → latest frame only
+- `basic` — 7 days
+- `pro` — 90 days
+- `business` — unrestricted (`history_days=NULL`)
+
+Enforced on:
+- `GET /api/times` — returns only allowed timestamps
+- `GET /api/latest` — latest allowed timestamp
+- `GET /tiles/...` — `403` JSON when outside plan; `404` when unprocessed/unavailable
+
+New endpoints:
+- `GET /api/access/plans`
+- `GET /api/access/current?plan=pro`
+
 ### Local storage (Phase 3+)
 `backend/app/services/storage.py` wraps the local filesystem using `LOCAL_STORAGE_ROOT` (default `./data`).
 

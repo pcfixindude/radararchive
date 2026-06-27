@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.app.api.access import router as access_router
 from backend.app.api.routes import router as api_router
 from backend.app.api.tiles import router as tiles_router
 from backend.app.config import settings
@@ -38,4 +39,5 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix="/api")
+app.include_router(access_router, prefix="/api")
 app.include_router(tiles_router)
