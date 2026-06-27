@@ -1,0 +1,19 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+node_modules/
+dist/
+.DS_Store
+
+# Local data storage
+data/raw/*
+data/processed/*
+data/tiles/*
+data/*.sqlite
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/tiles/.gitkeep
+!data/samples/.gitkeep

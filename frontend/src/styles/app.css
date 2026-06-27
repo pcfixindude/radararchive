@@ -1,0 +1,19 @@
+html, body, #root { height: 100%; margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.app-shell { min-height: 100%; display: flex; flex-direction: column; background: #111827; color: #f9fafb; }
+header { padding: 1rem; border-bottom: 1px solid #374151; }
+header h1 { margin: 0; }
+header p { margin: 0.25rem 0 0; color: #cbd5e1; }
+.demo-banner { margin-top: 0.5rem; padding: 0.35rem 0.6rem; border-radius: 8px; background: #422006; color: #fde68a; font-size: 0.85rem; }
+.error-banner { margin: 0 0 1rem; padding: 0.6rem 0.75rem; border-radius: 8px; background: #450a0a; color: #fecaca; }
+main { flex: 1; display: grid; grid-template-columns: 1fr 340px; min-height: 0; }
+.map-placeholder { display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1f2937, #030712); min-height: 480px; }
+aside { padding: 1rem; background: #0f172a; overflow: auto; }
+.panel { padding: 1rem; margin-bottom: 1rem; background: #1e293b; border-radius: 12px; }
+.panel h2 { margin-top: 0; font-size: 1rem; }
+label { display: block; margin: 0.5rem 0; }
+.disabled { color: #64748b; }
+.controls { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+button { padding: 0.55rem 0.75rem; border-radius: 8px; border: none; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+footer { padding: 0.75rem 1rem; color: #94a3b8; font-size: 0.85rem; border-top: 1px solid #374151; }
+@media (max-width: 800px) { main { grid-template-columns: 1fr; } aside { order: -1; } .map-placeholder { min-height: 360px; } }

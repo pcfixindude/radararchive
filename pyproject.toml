@@ -1,0 +1,10 @@
+[project]
+name = "radararchive"
+version = "0.1.0"
+description = "Historical weather replay app focused on radar history"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["."]
