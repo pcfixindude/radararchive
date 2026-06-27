@@ -1,52 +1,34 @@
 # Project State
 
-Current phase: Phase 11 complete
+Current phase: Phase 12 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
-- MRMS discovery + download pipeline (metadata → local GRIB2.gz or stub files)
-- Processor distinguishes raw kinds; placeholder tiles unchanged
-- GRIB2 inspection spike (`make inspect-grib2`) for metadata evaluation
-- Optional decoder detection: wgrib2 CLI, GDAL, rasterio, pygrib, cfgrib (none required)
-- MapLibre frontend with playback and demo plan selector
-- No real auth, Stripe, production GRIB2 rendering, or real radar tiles
-
-## Local run
-
-```bash
-make setup
-make seed
-make download-mrms -- --register-discovered --limit 3
-make process-once
-make inspect-grib2
-make test
-make backend
-```
+- MRMS discovery + download pipeline
+- Placeholder processor and `/tiles` behavior unchanged
+- GRIB2 inspection spike (`make inspect-grib2`)
+- GRIB2 decode prototype (`make decode-grib2`) — optional rasterio/wgrib2
+- Decode output under `data/staging/grib2_decode/` (not served by API)
+- No production rendering; real MRMS not marked as rendered
 
 ## Local test
 
 ```bash
 make test
-make lint
 make inspect-grib2
+make decode-grib2
 cd frontend && npm run build
 ```
 
-## MRMS pipeline
+## Prototype decode
 
 ```bash
-make download-mrms -- --register-discovered --limit 5
-make process-once
-make inspect-grib2
+make decode-grib2
+PYTHONPATH=. python scripts/decode_grib2.py --file data/raw/mrms/reflectivity/example.grib2.gz
 ```
 
-See `docs/GRIB2_DECODE.md` for future decode/render pipeline design.
-
-Dev APIs (unchanged):
-- `GET /api/sources/mrms/latest`
-- `GET /api/sources/mrms/download-status`
-- `GET /api/sources/mrms/processing-status`
+See `docs/GRIB2_DECODE.md` for optional decoder install and production rendering prerequisites.
 
 ## Demo plans
 

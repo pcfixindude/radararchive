@@ -1,53 +1,42 @@
 # Next Steps
 
-## Phase 12 - GRIB2 Raster Decode Prototype (single frame)
+## Phase 13 - Tile Pyramid from Decoded Raster (feature-flagged)
 
-Goal: Decode one real downloaded MRMS GRIB2.gz frame into a normalized raster using rasterio/GDAL (or chosen backend), store as COG or tile-ready raster, and document memory/time — still behind a feature flag; do not replace all placeholder tiles yet.
+Goal: Generate a tile cache or COG from Phase 12 decode artifacts and serve real imagery via `/tiles` behind an explicit feature flag — keep placeholder tiles as default for offline/stub paths.
 
 Suggested work:
-1. Add optional `decode-mrms` script behind dependency check (rasterio/GDAL)
-2. Decode single CONUS reflectivity grid → numpy → GeoTIFF/COG under `data/processed/`
-3. Update catalog with decode metadata (grid size, bounds, units) without changing tile endpoint yet
-4. Benchmark one frame; document in `docs/GRIB2_DECODE.md`
-5. Keep demo/stub paths on placeholder tiles
+1. Warp decoded grid to layer bounds / Web Mercator tile scheme
+2. Write tile pyramid under `data/tiles/mrms/reflectivity/{timestamp}/`
+3. Add catalog status such as `real_raster_processed` (distinct from placeholder)
+4. Gate `/tiles` on feature flag + status; default remains placeholder
+5. Benchmark one CONUS frame end-to-end
 
 Do not start yet:
-- Full tile pyramid replacement for all timestamps
 - Stripe billing integration
 - Real auth / user accounts
 - HRRR / WPC / native Android
 
-## Phase 11 verification commands
+## Phase 12 verification commands
 
 ```bash
-make setup
 make test
 make inspect-grib2
-make backend
-```
-
-In another terminal:
-
-```bash
-make frontend
-```
-
-GRIB2 inspection:
-
-```bash
-make inspect-grib2
-PYTHONPATH=. python scripts/inspect_grib2.py --file path/to/file.grib2.gz
-MRMS_SOURCE_MODE=real make download-mrms -- --register-discovered --limit 1
-make inspect-grib2
-```
-
-Placeholder pipeline (unchanged):
-
-```bash
+make decode-grib2
 make process-once
+cd frontend && npm run build
+```
+
+Decode prototype:
+
+```bash
+make decode-grib2
+MRMS_SOURCE_MODE=real make download-mrms -- --register-discovered --limit 1
+make decode-grib2
+ls data/staging/grib2_decode/
+```
+
+Placeholder pipeline (must remain unchanged):
+
+```bash
 curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:00:00Z/0/0/0.png"
 ```
-
-In the UI:
-1. Confirm banner mentions GRIB2 inspection spike; rendering still placeholder
-2. Demo playback and plan limits still work

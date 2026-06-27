@@ -1,4 +1,4 @@
-.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once discover-mrms download-mrms inspect-grib2
+.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once discover-mrms download-mrms inspect-grib2 decode-grib2
 
 setup:
 	python3 -m venv .venv
@@ -38,3 +38,6 @@ download-mrms:
 
 inspect-grib2:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/inspect_grib2.py --latest-mrms --limit 1
+
+decode-grib2:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/decode_grib2.py --latest-mrms --limit 1

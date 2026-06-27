@@ -576,3 +576,38 @@ make inspect-grib2
 - wgrib2/GDAL/rasterio not installed by default (`make setup` unchanged)
 - Without decoders, inspection reports gzip size and GRIB magic only
 - Processor statuses and `/tiles` placeholder behavior unchanged
+
+## Phase 12 - GRIB2 Raster Decode Prototype (CLI, optional deps)
+
+Added prototype raster decode behind optional dependency checks. Placeholder tiles remain default.
+
+### Backend
+- `backend/app/services/grib2_decoder.py` — validate via inspector, decode with rasterio or wgrib2 bin export
+- Output: `data/staging/grib2_decode/{token}/decode_manifest.json` + `normalized.tif` or `normalized.raw`
+- Manifest includes `production_rendering: false`; catalog and `/tiles` unchanged
+
+### Scripts / Makefile
+- `scripts/decode_grib2.py` — `--file`, `--latest-mrms`, `--limit`
+- `make decode-grib2`
+
+### Run commands
+
+```bash
+make test
+make inspect-grib2
+make decode-grib2
+```
+
+### Test commands
+
+```bash
+make test
+make decode-grib2
+cd frontend && npm run build
+```
+
+### Known limitations
+- Prototype artifacts only — not served by `/tiles`
+- rasterio/wgrib2 optional; friendly exit when missing
+- wgrib2 bin export is 1-D prototype metadata (width x 1)
+- Real MRMS not marked as rendered in catalog

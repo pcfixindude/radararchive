@@ -20,10 +20,12 @@ GET /tiles/{layer}/{timestamp}/{z}/{x}/{y}.png  (real radar, not placeholder)
 MapLibre raster overlay + playback
 ```
 
-Current state (Phases 1–11):
+Current state (Phases 1–12):
 - Discovery, download, and placeholder processing are implemented.
 - Real `.grib2.gz` files get `placeholder_for_real_raw` preview tiles only.
-- `scripts/inspect_grib2.py` / `make inspect-grib2` reports metadata when decoders are available.
+- `make inspect-grib2` reports metadata when decoders are available.
+- `make decode-grib2` writes prototype normalized raster artifacts under `data/staging/grib2_decode/` when optional decoders exist.
+- **`/tiles` still serves placeholders** — decode output is not wired to the map.
 
 ## Decoder options and tradeoffs
 
@@ -39,6 +41,55 @@ Current state (Phases 1–11):
 1. **Metadata spike:** wgrib2 CLI (already wired in `grib2_inspector.py`).
 2. **Production decode prototype:** rasterio/GDAL reading decoded grid → normalized numpy array → PNG/COG tile pyramid.
 3. **Keep stub path:** demo/collector/MRMS stub files remain on placeholder tiles for offline dev.
+
+## Prototype decode CLI (Phase 12)
+
+```bash
+# Latest real MRMS file (friendly when none/decoders missing)
+make decode-grib2
+
+# Explicit file
+PYTHONPATH=. python scripts/decode_grib2.py --file data/raw/mrms/reflectivity/example.grib2.gz
+```
+
+### Optional decoder install (not part of `make setup`)
+
+**Preferred:** rasterio + GDAL (system package or wheels)
+
+```bash
+# Example only — install method varies by platform
+pip install rasterio numpy
+```
+
+**Lightweight fallback:** wgrib2 CLI (binary grid export)
+
+```bash
+# macOS example
+brew install wgrib2
+```
+
+When no decoder is installed, `make decode-grib2` exits 0 with a friendly message.
+
+### Prototype output
+
+For each input file, output goes to a deterministic folder:
+
+```
+data/staging/grib2_decode/{token}/
+  decode_manifest.json   # prototype metadata (production_rendering: false)
+  normalized.tif         # rasterio path (optional)
+  normalized.raw         # wgrib2 bin path (float32 0..1 normalized)
+```
+
+The manifest explicitly states that catalog `processed_status` and `/tiles` were not changed.
+
+### Before production rendering (future phase)
+
+1. Decode grid → consistent CRS/bounds aligned with map layer metadata
+2. Build tile pyramid or COG cache under `data/tiles/`
+3. Add feature flag or processed status such as `real_raster_processed`
+4. Update `/tiles` to serve real imagery only when explicitly enabled
+5. Keep stub/demo paths on placeholder tiles for offline dev
 
 ## Inspection CLI
 
@@ -62,9 +113,11 @@ When no decoder is installed, the script still reports gzip size and GRIB magic 
 
 - `backend/app/services/grib2_inspector.py` — dependency detection, staging, wgrib2 spike
 - `backend/app/services/grib2_inspect_catalog.py` — find latest real MRMS candidates
-- `scripts/inspect_grib2.py` — CLI entry point
+- `backend/app/services/grib2_decoder.py` — prototype raster decode (optional deps)
+- `scripts/inspect_grib2.py` — inspection CLI
+- `scripts/decode_grib2.py` — decode prototype CLI
 
-## Non-goals (Phase 11)
+## Non-goals (Phases 11–12)
 
 - Replace placeholder map tiles with real radar
 - Add hard dependencies on GDAL/rasterio/wgrib2 to `make setup`

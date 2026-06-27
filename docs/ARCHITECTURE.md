@@ -166,6 +166,15 @@ GRIB2.gz raw → decoded raster → normalized values → color table → COG/ti
 
 CLI: `make inspect-grib2` (`scripts/inspect_grib2.py`) with `--file`, `--latest-mrms`, `--limit`.
 
+### GRIB2 decode prototype (Phase 12)
+`backend/app/services/grib2_decoder.py` — optional rasterio or wgrib2 bin export to normalized artifacts.
+
+Output: `data/staging/grib2_decode/{token}/decode_manifest.json` + raster file.
+
+CLI: `make decode-grib2` (`scripts/decode_grib2.py`).
+
+**Does not change** catalog `processed_status`, processor behavior, or `/tiles` responses.
+
 Staging: decompressed copies under `data/staging/grib2_inspect/` for tool inspection only.
 
 ## Frontend
@@ -186,4 +195,5 @@ Raw source files are immutable. Processed files can be regenerated. Database rec
 - `data/raw/` — immutable source files (collector/seed stubs)
 - `data/processed/` — processed PNG placeholders (processor stub)
 - `data/staging/grib2_inspect/` — decompressed GRIB2 staging for inspection spike (Phase 11)
+- `data/staging/grib2_decode/` — prototype normalized raster artifacts (Phase 12, not served by API)
 - `data/tiles/` — rendered map tiles directory (reserved for later phases)

@@ -241,6 +241,12 @@ def inspect_grib2_file(
         result.has_grib_magic = header.startswith(GRIB_MAGIC)
         if not result.has_grib_magic:
             result.notes.append("Decompressed payload does not start with GRIB magic — may be corrupt or non-GRIB.")
+            if not availability.any_decoder:
+                result.notes.append(
+                    "No decoder installed — reported gzip/GRIB magic checks only. "
+                    "Install wgrib2 or optional Python geospatial packages for richer metadata."
+                )
+            return result
     except gzip.BadGzipFile:
         result.error = "File is not valid gzip content."
         return result
