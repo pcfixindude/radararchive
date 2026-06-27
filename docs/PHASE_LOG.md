@@ -523,3 +523,56 @@ curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:00:00Z/0/0/
 - Real `.grib2.gz` files get `placeholder_for_real_raw` preview PNGs only
 - `real_decode_not_implemented` rows without preview do not serve tiles
 - All map tiles remain programmatic placeholders
+
+## Phase 11 - GRIB2 Inspection Spike (evaluation only)
+
+Added GRIB2 decode evaluation path without replacing placeholder tiles or adding hard geospatial dependencies.
+
+### Backend
+- `backend/app/services/grib2_inspector.py` — decoder detection, gzip staging, wgrib2 inventory spike
+- `backend/app/services/grib2_inspect_catalog.py` — latest real MRMS `.grib2.gz` candidates
+- Optional backends detected: wgrib2 CLI, GDAL, rasterio, pygrib, cfgrib (none required)
+- Staging under `data/staging/grib2_inspect/` for decompressed inspection copies
+
+### Scripts / Makefile
+- `scripts/inspect_grib2.py` — `--file`, `--latest-mrms`, `--limit`
+- `make inspect-grib2`
+
+### Docs
+- `docs/GRIB2_DECODE.md` — future pipeline, decoder tradeoffs, inspection usage
+
+### Frontend
+- Banner: “GRIB2 inspection spike available; rendering still placeholder”
+
+### Run commands
+
+```bash
+make setup
+make test
+make inspect-grib2
+make backend
+```
+
+### Test commands
+
+```bash
+make test
+make lint
+make inspect-grib2
+cd frontend && npm run build
+```
+
+Inspection checks:
+
+```bash
+make inspect-grib2
+PYTHONPATH=. python scripts/inspect_grib2.py --file data/raw/mrms/reflectivity/example.grib2.gz
+MRMS_SOURCE_MODE=real make download-mrms -- --register-discovered --limit 1
+make inspect-grib2
+```
+
+### Known limitations
+- Evaluation/metadata only — no production GRIB2 decode or real radar tiles
+- wgrib2/GDAL/rasterio not installed by default (`make setup` unchanged)
+- Without decoders, inspection reports gzip size and GRIB magic only
+- Processor statuses and `/tiles` placeholder behavior unchanged

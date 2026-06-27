@@ -1,28 +1,28 @@
 # Next Steps
 
-## Phase 11 - GRIB2 Decode Evaluation + Real Raster Pipeline Design
+## Phase 12 - GRIB2 Raster Decode Prototype (single frame)
 
-Goal: Evaluate and prototype GRIB2 decoding for MRMS reflectivity (likely GDAL/rasterio or equivalent), define tile pyramid generation, and replace placeholder tiles with real radar imagery for downloaded frames.
+Goal: Decode one real downloaded MRMS GRIB2.gz frame into a normalized raster using rasterio/GDAL (or chosen backend), store as COG or tile-ready raster, and document memory/time — still behind a feature flag; do not replace all placeholder tiles yet.
 
 Suggested work:
-1. Spike GRIB2 decode on a single downloaded CONUS MRMS file; document memory/time constraints
-2. Choose processing library and document in `docs/ARCHITECTURE.md` and `docs/DATA_SOURCES.md`
-3. Add worker step: `real_decode_pending` → decoded raster → tile pyramid
-4. Update processor to transition `placeholder_for_real_raw` → real processed status when decode succeeds
-5. Keep stub/demo paths on placeholder tiles for offline dev
+1. Add optional `decode-mrms` script behind dependency check (rasterio/GDAL)
+2. Decode single CONUS reflectivity grid → numpy → GeoTIFF/COG under `data/processed/`
+3. Update catalog with decode metadata (grid size, bounds, units) without changing tile endpoint yet
+4. Benchmark one frame; document in `docs/GRIB2_DECODE.md`
+5. Keep demo/stub paths on placeholder tiles
 
 Do not start yet:
+- Full tile pyramid replacement for all timestamps
 - Stripe billing integration
 - Real auth / user accounts
 - HRRR / WPC / native Android
 
-## Phase 10 verification commands
+## Phase 11 verification commands
 
 ```bash
 make setup
-make seed
-make process-once
 make test
+make inspect-grib2
 make backend
 ```
 
@@ -32,22 +32,22 @@ In another terminal:
 make frontend
 ```
 
-Processing checks:
+GRIB2 inspection:
 
 ```bash
-make download-mrms -- --register-discovered --limit 3
+make inspect-grib2
+PYTHONPATH=. python scripts/inspect_grib2.py --file path/to/file.grib2.gz
+MRMS_SOURCE_MODE=real make download-mrms -- --register-discovered --limit 1
+make inspect-grib2
+```
+
+Placeholder pipeline (unchanged):
+
+```bash
 make process-once
-curl "http://127.0.0.1:8000/api/sources/mrms/processing-status"
 curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:00:00Z/0/0/0.png"
 ```
 
-Plan API checks (unchanged):
-
-```bash
-curl "http://127.0.0.1:8000/api/times?layer=mrms_reflectivity&processed_only=true&plan=pro"
-curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:20:00Z/0/0/0.png?plan=pro"
-```
-
 In the UI:
-1. Confirm banner mentions placeholder tiles and GRIB2 rendering not implemented
-2. Demo playback and plan limits still work on placeholder-processed timestamps
+1. Confirm banner mentions GRIB2 inspection spike; rendering still placeholder
+2. Demo playback and plan limits still work

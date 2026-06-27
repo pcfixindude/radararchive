@@ -158,7 +158,7 @@ export default function App() {
     <div className="app-shell">
       <header className="app-header">
         <h1>RadarArchive</h1>
-        <p className="demo-banner">Placeholder tiles only — GRIB2 rendering not implemented. MRMS discovery/download available.</p>
+        <p className="demo-banner">Placeholder tiles only — GRIB2 inspection spike available; rendering still placeholder.</p>
       </header>
       <main className="app-main">
         <WeatherMap

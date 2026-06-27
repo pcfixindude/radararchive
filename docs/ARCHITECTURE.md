@@ -148,6 +148,26 @@ Dev API: `GET /api/sources/mrms/processing-status` — processing counts by stat
 
 CLI: `make process-once` prints summary counts.
 
+### GRIB2 inspection spike (Phase 11)
+Evaluation-only metadata path — does not change placeholder tiles or processor statuses.
+
+Modules:
+- `backend/app/services/grib2_inspector.py` — decoder detection, gzip staging, wgrib2 inventory when available
+- `backend/app/services/grib2_inspect_catalog.py` — find latest real `.grib2.gz` catalog candidates
+
+Decoder backends (optional, detected at runtime):
+- **wgrib2** CLI — used for `-s` inventory when installed
+- **GDAL/rasterio, pygrib, cfgrib** — detected but not required; reserved for Phase 12+
+
+Future decode/render pipeline (see `docs/GRIB2_DECODE.md`):
+```
+GRIB2.gz raw → decoded raster → normalized values → color table → COG/tile cache → /tiles endpoint
+```
+
+CLI: `make inspect-grib2` (`scripts/inspect_grib2.py`) with `--file`, `--latest-mrms`, `--limit`.
+
+Staging: decompressed copies under `data/staging/grib2_inspect/` for tool inspection only.
+
 ## Frontend
 Mobile-first PWA using MapLibre GL JS (Phase 5).
 
@@ -165,4 +185,5 @@ Raw source files are immutable. Processed files can be regenerated. Database rec
 - `data/radararchive.sqlite` — catalog database
 - `data/raw/` — immutable source files (collector/seed stubs)
 - `data/processed/` — processed PNG placeholders (processor stub)
+- `data/staging/grib2_inspect/` — decompressed GRIB2 staging for inspection spike (Phase 11)
 - `data/tiles/` — rendered map tiles directory (reserved for later phases)

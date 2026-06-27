@@ -1,17 +1,16 @@
 # Project State
 
-Current phase: Phase 10 complete
+Current phase: Phase 11 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
 - MRMS discovery + download pipeline (metadata → local GRIB2.gz or stub files)
-- Processor distinguishes raw file kinds and records processing status cleanly
-- Stub/demo raw files → `placeholder_processed` placeholder PNGs (tiles work)
-- Real downloaded `.grib2.gz` → `placeholder_for_real_raw` preview only (GRIB2 decode not implemented)
-- Dev APIs for discovery, download, and processing status
+- Processor distinguishes raw kinds; placeholder tiles unchanged
+- GRIB2 inspection spike (`make inspect-grib2`) for metadata evaluation
+- Optional decoder detection: wgrib2 CLI, GDAL, rasterio, pygrib, cfgrib (none required)
 - MapLibre frontend with playback and demo plan selector
-- No real auth, Stripe, GRIB2 parsing, or rendered radar tiles
+- No real auth, Stripe, production GRIB2 rendering, or real radar tiles
 
 ## Local run
 
@@ -20,48 +19,34 @@ make setup
 make seed
 make download-mrms -- --register-discovered --limit 3
 make process-once
+make inspect-grib2
 make test
 make backend
 ```
-
-In another terminal:
-
-```bash
-make frontend
-```
-
-Open http://127.0.0.1:5173
 
 ## Local test
 
 ```bash
 make test
 make lint
-make process-once
+make inspect-grib2
 cd frontend && npm run build
 ```
 
-## MRMS pipeline (discovery → download → process)
+## MRMS pipeline
 
 ```bash
 make download-mrms -- --register-discovered --limit 5
 make process-once
+make inspect-grib2
 ```
 
-Dev APIs:
-- `GET /api/sources/mrms/latest?limit=5`
+See `docs/GRIB2_DECODE.md` for future decode/render pipeline design.
+
+Dev APIs (unchanged):
+- `GET /api/sources/mrms/latest`
 - `GET /api/sources/mrms/download-status`
 - `GET /api/sources/mrms/processing-status`
-
-## Processing statuses
-
-| Status | Meaning |
-|--------|---------|
-| `pending` | Raw file present but not yet processed |
-| `placeholder_processed` | Stub/demo raw → placeholder PNG (tiles available) |
-| `placeholder_for_real_raw` | Real GRIB2.gz → labeled placeholder preview (decode not implemented) |
-| `real_decode_not_implemented` | Real GRIB2 awaiting decode (no tiles unless preview created) |
-| `failed` | Processing failed |
 
 ## Demo plans
 

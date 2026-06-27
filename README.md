@@ -58,6 +58,17 @@ Process raw files into placeholder PNGs (Phase 10 — no GRIB2 decode):
 make process-once
 ```
 
+Inspect GRIB2.gz metadata (Phase 11 — evaluation spike, no rendering):
+
+```bash
+make inspect-grib2
+PYTHONPATH=. python scripts/inspect_grib2.py --file data/raw/mrms/reflectivity/example.grib2.gz
+MRMS_SOURCE_MODE=real make download-mrms -- --register-discovered --limit 1
+make inspect-grib2
+```
+
+See `docs/GRIB2_DECODE.md` for decoder options and the intended future pipeline.
+
 Behavior:
 - Demo/collector/MRMS stub raw files → `placeholder_processed` (map tiles work)
 - Real downloaded `.grib2.gz` → `placeholder_for_real_raw` preview only (GRIB2 decode not implemented)
@@ -66,8 +77,8 @@ Behavior:
 Limitations:
 - Default `MRMS_SOURCE_MODE=stub` uses offline sample listings and stub downloads
 - Real mode downloads public NOAA AWS GRIB2.gz but does not parse or render radar
-- Processor creates placeholder PNGs only; real GRIB2 decode not implemented
-- Map tiles remain placeholders until Phase 11 GRIB2 decode
+- `make inspect-grib2` reports metadata when wgrib2/optional decoders are installed
+- Map tiles remain placeholders until Phase 12+ raster decode
 
 In another terminal:
 
