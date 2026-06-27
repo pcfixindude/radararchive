@@ -1,4 +1,4 @@
-.PHONY: setup backend frontend test lint dev seed db-reset
+.PHONY: setup backend frontend test lint dev seed db-reset collect-once
 
 setup:
 	python3 -m venv .venv
@@ -23,3 +23,6 @@ seed:
 
 db-reset:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/db_reset.py
+
+collect-once:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/collect_once.py

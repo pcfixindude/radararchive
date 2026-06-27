@@ -1,28 +1,30 @@
 # Next Steps
 
-## Phase 3 - Local Storage + Collector Stub
+## Phase 4 - Processor Stub + Tile Placeholder
 
-Goal: Wire the collector worker stub to write immutable raw file placeholders and register new frames in the catalog, still without real NOAA/MRMS S3 downloads.
+Goal: Add a processor worker stub that reads collector placeholder raw files and produces processed placeholders or simple tile metadata, still without real GRIB2 parsing or MapLibre tile rendering.
 
 Suggested work:
-1. Implement `backend/app/services/storage.py` for local path layout under `data/raw/` and `data/processed/`
-2. Implement `scripts/collect_once.py` to simulate a collection run and insert a new demo `RadarFile` row
-3. Keep raw paths immutable; allow processed paths to be regenerated later
-4. Add collector/storage tests; keep collection out of API request paths
-5. Optionally expose a dev-only script endpoint or CLI only (not public API)
+1. Implement `backend/app/services/tile_service.py` stub and `scripts/process_once.py`
+2. Wire `backend/app/workers/processor.py` to regenerate processed paths from raw catalog rows
+3. Add a placeholder tile endpoint shape per `docs/API_SPEC.md` (static/404 stub acceptable)
+4. Keep processing out of API request paths; use CLI/worker only
+5. Add processor tests; preserve existing API response shapes
 
 Do not start yet:
 - Real MRMS S3/AWS downloads
-- GRIB2 parsing or tile rendering
+- Real GRIB2 decoding
+- MapLibre raster tile rendering
 - Stripe billing
 - Auth
 - HRRR / WPC / native Android
 
-## Phase 2 verification commands
+## Phase 3 verification commands
 
 ```bash
 make setup
 make seed
+make collect-once
 make test
 make backend
 ```
@@ -42,9 +44,10 @@ curl "http://127.0.0.1:8000/api/times?layer=mrms_reflectivity"
 curl "http://127.0.0.1:8000/api/latest?layer=mrms_reflectivity"
 ```
 
-Database maintenance:
+Database & collection maintenance:
 
 ```bash
 make seed
+make collect-once
 make db-reset
 ```

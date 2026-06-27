@@ -28,6 +28,12 @@ make test
 make backend
 ```
 
+Simulate one collector run (optional):
+
+```bash
+make collect-once
+```
+
 In another terminal:
 
 ```bash

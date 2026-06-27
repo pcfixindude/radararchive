@@ -1,16 +1,16 @@
 # Project State
 
-Current phase: Phase 2 complete
+Current phase: Phase 3 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
 - FastAPI backend serves health, layers, times, and latest endpoints from SQLite catalog
-- SQLAlchemy models cover layers, products, radar files, and access plans
-- Demo catalog seeded via `make seed` or auto-seed on startup when empty
+- Local storage service manages paths under `data/raw/`, `data/processed/`, and `data/tiles/`
+- Collector stub (`make collect-once`) writes placeholder files and registers new demo frames
 - React PWA shell loads layers/timestamps from the backend (unchanged API contract)
-- Backend tests cover database creation, seeding, catalog service, API routes, and access plans
-- Map tiles, auth, Stripe, and real collection are not started
+- Backend tests cover storage, collector, catalog, API routes, and access plans
+- Map tiles, auth, Stripe, and real MRMS collection are not started
 
 Architecture decision:
 - PWA first, native Android later
@@ -23,6 +23,7 @@ Architecture decision:
 ```bash
 make setup
 make seed
+make collect-once
 make test
 make backend
 ```
@@ -41,11 +42,15 @@ Open http://127.0.0.1:5173
 make test
 make lint
 make seed
+make collect-once
 make db-reset
 cd frontend && npm run build
 ```
 
-## Database
+## Database & storage
 
-- Path: `data/radararchive.sqlite` (gitignored)
-- Reset: `make db-reset`
+- Catalog DB: `data/radararchive.sqlite` (gitignored)
+- Raw stubs: `data/raw/mrms/reflectivity/` (gitignored)
+- Processed stubs: `data/processed/mrms/reflectivity/` (gitignored)
+- Reset catalog: `make db-reset`
+- Simulate collection: `make collect-once`

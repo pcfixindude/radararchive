@@ -74,7 +74,7 @@ export default function App() {
       <header>
         <h1>RadarArchive</h1>
         <p>Historical weather replay app</p>
-        <p className="demo-banner">Phase 1 demo data — not live NOAA/MRMS downloads.</p>
+        <p className="demo-banner">Demo/stub data only — seeded catalog or collector stubs, not live NOAA/MRMS downloads.</p>
       </header>
       <main>
         <WeatherMap selectedTime={selectedTime} selectedLayer={selectedLayer} loading={loading} />

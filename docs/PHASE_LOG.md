@@ -79,3 +79,55 @@ cd frontend && npm run build
 - Stub storage paths recorded but files are not created
 - No tile endpoint or rendering yet
 - Access plans stored but not enforced on API routes yet
+
+## Phase 3 - Local Storage + Collector Stub
+
+Added a local storage abstraction and collector stub that writes placeholder files and registers new demo frames in SQLite.
+
+### Backend
+- `backend/app/services/storage.py` — local storage helpers (paths, writes, SHA256)
+- `backend/app/services/collector.py` — simulated MRMS reflectivity collection
+- `scripts/collect_once.py` — runs one collector stub via CLI
+- `make collect-once` — Makefile target for the collector stub
+- Placeholder files under `data/raw/mrms/reflectivity/` and `data/processed/mrms/reflectivity/`
+- New frames registered in SQLite with `source: "collector_stub"`
+- Duplicate product/timestamp pairs are idempotent (no second row)
+
+### Frontend
+- Demo banner notes seeded demo data or collector stubs
+- No API contract changes; additional timestamps appear automatically
+
+### Run commands
+
+```bash
+make setup
+make seed
+make collect-once
+make test
+make backend
+```
+
+In another terminal:
+
+```bash
+make frontend
+```
+
+Open http://127.0.0.1:5173
+
+### Test commands
+
+```bash
+make test
+make lint
+make seed
+make collect-once
+make db-reset
+cd frontend && npm run build
+```
+
+### Known limitations
+- Collector stub only; no real NOAA/MRMS/AWS downloads
+- Placeholder `.stub` files, not GRIB2 or PNG radar imagery
+- No tile rendering or processor worker yet
+- Access plans still not enforced on API routes
