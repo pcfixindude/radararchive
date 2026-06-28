@@ -36,10 +36,23 @@ def main() -> None:
     for preset in payload.get("presets") or []:
         marker = "*" if preset.get("recommended") else " "
         print(f"  {marker} {preset.get('preset_id')}: {preset.get('title')}")
-        print(f"      when_to_use: {preset.get('when_to_use')}")
-        print(f"      command: {preset.get('command')}")
-        if preset.get("recommended"):
+        print(f"      recommended: {preset.get('recommended')}")
+        if preset.get("recommendation_reason"):
             print(f"      recommendation_reason: {preset.get('recommendation_reason')}")
+        print(f"      when_to_use: {preset.get('when_to_use')}")
+        if preset.get("suggested_action"):
+            print(f"      suggested_action: {preset.get('suggested_action')}")
+        if preset.get("runbook_path"):
+            section = preset.get("runbook_section")
+            anchor = preset.get("runbook_anchor")
+            runbook_line = f"      runbook: {preset.get('runbook_path')}"
+            if section:
+                runbook_line += f" — {section}"
+            if anchor:
+                runbook_line += f" (#{anchor})"
+            print(runbook_line)
+        print(f"      command: {preset.get('command')}")
+        print("      copy_note: Copy command manually — script/UI does not execute commands.")
     print(f"  verified_mrms: {payload.get('verified_mrms')}")
 
 

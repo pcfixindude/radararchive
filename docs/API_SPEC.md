@@ -330,6 +330,10 @@ Endpoints (Phase 52): `GET /api/validation/operator-workflow-presets` (read-only
 
 **Recommendation rules:** digest stale → `regenerate-digest-checklist-export`; no session or worsening/mixed export trend → `create-review-session-and-export`; ok/watch status → `quick-status-check`.
 
+Summary additions (Phase 53): each preset object adds `runbook_path`, `runbook_section`, `runbook_anchor`, `suggested_action`. Presets remain read-only advisory guidance — commands are copy-ready for manual terminal use; the API/UI does not execute commands.
+
+**Preset runbook anchors:** `operator-workflow-preset-quick-status-check`, `operator-workflow-preset-full-local-proof-review`, `operator-workflow-preset-create-review-session-and-export`, `operator-workflow-preset-regenerate-digest-checklist-export`, `operator-workflow-preset-inspect-worsening-export-trend`, `operator-workflow-preset-review-proof-bundle-diff`, `operator-workflow-preset-scheduled-proof-bundle-operator-status` — see `docs/RUNBOOK_REAL_MRMS_VALIDATION.md`.
+
 **`status_level` interpretation:** `urgent` — failed validation alert, urgent escalation, or worsening export-diff streak ≥2; `attention` — regeneration hints, worsened/mixed latest export diff, or open attention items; `watch` — stable/mixed export trend with history or escalation/alert watch; `ok` — improving/stable evidence without recommendations; `unknown` — insufficient local review data.
 
 **Runbook guidance mapping:** urgent/attention/watch status levels; digest/review-export/review-session recommendations; evidence trend worsening/mixed/stable/improving — each maps to a runbook anchor under `docs/RUNBOOK_REAL_MRMS_VALIDATION.md`.

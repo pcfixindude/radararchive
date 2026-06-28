@@ -714,6 +714,10 @@ export type OperatorWorkflowPresetCompact = {
   safety_notes?: string[];
   recommended?: boolean;
   recommendation_reason?: string | null;
+  runbook_path?: string | null;
+  runbook_section?: string | null;
+  runbook_anchor?: string | null;
+  suggested_action?: string | null;
   verified_mrms: boolean;
   local_workflow_only: boolean;
   does_not_clear_alerts: boolean;

@@ -1944,3 +1944,28 @@ cd frontend && npm run build
 - Workflow guidance only — does not add new evidence or verify MRMS
 - Does not clear alerts or mutate production/catalog/render gates
 - `verified_mrms` always false
+
+## Phase 53 - Workflow Preset Runbook Guidance + Copy-Ready Commands
+
+Runbook deep-links and copy-ready command presentation for operator workflow presets.
+
+### Backend
+- `operator_workflow_presets.py` — each preset adds `runbook_path`, `runbook_section`, `runbook_anchor`, `suggested_action`
+- Runbook anchors under `docs/RUNBOOK_REAL_MRMS_VALIDATION.md` (Phase 53 section)
+- `make operator-workflow-presets` CLI prints guidance fields
+
+### Frontend
+- Operator Workflow Presets: recommended yes/no, recommendation reason, suggested action, runbook path/section/anchor
+- `CommandLine` manual-copy hint — UI does not execute commands
+
+### Run commands
+
+```bash
+make test
+make operator-workflow-presets
+cd frontend && npm run build
+```
+
+### Known limitations
+- Advisory guidance only — operators copy commands manually
+- Does not verify MRMS, clear alerts, or mutate gates

@@ -640,6 +640,33 @@ curl http://127.0.0.1:8000/api/validation/summary
 
 **Warnings:** Presets are local workflow guidance only — do not verify MRMS, clear alerts, notify externally, or enable production rendering.
 
+## Operator workflow preset runbook guidance (Phase 53)
+
+Each preset includes `runbook_path`, `runbook_section`, `runbook_anchor`, and `suggested_action` for Dev Validation and `make operator-workflow-presets`. Commands are **copy-ready** — paste into a terminal manually; the UI and CLI do **not** execute commands automatically.
+
+<a id="operator-workflow-preset-quick-status-check"></a>
+**`quick-status-check`** — [Operator review status consolidation](#operator-review-status-consolidation-phase-49): run `make operator-review-status` for a single consolidated summary.
+
+<a id="operator-workflow-preset-full-local-proof-review"></a>
+**`full-local-proof-review`** — [Scheduled proof bundle monitoring](#scheduled-proof-bundle-monitoring-phase-32): run `make scheduled-proof-bundle` to refresh proof report, bundle, and diff.
+
+<a id="operator-workflow-preset-create-review-session-and-export"></a>
+**`create-review-session-and-export`** — [MRMS proof review sessions](#mrms-proof-review-sessions-phase-41): run `make mrms-review-session` with `--accepted-limitations --export-after-create`.
+
+<a id="operator-workflow-preset-regenerate-digest-checklist-export"></a>
+**`regenerate-digest-checklist-export`** — [Scheduled proof bundle digest + operator review checklist](#scheduled-proof-bundle-digest--operator-review-checklist-phase-39): run `make scheduled-proof-bundle-review-export` when digest/checklist is stale.
+
+<a id="operator-workflow-preset-inspect-worsening-export-trend"></a>
+**`inspect-worsening-export-trend`** — [Review session export diff trend hint](#review-session-export-diff-trend-hint-phase-47): run `make mrms-review-session-export-diff-trend-hint` before acting on mixed/worsening trends.
+
+<a id="operator-workflow-preset-review-proof-bundle-diff"></a>
+**`review-proof-bundle-diff`** — [Proof bundle diff + operator handoff](#proof-bundle-diff--operator-handoff-phase-31): run `make mrms-proof-bundle-diff` after bundle exports.
+
+<a id="operator-workflow-preset-scheduled-proof-bundle-operator-status"></a>
+**`run-scheduled-proof-bundle-operator-status`** — [Scheduled operator review status](#scheduled-operator-review-status-phase-50): run `make scheduled-proof-bundle-operator-status` for end-to-end scheduled review with operator status.
+
+**Copy-ready commands:** Dev Validation shows each preset command in a monospace block with “Copy this command manually” wording. Presets remain advisory and local-only.
+
 ### Operator review status guidance anchors (Phase 50)
 
 Runbook deep-links from consolidated status (`guidance_items`, `top_guidance_item`):

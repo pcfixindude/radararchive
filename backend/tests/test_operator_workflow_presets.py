@@ -49,6 +49,10 @@ def test_preset_shape(storage, monkeypatch):
         "safety_notes",
         "recommended",
         "recommendation_reason",
+        "runbook_path",
+        "runbook_section",
+        "runbook_anchor",
+        "suggested_action",
         "verified_mrms",
         "local_workflow_only",
         "does_not_clear_alerts",
@@ -181,3 +185,45 @@ def test_payload_recommended_presets_subset(storage, monkeypatch):
     recommended = payload.get("recommended_presets") or []
     assert all(item.get("recommended") for item in recommended)
     assert payload["recommended_count"] == len(recommended)
+
+
+def test_each_preset_has_runbook_guidance(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", storage.storage_root)
+    presets = build_operator_workflow_presets(storage)
+    for preset_id in EXPECTED_PRESET_IDS:
+        preset = _preset_by_id(presets, preset_id)
+        assert preset.get("runbook_path"), f"{preset_id} missing runbook_path"
+        assert preset.get("runbook_section") or preset.get("runbook_anchor"), (
+            f"{preset_id} missing runbook_section/runbook_anchor"
+        )
+        assert preset.get("suggested_action"), f"{preset_id} missing suggested_action"
+
+
+def test_summary_includes_preset_guidance_fields(db_session, storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", storage.storage_root)
+    summary = build_validation_summary(db_session, storage)
+    preset = summary["operator_workflow_presets"]["presets"][0]
+    assert preset.get("runbook_path")
+    assert preset.get("suggested_action")
+
+
+def test_endpoint_includes_preset_guidance_fields(client, storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", storage.storage_root)
+    response = client.get("/api/validation/operator-workflow-presets")
+    preset = response.json()["presets"][0]
+    assert preset.get("runbook_path")
+    assert preset.get("runbook_anchor") or preset.get("runbook_section")
+    assert preset.get("suggested_action")
+
+
+def test_script_json_includes_guidance_fields(storage, monkeypatch, capsys):
+    monkeypatch.setattr(settings, "local_storage_root", storage.storage_root)
+    import json
+
+    payload = build_operator_workflow_presets_payload(storage)
+    preset = payload["presets"][0]
+    assert preset.get("runbook_path")
+    assert preset.get("suggested_action")
+    serialized = json.dumps(payload)
+    assert "runbook_path" in serialized
+    assert "suggested_action" in serialized

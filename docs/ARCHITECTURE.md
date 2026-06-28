@@ -562,6 +562,11 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Dev Validation: collapsible **Operator Workflow Presets** below Operator Review Status
 - Read-only — does not verify MRMS, clear alerts, or mutate gates
 
+### Workflow preset runbook guidance (Phase 53)
+- Preset objects add `runbook_path`, `runbook_section`, `runbook_anchor`, `suggested_action`
+- Runbook anchors in `docs/RUNBOOK_REAL_MRMS_VALIDATION.md` Phase 53 section
+- Dev Validation: copy-ready command blocks with manual-copy wording (no browser execution)
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

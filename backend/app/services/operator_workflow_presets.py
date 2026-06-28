@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
+from backend.app.services.operator_guidance import RUNBOOK_PATH
 from backend.app.services.operator_review_status import (
     EVIDENCE_MIXED,
     EVIDENCE_WORSENING,
@@ -38,7 +39,74 @@ COMMON_SAFETY_NOTES = [
     "Does not clear validation alerts.",
     "Does not enable production rendering.",
     "Does not send external notifications.",
+    "Copy commands manually — the UI does not run commands automatically.",
 ]
+
+_PRESET_RUNBOOK_GUIDANCE: dict[str, dict[str, str]] = {
+    PRESET_QUICK_STATUS_CHECK: {
+        "runbook_path": RUNBOOK_PATH,
+        "runbook_section": "Operator review status consolidation",
+        "runbook_anchor": "operator-workflow-preset-quick-status-check",
+        "suggested_action": (
+            "Run make operator-review-status and read status_level, recommendations, "
+            "and top_suggested_command before other review steps."
+        ),
+    },
+    PRESET_FULL_LOCAL_PROOF_REVIEW: {
+        "runbook_path": RUNBOOK_PATH,
+        "runbook_section": "Scheduled proof bundle monitoring",
+        "runbook_anchor": "operator-workflow-preset-full-local-proof-review",
+        "suggested_action": (
+            "Run make scheduled-proof-bundle to refresh proof report, bundle export, "
+            "and bundle diff evidence (local review only)."
+        ),
+    },
+    PRESET_CREATE_REVIEW_SESSION_AND_EXPORT: {
+        "runbook_path": RUNBOOK_PATH,
+        "runbook_section": "MRMS proof review sessions",
+        "runbook_anchor": "operator-workflow-preset-create-review-session-and-export",
+        "suggested_action": (
+            "Run make mrms-review-session with --accepted-limitations and --export-after-create "
+            "to record local review evidence and export Markdown."
+        ),
+    },
+    PRESET_REGENERATE_DIGEST_CHECKLIST_EXPORT: {
+        "runbook_path": RUNBOOK_PATH,
+        "runbook_section": "Scheduled proof bundle digest + operator review checklist",
+        "runbook_anchor": "operator-workflow-preset-regenerate-digest-checklist-export",
+        "suggested_action": (
+            "Run make scheduled-proof-bundle-review-export when digest/checklist is stale "
+            "or operator status recommends digest regeneration."
+        ),
+    },
+    PRESET_INSPECT_WORSENING_EXPORT_TREND: {
+        "runbook_path": RUNBOOK_PATH,
+        "runbook_section": "Review session export diff trend hint",
+        "runbook_anchor": "operator-workflow-preset-inspect-worsening-export-trend",
+        "suggested_action": (
+            "Run make mrms-review-session-export-diff-trend-hint to inspect export diff "
+            "trend and regeneration hints before creating a new session."
+        ),
+    },
+    PRESET_REVIEW_PROOF_BUNDLE_DIFF: {
+        "runbook_path": RUNBOOK_PATH,
+        "runbook_section": "Proof bundle diff + operator handoff",
+        "runbook_anchor": "operator-workflow-preset-review-proof-bundle-diff",
+        "suggested_action": (
+            "Run make mrms-proof-bundle-diff after at least two bundle exports and review "
+            "overall_diff_status in Dev Validation or the runbook diff sections."
+        ),
+    },
+    PRESET_RUN_SCHEDULED_PROOF_BUNDLE_OPERATOR_STATUS: {
+        "runbook_path": RUNBOOK_PATH,
+        "runbook_section": "Scheduled operator review status",
+        "runbook_anchor": "operator-workflow-preset-scheduled-proof-bundle-operator-status",
+        "suggested_action": (
+            "Run make scheduled-proof-bundle-operator-status for an end-to-end scheduled "
+            "proof/digest/export run with consolidated operator review status."
+        ),
+    },
+}
 
 _PRESET_DEFINITIONS: list[dict[str, Any]] = [
     {
@@ -183,8 +251,10 @@ def _build_preset(
     if preset_id == PRESET_CREATE_REVIEW_SESSION_AND_EXPORT and status.get("latest_review_session_at"):
         if recommended and str(status.get("status_level") or "") not in (STATUS_OK, STATUS_WATCH):
             command = SUGGESTED_ATTENTION_SESSION_COMMAND
+    guidance = _PRESET_RUNBOOK_GUIDANCE.get(preset_id, {})
     return {
         **definition,
+        **guidance,
         "command": command,
         "recommended": recommended,
         "recommendation_reason": recommendation_reason,

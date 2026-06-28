@@ -815,6 +815,10 @@ class OperatorWorkflowPresetCompact(BaseModel):
     safety_notes: list[str] = Field(default_factory=list)
     recommended: bool = False
     recommendation_reason: Optional[str] = None
+    runbook_path: Optional[str] = None
+    runbook_section: Optional[str] = None
+    runbook_anchor: Optional[str] = None
+    suggested_action: Optional[str] = None
     verified_mrms: bool = False
     local_workflow_only: bool = True
     does_not_clear_alerts: bool = True

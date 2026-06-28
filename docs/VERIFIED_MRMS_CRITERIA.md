@@ -214,6 +214,10 @@ Scheduled operator review status (`make scheduled-proof-bundle-operator-status`,
 
 Operator workflow presets (`operator_workflow_presets`, `make operator-workflow-presets`, `GET /api/validation/operator-workflow-presets`) organize existing local commands into guided presets with `recommended` flags derived from operator review status. Presets include quick status check, full local proof review, create review session and export, regenerate digest/checklist/export, inspect worsening export trend, review proof bundle diff, and scheduled proof bundle with operator status. This is **local workflow guidance only** — it does **not** verify MRMS, clear alerts, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
 
+## Operator workflow preset runbook guidance (Phase 53)
+
+Each preset includes `runbook_path`, `runbook_section`, `runbook_anchor`, and `suggested_action` for runbook deep-links. Dev Validation and `make operator-workflow-presets` show copy-ready commands for manual terminal use — presets do **not** execute commands automatically. This remains **local advisory guidance only** — it does **not** verify MRMS, clear alerts, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
+
 ## Scheduled proof bundle monitoring (Phase 32)
 
 `make scheduled-proof-bundle` runs scheduled validation with `--proof --bundle --diff-bundle`. This is **local evidence monitoring only** — it does not verify MRMS or enable production rendering. Alerts may flag `worsened` or `mixed` diff status for operator review.

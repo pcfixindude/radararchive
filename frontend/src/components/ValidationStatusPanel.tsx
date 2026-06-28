@@ -337,7 +337,8 @@ export default function ValidationStatusPanel({
           }
         >
           <p className="validation-meta">
-            Presets organize existing local commands — expand a preset for when to use it and expected outputs.
+            Presets organize existing local commands — advisory only. Copy commands manually from the
+            terminal; the UI does not execute them.
           </p>
           <ul className="validation-history-list validation-workflow-preset-list">
             {[...(operatorWorkflowPresets.presets ?? [])]
@@ -350,17 +351,24 @@ export default function ValidationStatusPanel({
                   }
                 >
                   <p className="validation-meta">
-                    {preset.recommended ? (
-                      <strong>Recommended: </strong>
-                    ) : null}
-                    {preset.title}
-                    {preset.recommendation_reason ? ` — ${preset.recommendation_reason}` : ''}
+                    <strong>{preset.title}</strong> — recommended: {yesNo(preset.recommended ?? false)}
+                    {preset.recommendation_reason ? ` (${preset.recommendation_reason})` : ''}
                   </p>
                   <p className="validation-meta">{preset.when_to_use}</p>
-                  <CommandLine command={preset.command} label="Command" />
+                  {preset.suggested_action ? (
+                    <p className="validation-meta">Suggested action: {preset.suggested_action}</p>
+                  ) : null}
+                  {preset.runbook_path ? (
+                    <p className="validation-meta">
+                      Runbook: <code>{preset.runbook_path}</code>
+                      {preset.runbook_section ? ` — ${preset.runbook_section}` : ''}
+                      {preset.runbook_anchor ? ` (#${preset.runbook_anchor})` : ''}
+                    </p>
+                  ) : null}
+                  <CommandLine command={preset.command} label="Exact command" manualCopy />
                   {(preset.expected_outputs?.length ?? 0) > 0 ? (
                     <p className="validation-meta">
-                      Expected: {preset.expected_outputs?.join('; ')}
+                      Expected outputs: {preset.expected_outputs?.join('; ')}
                     </p>
                   ) : null}
                   {(preset.safety_notes?.length ?? 0) > 0 ? (

@@ -92,6 +92,15 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
   margin-bottom: 0.75rem;
 }
 
+.validation-command-copy-hint {
+  font-style: italic;
+  margin-bottom: 0.25rem;
+}
+
+.validation-command-block {
+  margin: 0.25rem 0;
+}
+
 .validation-collapsible {
   margin: 0.5rem 0 0;
   padding: 0.45rem 0.55rem;
