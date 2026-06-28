@@ -33,6 +33,7 @@ from backend.app.services.proof_bundle_diff_escalation_metrics import (
 )
 from backend.app.services.proof_bundle_diff_escalation_digest import (
     compact_proof_bundle_diff_escalation_digest,
+    compact_scheduled_digest,
 )
 from backend.app.services.proof_bundle_diff_alert_history import (
     compact_latest_proof_bundle_diff_alert,
@@ -115,6 +116,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "scheduled_validation_available": scheduled is not None,
         "scheduled_validation": _compact_scheduled_validation(scheduled),
         "scheduled_proof_bundle": compact_scheduled_proof_bundle(scheduled),
+        "scheduled_digest": compact_scheduled_digest(scheduled),
         "validation_failures_count": count_validation_failures(storage),
         "validation_failures_recent": [compact_failure(item) for item in recent_failures],
         "validation_alert": compact_validation_alert(alert),

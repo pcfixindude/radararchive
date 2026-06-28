@@ -343,6 +343,38 @@ curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-digest
 - Includes metrics, recent snapshots, acknowledgment, guidance, validation alert status
 - Does **not** verify MRMS, clear alerts, enable production rendering, or send external notifications
 
+## Scheduled proof bundle digest + operator review checklist (Phase 39)
+
+Optional one-shot local/dev sequence: proof report → bundle export → diff → handoff → escalation evaluation → digest export → extended operator checklist.
+
+```bash
+make scheduled-proof-bundle-digest
+make scheduled-proof-bundle-digest ARGS="--json-report"
+# Equivalent flags:
+# python scripts/run_scheduled_validation.py --proof --bundle --diff-bundle --handoff --digest
+```
+
+**When to use:**
+- After repeated worsened/mixed diff alerts or urgent escalation streaks
+- When you want a single local run that refreshes proof bundle evidence, diff, escalation digest, and operator checklist
+- Before a local operator review session (not before production launch)
+
+**Operator checklist covers:**
+- Latest proof bundle and diff status
+- Escalation metrics and current escalation level
+- Latest acknowledgment status (current / stale / missing)
+- Recent validation failures and decoder availability
+- Tile write counts from batch/queue steps when present
+- Explicit checklist items (review bundle, diff, metrics, failures, decoder, tiles, production disabled, `verified_mrms` false, record acknowledgment/sign-off)
+- Runbook guidance links from validation alert
+
+**Warnings:**
+- Digest and checklist are **local review evidence only**
+- They do **not** verify MRMS, clear validation alerts, enable production rendering, or send external notifications
+- Default `make scheduled-validation` is unchanged (no digest unless `--digest` / `make scheduled-proof-bundle-digest`)
+
+Summary API adds `scheduled_digest` compact (`digest_requested`, `digest_generated`, `digest_path`, `digest_reason`, …). `operator_handoff` compact adds escalation review fields when checklist was regenerated with `--digest`.
+
 ## Proof bundle diff alert escalation (Phase 36)
 
 Escalation hints combine trend summary, diff alert history, and acknowledgment state — **local operator guidance only**. Escalation does **not** verify MRMS, clear alerts, enable production rendering, or mutate catalog gates.

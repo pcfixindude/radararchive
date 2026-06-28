@@ -24,6 +24,18 @@ from backend.app.services.validation_report_store import load_latest_scheduled_v
 HANDOFF_MD_PATH = "dev/mrms_operator_handoff_latest.md"
 HANDOFF_JSON_PATH = "dev/mrms_operator_handoff_latest.json"
 
+REVIEW_CHECKLIST_ITEMS = [
+    "Review latest proof bundle",
+    "Review proof bundle diff",
+    "Review escalation metrics",
+    "Review recent failures",
+    "Confirm decoder status",
+    "Confirm tiles were actually written if applicable",
+    "Confirm production remains disabled unless intentionally testing",
+    "Confirm verified_mrms remains false",
+    "Record local acknowledgment or sign-off if appropriate",
+]
+
 
 def _utc_now() -> str:
     from datetime import datetime, timezone
@@ -46,6 +58,8 @@ def generate_operator_handoff(
     diff_report: Optional[dict[str, Any]] = None,
     trigger_reason: Optional[str] = None,
     auto_generated: bool = False,
+    include_escalation_review: bool = False,
+    scheduled_context: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
     """Write local operator handoff Markdown + JSON metadata; return record."""
     created_at = _utc_now()
@@ -54,11 +68,38 @@ def generate_operator_handoff(
     regression = load_proof_regression_report(storage)
     signoff = compact_signoff_summary(storage)
     alert = load_validation_alert(storage)
-    scheduled = load_latest_scheduled_validation_report(storage)
+    scheduled = scheduled_context or load_latest_scheduled_validation_report(storage)
     catalog = build_catalog_status(session)
     queue = get_queue_summary(session)
     failures = load_recent_validation_failures(storage, limit=10)
     diff = diff_report if diff_report is not None else load_latest_proof_bundle_diff(storage)
+
+    escalation_metrics: Optional[dict[str, Any]] = None
+    escalation_current: Optional[dict[str, Any]] = None
+    latest_ack: Optional[dict[str, Any]] = None
+    digest_metadata: Optional[dict[str, Any]] = None
+    if include_escalation_review:
+        from backend.app.services.proof_bundle_diff_acknowledgment import (
+            load_latest_diff_acknowledgment,
+        )
+        from backend.app.services.proof_bundle_diff_escalation import (
+            build_proof_bundle_diff_escalation,
+        )
+        from backend.app.services.proof_bundle_diff_escalation_digest import (
+            load_latest_escalation_digest_metadata,
+        )
+        from backend.app.services.proof_bundle_diff_escalation_metrics import (
+            build_proof_bundle_diff_escalation_metrics,
+        )
+        from backend.app.services.grib2_inspector import detect_decoder_availability
+
+        escalation_metrics = build_proof_bundle_diff_escalation_metrics(storage)
+        escalation_current = build_proof_bundle_diff_escalation(storage)
+        latest_ack = load_latest_diff_acknowledgment(storage)
+        digest_metadata = load_latest_escalation_digest_metadata(storage)
+        decoder_available = detect_decoder_availability()
+    else:
+        decoder_available = None
 
     guidance_items: list[dict[str, Any]] = []
     if alert and alert.get("operator_attention_needed"):
@@ -99,8 +140,9 @@ def generate_operator_handoff(
                 "## Auto-generation (scheduled handoff)",
                 "",
                 f"- Trigger: {_format_value(trigger_reason)}",
-                "- Source: scheduled validation with `--handoff` (local operator workflow only)",
+                "- Source: scheduled validation with `--handoff` or `--digest` (local operator workflow only)",
                 "- Does **not** verify MRMS or enable production rendering",
+                "- Does **not** send external notifications",
             ]
         )
     md_lines.extend(
@@ -195,6 +237,82 @@ def generate_operator_handoff(
             )
         md_lines.append("")
 
+    if include_escalation_review and escalation_metrics is not None:
+        md_lines.extend(
+            [
+                "## Escalation metrics (local review only)",
+                "",
+                f"- Total snapshots: {_format_value(escalation_metrics.get('total_snapshots'))}",
+                f"- Urgent count: {_format_value(escalation_metrics.get('urgent_count'))}",
+                f"- Attention count: {_format_value(escalation_metrics.get('attention_count'))}",
+                f"- Watch count: {_format_value(escalation_metrics.get('watch_count'))}",
+                f"- Current urgent streak: {_format_value(escalation_metrics.get('current_urgent_streak'))}",
+                f"- Current attention/urgent streak: "
+                f"{_format_value(escalation_metrics.get('current_attention_or_urgent_streak'))}",
+                f"- Longest urgent streak: {_format_value(escalation_metrics.get('longest_urgent_streak'))}",
+                f"- Stale acknowledgment snapshots: "
+                f"{_format_value(escalation_metrics.get('stale_acknowledgment_count'))}",
+                "",
+            ]
+        )
+        if digest_metadata:
+            md_lines.extend(
+                [
+                    "## Escalation digest export",
+                    "",
+                    f"- Generated at: {_format_value(digest_metadata.get('generated_at'))}",
+                    f"- Markdown path: `{digest_metadata.get('markdown_path', '—')}`",
+                    f"- Metadata path: `{digest_metadata.get('json_path', '—')}`",
+                    "> Local digest only — not a notification system; does not verify MRMS.",
+                    "",
+                ]
+            )
+        if escalation_current:
+            md_lines.extend(
+                [
+                    "## Current escalation status",
+                    "",
+                    f"- Level: {_format_value(escalation_current.get('escalation_level'))}",
+                    f"- Acknowledgment status: {_format_value(escalation_current.get('acknowledgment_status'))}",
+                    f"- Stale acknowledgment: {_format_value(escalation_current.get('stale_acknowledgment'))}",
+                    "",
+                ]
+            )
+        if latest_ack:
+            md_lines.extend(
+                [
+                    "## Latest diff alert acknowledgment",
+                    "",
+                    f"- Created at: {_format_value(latest_ack.get('created_at'))}",
+                    f"- Operator: {_format_value(latest_ack.get('operator'))}",
+                    f"- Note: {_format_value(latest_ack.get('note'))}",
+                    "> Acknowledgment does not clear alerts or verify MRMS.",
+                    "",
+                ]
+            )
+        else:
+            md_lines.extend(
+                [
+                    "## Latest diff alert acknowledgment",
+                    "",
+                    "- No local acknowledgment recorded yet.",
+                    "",
+                ]
+            )
+        batch_ctx = (scheduled or {}).get("batch_validation") or {}
+        queue_ctx = (scheduled or {}).get("queue_benchmark") or {}
+        md_lines.extend(
+            [
+                "## Decoder and tile write status",
+                "",
+                f"- Decoder available: {_format_value(decoder_available.any_decoder if decoder_available is not None else None)}",
+                f"- Batch tiles written: {_format_value(batch_ctx.get('tiles_written', 0))}",
+                f"- Queue benchmark tiles written: {_format_value(queue_ctx.get('total_tiles_written', 0))}",
+                f"- Production rendering enabled: {_format_value(settings.enable_production_radar_tiles)}",
+                "",
+            ]
+        )
+
     if guidance_items:
         md_lines.extend(
             [
@@ -223,6 +341,19 @@ def generate_operator_handoff(
     for index, question in enumerate(questions, start=1):
         md_lines.append(f"{index}. [ ] {question}")
 
+    if include_escalation_review:
+        md_lines.extend(
+            [
+                "",
+                "## Operator review checklist (Phase 39)",
+                "",
+                "> Local checklist only — does not verify MRMS, clear alerts, or enable production.",
+                "",
+            ]
+        )
+        for index, item in enumerate(REVIEW_CHECKLIST_ITEMS, start=1):
+            md_lines.append(f"{index}. [ ] {item}")
+
     md_lines.extend(
         [
             "",
@@ -237,6 +368,9 @@ def generate_operator_handoff(
             "make mrms-proof-bundle",
             "make mrms-proof-bundle-diff",
             "make mrms-operator-handoff",
+            "make proof-bundle-diff-escalation-metrics",
+            "make proof-bundle-diff-escalation-digest",
+            "make scheduled-proof-bundle-digest",
             "make mrms-signoff",
             "```",
         ]
@@ -265,6 +399,19 @@ def generate_operator_handoff(
         "auto_generated": auto_generated,
         "trigger_reason": trigger_reason,
         "guidance_item_count": len(guidance_items),
+        "include_escalation_review": include_escalation_review,
+        "digest_path": (digest_metadata or {}).get("markdown_path"),
+        "digest_metadata_path": (digest_metadata or {}).get("json_path"),
+        "acknowledgment_status": (escalation_current or {}).get("acknowledgment_status")
+        if escalation_current
+        else None,
+        "stale_acknowledgment": (escalation_current or {}).get("stale_acknowledgment")
+        if escalation_current
+        else None,
+        "escalation_level": (escalation_current or {}).get("escalation_level")
+        if escalation_current
+        else None,
+        "review_checklist_count": len(REVIEW_CHECKLIST_ITEMS) if include_escalation_review else 0,
         "verified_mrms": False,
         "local_handoff_only": True,
         "does_not_enable_production": True,
@@ -316,6 +463,13 @@ def compact_operator_handoff_status(
         "diff_status": (record or {}).get("diff_status"),
         "auto_generated": bool((record or {}).get("auto_generated")),
         "trigger_reason": (record or {}).get("trigger_reason"),
+        "include_escalation_review": bool((record or {}).get("include_escalation_review")),
+        "digest_path": (record or {}).get("digest_path"),
+        "digest_metadata_path": (record or {}).get("digest_metadata_path"),
+        "acknowledgment_status": (record or {}).get("acknowledgment_status"),
+        "stale_acknowledgment": (record or {}).get("stale_acknowledgment"),
+        "escalation_level": (record or {}).get("escalation_level"),
+        "review_checklist_count": int((record or {}).get("review_checklist_count", 0)),
         "verified_mrms": False,
         "local_handoff_only": True,
         "does_not_enable_production": True,

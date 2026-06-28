@@ -1514,3 +1514,35 @@ cd frontend && npm run build
 - Digest is local file export only — not a notification system
 - Metrics derived from bounded history (max 25 snapshots)
 - `verified_mrms` always false
+
+## Phase 39 - Scheduled Digest + Operator Review Checklist
+
+Optional scheduled escalation digest after proof bundle diff and extended operator handoff checklist.
+
+### Backend
+- `scheduled_validation.py` — `digest_requested`, step `escalation_digest`, report digest fields
+- `mrms_operator_handoff.py` — `include_escalation_review`, explicit Phase 39 checklist items, metrics/ack/digest sections
+- `proof_bundle_diff_escalation_digest.py` — `compact_scheduled_digest()`
+- Summary `scheduled_digest` + extended `operator_handoff` compacts
+
+### Scripts / Makefile
+- `--digest` / `--escalation-digest` on `run_scheduled_validation.py`
+- `make scheduled-proof-bundle-digest`
+
+### Frontend
+- Dev Validation: scheduled digest status, operator checklist path/ack status, honest safety wording
+
+### Run commands
+
+```bash
+make test
+make scheduled-proof-bundle-digest
+make scheduled-validation
+cd frontend && npm run build
+```
+
+### Known limitations
+- Scheduled digest opt-in only — default scheduled validation unchanged
+- Checklist/digest do not clear alerts, verify MRMS, or enable production
+- No external notifications
+- `verified_mrms` always false

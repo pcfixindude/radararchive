@@ -677,6 +677,21 @@ export type MrmsProofBundleDiffCompact = {
   prototype: boolean;
 };
 
+export type ScheduledDigestCompact = {
+  digest_requested: boolean;
+  digest_generated: boolean;
+  digest_path?: string | null;
+  digest_metadata_path?: string | null;
+  digest_reason?: string | null;
+  digest_elapsed_seconds?: number | null;
+  verified_mrms: boolean;
+  local_digest_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  no_external_notifications: boolean;
+  prototype: boolean;
+};
+
 export type OperatorHandoffCompact = {
   available: boolean;
   created_at?: string | null;
@@ -691,6 +706,13 @@ export type OperatorHandoffCompact = {
   handoff_reason?: string | null;
   scheduled_handoff_path?: string | null;
   diff_status_that_triggered_handoff?: string | null;
+  include_escalation_review?: boolean;
+  digest_path?: string | null;
+  digest_metadata_path?: string | null;
+  acknowledgment_status?: string | null;
+  stale_acknowledgment?: boolean | null;
+  escalation_level?: string | null;
+  review_checklist_count?: number;
   verified_mrms: boolean;
   local_handoff_only: boolean;
   does_not_enable_production: boolean;
@@ -797,6 +819,7 @@ export type ValidationSummary = {
   scheduled_validation_available?: boolean;
   scheduled_validation?: ScheduledValidationCompact | null;
   scheduled_proof_bundle?: ScheduledProofBundleCompact | null;
+  scheduled_digest?: ScheduledDigestCompact | null;
   validation_failures_count?: number;
   validation_failures_recent?: ValidationFailureCompact[];
   validation_alert?: ValidationAlertCompact | null;

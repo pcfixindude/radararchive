@@ -768,6 +768,21 @@ class ProofBundleDiffAcknowledgmentsResponse(BaseModel):
     entries: list[ProofBundleDiffAcknowledgmentCompact] = Field(default_factory=list)
 
 
+class ScheduledDigestCompact(BaseModel):
+    digest_requested: bool = False
+    digest_generated: bool = False
+    digest_path: Optional[str] = None
+    digest_metadata_path: Optional[str] = None
+    digest_reason: Optional[str] = None
+    digest_elapsed_seconds: Optional[float] = None
+    verified_mrms: bool = False
+    local_digest_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    prototype: bool = True
+
+
 class OperatorHandoffCompact(BaseModel):
     available: bool = False
     created_at: Optional[str] = None
@@ -782,6 +797,13 @@ class OperatorHandoffCompact(BaseModel):
     handoff_reason: Optional[str] = None
     scheduled_handoff_path: Optional[str] = None
     diff_status_that_triggered_handoff: Optional[str] = None
+    include_escalation_review: bool = False
+    digest_path: Optional[str] = None
+    digest_metadata_path: Optional[str] = None
+    acknowledgment_status: Optional[str] = None
+    stale_acknowledgment: Optional[bool] = None
+    escalation_level: Optional[str] = None
+    review_checklist_count: int = 0
     verified_mrms: bool = False
     local_handoff_only: bool = True
     does_not_enable_production: bool = True
@@ -835,6 +857,7 @@ class ValidationSummaryResponse(BaseModel):
     scheduled_validation_available: bool = False
     scheduled_validation: Optional[ScheduledValidationCompact] = None
     scheduled_proof_bundle: Optional[ScheduledProofBundleCompact] = None
+    scheduled_digest: Optional[ScheduledDigestCompact] = None
     validation_failures_count: int = 0
     validation_failures_recent: list[ValidationFailureCompact] = Field(default_factory=list)
     validation_alert: Optional[ValidationAlertCompact] = None

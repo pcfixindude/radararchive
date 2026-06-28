@@ -237,6 +237,26 @@ def compact_proof_bundle_diff_escalation_digest(storage: LocalStorage) -> dict[s
     }
 
 
+def compact_scheduled_digest(scheduled: Optional[dict[str, Any]]) -> Optional[dict[str, Any]]:
+    """Compact digest step status from the latest scheduled validation report."""
+    if scheduled is None:
+        return None
+    return {
+        "digest_requested": bool(scheduled.get("digest_requested")),
+        "digest_generated": bool(scheduled.get("digest_generated")),
+        "digest_path": scheduled.get("digest_path"),
+        "digest_metadata_path": scheduled.get("digest_metadata_path"),
+        "digest_reason": scheduled.get("digest_reason"),
+        "digest_elapsed_seconds": scheduled.get("digest_elapsed_seconds"),
+        "verified_mrms": False,
+        "local_digest_only": True,
+        "does_not_clear_alerts": True,
+        "does_not_enable_production": True,
+        "no_external_notifications": True,
+        "prototype": True,
+    }
+
+
 def build_proof_bundle_diff_escalation_digest_payload(storage: LocalStorage) -> dict[str, Any]:
     metadata = load_latest_escalation_digest_metadata(storage)
     md_repo = _digest_md_repo_path(storage)

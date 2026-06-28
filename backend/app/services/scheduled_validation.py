@@ -107,6 +107,12 @@ class ScheduledValidationReport:
     notify_stdout_requested: bool = False
     urgent_stdout_notice_triggered: bool = False
     urgent_stdout_notice_at: Optional[str] = None
+    digest_requested: bool = False
+    digest_generated: bool = False
+    digest_path: Optional[str] = None
+    digest_metadata_path: Optional[str] = None
+    digest_reason: Optional[str] = None
+    digest_elapsed_seconds: Optional[float] = None
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     elapsed_seconds: float = 0.0
@@ -147,6 +153,12 @@ class ScheduledValidationReport:
             "notify_stdout_requested": self.notify_stdout_requested,
             "urgent_stdout_notice_triggered": self.urgent_stdout_notice_triggered,
             "urgent_stdout_notice_at": self.urgent_stdout_notice_at,
+            "digest_requested": self.digest_requested,
+            "digest_generated": self.digest_generated,
+            "digest_path": self.digest_path,
+            "digest_metadata_path": self.digest_metadata_path,
+            "digest_reason": self.digest_reason,
+            "digest_elapsed_seconds": self.digest_elapsed_seconds,
             "warnings": list(self.warnings),
             "errors": list(self.errors),
             "elapsed_seconds": round(self.elapsed_seconds, 4),
@@ -266,6 +278,7 @@ def run_scheduled_validation(
     diff_bundle_requested: bool = False,
     handoff_requested: bool = False,
     notify_stdout: bool = False,
+    digest_requested: bool = False,
     persist: bool = True,
     command_context: Optional[str] = None,
     batch_fn: Optional[Callable[..., BatchValidationReport]] = None,
@@ -292,6 +305,7 @@ def run_scheduled_validation(
     report.diff_bundle_requested = diff_bundle_requested
     report.handoff_requested = handoff_requested
     report.notify_stdout_requested = notify_stdout
+    report.digest_requested = digest_requested
     report.warnings.append(
         "Scheduled validation is local dev/prototype tooling — not verified MRMS production"
     )
@@ -675,6 +689,74 @@ def run_scheduled_validation(
         if stdout_record is not None:
             report.urgent_stdout_notice_triggered = True
             report.urgent_stdout_notice_at = stdout_record.get("triggered_at")
+
+    if digest_requested:
+        digest_step = ScheduledValidationStep(name="escalation_digest", started_at=_utc_now())
+        digest_start = time.perf_counter()
+        try:
+            if not diff_bundle_requested:
+                report.digest_generated = False
+                report.digest_reason = "skipped_diff_not_requested"
+                digest_step.status = STEP_SKIPPED
+                digest_step.summary = {
+                    "digest_generated": False,
+                    "digest_reason": report.digest_reason,
+                    "verified_mrms": False,
+                }
+            else:
+                from backend.app.services.proof_bundle_diff_escalation_digest import (
+                    export_proof_bundle_diff_escalation_digest,
+                )
+
+                metadata = export_proof_bundle_diff_escalation_digest(storage)
+                report.digest_generated = True
+                report.digest_path = metadata.get("markdown_path")
+                report.digest_metadata_path = metadata.get("json_path")
+                report.digest_reason = "generated"
+                handoff_record = generate_operator_handoff(
+                    session,
+                    storage,
+                    diff_report=report.mrms_proof_bundle_diff,
+                    trigger_reason="scheduled_escalation_digest",
+                    auto_generated=True,
+                    include_escalation_review=True,
+                    scheduled_context={
+                        "batch_validation": report.batch_validation,
+                        "queue_benchmark": report.queue_benchmark,
+                        "production_rendering_enabled": report.production_rendering_enabled,
+                    },
+                )
+                report.handoff_generated = True
+                report.handoff_path = handoff_record.get("markdown_path")
+                report.handoff_reason = "scheduled_escalation_digest"
+                digest_step.summary = {
+                    "digest_generated": True,
+                    "digest_path": report.digest_path,
+                    "digest_metadata_path": report.digest_metadata_path,
+                    "digest_reason": report.digest_reason,
+                    "handoff_path": report.handoff_path,
+                    "verified_mrms": False,
+                    "local_digest_only": True,
+                }
+                report.warnings.append(
+                    "Escalation digest exported (local review only — does NOT verify MRMS)"
+                )
+        except Exception as exc:  # noqa: BLE001
+            report.digest_generated = False
+            report.digest_reason = "generation_failed"
+            digest_step.errors.append(str(exc))
+        digest_step.elapsed_seconds = time.perf_counter() - digest_start
+        report.digest_elapsed_seconds = round(digest_step.elapsed_seconds, 4)
+        digest_step.finished_at = _utc_now()
+        _finalize_step_status(digest_step)
+        report.steps.append(digest_step)
+        _log_step_failures(
+            storage,
+            phase="scheduled_validation",
+            source_mode=mode,
+            command_context=command_context,
+            step=digest_step,
+        )
 
     report.success = not report.errors and all(
         step.status in (STEP_SUCCEEDED, STEP_WARNING, STEP_SKIPPED) for step in report.steps

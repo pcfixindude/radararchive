@@ -268,6 +268,10 @@ Scheduled validation: optional `--notify-stdout` / `--urgent-stdout` prints loca
 
 Summary additions (Phase 38): `proof_bundle_diff_escalation_metrics`, `proof_bundle_diff_escalation_digest` compacts.
 
+Summary additions (Phase 39): `scheduled_digest` compact (`digest_requested`, `digest_generated`, `digest_path`, `digest_metadata_path`, `digest_reason`, `digest_elapsed_seconds`, safety flags). `operator_handoff` compact adds `include_escalation_review`, `digest_path`, `acknowledgment_status`, `stale_acknowledgment`, `escalation_level`, `review_checklist_count`.
+
+Scheduled validation report additions (Phase 39): `digest_requested`, `digest_generated`, `digest_path`, `digest_metadata_path`, `digest_reason`, `digest_elapsed_seconds`; step `escalation_digest` when `--digest` / `--escalation-digest` passed.
+
 Scheduled validation report additions (Phase 32): `bundle_requested`, `diff_bundle_requested`, `mrms_proof_bundle`, `mrms_proof_bundle_diff`; steps `proof_report`, `proof_regression`, `proof_bundle_export`, `proof_bundle_diff`.
 
 `GET /api/validation/proof-bundle-diff` — latest proof bundle diff report (`?refresh=true` rebuilds). `verified_mrms: false`, `local_diff_only: true`.

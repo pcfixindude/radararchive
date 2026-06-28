@@ -176,6 +176,7 @@ export default function ValidationStatusPanel({
   const proofRegression = summary.mrms_proof_regression ?? null;
   const signoffSummary = summary.mrms_signoff ?? null;
   const scheduledProofBundle = summary.scheduled_proof_bundle ?? null;
+  const scheduledDigest = summary.scheduled_digest ?? null;
   const proofBundle = summary.mrms_proof_bundle ?? null;
   const proofBundleDiff = summary.mrms_proof_bundle_diff ?? null;
   const operatorHandoff = summary.operator_handoff ?? null;
@@ -367,6 +368,22 @@ export default function ValidationStatusPanel({
                 Local operator handoff only — does not verify MRMS — does not enable production rendering
               </p>
             ) : null}
+            {scheduledDigest?.digest_requested ? (
+              <>
+                <p className="validation-meta">
+                  Scheduled digest: {scheduledDigest.digest_generated ? 'generated' : 'skipped'}
+                  {scheduledDigest.digest_reason ? ` — ${scheduledDigest.digest_reason}` : ''}
+                  {scheduledDigest.digest_path ? ` — ${scheduledDigest.digest_path}` : ''}
+                  {scheduledDigest.digest_elapsed_seconds != null
+                    ? ` (${scheduledDigest.digest_elapsed_seconds.toFixed(2)}s)`
+                    : ''}
+                </p>
+                <p className="validation-meta">
+                  Local digest only — does not notify externally — does not verify MRMS — does not
+                  enable production rendering — does not clear alerts
+                </p>
+              </>
+            ) : null}
           </>
         ) : (
           <p className="validation-meta">
@@ -393,10 +410,28 @@ export default function ValidationStatusPanel({
             Handoff checklist {formatTimestamp(operatorHandoff.created_at)}
             {operatorHandoff.markdown_path ? ` — ${operatorHandoff.markdown_path}` : ''}
             {operatorHandoff.auto_generated ? ' (auto-generated)' : ''}
+            {operatorHandoff.include_escalation_review
+              ? ` — review checklist (${operatorHandoff.review_checklist_count ?? 0} items)`
+              : ''}
           </p>
         ) : (
           <p className="validation-meta">No handoff checklist yet — run make mrms-operator-handoff.</p>
         )}
+        {operatorHandoff?.include_escalation_review ? (
+          <>
+            {operatorHandoff.acknowledgment_status ? (
+              <p className="validation-meta">
+                Acknowledgment: {operatorHandoff.acknowledgment_status}
+                {operatorHandoff.stale_acknowledgment ? ' (stale)' : ' (current)'}
+              </p>
+            ) : (
+              <p className="validation-meta">Acknowledgment: missing</p>
+            )}
+            {operatorHandoff.digest_path ? (
+              <p className="validation-meta">Checklist digest path: {operatorHandoff.digest_path}</p>
+            ) : null}
+          </>
+        ) : null}
         {operatorHandoff?.handoff_requested ? (
           <p className="validation-meta">
             Latest scheduled handoff: {operatorHandoff.handoff_generated ? 'generated' : 'skipped'}
@@ -638,7 +673,7 @@ export default function ValidationStatusPanel({
         {diffEscalationDigest?.available ? (
           <p className="validation-meta">
             Latest digest {formatTimestamp(diffEscalationDigest.generated_at)} —{' '}
-            {diffEscalationDigest.markdown_path ?? '—'} (local digest only)
+            {diffEscalationDigest.markdown_path ?? '—'} (local digest only — does not notify externally)
           </p>
         ) : (
           <p className="validation-meta">

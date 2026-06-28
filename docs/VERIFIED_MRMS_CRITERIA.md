@@ -162,6 +162,10 @@ Bounded escalation history (`make proof-bundle-diff-escalation-history`) and opt
 
 Escalation metrics (`make proof-bundle-diff-escalation-metrics`) and local Markdown digest export (`make proof-bundle-diff-escalation-digest`) are **supporting review evidence only**. They summarize bounded history and export operator review notes locally. They do **not** verify MRMS, clear alerts, enable production rendering, or satisfy any verified-MRMS criterion.
 
+## Scheduled digest + operator review checklist (Phase 39)
+
+`make scheduled-proof-bundle-digest` and the extended operator handoff checklist (`mrms_operator_handoff_latest.md` with `include_escalation_review`) are **supporting review evidence only**. They combine proof bundle diff, escalation metrics, digest path, and acknowledgment status for local operator review. They do **not** verify MRMS, clear alerts, enable production rendering, or satisfy any verified-MRMS criterion.
+
 ## Scheduled proof bundle monitoring (Phase 32)
 
 `make scheduled-proof-bundle` runs scheduled validation with `--proof --bundle --diff-bundle`. This is **local evidence monitoring only** — it does not verify MRMS or enable production rendering. Alerts may flag `worsened` or `mixed` diff status for operator review.

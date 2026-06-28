@@ -70,6 +70,17 @@ def _print_report(report) -> None:
         )
         if report.urgent_stdout_notice_at:
             print(f"  urgent stdout notice at: {report.urgent_stdout_notice_at}")
+    if report.digest_requested:
+        print(
+            f"  escalation digest: requested=yes generated={report.digest_generated} "
+            f"reason={report.digest_reason}"
+        )
+        if report.digest_path:
+            print(f"  digest path: {report.digest_path}")
+        if report.digest_metadata_path:
+            print(f"  digest metadata path: {report.digest_metadata_path}")
+        if report.digest_elapsed_seconds is not None:
+            print(f"  digest elapsed_seconds: {report.digest_elapsed_seconds:.4f}")
     print(f"  verified_mrms: {report.verified_mrms}")
     for warning in report.warnings:
         print(f"  warning: {warning}")
@@ -120,6 +131,13 @@ def main() -> None:
         action="store_true",
         help="Print local terminal urgent notice when escalation level is urgent (stdout only)",
     )
+    parser.add_argument(
+        "--digest",
+        "--escalation-digest",
+        dest="digest",
+        action="store_true",
+        help="After diff/escalation, export local escalation digest and refresh operator checklist",
+    )
     args = parser.parse_args()
 
     print(
@@ -154,6 +172,7 @@ def main() -> None:
             diff_bundle_requested=args.diff_bundle,
             handoff_requested=args.handoff,
             notify_stdout=args.notify_stdout,
+            digest_requested=args.digest,
             command_context="make scheduled-validation",
         )
     finally:

@@ -469,6 +469,14 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Summary `proof_bundle_diff_escalation_metrics`, `proof_bundle_diff_escalation_digest`
 - Gitignored: `proof_bundle_diff_escalation_digest_latest.md/json`
 
+### Scheduled digest + operator review checklist (Phase 39)
+- `run_scheduled_validation(..., digest_requested=True)` — step `escalation_digest` after diff/escalation
+- `make scheduled-proof-bundle-digest` — `--proof --bundle --diff-bundle --handoff --digest`
+- Regenerates `mrms_operator_handoff_latest.md` with escalation metrics, digest path, acknowledgment status, explicit review checklist
+- Summary `scheduled_digest` compact; extended `operator_handoff` compact
+- Default `make scheduled-validation` unchanged; digest opt-in only
+- Does not verify MRMS, clear alerts, enable production, or send external notifications
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

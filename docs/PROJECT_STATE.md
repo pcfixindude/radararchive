@@ -1,11 +1,12 @@
 # Project State
 
-Current phase: Phase 38 complete
+Current phase: Phase 39 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
 - MRMS discovery → download → decode prototype pipeline
+- **Scheduled proof bundle digest** (`make scheduled-proof-bundle-digest`) — optional local escalation digest + operator review checklist
 - **Proof bundle diff escalation metrics** and **local Markdown digest export**
 - **Proof bundle diff escalation history** (bounded snapshots)
 - **Optional stdout urgent notices** (local terminal only)
@@ -20,12 +21,13 @@ ENABLE_PRODUCTION_RADAR_TILES=false
 STALE_RUNNING_JOB_SECONDS=3600
 ```
 
-## Operator commands (Phase 38)
+## Operator commands (Phase 39)
 
 ```bash
-make proof-bundle-diff-escalation-metrics
+make scheduled-proof-bundle-digest
 make proof-bundle-diff-escalation-digest
-make proof-bundle-diff-escalation-history
+make proof-bundle-diff-escalation-metrics
+make scheduled-proof-bundle-handoff
 make scheduled-proof-bundle-notify
 make validation-alerts
 ```
@@ -34,10 +36,9 @@ make validation-alerts
 
 ```bash
 curl http://127.0.0.1:8000/api/validation/summary
-curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-metrics
 curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-digest
 ```
 
 ## Verified MRMS
 
-`verified_mrms` is **false** everywhere. Metrics and digest are local review aids only — no external notifications.
+`verified_mrms` is **false** everywhere. Scheduled digest and operator checklist are local review aids only — no external notifications.
