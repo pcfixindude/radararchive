@@ -497,6 +497,13 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Summary `mrms_review_session` adds `comparison` compact + `open_attention_guidance`
 - Gitignored: `data/dev/mrms_review_session_comparison_latest.json`, `..._history.json`
 
+### Review session Markdown export (Phase 43)
+- `mrms_review_session_export.py` — Markdown + JSON export, bounded history (max 25)
+- `build_review_export_regeneration_hint()` — stale export detection tied to session/comparison/digest hints
+- `GET /api/validation/review-sessions/export`, `GET .../export/history`
+- Summary: `mrms_review_session_export`, `review_export_regeneration_hint`
+- Gitignored: `mrms_review_session_export_latest.md`, `.json`, `..._history.json`
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

@@ -669,6 +669,41 @@ export type MrmsReviewSessionSummaryCompact = {
   prototype: boolean;
 };
 
+export type MrmsReviewSessionExportCompact = {
+  available: boolean;
+  created_at?: string | null;
+  export_path?: string | null;
+  metadata_path?: string | null;
+  session_id?: string | null;
+  operator?: string | null;
+  comparison_status?: string | null;
+  open_attention_count: number;
+  history_count?: number;
+  verified_mrms: boolean;
+  local_export_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  no_external_notifications?: boolean;
+  prototype: boolean;
+};
+
+export type ReviewExportRegenerationHintCompact = {
+  review_export_regeneration_recommended: boolean;
+  reason?: string | null;
+  suggested_command?: string | null;
+  latest_export_at?: string | null;
+  latest_session_at?: string | null;
+  latest_comparison_at?: string | null;
+  digest_regeneration_recommended?: boolean;
+  digest_regeneration_reason?: string | null;
+  verified_mrms: boolean;
+  local_export_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  no_external_notifications?: boolean;
+  prototype: boolean;
+};
+
 export type MrmsReviewSessionCreateRequest = {
   operator_name?: string;
   operator_initials?: string;
@@ -975,6 +1010,8 @@ export type ValidationSummary = {
   proof_bundle_diff_escalation_digest_diff?: ProofBundleDiffEscalationDigestDiffCompact | null;
   digest_regeneration_hint?: DigestRegenerationHintCompact | null;
   mrms_review_session?: MrmsReviewSessionSummaryCompact | null;
+  mrms_review_session_export?: MrmsReviewSessionExportCompact | null;
+  review_export_regeneration_hint?: ReviewExportRegenerationHintCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;

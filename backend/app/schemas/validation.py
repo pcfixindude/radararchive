@@ -704,6 +704,71 @@ class MrmsReviewSessionCreateResponse(BaseModel):
     review_session: dict[str, Any]
 
 
+class MrmsReviewSessionExportCompact(BaseModel):
+    available: bool = False
+    created_at: Optional[str] = None
+    export_path: Optional[str] = None
+    metadata_path: Optional[str] = None
+    session_id: Optional[str] = None
+    operator: Optional[str] = None
+    comparison_status: Optional[str] = None
+    open_attention_count: int = 0
+    history_count: int = 0
+    verified_mrms: bool = False
+    local_export_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    prototype: bool = True
+
+
+class ReviewExportRegenerationHintCompact(BaseModel):
+    review_export_regeneration_recommended: bool = False
+    reason: Optional[str] = None
+    suggested_command: Optional[str] = None
+    latest_export_at: Optional[str] = None
+    latest_session_at: Optional[str] = None
+    latest_comparison_at: Optional[str] = None
+    digest_regeneration_recommended: bool = False
+    digest_regeneration_reason: Optional[str] = None
+    verified_mrms: bool = False
+    local_export_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    prototype: bool = True
+
+
+class MrmsReviewSessionExportResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_export_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    latest: Optional[dict[str, Any]] = None
+    count: int = 0
+    max_entries: int = 25
+    entries: list[dict[str, Any]] = Field(default_factory=list)
+    compact: MrmsReviewSessionExportCompact
+    regeneration_hint: ReviewExportRegenerationHintCompact
+
+
+class MrmsReviewSessionExportHistoryResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_export_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    count: int = 0
+    max_entries: int = 25
+    latest: Optional[dict[str, Any]] = None
+    entries: list[dict[str, Any]] = Field(default_factory=list)
+    compact: MrmsReviewSessionExportCompact
+    regeneration_hint: ReviewExportRegenerationHintCompact
+
+
 class MrmsProofHistoryEntryCompact(BaseModel):
     generated_at: Optional[str] = None
     overall_status: str = "not_started"
@@ -1112,6 +1177,8 @@ class ValidationSummaryResponse(BaseModel):
     ] = None
     digest_regeneration_hint: Optional[DigestRegenerationHintCompact] = None
     mrms_review_session: Optional[MrmsReviewSessionSummaryCompact] = None
+    mrms_review_session_export: Optional[MrmsReviewSessionExportCompact] = None
+    review_export_regeneration_hint: Optional[ReviewExportRegenerationHintCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse

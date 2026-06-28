@@ -178,6 +178,10 @@ Local review session records (`make mrms-review-session`, `POST /api/validation/
 
 Review session comparison (`make mrms-review-session-compare`, `GET /api/validation/review-sessions/comparison`) and open attention runbook guidance in the Dev Validation summary are **supporting local review aids only**. They help operators see what changed between consecutive review sessions and which runbook sections apply to remaining open attention items. They do **not** verify MRMS, clear alerts, enable production rendering, or satisfy any verified-MRMS criterion.
 
+## Review session Markdown export (Phase 43)
+
+Review session Markdown export (`make mrms-review-session-export`, `GET /api/validation/review-sessions/export`) and export regeneration hints (`review_export_regeneration_hint` in summary) are **supporting local review aids only**. They help operators keep a readable local summary of the latest review session, comparison, and runbook guidance. They do **not** verify MRMS, clear alerts, enable production rendering, or satisfy any verified-MRMS criterion.
+
 ## Scheduled proof bundle monitoring (Phase 32)
 
 `make scheduled-proof-bundle` runs scheduled validation with `--proof --bundle --diff-bundle`. This is **local evidence monitoring only** — it does not verify MRMS or enable production rendering. Alerts may flag `worsened` or `mixed` diff status for operator review.

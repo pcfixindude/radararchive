@@ -234,6 +234,8 @@ export default function ValidationStatusPanel({
   const reviewSessionSummary = summary.mrms_review_session ?? null;
   const reviewSessionComparison = reviewSessionSummary?.comparison ?? null;
   const openAttentionGuidance = reviewSessionSummary?.open_attention_guidance ?? [];
+  const reviewSessionExport = summary.mrms_review_session_export ?? null;
+  const reviewExportRegenerationHint = summary.review_export_regeneration_hint ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
   const queue = summary.render_queue;
@@ -901,6 +903,40 @@ export default function ValidationStatusPanel({
         <p className="validation-meta">
           Local comparison only — verified_mrms: {yesNo(summary.verified_mrms)} — does not clear
           alerts or enable production rendering
+        </p>
+        {reviewSessionExport?.available ? (
+          <p className="validation-meta">
+            Latest export {formatTimestamp(reviewSessionExport.created_at)} —{' '}
+            <code>{reviewSessionExport.export_path ?? '—'}</code> — comparison{' '}
+            {reviewSessionExport.comparison_status ?? '—'} — open attention{' '}
+            {reviewSessionExport.open_attention_count ?? 0}
+          </p>
+        ) : (
+          <p className="validation-meta">
+            No review session export — run make mrms-review-session-export (local only).
+          </p>
+        )}
+        {reviewExportRegenerationHint ? (
+          <p
+            className={
+              reviewExportRegenerationHint.review_export_regeneration_recommended
+                ? 'validation-warn'
+                : 'validation-meta'
+            }
+          >
+            Review export regeneration recommended:{' '}
+            {reviewExportRegenerationHint.review_export_regeneration_recommended ? 'yes' : 'no'}
+            {reviewExportRegenerationHint.reason
+              ? ` — ${reviewExportRegenerationHint.reason}`
+              : ''}
+            {reviewExportRegenerationHint.suggested_command
+              ? ` — run ${reviewExportRegenerationHint.suggested_command}`
+              : ''}
+          </p>
+        ) : null}
+        <p className="validation-meta">
+          Local export only — does not verify MRMS, clear alerts, notify externally, or enable
+          production rendering
         </p>
         {showReviewSessionForm ? (
           <form className="validation-signoff-form" onSubmit={(event) => void handleReviewSessionSubmit(event)}>

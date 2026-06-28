@@ -462,6 +462,37 @@ curl http://127.0.0.1:8000/api/validation/review-sessions/comparison/history
 
 **Warnings:** Comparison does **not** verify MRMS, clear alerts, enable production rendering, or send external notifications.
 
+## MRMS proof review session export (Phase 43)
+
+Export the latest review session to readable local Markdown including comparison summary, open attention guidance, digest regeneration hints, and safety warnings — **local export only**.
+
+```bash
+make mrms-review-session-export
+make mrms-review-session-export ARGS="--json-report"
+make mrms-review-session-exports
+make mrms-review-session-exports ARGS="--json"
+curl http://127.0.0.1:8000/api/validation/review-sessions/export
+curl http://127.0.0.1:8000/api/validation/review-sessions/export/history
+```
+
+**Markdown export includes:**
+- Session ID, operator, notes, escalation level, open attention count
+- Checklist reviewed/not reviewed counts
+- Latest digest path, operator handoff path, proof bundle ID/path
+- Proof bundle diff status, proof report status, acknowledgment status
+- Comparison vs previous session (improvements, regressions, unchanged items)
+- Open attention guidance with runbook paths/sections
+- Digest regeneration hint block
+- Explicit safety warnings (local only; does not verify MRMS; does not clear alerts; no external notifications)
+
+**Persistence:** `data/dev/mrms_review_session_export_latest.md` + `.json` + bounded history (max 25, gitignored).
+
+**Export regeneration hints:** Summary API adds `review_export_regeneration_hint` when export is missing, latest session is newer than export, latest comparison is newer than export, or digest regeneration is recommended. Suggested command: `make mrms-review-session-export`.
+
+**Dev Validation UI:** Shows latest export timestamp/path, comparison status, open attention count, regeneration recommended yes/no, reason, and suggested command.
+
+**Warnings:** Export does **not** verify MRMS, clear alerts, enable production rendering, or send external notifications.
+
 ## Proof bundle diff alert escalation (Phase 36)
 
 Escalation hints combine trend summary, diff alert history, and acknowledgment state — **local operator guidance only**. Escalation does **not** verify MRMS, clear alerts, enable production rendering, or mutate catalog gates.

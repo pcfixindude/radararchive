@@ -32,6 +32,8 @@ from backend.app.schemas.validation import (
     MrmsReviewSessionsResponse,
     MrmsReviewSessionComparisonResponse,
     MrmsReviewSessionComparisonHistoryResponse,
+    MrmsReviewSessionExportResponse,
+    MrmsReviewSessionExportHistoryResponse,
     QueueBenchmarkHistoryResponse,
     ScheduledValidationHistoryResponse,
     ValidationAlertsResponse,
@@ -92,6 +94,9 @@ from backend.app.services.mrms_review_session import (
 from backend.app.services.mrms_review_session_compare import (
     build_review_session_comparison_payload,
     record_review_session_comparison,
+)
+from backend.app.services.mrms_review_session_export import (
+    build_review_session_export_payload,
 )
 from backend.app.services.mrms_proof_report import load_mrms_proof_report
 from backend.app.services.validation_alerts import (
@@ -291,6 +296,28 @@ def validation_signoffs_create(body: MrmsSignoffCreateRequest) -> MrmsSignoffCre
         signoff=record,
         alert=compact_validation_alert(alert),
     )
+
+
+@router.get(
+    "/review-sessions/export/history",
+    response_model=MrmsReviewSessionExportHistoryResponse,
+)
+def validation_review_sessions_export_history() -> MrmsReviewSessionExportHistoryResponse:
+    """Bounded review session export history (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_review_session_export_payload(storage)
+    return MrmsReviewSessionExportHistoryResponse(**payload)
+
+
+@router.get(
+    "/review-sessions/export",
+    response_model=MrmsReviewSessionExportResponse,
+)
+def validation_review_sessions_export() -> MrmsReviewSessionExportResponse:
+    """Latest review session Markdown export metadata (read-only; local review only)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_review_session_export_payload(storage)
+    return MrmsReviewSessionExportResponse(**payload)
 
 
 @router.get(

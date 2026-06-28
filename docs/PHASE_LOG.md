@@ -1638,3 +1638,36 @@ cd frontend && npm run build
 - Requires at least two sessions for baseline comparison (`no_baseline` otherwise)
 - Comparison does not clear alerts or mutate production/catalog/render gates
 - `verified_mrms` always false
+
+## Phase 43 - Review Session Markdown Export
+
+Optional local Markdown export of latest review session + comparison + guidance + digest hints.
+
+### Backend
+- `mrms_review_session_export.py` — export service, bounded history (max 25)
+- `build_review_export_regeneration_hint()` — export stale vs session/comparison/digest
+- `GET /api/validation/review-sessions/export`, `GET .../export/history`
+- Summary: `mrms_review_session_export`, `review_export_regeneration_hint`
+- Gitignored: export latest `.md`/`.json`, `mrms_review_session_export_history.json`
+
+### Scripts / Makefile
+- `make mrms-review-session-export` (`--json-report`)
+- `make mrms-review-session-exports` (`--json`, `--limit`)
+
+### Frontend
+- Dev Validation: export timestamp/path, comparison status, regeneration hint + suggested command
+
+### Run commands
+
+```bash
+make test
+make mrms-review-session-export
+make mrms-review-session-exports
+cd frontend && npm run build
+```
+
+### Known limitations
+- Export requires at least one review session
+- Export is local/dev review tooling only — not verified MRMS
+- Does not clear alerts or mutate production/catalog/render gates
+- `verified_mrms` always false

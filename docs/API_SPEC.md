@@ -284,6 +284,10 @@ Summary additions (Phase 42): `mrms_review_session.comparison` compact (`overall
 
 Endpoints (Phase 42): `GET /api/validation/review-sessions/comparison`, `GET /api/validation/review-sessions/comparison/history` (read-only; `verified_mrms: false`, `local_comparison_only: true`).
 
+Summary additions (Phase 43): `mrms_review_session_export` compact (`created_at`, `export_path`, `comparison_status`, `open_attention_count`); `review_export_regeneration_hint` (`review_export_regeneration_recommended`, `reason`, `suggested_command`).
+
+Endpoints (Phase 43): `GET /api/validation/review-sessions/export`, `GET /api/validation/review-sessions/export/history` (read-only; `verified_mrms: false`, `local_export_only: true`).
+
 Scheduled validation report additions (Phase 32): `bundle_requested`, `diff_bundle_requested`, `mrms_proof_bundle`, `mrms_proof_bundle_diff`; steps `proof_report`, `proof_regression`, `proof_bundle_export`, `proof_bundle_diff`.
 
 `GET /api/validation/proof-bundle-diff` — latest proof bundle diff report (`?refresh=true` rebuilds). `verified_mrms: false`, `local_diff_only: true`.
