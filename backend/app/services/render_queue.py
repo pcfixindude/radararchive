@@ -22,6 +22,7 @@ from backend.app.models.render_job import (
 )
 
 RETRY_DELAY_SECONDS = 1
+STALE_RUNNING_JOB_SECONDS = 3600
 
 
 @dataclass
@@ -148,8 +149,35 @@ def _is_retry_ready(job: RenderJob, now: datetime) -> bool:
     return _parse_utc(job.next_retry_at) <= now
 
 
+def recover_stale_running_jobs(
+    session: Session,
+    *,
+    stale_seconds: int = STALE_RUNNING_JOB_SECONDS,
+    now: Optional[datetime] = None,
+) -> int:
+    """Re-queue or fail jobs stuck in running past a safe threshold."""
+    now = now or datetime.now(timezone.utc)
+    cutoff = now - timedelta(seconds=stale_seconds)
+    recovered = 0
+
+    running_jobs = (
+        session.query(RenderJob)
+        .filter(RenderJob.status == JOB_STATUS_RUNNING)
+        .all()
+    )
+    for job in running_jobs:
+        if not job.started_at:
+            continue
+        if _parse_utc(job.started_at) > cutoff:
+            continue
+        schedule_job_retry(session, job, "stale running job recovered (worker crash or timeout)")
+        recovered += 1
+    return recovered
+
+
 def claim_next_queued_job(session: Session) -> Optional[RenderJob]:
     """Atomically claim the oldest runnable queued job."""
+    recover_stale_running_jobs(session)
     now = datetime.now(timezone.utc)
     candidates = (
         session.query(RenderJob)

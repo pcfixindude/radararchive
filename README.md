@@ -111,6 +111,14 @@ make render-status
 curl http://127.0.0.1:8000/api/render/jobs/summary
 ```
 
+MRMS validation pipeline (Phase 19 — experimental, not verified MRMS):
+
+```bash
+make validate-real-mrms
+make validate-real-mrms ARGS="--json-report"
+MRMS_SOURCE_MODE=real make validate-real-mrms ARGS="--real --run-worker"
+```
+
 Feature flags:
 
 ```bash
@@ -133,6 +141,7 @@ Limitations:
 - `make build-production-tiles` warps normalized grids to EPSG:3857 tiles (stdlib math; default zoom 0 only)
 - `make enqueue-render-job` + `make render-worker-once` / `make render-worker` process builds via SQLite queue (no Redis)
 - `make render-queue-status` reports queue counts and tile/byte totals (prototype — not verified MRMS)
+- `make validate-real-mrms` runs experimental discover/download/decode/render validation (stub safe by default)
 - Build supports `ARGS=` forwarding on Makefile targets (e.g. `make build-production-tiles ARGS="--dry-run"`)
 - `ENABLE_DECODED_TILES=false` by default — map `/tiles` serves placeholders only
 - `ENABLE_PRODUCTION_RADAR_TILES=false` by default — production prototype tiles blocked

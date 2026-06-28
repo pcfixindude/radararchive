@@ -212,8 +212,8 @@ export default function App() {
       <header className="app-header">
         <h1>RadarArchive</h1>
         <p className="demo-banner">
-          Tile mode: {tileModeLabel} — not verified real MRMS. Production prototype uses geo warping
-          experiments only; default map tiles remain placeholders.
+          Tile mode: {tileModeLabel} — experimental validation pipeline; not verified real MRMS.
+          Production prototype uses geo warping experiments only; default map tiles remain placeholders.
         </p>
         {renderJobHint ? <p className="demo-banner subtle">{renderJobHint}</p> : null}
       </header>

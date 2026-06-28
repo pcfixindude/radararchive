@@ -251,6 +251,26 @@ Dev API: `GET/POST /api/render/jobs`, `GET /api/render/jobs/summary`, `GET /api/
 
 Makefile `ARGS` forwarding: `make render-worker ARGS="--max-jobs 5 --sleep 0.5"`
 
+### MRMS validation pipeline (Phase 19)
+Experimental end-to-end orchestrator (not verified production radar):
+
+1. Recover stale `running` jobs (1h threshold)
+2. Discover MRMS candidates (stub default; real requires `--real` or `MRMS_SOURCE_MODE=real`)
+3. Register catalog rows
+4. Download raw `.grib2.gz` (stub or real)
+5. Inspect GRIB2 metadata
+6. Decode when optional decoder available
+7. Enqueue render job when decode artifact exists
+8. Optionally run one worker pass (`--run-worker`)
+
+CLI: `make validate-real-mrms` (`scripts/validate_real_mrms.py`)
+
+Report fields: `source_mode`, discovery/download/inspect/decode counts, jobs enqueued/processed, `tile_cache`, warnings/errors, `production_rendering_enabled`, `verified_mrms: false`.
+
+Worker hardening (Phase 19):
+- `recover_stale_running_jobs` before claim and worker loop start
+- Continuous worker: SIGINT/SIGTERM clean exit, structured logging, interruptible idle sleep
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

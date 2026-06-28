@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import logging
 import time
-from typing import Optional
+from typing import Callable, Optional
 
 from sqlalchemy.orm import Session
 
@@ -18,15 +19,41 @@ from backend.app.services.render_queue import (
     claim_next_queued_job,
     mark_job_failed,
     mark_job_succeeded,
+    recover_stale_running_jobs,
     update_job_progress,
 )
 from backend.app.services.storage import LocalStorage
 
+logger = logging.getLogger(__name__)
+
+ShouldStopFn = Callable[[], bool]
+
+
+def _interruptible_sleep(seconds: float, should_stop: ShouldStopFn) -> bool:
+    """Sleep in short chunks; return True when stop is requested."""
+    if seconds <= 0:
+        return should_stop()
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        if should_stop():
+            return True
+        remaining = deadline - time.monotonic()
+        time.sleep(min(0.25, max(remaining, 0)))
+    return should_stop()
+
 
 def run_render_job(session: Session, storage: LocalStorage, job: RenderJob) -> RenderJob:
     """Execute one render job (caller must set status to running or use claim_next)."""
+    logger.info(
+        "Processing render job id=%s status=%s attempt=%s/%s",
+        job.id,
+        job.status,
+        job.attempt_count,
+        job.max_attempts,
+    )
     if job.job_type != JOB_TYPE_PRODUCTION_TILES:
         mark_job_failed(session, job, f"Unsupported job_type: {job.job_type}")
+        logger.warning("Render job id=%s failed: unsupported job_type", job.id)
         return job
 
     progress_state = {"written": 0, "skipped": 0, "bytes": 0}
@@ -65,6 +92,7 @@ def run_render_job(session: Session, storage: LocalStorage, job: RenderJob) -> R
         )
     except Exception as exc:
         mark_job_failed(session, job, str(exc))
+        logger.exception("Render job id=%s raised during build", job.id)
         return job
 
     total = max(result.tiles_planned, 1)
@@ -80,6 +108,7 @@ def run_render_job(session: Session, storage: LocalStorage, job: RenderJob) -> R
             tiles_skipped=result.tiles_skipped_existing,
             output_bytes=result.output_bytes,
         )
+        logger.warning("Render job id=%s failed: %s", job.id, error)
         return job
 
     mark_job_succeeded(
@@ -89,6 +118,12 @@ def run_render_job(session: Session, storage: LocalStorage, job: RenderJob) -> R
         tiles_written=result.tiles_written,
         tiles_skipped=result.tiles_skipped_existing,
         output_bytes=result.output_bytes,
+    )
+    logger.info(
+        "Render job id=%s succeeded tiles_written=%s output_bytes=%s",
+        job.id,
+        result.tiles_written,
+        result.output_bytes,
     )
     return job
 
@@ -107,16 +142,39 @@ def run_worker_loop(
     *,
     max_jobs: Optional[int] = None,
     sleep_seconds: float = 1.0,
+    should_stop: Optional[ShouldStopFn] = None,
 ) -> int:
-    """Process queued jobs in a loop until max_jobs reached. Returns jobs processed."""
+    """Process queued jobs in a loop until max_jobs reached or stop requested."""
+    stop_check: ShouldStopFn = should_stop or (lambda: False)
+    recover_stale_running_jobs(session)
     processed = 0
+    logger.info(
+        "Render worker loop starting (max_jobs=%s, sleep_seconds=%s)",
+        max_jobs,
+        sleep_seconds,
+    )
     while max_jobs is None or processed < max_jobs:
+        if stop_check():
+            logger.info("Render worker stop requested; exiting after %s job(s)", processed)
+            break
+
         job = process_next_render_job(session, storage)
         if job is None:
-            time.sleep(sleep_seconds)
+            if _interruptible_sleep(sleep_seconds, stop_check):
+                logger.info("Render worker stop requested during idle sleep")
+                break
             continue
+
         processed += 1
+        logger.info(
+            "Render worker processed job id=%s status=%s (%s/%s)",
+            job.id,
+            job.status,
+            processed,
+            max_jobs if max_jobs is not None else "∞",
+        )
         if job.status == JOB_STATUS_FAILED and job.attempt_count < job.max_attempts:
-            # Will be picked up again when next_retry_at elapses.
             continue
+
+    logger.info("Render worker loop finished: processed %s job(s)", processed)
     return processed

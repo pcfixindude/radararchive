@@ -1,14 +1,16 @@
 # Project State
 
-Current phase: Phase 18 complete
+Current phase: Phase 19 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
 - MRMS discovery → download → decode prototype pipeline
+- **End-to-end validation orchestrator** (`make validate-real-mrms`) — experimental, not verified MRMS
 - **Default tile serving: placeholder** (`ENABLE_DECODED_TILES=false`, `ENABLE_PRODUCTION_RADAR_TILES=false`)
 - Production warping prototype with multi-zoom build (Phase 16)
 - **SQLite render job queue** + one-shot and continuous local worker with retry policy (Phase 17–18)
+- Stale `running` job recovery + worker signal handling (Phase 19)
 - Queue observability: summary API, `make render-queue-status`, integrated into `make render-status`
 - Production tiles served only when flag + catalog gate + cached tile all true
 - Not verified real MRMS — warping prototype only
@@ -19,6 +21,18 @@ Current status:
 # Default — placeholder tiles only
 ENABLE_DECODED_TILES=false
 ENABLE_PRODUCTION_RADAR_TILES=false
+```
+
+## MRMS validation (Phase 19)
+
+```bash
+# Safe stub/offline default (no network required)
+make validate-real-mrms
+make validate-real-mrms ARGS="--json-report"
+
+# Real NOAA AWS mode (network required; still prototype output)
+MRMS_SOURCE_MODE=real make validate-real-mrms ARGS="--real"
+make validate-real-mrms ARGS="--real --run-worker"
 ```
 
 ## Render queue (Phase 17–18)
@@ -32,9 +46,9 @@ make enqueue-render-job ARGS="--min-zoom 0 --max-zoom 2"
 make render-worker-once
 make render-worker-once ARGS="--json-report"
 
-# Continuous worker (default max 100 jobs, 1s sleep when empty)
+# Continuous worker (default max 100 jobs, 1s sleep when empty; Ctrl+C to stop)
 make render-worker
-make render-worker ARGS="--max-jobs 5 --sleep 0.5"
+make render-worker ARGS="--max-jobs 5 --sleep 0.5 --verbose"
 
 # Queue summary
 make render-queue-status
@@ -42,20 +56,13 @@ make render-queue-status ARGS="--json-report"
 
 # Full render status (includes queue summary)
 make render-status
-
-# Or via API (dev)
-curl -X POST http://127.0.0.1:8000/api/render/jobs -H 'Content-Type: application/json' -d '{"min_zoom":0,"max_zoom":0}'
-curl "http://127.0.0.1:8000/api/render/jobs?status=queued"
-curl http://127.0.0.1:8000/api/render/jobs/summary
-curl -X POST http://127.0.0.1:8000/api/render/jobs/1/retry
-curl -X POST http://127.0.0.1:8000/api/render/jobs/1/cancel
 ```
 
 ## Local test
 
 ```bash
 make test
-make render-queue-status
+make validate-real-mrms
 make render-worker-once
 cd frontend && npm run build
 ```
@@ -63,13 +70,15 @@ cd frontend && npm run build
 ## Pipeline
 
 ```bash
+make validate-real-mrms ARGS="--run-worker"
+# Or step by step:
 make decode-grib2
 make enqueue-render-job ARGS="--min-zoom 0 --max-zoom 2"
 make render-worker-once
 ENABLE_PRODUCTION_RADAR_TILES=true make backend
 ```
 
-See `docs/GRIB2_DECODE.md` for decode/warping/worker notes.
+See `docs/GRIB2_DECODE.md` for decode/warping/worker/validation notes.
 
 ## Demo plans
 

@@ -842,3 +842,39 @@ cd frontend && npm run build
 - No stale `running` job recovery after worker crash
 - Production serving gates unchanged; placeholder default unchanged
 - Not verified real MRMS output
+
+## Phase 19 - Real MRMS Validation + Worker Hardening
+
+End-to-end experimental validation orchestrator for discover → download → inspect → decode → enqueue → worker, plus stale job recovery and worker signal handling.
+
+### Backend
+- `backend/app/services/mrms_validation.py` — `run_mrms_validation`, `MrmsValidationReport`
+- Stale running job recovery: `recover_stale_running_jobs` (1h threshold, respects max_attempts)
+- Worker logging + interruptible sleep + `should_stop` callback for clean exit
+- Safe stub mode by default; real mode requires `--real` or `MRMS_SOURCE_MODE=real`
+
+### Scripts / Makefile
+- `scripts/validate_real_mrms.py` — validation CLI with `--json-report`, `--run-worker`, `--limit 1`
+- `make validate-real-mrms`
+- `scripts/run_render_worker.py` — SIGINT/SIGTERM handling, `--verbose` logging
+
+### Frontend
+- Header wording notes experimental validation pipeline (not verified MRMS)
+
+### Run commands
+
+```bash
+make test
+make validate-real-mrms
+make validate-real-mrms ARGS="--json-report"
+MRMS_SOURCE_MODE=real make validate-real-mrms ARGS="--real --run-worker"
+make render-worker-once
+cd frontend && npm run build
+```
+
+### Known limitations
+- Validation output is prototype — `verified_mrms` always false
+- Stub mode cannot produce real GRIB2 decode artifacts without a real download
+- Stale recovery uses fixed 1h threshold (not configurable via CLI yet)
+- No new public API endpoints
+- Production serving gates unchanged; placeholder default unchanged

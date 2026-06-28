@@ -1,15 +1,15 @@
 # Next Steps
 
-## Phase 19 - Real MRMS Validation + Worker Hardening
+## Phase 20 - Validation Dashboard + Real Frame Benchmark
 
-Goal: Validate one real MRMS frame end-to-end through the queue and harden local worker operations without cloud deployment.
+Goal: Surface validation results in dev UI and benchmark one real frame through multi-zoom queue builds without claiming verified production output.
 
 Suggested work:
-1. Run decode + enqueue + worker on one real downloaded MRMS frame; document results honestly (prototype, not verified production)
-2. Worker daemon ergonomics: signal handling, structured logging, optional `--once` default safety docs
-3. Dev dashboard polish: job detail view, filter by status in UI (optional)
-4. Stale `running` job recovery (crash detection) if needed
-5. Benchmark multi-zoom builds through queue with timing reports
+1. Optional dev validation status panel (last report summary from API or static hint)
+2. Multi-zoom validation run through queue with timing JSON report
+3. Document honest real-MRMS validation results when decoder + network available
+4. Configurable stale-job threshold via env/CLI
+5. Worker PID file or process supervisor notes for long-running local dev
 6. Keep placeholder default for offline dev
 
 Do not start yet:
@@ -19,16 +19,20 @@ Do not start yet:
 - Redis/Celery unless optional and clearly not required
 - Mandatory GDAL/rasterio/wgrib2
 
-## Phase 18 verification commands
+## Phase 19 verification commands
 
 ```bash
 make test
-make enqueue-render-job
-make render-queue-status
+make validate-real-mrms
+make validate-real-mrms ARGS="--json-report"
 make render-worker-once
-make render-worker ARGS="--max-jobs 1 --sleep 0.1"
-make render-status
 cd frontend && npm run build
+```
+
+Full experimental pipeline (real mode, network required):
+
+```bash
+MRMS_SOURCE_MODE=real make validate-real-mrms ARGS="--real --run-worker --json-report"
 ```
 
 Render queue workflow:

@@ -194,9 +194,26 @@ Worker calls Phase 16 `build_production_tiles` with idempotent skip/force behavi
 
 Failed jobs re-queue automatically when attempts remain (1s delay). Explicit retry via API for terminal failed jobs with attempts left. No delete endpoints.
 
-Continuous worker: `make render-worker` loops until `--max-jobs` reached (default 100), sleeping when queue empty.
+Continuous worker: `make render-worker` loops until `--max-jobs` reached (default 100), sleeping when queue empty. Ctrl+C exits cleanly (Phase 19).
+
+Stale job recovery: jobs stuck in `running` >1h are re-queued or failed per `max_attempts`.
 
 `--mark-catalog` on enqueue shows a clear warning — prototype only, not verified MRMS.
+
+## MRMS validation (Phase 19)
+
+Experimental end-to-end validation (not verified production radar):
+
+```bash
+make validate-real-mrms
+make validate-real-mrms ARGS="--json-report"
+MRMS_SOURCE_MODE=real make validate-real-mrms ARGS="--real --run-worker"
+```
+
+Stub mode (default) is safe offline — explains that inspect/decode need a real `.grib2.gz`.
+Real mode requires network for NOAA AWS download; output remains prototype (`verified_mrms: false`).
+
+Service: `backend/app/services/mrms_validation.py`
 
 ## Inspection CLI
 
@@ -231,6 +248,7 @@ When no decoder is installed, the script still reports gzip size and GRIB magic 
 - `backend/app/services/render_queue.py` — render job queue
 - `backend/app/workers/render_worker.py` — local worker
 - `scripts/enqueue_render_job.py`, `scripts/run_render_worker.py`, `scripts/render_queue_status.py`
+- `scripts/validate_real_mrms.py` — MRMS validation orchestrator (Phase 19)
 
 ## Non-goals (Phases 11–12)
 

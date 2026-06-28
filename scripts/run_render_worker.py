@@ -4,11 +4,26 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
+import signal
 
 from backend.app.config import settings
 from backend.app.database import get_session_factory, init_db
 from backend.app.services.storage import LocalStorage
 from backend.app.workers.render_worker import process_next_render_job, run_worker_loop
+
+logger = logging.getLogger(__name__)
+_stop_requested = False
+
+
+def _request_stop(signum: int, _frame) -> None:
+    global _stop_requested
+    _stop_requested = True
+    logger.warning("Stop signal %s received; worker will exit cleanly", signum)
+
+
+def _should_stop() -> bool:
+    return _stop_requested
 
 
 def _print_job(job, *, json_report: bool) -> None:
@@ -45,7 +60,7 @@ def _print_job(job, *, json_report: bool) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Process render jobs (Phase 18 worker).")
+    parser = argparse.ArgumentParser(description="Process render jobs (Phase 18–19 worker).")
     parser.add_argument("--once", action="store_true", help="Process one job then exit")
     parser.add_argument(
         "--max-jobs",
@@ -60,7 +75,17 @@ def main() -> None:
         help="Sleep seconds when queue is empty (continuous mode)",
     )
     parser.add_argument("--json-report", action="store_true", help="Print last job JSON to stdout")
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Enable worker info logging",
+    )
     args = parser.parse_args()
+
+    logging.basicConfig(
+        level=logging.INFO if args.verbose else logging.WARNING,
+        format="%(levelname)s %(name)s: %(message)s",
+    )
 
     init_db()
     session = get_session_factory()()
@@ -74,14 +99,19 @@ def main() -> None:
         _print_job(job, json_report=args.json_report)
         return
 
+    signal.signal(signal.SIGINT, _request_stop)
+    signal.signal(signal.SIGTERM, _request_stop)
+
     print(
-        f"Render worker loop starting (prototype — max_jobs={args.max_jobs}, sleep={args.sleep}s)"
+        f"Render worker loop starting (prototype — max_jobs={args.max_jobs}, sleep={args.sleep}s). "
+        "Press Ctrl+C to stop."
     )
     processed = run_worker_loop(
         session,
         storage,
         max_jobs=args.max_jobs,
         sleep_seconds=args.sleep,
+        should_stop=_should_stop,
     )
     print(f"Render worker loop finished: processed {processed} job(s).")
 
