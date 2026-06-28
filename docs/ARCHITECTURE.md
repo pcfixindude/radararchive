@@ -426,6 +426,14 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Summary `scheduled_proof_bundle` compact: export/diff status, operator attention flag
 - Does **not** verify MRMS or enable production rendering
 
+### Scheduled handoff + operator guidance (Phase 33)
+- `make scheduled-proof-bundle-handoff` — adds `--handoff` to scheduled proof bundle flow
+- When diff is `worsened` or `mixed` and `--handoff` set: regenerate `mrms_operator_handoff_latest.md`
+- `operator_guidance.py` maps alert causes → runbook doc paths/sections
+- Validation alert `operator_guidance`; summary `operator_guidance` + handoff auto-gen fields
+- Unchanged/improved/no_baseline diff skips handoff with recorded reason (not failure)
+- Does **not** verify MRMS, enable production rendering, or mutate catalog gates
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

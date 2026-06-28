@@ -13,6 +13,7 @@ from backend.app.services.mrms_operator_handoff import (
     compact_operator_handoff_status,
     load_latest_operator_handoff,
 )
+from backend.app.services.operator_guidance import compact_operator_guidance
 from backend.app.services.mrms_proof_bundle import (
     compact_proof_bundle_status,
     load_latest_proof_bundle_manifest,
@@ -101,7 +102,8 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "mrms_signoff": signoff_summary,
         "mrms_proof_bundle": compact_proof_bundle_status(storage),
         "mrms_proof_bundle_diff": compact_proof_bundle_diff_status(storage),
-        "operator_handoff": compact_operator_handoff_status(storage),
+        "operator_handoff": compact_operator_handoff_status(storage, scheduled=scheduled),
+        "operator_guidance": compact_operator_guidance(alert),
         "runbook_references": RUNBOOK_LINK_METADATA,
         "catalog": catalog,
     }

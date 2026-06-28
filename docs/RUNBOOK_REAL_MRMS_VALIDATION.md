@@ -221,6 +221,97 @@ When proof bundle diff status is **worsened** or **mixed**:
 
 Alert fields: `proof_bundle_diff_status`, `latest_proof_bundle_id`, `latest_proof_bundle_created_at`.
 
+## Scheduled handoff auto-regeneration (Phase 33)
+
+Optional `--handoff` on scheduled proof bundle monitoring — **does not verify MRMS**.
+
+```bash
+make scheduled-proof-bundle-handoff
+make scheduled-proof-bundle-handoff ARGS="--json-report"
+make scheduled-validation ARGS="--proof --bundle --diff-bundle --handoff"
+```
+
+When diff status is **worsened** or **mixed** and `--handoff` is set, the operator handoff checklist is regenerated with diff context and runbook references. Unchanged/improved/no_baseline skips handoff with a recorded reason (not a failure).
+
+## Proof bundle diff worsened
+
+<a id="proof-bundle-diff-worsened"></a>
+
+When scheduled or manual diff reports `overall_diff_status: worsened`:
+
+1. Run `make mrms-proof-bundle-diff ARGS="--json-report"` and inspect `evidence_changes`
+2. Compare `evidence/mrms_proof_latest.json` and regression JSON between bundles
+3. Re-run `make mrms-proof-report` after fixes, then `make scheduled-proof-bundle-handoff`
+4. Review validation alert `operator_guidance` in Dev Validation panel or `GET /api/validation/summary`
+5. Handoff auto-regeneration does **not** clear alerts or set `verified_mrms=true`
+
+## Proof bundle diff mixed
+
+<a id="proof-bundle-diff-mixed"></a>
+
+When diff status is **mixed** (some evidence improved, some worsened):
+
+1. Triage each `evidence_changes` entry — do not assume overall improvement
+2. Run `make scheduled-proof-bundle-handoff` after intentional fixes to refresh handoff
+3. Review grouped failure causes alongside diff status
+4. Mixed diff still requires operator attention — not verified MRMS
+
+## No decoder available
+
+<a id="no-decoder-available"></a>
+
+When validation reports decoder unavailable (no wgrib2/GDAL/rasterio):
+
+1. Run `make inspect-grib2` to see detected tools
+2. Install optional decoder locally if real decode is required
+3. Expect stub/offline validation to skip full decode — this is normal without optional tools
+4. See [GRIB2_DECODE.md](GRIB2_DECODE.md) for optional install notes
+
+## Zero tiles written
+
+<a id="zero-tiles-written"></a>
+
+When batch/queue benchmarks report zero tiles written:
+
+1. Confirm decode artifacts exist (`make decode-grib2` after real download)
+2. Lower zoom/count for prototype runs (`--min-zoom 0 --max-zoom 0`)
+3. Stub mode may legitimately write zero production tiles — check `placeholder_default`
+4. Review `make validation-failures` for the specific step message
+
+## Production flag off
+
+<a id="production-flag-off"></a>
+
+Default: `ENABLE_PRODUCTION_RADAR_TILES=false`. Placeholder tiles are served.
+
+1. This is expected by default — not a validation failure
+2. Enable production serving only with explicit ops intent
+3. Handoff/guidance reminders do **not** enable production rendering
+4. Tile responses include `x-radararchive-production-rendering: false` when flag is off
+
+## Catalog gate missing
+
+<a id="catalog-gate-missing"></a>
+
+When catalog status shows frames without production render gate satisfied:
+
+1. Run `make catalog-status` and `make render-queue-status`
+2. Build production tiles when intentional: `make build-production-tiles`
+3. Production tile **serving** still requires `ENABLE_PRODUCTION_RADAR_TILES=true` plus cached tiles
+4. Proof bundle / handoff workflows do not mutate catalog gates
+
+## What to do before sign-off
+
+<a id="what-to-do-before-sign-off"></a>
+
+Before `make mrms-signoff` (local review record only):
+
+1. Review latest proof report and regression (`make mrms-proof-regression`)
+2. Resolve or acknowledge proof bundle diff if `operator_attention_needed`
+3. Read [VERIFIED_MRMS_CRITERIA.md](VERIFIED_MRMS_CRITERIA.md) — criteria are **not** met in prototype
+4. Confirm `verified_mrms` remains false and production flag state is intentional
+5. Sign-off does **not** verify MRMS or enable production rendering
+
 ## Check recent failures
 
 ```bash

@@ -27,6 +27,7 @@ from backend.app.services.render_queue_benchmark import (
 from backend.app.services.mrms_proof_report import generate_mrms_proof_report, save_mrms_proof_report
 from backend.app.services.mrms_proof_regression import run_proof_regression_check
 from backend.app.services.mrms_proof_bundle import export_mrms_proof_bundle
+from backend.app.services.mrms_operator_handoff import generate_operator_handoff
 from backend.app.services.mrms_proof_bundle_diff import (
     DIFF_MIXED,
     DIFF_WORSENED,
@@ -98,6 +99,11 @@ class ScheduledValidationReport:
     proof_requested: bool = False
     bundle_requested: bool = False
     diff_bundle_requested: bool = False
+    handoff_requested: bool = False
+    handoff_generated: bool = False
+    handoff_path: Optional[str] = None
+    handoff_reason: Optional[str] = None
+    diff_status_that_triggered_handoff: Optional[str] = None
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     elapsed_seconds: float = 0.0
@@ -130,6 +136,11 @@ class ScheduledValidationReport:
             "proof_requested": self.proof_requested,
             "bundle_requested": self.bundle_requested,
             "diff_bundle_requested": self.diff_bundle_requested,
+            "handoff_requested": self.handoff_requested,
+            "handoff_generated": self.handoff_generated,
+            "handoff_path": self.handoff_path,
+            "handoff_reason": self.handoff_reason,
+            "diff_status_that_triggered_handoff": self.diff_status_that_triggered_handoff,
             "warnings": list(self.warnings),
             "errors": list(self.errors),
             "elapsed_seconds": round(self.elapsed_seconds, 4),
@@ -247,6 +258,7 @@ def run_scheduled_validation(
     proof_requested: bool = False,
     bundle_requested: bool = False,
     diff_bundle_requested: bool = False,
+    handoff_requested: bool = False,
     persist: bool = True,
     command_context: Optional[str] = None,
     batch_fn: Optional[Callable[..., BatchValidationReport]] = None,
@@ -271,6 +283,7 @@ def run_scheduled_validation(
     report.proof_requested = proof_requested
     report.bundle_requested = bundle_requested
     report.diff_bundle_requested = diff_bundle_requested
+    report.handoff_requested = handoff_requested
     report.warnings.append(
         "Scheduled validation is local dev/prototype tooling — not verified MRMS production"
     )
@@ -557,10 +570,75 @@ def run_scheduled_validation(
             step=diff_step,
         )
 
+    if handoff_requested:
+        handoff_step = ScheduledValidationStep(name="operator_handoff", started_at=_utc_now())
+        handoff_start = time.perf_counter()
+        diff_status = (report.mrms_proof_bundle_diff or {}).get("overall_diff_status")
+        try:
+            if not diff_bundle_requested:
+                report.handoff_generated = False
+                report.handoff_reason = "skipped_diff_not_requested"
+                report.diff_status_that_triggered_handoff = None
+                handoff_step.status = STEP_SKIPPED
+                handoff_step.summary = {
+                    "handoff_generated": False,
+                    "handoff_reason": report.handoff_reason,
+                    "verified_mrms": False,
+                }
+            elif diff_status in (DIFF_WORSENED, DIFF_MIXED):
+                record = generate_operator_handoff(
+                    session,
+                    storage,
+                    diff_report=report.mrms_proof_bundle_diff,
+                    trigger_reason=f"scheduled_proof_bundle_diff_{diff_status}",
+                    auto_generated=True,
+                )
+                report.handoff_generated = True
+                report.handoff_path = record.get("markdown_path")
+                report.handoff_reason = f"proof_bundle_diff_{diff_status}"
+                report.diff_status_that_triggered_handoff = diff_status
+                handoff_step.summary = {
+                    "handoff_generated": True,
+                    "handoff_path": report.handoff_path,
+                    "handoff_reason": report.handoff_reason,
+                    "diff_status": diff_status,
+                    "verified_mrms": False,
+                    "local_handoff_only": True,
+                }
+                report.warnings.append(
+                    "Operator handoff auto-regenerated (local review only — does NOT verify MRMS)"
+                )
+            else:
+                report.handoff_generated = False
+                report.handoff_reason = f"skipped_diff_status_{diff_status or 'unknown'}"
+                report.diff_status_that_triggered_handoff = diff_status
+                handoff_step.status = STEP_SKIPPED
+                handoff_step.summary = {
+                    "handoff_generated": False,
+                    "handoff_reason": report.handoff_reason,
+                    "diff_status": diff_status,
+                    "verified_mrms": False,
+                }
+        except Exception as exc:  # noqa: BLE001
+            report.handoff_generated = False
+            report.handoff_reason = "generation_failed"
+            handoff_step.errors.append(str(exc))
+        handoff_step.elapsed_seconds = time.perf_counter() - handoff_start
+        handoff_step.finished_at = _utc_now()
+        _finalize_step_status(handoff_step)
+        report.steps.append(handoff_step)
+        _log_step_failures(
+            storage,
+            phase="scheduled_validation",
+            source_mode=mode,
+            command_context=command_context,
+            step=handoff_step,
+        )
+
     report.elapsed_seconds = time.perf_counter() - start
     report.ran_at = _utc_now()
     report.success = not report.errors and all(
-        step.status in (STEP_SUCCEEDED, STEP_WARNING) for step in report.steps
+        step.status in (STEP_SUCCEEDED, STEP_WARNING, STEP_SKIPPED) for step in report.steps
     )
     report.exit_code = 0 if report.success else 1
 

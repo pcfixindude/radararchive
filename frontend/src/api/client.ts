@@ -329,6 +329,11 @@ export type ScheduledProofBundleCompact = {
   diff_status?: string | null;
   evidence_changes_count: number;
   operator_attention_needed: boolean;
+  handoff_requested?: boolean;
+  handoff_generated?: boolean;
+  handoff_path?: string | null;
+  handoff_reason?: string | null;
+  diff_status_that_triggered_handoff?: string | null;
   verified_mrms: boolean;
   local_evidence_monitoring_only: boolean;
   prototype: boolean;
@@ -353,7 +358,20 @@ export type ValidationAlertCompact = {
   proof_bundle_diff_attention?: boolean;
   latest_proof_bundle_id?: string | null;
   latest_proof_bundle_created_at?: string | null;
+  operator_guidance?: OperatorGuidanceItem[];
   verified_mrms: boolean;
+  prototype: boolean;
+};
+
+export type OperatorGuidanceItem = {
+  title: string;
+  path: string;
+  anchor?: string;
+  section_label?: string;
+  cause: string;
+  suggested_action?: string;
+  verified_mrms: boolean;
+  local_guidance_only: boolean;
   prototype: boolean;
 };
 
@@ -468,6 +486,13 @@ export type OperatorHandoffCompact = {
   json_path?: string | null;
   question_count: number;
   diff_status?: string | null;
+  auto_generated?: boolean;
+  trigger_reason?: string | null;
+  handoff_requested?: boolean;
+  handoff_generated?: boolean;
+  handoff_reason?: string | null;
+  scheduled_handoff_path?: string | null;
+  diff_status_that_triggered_handoff?: string | null;
   verified_mrms: boolean;
   local_handoff_only: boolean;
   does_not_enable_production: boolean;
@@ -586,6 +611,7 @@ export type ValidationSummary = {
   mrms_proof_bundle?: MrmsProofBundleCompact | null;
   mrms_proof_bundle_diff?: MrmsProofBundleDiffCompact | null;
   operator_handoff?: OperatorHandoffCompact | null;
+  operator_guidance?: OperatorGuidanceItem[];
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;

@@ -324,7 +324,7 @@ def build_validation_alert(
     elif recent:
         latest_run_at = recent[0].get("logged_at")
 
-    return {
+    alert_body: dict[str, Any] = {
         "status": status,
         "latest_run_at": latest_run_at,
         "updated_at": _utc_now(),
@@ -359,6 +359,13 @@ def build_validation_alert(
         "verified_mrms": False,
         "prototype": True,
     }
+    if alert_body["operator_attention_needed"]:
+        from backend.app.services.operator_guidance import build_operator_guidance
+
+        alert_body["operator_guidance"] = build_operator_guidance(alert_body)
+    else:
+        alert_body["operator_guidance"] = []
+    return alert_body
 
 
 def save_validation_alert(storage: LocalStorage, alert: dict[str, Any]) -> str:
@@ -420,6 +427,7 @@ def compact_validation_alert(alert: Optional[dict[str, Any]]) -> Optional[dict[s
         "latest_proof_bundle_created_at": alert.get("latest_proof_bundle_created_at"),
         "suggested_next_action": alert.get("suggested_next_action"),
         "grouped_failure_causes": grouped[:5],
+        "operator_guidance": (alert.get("operator_guidance") or [])[:8],
         "verified_mrms": False,
         "prototype": True,
     }

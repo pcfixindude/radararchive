@@ -143,6 +143,8 @@ export default function ValidationStatusPanel({
   const proofBundle = summary.mrms_proof_bundle ?? null;
   const proofBundleDiff = summary.mrms_proof_bundle_diff ?? null;
   const operatorHandoff = summary.operator_handoff ?? null;
+  const operatorGuidance =
+    summary.operator_guidance ?? validationAlert?.operator_guidance ?? [];
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
   const queue = summary.render_queue;
@@ -186,6 +188,24 @@ export default function ValidationStatusPanel({
           </p>
           {validationAlert.suggested_next_action ? (
             <p className="validation-meta">Suggested next action: {validationAlert.suggested_next_action}</p>
+          ) : null}
+          {validationAlert.operator_attention_needed && operatorGuidance.length > 0 ? (
+            <section className="validation-operator-guidance">
+              <p className="validation-warn">
+                Operator guidance (local review only — does not verify MRMS; does not enable production
+                rendering)
+              </p>
+              <ul className="validation-history-list">
+                {operatorGuidance.map((item, index) => (
+                  <li key={`${item.cause}-${index}`} className="validation-meta">
+                    {item.title} — <code>{item.path}</code>
+                    {item.section_label ? ` — section: ${item.section_label}` : ''}
+                    {item.anchor ? ` (anchor: ${item.anchor})` : ''}
+                    {item.suggested_action ? ` — ${item.suggested_action}` : ''}
+                  </li>
+                ))}
+              </ul>
+            </section>
           ) : null}
         </>
       ) : null}
@@ -291,6 +311,18 @@ export default function ValidationStatusPanel({
                 Proof bundle diff requires operator attention — does not enable production rendering
               </p>
             ) : null}
+            {scheduledProofBundle.handoff_requested ? (
+              <p className="validation-meta">
+                Scheduled handoff: {scheduledProofBundle.handoff_generated ? 'generated' : 'skipped'}
+                {scheduledProofBundle.handoff_reason ? ` — ${scheduledProofBundle.handoff_reason}` : ''}
+                {scheduledProofBundle.handoff_path ? ` — ${scheduledProofBundle.handoff_path}` : ''}
+              </p>
+            ) : null}
+            {scheduledProofBundle.handoff_requested ? (
+              <p className="validation-meta">
+                Local operator handoff only — does not verify MRMS — does not enable production rendering
+              </p>
+            ) : null}
           </>
         ) : (
           <p className="validation-meta">
@@ -316,10 +348,23 @@ export default function ValidationStatusPanel({
           <p className="validation-meta">
             Handoff checklist {formatTimestamp(operatorHandoff.created_at)}
             {operatorHandoff.markdown_path ? ` — ${operatorHandoff.markdown_path}` : ''}
+            {operatorHandoff.auto_generated ? ' (auto-generated)' : ''}
           </p>
         ) : (
           <p className="validation-meta">No handoff checklist yet — run make mrms-operator-handoff.</p>
         )}
+        {operatorHandoff?.handoff_requested ? (
+          <p className="validation-meta">
+            Latest scheduled handoff: {operatorHandoff.handoff_generated ? 'generated' : 'skipped'}
+            {operatorHandoff.handoff_reason ? ` — ${operatorHandoff.handoff_reason}` : ''}
+            {operatorHandoff.scheduled_handoff_path
+              ? ` — ${operatorHandoff.scheduled_handoff_path}`
+              : ''}
+          </p>
+        ) : null}
+        <p className="validation-meta">
+          Local operator handoff only — does not verify MRMS — does not enable production rendering
+        </p>
         <p className="validation-meta">
           Diff/handoff does not enable production rendering — verified_mrms: {yesNo(summary.verified_mrms)}
         </p>

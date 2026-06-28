@@ -16,6 +16,7 @@ from backend.app.services.mrms_proof_report import load_mrms_proof_report
 from backend.app.services.mrms_signoff import compact_signoff_summary, load_signoffs
 from backend.app.services.render_queue import get_queue_summary
 from backend.app.services.storage import LocalStorage
+from backend.app.services.operator_guidance import build_operator_guidance
 from backend.app.services.validation_alerts import load_validation_alert
 from backend.app.services.validation_failure_log import load_recent_validation_failures
 from backend.app.services.validation_report_store import load_latest_scheduled_validation_report
@@ -38,7 +39,14 @@ def _format_value(value: Any) -> str:
     return str(value)
 
 
-def generate_operator_handoff(session: Session, storage: LocalStorage) -> dict[str, Any]:
+def generate_operator_handoff(
+    session: Session,
+    storage: LocalStorage,
+    *,
+    diff_report: Optional[dict[str, Any]] = None,
+    trigger_reason: Optional[str] = None,
+    auto_generated: bool = False,
+) -> dict[str, Any]:
     """Write local operator handoff Markdown + JSON metadata; return record."""
     created_at = _utc_now()
     bundle = load_latest_proof_bundle_manifest(storage)
@@ -50,7 +58,20 @@ def generate_operator_handoff(session: Session, storage: LocalStorage) -> dict[s
     catalog = build_catalog_status(session)
     queue = get_queue_summary(session)
     failures = load_recent_validation_failures(storage, limit=10)
-    diff = load_latest_proof_bundle_diff(storage)
+    diff = diff_report if diff_report is not None else load_latest_proof_bundle_diff(storage)
+
+    guidance_items: list[dict[str, Any]] = []
+    if alert and alert.get("operator_attention_needed"):
+        guidance_items = build_operator_guidance(alert)
+    elif auto_generated and diff:
+        guidance_items = build_operator_guidance(
+            {
+                "operator_attention_needed": True,
+                "proof_bundle_diff_attention": True,
+                "proof_bundle_diff_status": diff.get("overall_diff_status"),
+                "grouped_failure_causes": [],
+            }
+        )
 
     questions = [
         "Did you review the latest proof report JSON and criteria counts?",
@@ -70,6 +91,20 @@ def generate_operator_handoff(session: Session, storage: LocalStorage) -> dict[s
         "> Generating this checklist does **NOT** enable production rendering.",
         "",
         f"Generated at (UTC): {created_at}",
+    ]
+    if auto_generated:
+        md_lines.extend(
+            [
+                "",
+                "## Auto-generation (scheduled handoff)",
+                "",
+                f"- Trigger: {_format_value(trigger_reason)}",
+                "- Source: scheduled validation with `--handoff` (local operator workflow only)",
+                "- Does **not** verify MRMS or enable production rendering",
+            ]
+        )
+    md_lines.extend(
+        [
         "",
         "## Latest proof bundle",
         "",
@@ -127,7 +162,8 @@ def generate_operator_handoff(session: Session, storage: LocalStorage) -> dict[s
         "",
         "## Recent validation failures (up to 10)",
         "",
-    ]
+        ]
+    )
     if failures:
         for item in failures:
             md_lines.append(
@@ -146,6 +182,40 @@ def generate_operator_handoff(session: Session, storage: LocalStorage) -> dict[s
             f"- Evidence changes count: {_format_value((diff or {}).get('evidence_changes_count'))}",
             f"- Checked at: {_format_value((diff or {}).get('checked_at'))}",
             "",
+        ]
+    )
+    evidence_changes = (diff or {}).get("evidence_changes") or []
+    if evidence_changes:
+        md_lines.append("### Evidence changes (latest diff)")
+        md_lines.append("")
+        for change in evidence_changes[:10]:
+            md_lines.append(
+                f"- {change.get('field', '—')}: {change.get('baseline_value', '—')} → "
+                f"{change.get('current_value', '—')} ({change.get('direction', '—')})"
+            )
+        md_lines.append("")
+
+    if guidance_items:
+        md_lines.extend(
+            [
+                "## Runbook guidance references",
+                "",
+                "> Review aids only — not verification or production promotion.",
+                "",
+            ]
+        )
+        for item in guidance_items:
+            anchor = item.get("anchor") or ""
+            section = item.get("section_label") or item.get("title")
+            md_lines.append(f"- **{item.get('title')}** — `{item.get('path')}` — section: {section}")
+            if anchor:
+                md_lines.append(f"  - Anchor: `{anchor}`")
+            if item.get("suggested_action"):
+                md_lines.append(f"  - Suggested action: {item.get('suggested_action')}")
+        md_lines.append("")
+
+    md_lines.extend(
+        [
             "## Operator review questions",
             "",
         ]
@@ -192,6 +262,9 @@ def generate_operator_handoff(session: Session, storage: LocalStorage) -> dict[s
         "catalog_total_frames": catalog.get("total_frames"),
         "queue_succeeded": queue.succeeded,
         "diff_status": (diff or {}).get("overall_diff_status"),
+        "auto_generated": auto_generated,
+        "trigger_reason": trigger_reason,
+        "guidance_item_count": len(guidance_items),
         "verified_mrms": False,
         "local_handoff_only": True,
         "does_not_enable_production": True,
@@ -221,9 +294,12 @@ def load_latest_operator_handoff(storage: LocalStorage) -> Optional[dict[str, An
         return None
 
 
-def compact_operator_handoff_status(storage: LocalStorage) -> dict[str, Any]:
+def compact_operator_handoff_status(
+    storage: LocalStorage,
+    scheduled: Optional[dict[str, Any]] = None,
+) -> dict[str, Any]:
     record = load_latest_operator_handoff(storage)
-    if record is None:
+    if record is None and scheduled is None:
         return {
             "available": False,
             "verified_mrms": False,
@@ -231,15 +307,30 @@ def compact_operator_handoff_status(storage: LocalStorage) -> dict[str, Any]:
             "does_not_enable_production": True,
             "prototype": True,
         }
-    return {
-        "available": True,
-        "created_at": record.get("created_at"),
-        "markdown_path": record.get("markdown_path"),
-        "json_path": record.get("json_path"),
-        "question_count": int(record.get("question_count", 0)),
-        "diff_status": record.get("diff_status"),
+    base: dict[str, Any] = {
+        "available": record is not None,
+        "created_at": (record or {}).get("created_at"),
+        "markdown_path": (record or {}).get("markdown_path"),
+        "json_path": (record or {}).get("json_path"),
+        "question_count": int((record or {}).get("question_count", 0)),
+        "diff_status": (record or {}).get("diff_status"),
+        "auto_generated": bool((record or {}).get("auto_generated")),
+        "trigger_reason": (record or {}).get("trigger_reason"),
         "verified_mrms": False,
         "local_handoff_only": True,
         "does_not_enable_production": True,
         "prototype": True,
     }
+    if scheduled:
+        base.update(
+            {
+                "handoff_requested": bool(scheduled.get("handoff_requested")),
+                "handoff_generated": bool(scheduled.get("handoff_generated")),
+                "handoff_reason": scheduled.get("handoff_reason"),
+                "scheduled_handoff_path": scheduled.get("handoff_path"),
+                "diff_status_that_triggered_handoff": scheduled.get(
+                    "diff_status_that_triggered_handoff"
+                ),
+            }
+        )
+    return base

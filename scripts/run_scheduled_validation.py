@@ -57,6 +57,13 @@ def _print_report(report) -> None:
             f"  proof bundle diff: {diff.get('overall_diff_status')} "
             f"changes={diff.get('evidence_changes_count', 0)}"
         )
+    if report.handoff_requested:
+        print(
+            f"  handoff: requested=yes generated={report.handoff_generated} "
+            f"reason={report.handoff_reason}"
+        )
+        if report.handoff_path:
+            print(f"  handoff path: {report.handoff_path}")
     print(f"  verified_mrms: {report.verified_mrms}")
     for warning in report.warnings:
         print(f"  warning: {warning}")
@@ -95,6 +102,11 @@ def main() -> None:
         action="store_true",
         help="Compare latest proof bundle against previous bundle baseline",
     )
+    parser.add_argument(
+        "--handoff",
+        action="store_true",
+        help="When diff is worsened/mixed, auto-regenerate operator handoff checklist (local only)",
+    )
     args = parser.parse_args()
 
     print(
@@ -127,6 +139,7 @@ def main() -> None:
             proof_requested=args.proof,
             bundle_requested=args.bundle,
             diff_bundle_requested=args.diff_bundle,
+            handoff_requested=args.handoff,
             command_context="make scheduled-validation",
         )
     finally:

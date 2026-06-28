@@ -122,6 +122,7 @@ make benchmark-real-mrms
 make benchmark-render-queue
 make scheduled-validation
 make scheduled-proof-bundle
+make scheduled-proof-bundle-handoff
 make validation-failures
 make validation-alerts
 make mrms-proof-report
@@ -187,6 +188,7 @@ Limitations:
 - `make benchmark-render-queue` enqueues multi-zoom jobs (default count 3, zoom 0–1; use `--dry-run` to plan only)
 - `make scheduled-validation` runs catalog + batch + queue benchmark pipeline (cron-friendly; `--real` intentional; `--proof`, `--bundle`, `--diff-bundle` optional)
 - `make scheduled-proof-bundle` runs scheduled validation with proof report, bundle export, and diff (local monitoring only)
+- `make scheduled-proof-bundle-handoff` adds optional operator handoff auto-regeneration when diff is worsened/mixed (does not verify MRMS)
 - `make validation-failures` shows recent local failure log entries
 - `make validation-alerts` shows local validation alert marker and grouped failure causes
 - `make mrms-proof-report` generates draft verified-MRMS proof evidence report (not verified MRMS)

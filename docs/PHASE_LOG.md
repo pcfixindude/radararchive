@@ -1331,3 +1331,36 @@ cd frontend && npm run build
 - Scheduled bundle export is local monitoring only — not verified MRMS
 - `verified_mrms` always false
 - Production serving gates unchanged; placeholder default unchanged
+
+## Phase 33 - Scheduled Handoff Auto-Regenerate + Operator Guidance
+
+Optional scheduled handoff regeneration when proof bundle diff worsens/mixed; runbook guidance links in alerts and dashboard.
+
+### Backend
+- `operator_guidance.py` — cause → runbook guidance mapping
+- `run_scheduled_validation` — `--handoff` flag; step `operator_handoff`; report handoff compact fields
+- Validation alert adds `operator_guidance` when `operator_attention_needed`
+- Summary: `operator_guidance`, extended `scheduled_proof_bundle` and `operator_handoff` handoff status
+
+### Scripts / Makefile
+- `make scheduled-proof-bundle-handoff` — `--proof --bundle --diff-bundle --handoff`
+- `run_scheduled_validation.py` — `--handoff`
+
+### Frontend
+- Dev Validation: operator guidance links, scheduled handoff auto-gen status, honest non-verification wording
+
+### Run commands
+
+```bash
+make test
+make scheduled-validation
+make scheduled-proof-bundle
+make scheduled-proof-bundle-handoff
+make validation-alerts
+cd frontend && npm run build
+```
+
+### Known limitations
+- Handoff auto-gen requires `--handoff` explicitly (default scheduled flows unchanged)
+- Guidance links are doc path + section label (not live deep links in UI)
+- `verified_mrms` always false; production gates unchanged

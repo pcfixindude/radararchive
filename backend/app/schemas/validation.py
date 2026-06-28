@@ -196,6 +196,18 @@ class GroupedFailureCauseCompact(BaseModel):
     latest_logged_at: Optional[str] = None
 
 
+class OperatorGuidanceItemCompact(BaseModel):
+    title: str
+    path: str
+    anchor: str = ""
+    section_label: str = ""
+    cause: str
+    suggested_action: str = ""
+    verified_mrms: bool = False
+    local_guidance_only: bool = True
+    prototype: bool = True
+
+
 class ValidationAlertCompact(BaseModel):
     status: str = "ok"
     latest_run_at: Optional[str] = None
@@ -215,6 +227,7 @@ class ValidationAlertCompact(BaseModel):
     proof_bundle_diff_attention: bool = False
     latest_proof_bundle_id: Optional[str] = None
     latest_proof_bundle_created_at: Optional[str] = None
+    operator_guidance: list[OperatorGuidanceItemCompact] = Field(default_factory=list)
     verified_mrms: bool = False
     prototype: bool = True
 
@@ -477,6 +490,13 @@ class OperatorHandoffCompact(BaseModel):
     json_path: Optional[str] = None
     question_count: int = 0
     diff_status: Optional[str] = None
+    auto_generated: bool = False
+    trigger_reason: Optional[str] = None
+    handoff_requested: bool = False
+    handoff_generated: bool = False
+    handoff_reason: Optional[str] = None
+    scheduled_handoff_path: Optional[str] = None
+    diff_status_that_triggered_handoff: Optional[str] = None
     verified_mrms: bool = False
     local_handoff_only: bool = True
     does_not_enable_production: bool = True
@@ -499,6 +519,11 @@ class ScheduledProofBundleCompact(BaseModel):
     diff_status: Optional[str] = None
     evidence_changes_count: int = 0
     operator_attention_needed: bool = False
+    handoff_requested: bool = False
+    handoff_generated: bool = False
+    handoff_path: Optional[str] = None
+    handoff_reason: Optional[str] = None
+    diff_status_that_triggered_handoff: Optional[str] = None
     verified_mrms: bool = False
     local_evidence_monitoring_only: bool = True
     prototype: bool = True
@@ -537,6 +562,7 @@ class ValidationSummaryResponse(BaseModel):
     mrms_proof_bundle: Optional[MrmsProofBundleCompact] = None
     mrms_proof_bundle_diff: Optional[MrmsProofBundleDiffCompact] = None
     operator_handoff: Optional[OperatorHandoffCompact] = None
+    operator_guidance: list[OperatorGuidanceItemCompact] = Field(default_factory=list)
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse
