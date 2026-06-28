@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.app.api.validation import router as validation_router
 from backend.app.api.access import router as access_router
 from backend.app.api.render_jobs import router as render_jobs_router
 from backend.app.api.routes import router as api_router
@@ -41,6 +42,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix="/api")
+app.include_router(validation_router, prefix="/api")
 app.include_router(render_jobs_router, prefix="/api")
 app.include_router(access_router, prefix="/api")
 app.include_router(sources_router, prefix="/api")

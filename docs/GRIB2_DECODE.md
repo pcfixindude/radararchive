@@ -215,6 +215,20 @@ Real mode requires network for NOAA AWS download; output remains prototype (`ver
 
 Service: `backend/app/services/mrms_validation.py`
 
+## Benchmark (Phase 20)
+
+Per-stage timing benchmark for one frame (not verified production radar):
+
+```bash
+make benchmark-real-mrms
+make benchmark-real-mrms ARGS="--json-report --min-zoom 0 --max-zoom 1"
+MRMS_SOURCE_MODE=real make benchmark-real-mrms ARGS="--real"
+```
+
+Report: `stage_timings`, `tile_build_elapsed_seconds`, `tiles_planned`/`tiles_written`/`tiles_skipped`, `output_bytes`, `decoder_used`, `verified_mrms: false`.
+
+Persisted to `data/dev/benchmark_latest.json`. Dev API: `GET /api/validation/summary`.
+
 ## Inspection CLI
 
 ```bash
@@ -249,6 +263,7 @@ When no decoder is installed, the script still reports gzip size and GRIB magic 
 - `backend/app/workers/render_worker.py` — local worker
 - `scripts/enqueue_render_job.py`, `scripts/run_render_worker.py`, `scripts/render_queue_status.py`
 - `scripts/validate_real_mrms.py` — MRMS validation orchestrator (Phase 19)
+- `scripts/benchmark_real_mrms.py` — MRMS benchmark timing (Phase 20)
 
 ## Non-goals (Phases 11–12)
 

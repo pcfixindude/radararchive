@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Callable, Optional, Protocol
 
 from sqlalchemy.orm import Session
@@ -16,6 +17,7 @@ from backend.app.services.mrms_discovery import register_discovered_files
 from backend.app.services.mrms_downloader import DownloadBatchResult, download_pending_mrms
 from backend.app.services.render_queue import enqueue_render_job, recover_stale_running_jobs
 from backend.app.services.storage import LocalStorage
+from backend.app.services.validation_report_store import save_latest_validation_report
 from backend.app.sources.mrms import MrmsDiscoveredFile, MrmsDiscoveryError, discover_latest_mrms
 from backend.app.workers.render_worker import process_next_render_job
 
@@ -74,6 +76,7 @@ class MrmsValidationReport:
     production_rendering_enabled: bool = False
     verified_mrms: bool = False
     prototype: bool = True
+    validated_at: Optional[str] = None
 
     def to_dict(self) -> dict:
         return {
@@ -95,6 +98,7 @@ class MrmsValidationReport:
             "production_rendering_enabled": self.production_rendering_enabled,
             "verified_mrms": self.verified_mrms,
             "prototype": self.prototype,
+            "validated_at": self.validated_at,
         }
 
 
@@ -103,6 +107,18 @@ def resolve_validation_source_mode(*, real_requested: bool) -> str:
     if real_requested or settings.mrms_source_mode == MRMS_SOURCE_MODE_REAL:
         return MRMS_SOURCE_MODE_REAL
     return MRMS_SOURCE_MODE_STUB
+
+
+def _finalize_validation_report(
+    report: MrmsValidationReport,
+    storage: LocalStorage,
+    *,
+    persist: bool,
+) -> MrmsValidationReport:
+    report.validated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    if persist:
+        save_latest_validation_report(storage, report.to_dict())
+    return report
 
 
 def run_mrms_validation(
@@ -118,6 +134,7 @@ def run_mrms_validation(
     inspect_fn: Optional[InspectFn] = None,
     decode_fn: Optional[DecodeFn] = None,
     worker_fn: Optional[WorkerFn] = None,
+    persist: bool = True,
 ) -> MrmsValidationReport:
     """Run discover → register → download → inspect → decode → enqueue → optional worker."""
     mode = source_mode or settings.mrms_source_mode
@@ -150,12 +167,12 @@ def run_mrms_validation(
         discoveries = discover(product, limit=limit, mode=mode)
     except MrmsDiscoveryError as exc:
         report.errors.append(f"discovery failed: {exc}")
-        return report
+        return _finalize_validation_report(report, storage, persist=persist)
 
     report.discovered_count = len(discoveries)
     if not discoveries:
         report.warnings.append("No MRMS candidates discovered.")
-        return report
+        return _finalize_validation_report(report, storage, persist=persist)
 
     reg = register_discovered_files(session, discoveries)
     report.registered_created = reg.created
@@ -168,7 +185,7 @@ def run_mrms_validation(
         batch = do_download(session, storage, limit, mode)
     except Exception as exc:
         report.errors.append(f"download failed: {exc}")
-        return report
+        return _finalize_validation_report(report, storage, persist=persist)
 
     report.downloaded_count = len(batch.downloaded)
     report.download_skipped = batch.skipped
@@ -183,7 +200,7 @@ def run_mrms_validation(
             )
         else:
             report.warnings.append("No inspectable real MRMS files in catalog after download.")
-        return report
+        return _finalize_validation_report(report, storage, persist=persist)
 
     inspect = inspect_fn or inspect_grib2_file
     decode = decode_fn or decode_grib2_file
@@ -222,7 +239,7 @@ def run_mrms_validation(
 
     if decoded_artifacts == 0:
         report.warnings.append("No decode artifacts produced; render job not enqueued.")
-        return report
+        return _finalize_validation_report(report, storage, persist=persist)
 
     job = enqueue_render_job(
         session,
@@ -237,13 +254,13 @@ def run_mrms_validation(
 
     if not run_worker:
         report.warnings.append("Worker not run; use --run-worker to process the enqueued job.")
-        return report
+        return _finalize_validation_report(report, storage, persist=persist)
 
     worker = worker_fn or process_next_render_job
     processed = worker(session, storage)
     if processed is None:
         report.warnings.append("Worker found no queued jobs to process.")
-        return report
+        return _finalize_validation_report(report, storage, persist=persist)
 
     report.worker_jobs_processed = 1
     report.tile_cache = TileCacheResult(
@@ -258,4 +275,7 @@ def run_mrms_validation(
             f"Worker job {processed.id} failed: {getattr(processed, 'error_message', '')}"
         )
 
+    report.validated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    if persist:
+        save_latest_validation_report(storage, report.to_dict())
     return report

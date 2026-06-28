@@ -145,6 +145,64 @@ export type RenderQueueSummary = {
   verified_mrms: boolean;
 };
 
+export type ValidationTileCacheSummary = {
+  tiles_written: number;
+  tiles_skipped: number;
+  output_bytes: number;
+  job_id?: number | null;
+  job_status?: string | null;
+};
+
+export type ValidationCompact = {
+  validated_at?: string | null;
+  source_mode?: string | null;
+  discovered_count: number;
+  downloaded_count: number;
+  inspected_count: number;
+  decoded_count: number;
+  render_jobs_enqueued: number;
+  worker_jobs_processed: number;
+  decoder_available: boolean;
+  tile_cache: ValidationTileCacheSummary;
+  warnings: string[];
+  errors: string[];
+  verified_mrms: boolean;
+  prototype: boolean;
+};
+
+export type BenchmarkCompact = {
+  benchmarked_at?: string | null;
+  source_mode?: string | null;
+  stage_timings: { stage: string; elapsed_seconds: number }[];
+  min_zoom?: number | null;
+  max_zoom?: number | null;
+  tiles_planned: number;
+  tiles_written: number;
+  tiles_skipped: number;
+  output_bytes: number;
+  tile_build_elapsed_seconds: number;
+  decoder_used?: string | null;
+  warnings: string[];
+  errors: string[];
+  verified_mrms: boolean;
+  prototype: boolean;
+};
+
+export type ValidationSummary = {
+  prototype: boolean;
+  verified_mrms: boolean;
+  production_rendering_enabled: boolean;
+  placeholder_default: boolean;
+  decoder_available: boolean;
+  decoder_summary: string;
+  stale_running_job_seconds: number;
+  validation_available: boolean;
+  validation: ValidationCompact | null;
+  benchmark_available: boolean;
+  benchmark: BenchmarkCompact | null;
+  render_queue: RenderQueueSummary;
+};
+
 export async function fetchRenderJobs(limit = 3): Promise<RenderJobInfo[]> {
   try {
     const response = await fetch(`${API_BASE}/api/render/jobs?limit=${limit}`);
@@ -164,6 +222,18 @@ export async function fetchRenderQueueSummary(): Promise<RenderQueueSummary | nu
       return null;
     }
     return response.json() as Promise<RenderQueueSummary>;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchValidationSummary(): Promise<ValidationSummary | null> {
+  try {
+    const response = await fetch(`${API_BASE}/api/validation/summary`);
+    if (!response.ok) {
+      return null;
+    }
+    return response.json() as Promise<ValidationSummary>;
   } catch {
     return null;
   }

@@ -1,17 +1,16 @@
 # Project State
 
-Current phase: Phase 19 complete
+Current phase: Phase 20 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
 - MRMS discovery → download → decode prototype pipeline
 - **End-to-end validation orchestrator** (`make validate-real-mrms`) — experimental, not verified MRMS
+- **Validation dashboard** — dev API + frontend panel (`GET /api/validation/summary`)
+- **Benchmark reporting** (`make benchmark-real-mrms`) — per-stage timing + tile metrics
 - **Default tile serving: placeholder** (`ENABLE_DECODED_TILES=false`, `ENABLE_PRODUCTION_RADAR_TILES=false`)
-- Production warping prototype with multi-zoom build (Phase 16)
-- **SQLite render job queue** + one-shot and continuous local worker with retry policy (Phase 17–18)
-- Stale `running` job recovery + worker signal handling (Phase 19)
-- Queue observability: summary API, `make render-queue-status`, integrated into `make render-status`
+- SQLite render job queue + worker with configurable stale threshold (`STALE_RUNNING_JOB_SECONDS`, default 3600)
 - Production tiles served only when flag + catalog gate + cached tile all true
 - Not verified real MRMS — warping prototype only
 
@@ -21,40 +20,38 @@ Current status:
 # Default — placeholder tiles only
 ENABLE_DECODED_TILES=false
 ENABLE_PRODUCTION_RADAR_TILES=false
+
+# Stale running job recovery threshold (seconds, default 3600)
+STALE_RUNNING_JOB_SECONDS=3600
 ```
+
+## Validation dashboard (Phase 20)
+
+```bash
+make validate-real-mrms
+make benchmark-real-mrms
+make benchmark-real-mrms ARGS="--json-report --min-zoom 0 --max-zoom 1"
+
+# Dev API (prototype)
+curl http://127.0.0.1:8000/api/validation/summary
+curl http://127.0.0.1:8000/api/validation/latest
+```
+
+Reports persist under `data/dev/validation_latest.json` and `data/dev/benchmark_latest.json`.
 
 ## MRMS validation (Phase 19)
 
 ```bash
-# Safe stub/offline default (no network required)
-make validate-real-mrms
 make validate-real-mrms ARGS="--json-report"
-
-# Real NOAA AWS mode (network required; still prototype output)
-MRMS_SOURCE_MODE=real make validate-real-mrms ARGS="--real"
-make validate-real-mrms ARGS="--real --run-worker"
+MRMS_SOURCE_MODE=real make validate-real-mrms ARGS="--real --run-worker"
 ```
 
 ## Render queue (Phase 17–18)
 
 ```bash
-# Enqueue a job
 make enqueue-render-job
-make enqueue-render-job ARGS="--min-zoom 0 --max-zoom 2"
-
-# Process one queued job
 make render-worker-once
-make render-worker-once ARGS="--json-report"
-
-# Continuous worker (default max 100 jobs, 1s sleep when empty; Ctrl+C to stop)
-make render-worker
-make render-worker ARGS="--max-jobs 5 --sleep 0.5 --verbose"
-
-# Queue summary
 make render-queue-status
-make render-queue-status ARGS="--json-report"
-
-# Full render status (includes queue summary)
 make render-status
 ```
 
@@ -63,22 +60,12 @@ make render-status
 ```bash
 make test
 make validate-real-mrms
-make render-worker-once
+make benchmark-real-mrms
+make render-queue-status
 cd frontend && npm run build
 ```
 
-## Pipeline
-
-```bash
-make validate-real-mrms ARGS="--run-worker"
-# Or step by step:
-make decode-grib2
-make enqueue-render-job ARGS="--min-zoom 0 --max-zoom 2"
-make render-worker-once
-ENABLE_PRODUCTION_RADAR_TILES=true make backend
-```
-
-See `docs/GRIB2_DECODE.md` for decode/warping/worker/validation notes.
+See `docs/GRIB2_DECODE.md` for decode/warping/worker/validation/benchmark notes.
 
 ## Demo plans
 

@@ -177,6 +177,20 @@ Job statuses: `queued`, `running`, `succeeded`, `failed`, `canceled`.
 
 No delete/reset endpoints. Process jobs with `make render-worker-once` (one job) or `make render-worker` (continuous loop).
 
+## Validation dashboard (Phase 20 — dev/prototype)
+
+`GET /api/validation/summary` — compact dashboard summary:
+
+- `production_rendering_enabled`, `placeholder_default`, `verified_mrms: false`
+- `decoder_available`, `decoder_summary`, `stale_running_job_seconds`
+- `validation` — latest validation counts (if `make validate-real-mrms` has run)
+- `benchmark` — latest benchmark tile/timing metrics (if `make benchmark-real-mrms` has run)
+- `render_queue` — same metrics as `/api/render/jobs/summary`
+
+`GET /api/validation/latest` — full persisted JSON blobs for validation and benchmark reports (or `null`).
+
+Reports are written by CLI commands to `data/dev/`. Not verified MRMS production output.
+
 ## MRMS source discovery (Phase 8 — dev/metadata)
 
 GET /api/sources/mrms/latest?product=MRMS_ReflectivityAtLowestAltitude&limit=5

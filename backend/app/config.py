@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     mrms_discovery_lookback_days: int = 3
     enable_decoded_tiles: bool = False
     enable_production_radar_tiles: bool = False
+    stale_running_job_seconds: int = 3600
 
     @property
     def sqlite_path(self) -> Optional[Path]:

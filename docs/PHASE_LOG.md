@@ -875,6 +875,43 @@ cd frontend && npm run build
 ### Known limitations
 - Validation output is prototype — `verified_mrms` always false
 - Stub mode cannot produce real GRIB2 decode artifacts without a real download
-- Stale recovery uses fixed 1h threshold (not configurable via CLI yet)
+- Stale recovery threshold configurable via `STALE_RUNNING_JOB_SECONDS` (default 3600)
 - No new public API endpoints
+- Production serving gates unchanged; placeholder default unchanged
+
+## Phase 20 - Validation Dashboard + Real-Frame Benchmark
+
+Dev validation dashboard API, persisted reports, benchmark timing, configurable stale threshold, and frontend status panel.
+
+### Backend
+- `validation_report_store.py` — persist latest validation/benchmark JSON under `data/dev/`
+- `validation_dashboard.py` — build summary for dev API
+- `mrms_benchmark.py` — per-stage timing + tile build metrics
+- `STALE_RUNNING_JOB_SECONDS` setting (default 3600)
+- Dev API: `GET /api/validation/summary`, `GET /api/validation/latest`
+- Validation runs auto-persist via `run_mrms_validation`
+
+### Scripts / Makefile
+- `scripts/benchmark_real_mrms.py` — `make benchmark-real-mrms`
+- `make validate-real-mrms` unchanged; reports now persisted
+
+### Frontend
+- `ValidationStatusPanel` — decoder, queue, validation counts, benchmark metrics, prototype warnings
+
+### Run commands
+
+```bash
+make test
+make validate-real-mrms
+make benchmark-real-mrms
+make benchmark-real-mrms ARGS="--json-report"
+make render-queue-status
+cd frontend && npm run build
+curl http://127.0.0.1:8000/api/validation/summary
+```
+
+### Known limitations
+- Dashboard shows latest report only (no history)
+- Benchmark tile build runs directly (not only via queue worker)
+- `verified_mrms` always false — not verified production radar
 - Production serving gates unchanged; placeholder default unchanged

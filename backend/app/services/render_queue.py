@@ -21,8 +21,9 @@ from backend.app.models.render_job import (
     TERMINAL_JOB_STATUSES,
 )
 
+from backend.app.config import settings
+
 RETRY_DELAY_SECONDS = 1
-STALE_RUNNING_JOB_SECONDS = 3600
 
 
 @dataclass
@@ -152,12 +153,15 @@ def _is_retry_ready(job: RenderJob, now: datetime) -> bool:
 def recover_stale_running_jobs(
     session: Session,
     *,
-    stale_seconds: int = STALE_RUNNING_JOB_SECONDS,
+    stale_seconds: Optional[int] = None,
     now: Optional[datetime] = None,
 ) -> int:
     """Re-queue or fail jobs stuck in running past a safe threshold."""
+    resolved_stale_seconds = (
+        stale_seconds if stale_seconds is not None else settings.stale_running_job_seconds
+    )
     now = now or datetime.now(timezone.utc)
-    cutoff = now - timedelta(seconds=stale_seconds)
+    cutoff = now - timedelta(seconds=resolved_stale_seconds)
     recovered = 0
 
     running_jobs = (

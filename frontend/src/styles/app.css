@@ -50,6 +50,8 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
 .plan-note, .plan-meta, .plan-upgrade { margin: 0.35rem 0 0; color: #cbd5e1; font-size: 0.85rem; }
 .plan-upgrade { color: #fde68a; }
 .plan-panel select { width: 100%; margin-top: 0.35rem; }
+.validation-panel .validation-meta { margin: 0.35rem 0 0; color: #cbd5e1; font-size: 0.82rem; }
+.validation-panel .validation-warn { margin: 0.35rem 0 0; color: #fde68a; font-size: 0.82rem; }
 
 @media (max-width: 800px) {
   .app-main { grid-template-columns: 1fr; grid-template-rows: minmax(45vh, 1fr) auto; }

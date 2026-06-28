@@ -270,6 +270,22 @@ Report fields: `source_mode`, discovery/download/inspect/decode counts, jobs enq
 Worker hardening (Phase 19):
 - `recover_stale_running_jobs` before claim and worker loop start
 - Continuous worker: SIGINT/SIGTERM clean exit, structured logging, interruptible idle sleep
+- Stale threshold: `STALE_RUNNING_JOB_SECONDS` env (default 3600)
+
+### Validation dashboard + benchmark (Phase 20)
+Persisted dev reports under `data/dev/validation_latest.json` and `data/dev/benchmark_latest.json`.
+
+Dev API (prototype):
+- `GET /api/validation/summary` — dashboard: decoder, queue, validation/benchmark compact metrics, flags
+- `GET /api/validation/latest` — full persisted validation + benchmark JSON
+
+CLI:
+- `make benchmark-real-mrms` — per-stage timing (`validation_pipeline`, `tile_build`) + tile metrics
+- `make validate-real-mrms` — persists latest validation report
+
+Frontend: `ValidationStatusPanel` in controls sidebar (mobile-friendly).
+
+All responses include `verified_mrms: false` and `prototype: true`.
 
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)

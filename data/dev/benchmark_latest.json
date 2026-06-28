@@ -1,0 +1,58 @@
+{
+  "benchmarked_at": "2026-06-28T05:54:14Z",
+  "decoder_used": null,
+  "errors": [],
+  "max_zoom": 0,
+  "min_zoom": 0,
+  "output_bytes": 0,
+  "prototype": true,
+  "source_mode": "stub",
+  "stage_timings": [
+    {
+      "elapsed_seconds": 0.0136,
+      "stage": "validation_pipeline"
+    }
+  ],
+  "tile_build_elapsed_seconds": 0.0,
+  "tiles_planned": 0,
+  "tiles_skipped": 0,
+  "tiles_written": 0,
+  "validation": {
+    "decoded_count": 0,
+    "decoder_available": false,
+    "discovered_count": 1,
+    "download_skipped": 3,
+    "downloaded_count": 0,
+    "errors": [],
+    "inspected_count": 0,
+    "production_rendering_enabled": false,
+    "prototype": true,
+    "registered_created": 0,
+    "registered_skipped": 1,
+    "render_jobs_enqueued": 0,
+    "source_mode": "stub",
+    "stale_jobs_recovered": 0,
+    "tile_cache": {
+      "job_id": null,
+      "job_status": null,
+      "output_bytes": 0,
+      "tiles_skipped": 0,
+      "tiles_written": 0
+    },
+    "validated_at": "2026-06-28T05:54:14Z",
+    "verified_mrms": false,
+    "warnings": [
+      "Stub/offline mode: downloads use local stub files, not NOAA AWS GRIB2. Inspect/decode/render steps require a real .grib2.gz file.",
+      "For network validation use: MRMS_SOURCE_MODE=real make validate-real-mrms ARGS='--real'",
+      "No real local .grib2.gz catalog candidates after download (expected in stub mode)."
+    ],
+    "worker_jobs_processed": 0
+  },
+  "verified_mrms": false,
+  "warnings": [
+    "Stub/offline mode: downloads use local stub files, not NOAA AWS GRIB2. Inspect/decode/render steps require a real .grib2.gz file.",
+    "For network validation use: MRMS_SOURCE_MODE=real make validate-real-mrms ARGS='--real'",
+    "No real local .grib2.gz catalog candidates after download (expected in stub mode).",
+    "No decode artifacts; tile build benchmark skipped."
+  ]
+}

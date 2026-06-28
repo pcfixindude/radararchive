@@ -7,6 +7,8 @@ import {
   fetchTimes,
   fetchTilesConfig,
   fetchRenderQueueSummary,
+  fetchValidationSummary,
+  type ValidationSummary,
   type AccessCurrentInfo,
   type DemoPlan,
 } from './api/client';
@@ -18,6 +20,7 @@ import PlaybackControls from './components/PlaybackControls';
 import RadarOpacityControl from './components/RadarOpacityControl';
 import TimestampDisplay from './components/TimestampDisplay';
 import PlanSelector from './components/PlanSelector';
+import ValidationStatusPanel from './components/ValidationStatusPanel';
 import { usePlayback } from './hooks/usePlayback';
 import { DEFAULT_LAYER } from './map/layers';
 
@@ -36,6 +39,7 @@ export default function App() {
   const [radarOpacity, setRadarOpacity] = useState(0.65);
   const [tileModeLabel, setTileModeLabel] = useState('Placeholder');
   const [renderJobHint, setRenderJobHint] = useState('');
+  const [validationSummary, setValidationSummary] = useState<ValidationSummary | null>(null);
 
   function resolveTileModeLabel(config: Awaited<ReturnType<typeof fetchTilesConfig>>): string {
     if (!config) {
@@ -163,6 +167,22 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
 
+    async function loadValidationSummary() {
+      const summary = await fetchValidationSummary();
+      if (!cancelled) {
+        setValidationSummary(summary);
+      }
+    }
+
+    loadValidationSummary();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
     async function loadTimes() {
       if (loadState === 'backend_down') {
         return;
@@ -248,6 +268,7 @@ export default function App() {
             <p className="warn-banner">Selected timestamp is not processed yet. Choose a processed frame or run process-once.</p>
           ) : null}
           <PlanSelector plan={selectedPlan} accessInfo={accessInfo} onChange={setSelectedPlan} />
+          <ValidationStatusPanel summary={validationSummary} />
           <LayerPanel layers={layers} selectedLayer={selectedLayer} onSelect={setSelectedLayer} />
           <TimestampDisplay
             timestamp={selectedTime}
