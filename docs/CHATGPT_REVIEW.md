@@ -11,7 +11,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 60
 - Latest phase: Phase 60 — Visual review artifact drilldown and sample-set selection
-- Latest commit: `b254016`
+- Latest commit: `e627407`
 - Latest tag: `phase-60-visual-review-sample-sets`
 - Push status: pushed to origin main with tag
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
