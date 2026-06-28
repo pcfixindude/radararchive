@@ -6,37 +6,67 @@
   "download_skipped": 3,
   "downloaded_count": 0,
   "effective_frame_count": 3,
-  "elapsed_seconds": 0.0102,
+  "elapsed_seconds": 0.0117,
   "errors": [],
   "frame_summaries": [
     {
+      "decode_status": "pending",
       "decoded": false,
       "downloaded": false,
+      "elapsed_seconds": 0.0,
       "errors": [],
       "inspected": false,
+      "max_zoom": 0,
+      "min_zoom": 0,
+      "output_bytes": 0,
+      "radar_file_id": null,
       "raw_path": null,
+      "render_job_id": null,
+      "tiles_planned": 0,
+      "tiles_skipped": 0,
+      "tiles_written": 0,
       "timestamp": "2026-06-26T20:00:00Z",
       "warnings": [
         "No inspectable real .grib2.gz on disk for this frame"
       ]
     },
     {
+      "decode_status": "pending",
       "decoded": false,
       "downloaded": false,
+      "elapsed_seconds": 0.0,
       "errors": [],
       "inspected": false,
+      "max_zoom": 0,
+      "min_zoom": 0,
+      "output_bytes": 0,
+      "radar_file_id": null,
       "raw_path": null,
+      "render_job_id": null,
+      "tiles_planned": 0,
+      "tiles_skipped": 0,
+      "tiles_written": 0,
       "timestamp": "2026-06-26T19:55:00Z",
       "warnings": [
         "No inspectable real .grib2.gz on disk for this frame"
       ]
     },
     {
+      "decode_status": "pending",
       "decoded": false,
       "downloaded": false,
+      "elapsed_seconds": 0.0,
       "errors": [],
       "inspected": false,
+      "max_zoom": 0,
+      "min_zoom": 0,
+      "output_bytes": 0,
+      "radar_file_id": null,
       "raw_path": null,
+      "render_job_id": null,
+      "tiles_planned": 0,
+      "tiles_skipped": 0,
+      "tiles_written": 0,
       "timestamp": "2026-06-26T19:50:00Z",
       "warnings": [
         "No inspectable real .grib2.gz on disk for this frame"
@@ -61,7 +91,7 @@
   "tiles_planned": 0,
   "tiles_skipped": 0,
   "tiles_written": 0,
-  "validated_at": "2026-06-28T06:16:51Z",
+  "validated_at": "2026-06-28T06:37:59Z",
   "verified_mrms": false,
   "warnings": [
     "Stub/offline mode: stub downloads are not real GRIB2; inspect/decode need real .grib2.gz",

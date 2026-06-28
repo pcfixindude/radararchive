@@ -1,4 +1,5 @@
-import type { ValidationSummary } from '../api/client';
+import { useState } from 'react';
+import { fetchValidationLatest, type ValidationSummary } from '../api/client';
 
 function yesNo(value: boolean): string {
   return value ? 'yes' : 'no';
@@ -20,6 +21,22 @@ export default function ValidationStatusPanel({
   onRefresh?: () => void;
   refreshing?: boolean;
 }) {
+  const [showDetails, setShowDetails] = useState(false);
+  const [detailsJson, setDetailsJson] = useState<string | null>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+
+  async function toggleDetails() {
+    if (showDetails) {
+      setShowDetails(false);
+      return;
+    }
+    setDetailsLoading(true);
+    const latest = await fetchValidationLatest();
+    setDetailsJson(latest ? JSON.stringify(latest, null, 2) : 'Details unavailable');
+    setDetailsLoading(false);
+    setShowDetails(true);
+  }
+
   if (!summary) {
     return (
       <section className="panel validation-panel">
@@ -40,6 +57,8 @@ export default function ValidationStatusPanel({
   const validation = summary.validation;
   const benchmark = summary.benchmark;
   const queueBenchmark = summary.queue_benchmark ?? null;
+  const scheduled = summary.scheduled_validation ?? null;
+  const frameSummaries = summary.frame_summaries ?? [];
   const queue = summary.render_queue;
   const catalog = summary.catalog;
   const history = summary.validation_history ?? [];
@@ -48,11 +67,16 @@ export default function ValidationStatusPanel({
     <section className="panel validation-panel">
       <div className="validation-header">
         <h2>Dev Validation</h2>
-        {onRefresh ? (
-          <button type="button" className="validation-refresh" onClick={onRefresh} disabled={refreshing}>
-            {refreshing ? 'Refreshing…' : 'Refresh'}
+        <div className="validation-header-actions">
+          <button type="button" className="validation-refresh" onClick={toggleDetails} disabled={detailsLoading}>
+            {detailsLoading ? 'Loading…' : showDetails ? 'Hide details' : 'Show details'}
           </button>
-        ) : null}
+          {onRefresh ? (
+            <button type="button" className="validation-refresh" onClick={onRefresh} disabled={refreshing}>
+              {refreshing ? 'Refreshing…' : 'Refresh'}
+            </button>
+          ) : null}
+        </div>
       </div>
       <p className="validation-warn">Experimental pipeline — not verified real MRMS.</p>
       <p className="validation-meta">Placeholder default: {yesNo(summary.placeholder_default)}</p>
@@ -67,6 +91,17 @@ export default function ValidationStatusPanel({
       <p className="validation-meta">
         Queue: queued {queue.queued}, running {queue.running}, succeeded {queue.succeeded}, failed {queue.failed}
       </p>
+      {scheduled ? (
+        <p className="validation-meta">
+          Scheduled run ({formatTimestamp(scheduled.ran_at)}):{' '}
+          {scheduled.success ? 'success' : 'failed'} (exit {scheduled.exit_code}), steps {scheduled.steps_ok}/
+          {scheduled.steps_ok + scheduled.steps_failed}, decoded {scheduled.batch_decoded_count}, queue jobs{' '}
+          {scheduled.queue_jobs_succeeded} ok
+          {scheduled.elapsed_seconds != null ? ` (${scheduled.elapsed_seconds.toFixed(1)}s)` : ''}
+        </p>
+      ) : (
+        <p className="validation-meta">No scheduled validation yet — run make scheduled-validation.</p>
+      )}
       <p className="validation-meta">Validation history: {summary.validation_history_count} saved</p>
       {history.length > 0 ? (
         <ul className="validation-history-list">
@@ -98,6 +133,17 @@ export default function ValidationStatusPanel({
       ) : (
         <p className="validation-meta">No validation report yet — run make validate-real-mrms-batch.</p>
       )}
+      {frameSummaries.length > 0 ? (
+        <ul className="validation-history-list">
+          {frameSummaries.map((frame, index) => (
+            <li key={`${frame.timestamp ?? 'frame'}-${index}`} className="validation-meta">
+              {formatTimestamp(frame.timestamp)} — {frame.decode_status ?? '—'}: planned {frame.tiles_planned}, written{' '}
+              {frame.tiles_written}
+              {frame.render_job_id != null ? ` (job ${frame.render_job_id})` : ''}
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {benchmark ? (
         <p className="validation-meta">
           Stage benchmark: tiles {benchmark.tiles_written}/{benchmark.tiles_planned}, build{' '}
@@ -119,7 +165,8 @@ export default function ValidationStatusPanel({
               {queueBenchmark.job_summaries.map((job, index) => (
                 <li key={`${job.job_id ?? 'dry'}-${index}`} className="validation-meta">
                   {job.job_id != null ? `job ${job.job_id}` : 'planned'} ({formatTimestamp(job.timestamp)}):{' '}
-                  {job.status ?? '—'}, tiles {job.tiles_written}
+                  {job.status ?? '—'}, {job.decode_status ?? '—'}, planned {job.tiles_planned ?? 0}, tiles{' '}
+                  {job.tiles_written}
                   {job.elapsed_seconds != null ? ` (${job.elapsed_seconds.toFixed(2)}s)` : ''}
                 </li>
               ))}
@@ -129,6 +176,9 @@ export default function ValidationStatusPanel({
       ) : (
         <p className="validation-meta">No queue benchmark yet — run make benchmark-render-queue.</p>
       )}
+      {showDetails && detailsJson ? (
+        <pre className="validation-details-json">{detailsJson}</pre>
+      ) : null}
     </section>
   );
 }

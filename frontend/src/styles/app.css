@@ -52,11 +52,24 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
 .plan-panel select { width: 100%; margin-top: 0.35rem; }
 .validation-panel .validation-meta { margin: 0.35rem 0 0; color: #cbd5e1; font-size: 0.82rem; }
 .validation-panel .validation-warn { margin: 0.35rem 0 0; color: #fde68a; font-size: 0.82rem; }
-.validation-header { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.validation-header { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+.validation-header-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
 .validation-header h2 { margin: 0; }
 .validation-refresh { padding: 0.35rem 0.6rem; font-size: 0.8rem; }
 .validation-history-list { margin: 0.25rem 0 0; padding-left: 1.1rem; }
 .validation-history-list li { margin: 0.15rem 0; }
+.validation-details-json {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  max-height: 12rem;
+  overflow: auto;
+  font-size: 0.7rem;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
 
 @media (max-width: 800px) {
   .app-main { grid-template-columns: 1fr; grid-template-rows: minmax(45vh, 1fr) auto; }

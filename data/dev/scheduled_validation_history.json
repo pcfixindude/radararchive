@@ -1,0 +1,17 @@
+[
+  {
+    "batch_decoded_count": 0,
+    "effective_count": 3,
+    "elapsed_seconds": 0.0348,
+    "exit_code": 0,
+    "max_zoom": 1,
+    "min_zoom": 0,
+    "prototype": true,
+    "queue_jobs_failed": 0,
+    "queue_jobs_succeeded": 3,
+    "ran_at": "2026-06-28T06:37:58Z",
+    "source_mode": "stub",
+    "success": true,
+    "verified_mrms": false
+  }
+]

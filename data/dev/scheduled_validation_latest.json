@@ -1,0 +1,607 @@
+{
+  "batch_validation": {
+    "batch": true,
+    "decoded_count": 0,
+    "decoder_available": false,
+    "discovered_count": 3,
+    "download_skipped": 3,
+    "downloaded_count": 0,
+    "effective_frame_count": 3,
+    "elapsed_seconds": 0.0052,
+    "errors": [],
+    "frame_summaries": [
+      {
+        "decode_status": "pending",
+        "decoded": false,
+        "downloaded": false,
+        "elapsed_seconds": 0.0,
+        "errors": [],
+        "inspected": false,
+        "max_zoom": 0,
+        "min_zoom": 0,
+        "output_bytes": 0,
+        "radar_file_id": null,
+        "raw_path": null,
+        "render_job_id": null,
+        "tiles_planned": 0,
+        "tiles_skipped": 0,
+        "tiles_written": 0,
+        "timestamp": "2026-06-26T20:00:00Z",
+        "warnings": [
+          "No inspectable real .grib2.gz on disk for this frame"
+        ]
+      },
+      {
+        "decode_status": "pending",
+        "decoded": false,
+        "downloaded": false,
+        "elapsed_seconds": 0.0,
+        "errors": [],
+        "inspected": false,
+        "max_zoom": 0,
+        "min_zoom": 0,
+        "output_bytes": 0,
+        "radar_file_id": null,
+        "raw_path": null,
+        "render_job_id": null,
+        "tiles_planned": 0,
+        "tiles_skipped": 0,
+        "tiles_written": 0,
+        "timestamp": "2026-06-26T19:55:00Z",
+        "warnings": [
+          "No inspectable real .grib2.gz on disk for this frame"
+        ]
+      },
+      {
+        "decode_status": "pending",
+        "decoded": false,
+        "downloaded": false,
+        "elapsed_seconds": 0.0,
+        "errors": [],
+        "inspected": false,
+        "max_zoom": 0,
+        "min_zoom": 0,
+        "output_bytes": 0,
+        "radar_file_id": null,
+        "raw_path": null,
+        "render_job_id": null,
+        "tiles_planned": 0,
+        "tiles_skipped": 0,
+        "tiles_written": 0,
+        "timestamp": "2026-06-26T19:50:00Z",
+        "warnings": [
+          "No inspectable real .grib2.gz on disk for this frame"
+        ]
+      }
+    ],
+    "inspected_count": 0,
+    "output_bytes": 0,
+    "production_rendering_enabled": false,
+    "prototype": true,
+    "registered_created": 0,
+    "registered_skipped": 3,
+    "render_jobs_enqueued": 0,
+    "requested_frame_count": 3,
+    "source_mode": "stub",
+    "stale_jobs_recovered": 0,
+    "tile_cache": {
+      "output_bytes": 0,
+      "tiles_skipped": 0,
+      "tiles_written": 0
+    },
+    "tiles_planned": 0,
+    "tiles_skipped": 0,
+    "tiles_written": 0,
+    "validated_at": "2026-06-28T06:37:58Z",
+    "verified_mrms": false,
+    "warnings": [
+      "Stub/offline mode: stub downloads are not real GRIB2; inspect/decode need real .grib2.gz",
+      "Real mode: MRMS_SOURCE_MODE=real make validate-real-mrms-batch ARGS='--real'",
+      "No inspectable real MRMS catalog candidates after download."
+    ],
+    "worker_jobs_processed": 0
+  },
+  "catalog": {
+    "download_status": {
+      "downloaded": 3,
+      "pending": 11
+    },
+    "earliest_timestamp": "2026-06-26T19:50:00Z",
+    "latest_downloaded_timestamp": "2026-06-26T20:00:00Z",
+    "latest_timestamp": "2026-06-27T20:50:00Z",
+    "mrms_discovered_frames": 3,
+    "processed_status": {
+      "placeholder_processed": 14
+    },
+    "product_id": "mrms_reflectivity",
+    "prototype": true,
+    "render_status": {
+      "placeholder": 14
+    },
+    "total_frames": 14,
+    "verified_mrms": false
+  },
+  "effective_count": 3,
+  "elapsed_seconds": 0.0348,
+  "errors": [],
+  "exit_code": 0,
+  "max_zoom": 1,
+  "min_zoom": 0,
+  "production_rendering_enabled": false,
+  "prototype": true,
+  "queue_benchmark": {
+    "benchmarked_at": "2026-06-28T06:37:58Z",
+    "dry_run": false,
+    "effective_count": 3,
+    "errors": [],
+    "force": false,
+    "job_summaries": [
+      {
+        "decode_status": "not_decoded",
+        "elapsed_seconds": 0.0033,
+        "errors": [],
+        "job_id": 5,
+        "max_zoom": 1,
+        "min_zoom": 0,
+        "output_bytes": 0,
+        "progress_total": 1,
+        "radar_file_id": 11,
+        "status": "succeeded",
+        "tiles_planned": 1,
+        "tiles_skipped": 0,
+        "tiles_written": 0,
+        "timestamp": "2026-06-27T20:50:00Z",
+        "warnings": []
+      },
+      {
+        "decode_status": "not_decoded",
+        "elapsed_seconds": 0.002,
+        "errors": [],
+        "job_id": 6,
+        "max_zoom": 1,
+        "min_zoom": 0,
+        "output_bytes": 0,
+        "progress_total": 1,
+        "radar_file_id": 10,
+        "status": "succeeded",
+        "tiles_planned": 1,
+        "tiles_skipped": 0,
+        "tiles_written": 0,
+        "timestamp": "2026-06-27T20:45:00Z",
+        "warnings": []
+      },
+      {
+        "decode_status": "not_decoded",
+        "elapsed_seconds": 0.0026,
+        "errors": [],
+        "job_id": 7,
+        "max_zoom": 1,
+        "min_zoom": 0,
+        "output_bytes": 0,
+        "progress_total": 1,
+        "radar_file_id": 9,
+        "status": "succeeded",
+        "tiles_planned": 1,
+        "tiles_skipped": 0,
+        "tiles_written": 0,
+        "timestamp": "2026-06-27T20:40:00Z",
+        "warnings": []
+      }
+    ],
+    "jobs_enqueued": 3,
+    "jobs_failed": 0,
+    "jobs_processed": 3,
+    "jobs_succeeded": 3,
+    "max_zoom": 1,
+    "min_zoom": 0,
+    "production_rendering_enabled": false,
+    "prototype": true,
+    "requested_count": 3,
+    "source_mode": "stub",
+    "stale_jobs_recovered": 0,
+    "total_elapsed_seconds": 0.0142,
+    "total_output_bytes": 0,
+    "total_tiles_skipped": 0,
+    "total_tiles_written": 0,
+    "verified_mrms": false,
+    "warnings": [
+      "Queue benchmark is experimental prototype tooling \u2014 not verified MRMS production output",
+      "Production tile serving remains disabled (ENABLE_PRODUCTION_RADAR_TILES=false)",
+      "Stub/offline mode: using local catalog only; no network discovery/download"
+    ]
+  },
+  "ran_at": "2026-06-28T06:37:58Z",
+  "real_requested": false,
+  "render_queue": {
+    "canceled": 0,
+    "failed": 0,
+    "prototype": true,
+    "queued": 0,
+    "running": 0,
+    "succeeded": 7,
+    "total_output_bytes": 0,
+    "total_tiles_written": 0,
+    "verified_mrms": false
+  },
+  "requested_count": 3,
+  "source_mode": "stub",
+  "steps": [
+    {
+      "elapsed_seconds": 0.0108,
+      "errors": [],
+      "name": "catalog_status",
+      "status": "ok",
+      "summary": {
+        "mrms_discovered_frames": 3,
+        "total_frames": 14
+      },
+      "warnings": []
+    },
+    {
+      "elapsed_seconds": 0.0058,
+      "errors": [],
+      "name": "batch_validation",
+      "status": "ok",
+      "summary": {
+        "decoded_count": 0,
+        "discovered_count": 3,
+        "downloaded_count": 0,
+        "frame_summaries": 3,
+        "tiles_written": 0
+      },
+      "warnings": [
+        "Stub/offline mode: stub downloads are not real GRIB2; inspect/decode need real .grib2.gz",
+        "Real mode: MRMS_SOURCE_MODE=real make validate-real-mrms-batch ARGS='--real'",
+        "No inspectable real MRMS catalog candidates after download."
+      ]
+    },
+    {
+      "elapsed_seconds": 0.0147,
+      "errors": [],
+      "name": "queue_benchmark",
+      "status": "ok",
+      "summary": {
+        "jobs_enqueued": 3,
+        "jobs_failed": 0,
+        "jobs_processed": 3,
+        "jobs_succeeded": 3,
+        "total_tiles_written": 0
+      },
+      "warnings": [
+        "Queue benchmark is experimental prototype tooling \u2014 not verified MRMS production output",
+        "Production tile serving remains disabled (ENABLE_PRODUCTION_RADAR_TILES=false)",
+        "Stub/offline mode: using local catalog only; no network discovery/download"
+      ]
+    },
+    {
+      "elapsed_seconds": 0.0013,
+      "errors": [],
+      "name": "render_queue_status",
+      "status": "ok",
+      "summary": {
+        "canceled": 0,
+        "failed": 0,
+        "prototype": true,
+        "queued": 0,
+        "running": 0,
+        "succeeded": 7,
+        "total_output_bytes": 0,
+        "total_tiles_written": 0,
+        "verified_mrms": false
+      },
+      "warnings": []
+    },
+    {
+      "elapsed_seconds": 0.0023,
+      "errors": [],
+      "name": "validation_summary",
+      "status": "ok",
+      "summary": {
+        "placeholder_default": true,
+        "queue_benchmark_available": true,
+        "validation_available": true
+      },
+      "warnings": []
+    }
+  ],
+  "success": true,
+  "validation_summary": {
+    "benchmark": {
+      "benchmarked_at": "2026-06-28T05:54:14Z",
+      "decoder_used": null,
+      "errors": [],
+      "max_zoom": 0,
+      "min_zoom": 0,
+      "output_bytes": 0,
+      "prototype": true,
+      "source_mode": "stub",
+      "stage_timings": [
+        {
+          "elapsed_seconds": 0.0136,
+          "stage": "validation_pipeline"
+        }
+      ],
+      "tile_build_elapsed_seconds": 0.0,
+      "tiles_planned": 0,
+      "tiles_skipped": 0,
+      "tiles_written": 0,
+      "verified_mrms": false,
+      "warnings": [
+        "Stub/offline mode: downloads use local stub files, not NOAA AWS GRIB2. Inspect/decode/render steps require a real .grib2.gz file.",
+        "For network validation use: MRMS_SOURCE_MODE=real make validate-real-mrms ARGS='--real'",
+        "No real local .grib2.gz catalog candidates after download (expected in stub mode).",
+        "No decode artifacts; tile build benchmark skipped."
+      ]
+    },
+    "benchmark_available": true,
+    "catalog": {
+      "download_status": {
+        "downloaded": 3,
+        "pending": 11
+      },
+      "earliest_timestamp": "2026-06-26T19:50:00Z",
+      "latest_downloaded_timestamp": "2026-06-26T20:00:00Z",
+      "latest_timestamp": "2026-06-27T20:50:00Z",
+      "mrms_discovered_frames": 3,
+      "processed_status": {
+        "placeholder_processed": 14
+      },
+      "product_id": "mrms_reflectivity",
+      "prototype": true,
+      "render_status": {
+        "placeholder": 14
+      },
+      "total_frames": 14,
+      "verified_mrms": false
+    },
+    "decoder_available": false,
+    "decoder_summary": "No GRIB2 decoder tools detected. Install wgrib2 for CLI inspection, or optional Python packages (rasterio/GDAL, pygrib, cfgrib) for future phases.",
+    "frame_summaries": [
+      {
+        "decode_status": "pending",
+        "elapsed_seconds": 0.0,
+        "errors": [],
+        "max_zoom": 0,
+        "min_zoom": 0,
+        "output_bytes": 0,
+        "radar_file_id": null,
+        "render_job_id": null,
+        "tiles_planned": 0,
+        "tiles_skipped": 0,
+        "tiles_written": 0,
+        "timestamp": "2026-06-26T20:00:00Z",
+        "warnings": [
+          "No inspectable real .grib2.gz on disk for this frame"
+        ]
+      },
+      {
+        "decode_status": "pending",
+        "elapsed_seconds": 0.0,
+        "errors": [],
+        "max_zoom": 0,
+        "min_zoom": 0,
+        "output_bytes": 0,
+        "radar_file_id": null,
+        "render_job_id": null,
+        "tiles_planned": 0,
+        "tiles_skipped": 0,
+        "tiles_written": 0,
+        "timestamp": "2026-06-26T19:55:00Z",
+        "warnings": [
+          "No inspectable real .grib2.gz on disk for this frame"
+        ]
+      },
+      {
+        "decode_status": "pending",
+        "elapsed_seconds": 0.0,
+        "errors": [],
+        "max_zoom": 0,
+        "min_zoom": 0,
+        "output_bytes": 0,
+        "radar_file_id": null,
+        "render_job_id": null,
+        "tiles_planned": 0,
+        "tiles_skipped": 0,
+        "tiles_written": 0,
+        "timestamp": "2026-06-26T19:50:00Z",
+        "warnings": [
+          "No inspectable real .grib2.gz on disk for this frame"
+        ]
+      }
+    ],
+    "placeholder_default": true,
+    "production_rendering_enabled": false,
+    "prototype": true,
+    "queue_benchmark": {
+      "benchmarked_at": "2026-06-28T06:37:58Z",
+      "dry_run": false,
+      "effective_count": 3,
+      "errors": [],
+      "job_summaries": [
+        {
+          "decode_status": "not_decoded",
+          "elapsed_seconds": 0.0033,
+          "errors": [],
+          "job_id": 5,
+          "max_zoom": 1,
+          "min_zoom": 0,
+          "output_bytes": 0,
+          "radar_file_id": 11,
+          "status": "succeeded",
+          "tiles_planned": 1,
+          "tiles_skipped": 0,
+          "tiles_written": 0,
+          "timestamp": "2026-06-27T20:50:00Z",
+          "warnings": []
+        },
+        {
+          "decode_status": "not_decoded",
+          "elapsed_seconds": 0.002,
+          "errors": [],
+          "job_id": 6,
+          "max_zoom": 1,
+          "min_zoom": 0,
+          "output_bytes": 0,
+          "radar_file_id": 10,
+          "status": "succeeded",
+          "tiles_planned": 1,
+          "tiles_skipped": 0,
+          "tiles_written": 0,
+          "timestamp": "2026-06-27T20:45:00Z",
+          "warnings": []
+        },
+        {
+          "decode_status": "not_decoded",
+          "elapsed_seconds": 0.0026,
+          "errors": [],
+          "job_id": 7,
+          "max_zoom": 1,
+          "min_zoom": 0,
+          "output_bytes": 0,
+          "radar_file_id": 9,
+          "status": "succeeded",
+          "tiles_planned": 1,
+          "tiles_skipped": 0,
+          "tiles_written": 0,
+          "timestamp": "2026-06-27T20:40:00Z",
+          "warnings": []
+        }
+      ],
+      "jobs_enqueued": 3,
+      "jobs_failed": 0,
+      "jobs_processed": 3,
+      "jobs_succeeded": 3,
+      "max_zoom": 1,
+      "min_zoom": 0,
+      "prototype": true,
+      "source_mode": "stub",
+      "total_elapsed_seconds": 0.0142,
+      "total_output_bytes": 0,
+      "total_tiles_skipped": 0,
+      "total_tiles_written": 0,
+      "verified_mrms": false,
+      "warnings": [
+        "Queue benchmark is experimental prototype tooling \u2014 not verified MRMS production output",
+        "Production tile serving remains disabled (ENABLE_PRODUCTION_RADAR_TILES=false)",
+        "Stub/offline mode: using local catalog only; no network discovery/download"
+      ]
+    },
+    "queue_benchmark_available": true,
+    "queue_benchmark_history_count": 2,
+    "render_queue": {
+      "canceled": 0,
+      "failed": 0,
+      "prototype": true,
+      "queued": 0,
+      "running": 0,
+      "succeeded": 7,
+      "total_output_bytes": 0,
+      "total_tiles_written": 0,
+      "verified_mrms": false
+    },
+    "scheduled_validation": null,
+    "scheduled_validation_available": false,
+    "stale_running_job_seconds": 3600,
+    "validation": {
+      "batch": true,
+      "decoded_count": 0,
+      "decoder_available": false,
+      "discovered_count": 3,
+      "downloaded_count": 0,
+      "effective_frame_count": 3,
+      "elapsed_seconds": 0.0052,
+      "errors": [],
+      "inspected_count": 0,
+      "output_bytes": 0,
+      "prototype": true,
+      "render_jobs_enqueued": 0,
+      "requested_frame_count": 3,
+      "source_mode": "stub",
+      "tile_cache": {
+        "output_bytes": 0,
+        "tiles_skipped": 0,
+        "tiles_written": 0
+      },
+      "tiles_planned": 0,
+      "tiles_skipped": 0,
+      "tiles_written": 0,
+      "validated_at": "2026-06-28T06:37:58Z",
+      "verified_mrms": false,
+      "warnings": [
+        "Stub/offline mode: stub downloads are not real GRIB2; inspect/decode need real .grib2.gz",
+        "Real mode: MRMS_SOURCE_MODE=real make validate-real-mrms-batch ARGS='--real'",
+        "No inspectable real MRMS catalog candidates after download."
+      ],
+      "worker_jobs_processed": 0
+    },
+    "validation_available": true,
+    "validation_history": [
+      {
+        "batch": true,
+        "decoded_count": 0,
+        "discovered_count": 3,
+        "downloaded_count": 0,
+        "effective_frame_count": 3,
+        "elapsed_seconds": 0.0052,
+        "prototype": true,
+        "requested_frame_count": 3,
+        "source_mode": "stub",
+        "validated_at": "2026-06-28T06:37:58Z",
+        "verified_mrms": false
+      },
+      {
+        "batch": true,
+        "decoded_count": 0,
+        "discovered_count": 3,
+        "downloaded_count": 0,
+        "effective_frame_count": 3,
+        "elapsed_seconds": 0.0102,
+        "prototype": true,
+        "requested_frame_count": 3,
+        "source_mode": "stub",
+        "validated_at": "2026-06-28T06:16:51Z",
+        "verified_mrms": false
+      },
+      {
+        "batch": true,
+        "decoded_count": 0,
+        "discovered_count": 3,
+        "downloaded_count": 0,
+        "effective_frame_count": 3,
+        "elapsed_seconds": 0.013,
+        "prototype": true,
+        "requested_frame_count": 3,
+        "source_mode": "stub",
+        "validated_at": "2026-06-28T06:09:15Z",
+        "verified_mrms": false
+      },
+      {
+        "batch": false,
+        "decoded_count": 0,
+        "discovered_count": 1,
+        "downloaded_count": 0,
+        "effective_frame_count": null,
+        "elapsed_seconds": null,
+        "prototype": true,
+        "requested_frame_count": 1,
+        "source_mode": "stub",
+        "validated_at": "2026-06-28T06:09:14Z",
+        "verified_mrms": false
+      }
+    ],
+    "validation_history_count": 4,
+    "verified_mrms": false
+  },
+  "verified_mrms": false,
+  "warnings": [
+    "Scheduled validation is local dev/prototype tooling \u2014 not verified MRMS production",
+    "Production tile serving remains disabled (ENABLE_PRODUCTION_RADAR_TILES=false)",
+    "Stub/offline mode (default): no network discovery unless --real is passed",
+    "Stub/offline mode: stub downloads are not real GRIB2; inspect/decode need real .grib2.gz",
+    "Real mode: MRMS_SOURCE_MODE=real make validate-real-mrms-batch ARGS='--real'",
+    "No inspectable real MRMS catalog candidates after download.",
+    "Queue benchmark is experimental prototype tooling \u2014 not verified MRMS production output",
+    "Production tile serving remains disabled (ENABLE_PRODUCTION_RADAR_TILES=false)",
+    "Stub/offline mode: using local catalog only; no network discovery/download"
+  ]
+}

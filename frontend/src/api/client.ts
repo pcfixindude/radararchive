@@ -198,14 +198,19 @@ export type BenchmarkCompact = {
 
 export type QueueBenchmarkJobCompact = {
   timestamp?: string | null;
+  radar_file_id?: number | null;
   job_id?: number | null;
   status?: string | null;
+  decode_status?: string | null;
   min_zoom?: number | null;
   max_zoom?: number | null;
+  tiles_planned?: number;
   tiles_written: number;
   tiles_skipped: number;
   output_bytes: number;
   elapsed_seconds?: number | null;
+  warnings?: string[];
+  errors?: string[];
 };
 
 export type QueueBenchmarkCompact = {
@@ -244,6 +249,52 @@ export type ValidationHistoryEntry = {
   prototype: boolean;
 };
 
+export type FrameTileMetricsCompact = {
+  timestamp?: string | null;
+  radar_file_id?: number | null;
+  decode_status?: string | null;
+  render_job_id?: number | null;
+  min_zoom?: number | null;
+  max_zoom?: number | null;
+  tiles_planned: number;
+  tiles_written: number;
+  tiles_skipped: number;
+  output_bytes: number;
+  elapsed_seconds?: number | null;
+  warnings?: string[];
+  errors?: string[];
+};
+
+export type ScheduledValidationCompact = {
+  ran_at?: string | null;
+  source_mode?: string | null;
+  success: boolean;
+  exit_code: number;
+  effective_count?: number | null;
+  min_zoom?: number | null;
+  max_zoom?: number | null;
+  elapsed_seconds?: number | null;
+  steps_ok: number;
+  steps_failed: number;
+  batch_decoded_count: number;
+  queue_jobs_succeeded: number;
+  queue_jobs_failed: number;
+  warnings: string[];
+  errors: string[];
+  verified_mrms: boolean;
+  prototype: boolean;
+};
+
+export type ValidationLatest = {
+  prototype: boolean;
+  verified_mrms: boolean;
+  production_rendering_enabled: boolean;
+  validation: Record<string, unknown> | null;
+  benchmark: Record<string, unknown> | null;
+  queue_benchmark: Record<string, unknown> | null;
+  scheduled_validation: Record<string, unknown> | null;
+};
+
 export type ValidationSummary = {
   prototype: boolean;
   verified_mrms: boolean;
@@ -262,6 +313,9 @@ export type ValidationSummary = {
   validation_history_count: number;
   validation_history?: ValidationHistoryEntry[];
   queue_benchmark_history_count?: number;
+  scheduled_validation_available?: boolean;
+  scheduled_validation?: ScheduledValidationCompact | null;
+  frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;
 };
 
@@ -310,6 +364,18 @@ export async function fetchValidationSummary(): Promise<ValidationSummary | null
       return null;
     }
     return response.json() as Promise<ValidationSummary>;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchValidationLatest(): Promise<ValidationLatest | null> {
+  try {
+    const response = await fetch(`${API_BASE}/api/validation/latest`);
+    if (!response.ok) {
+      return null;
+    }
+    return response.json() as Promise<ValidationLatest>;
   } catch {
     return null;
   }

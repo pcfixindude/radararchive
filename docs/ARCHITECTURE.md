@@ -316,6 +316,21 @@ Dev API additions:
 - `GET /api/validation/benchmarks` — latest queue benchmark + history
 - `GET /api/validation/summary` — adds `queue_benchmark`, compact `validation_history`
 
+### Scheduled local validation (Phase 23)
+Cron-friendly orchestrator runs in sequence (safe defaults: count 3, zoom 0–1):
+
+1. Catalog status snapshot
+2. Batch MRMS validation (persisted, no worker by default in batch step)
+3. Queue benchmark (multi-zoom jobs through render worker)
+4. Render queue status
+5. Validation dashboard summary snapshot
+
+CLI: `make scheduled-validation` (`--real` intentional; exits with report exit code)
+
+Persisted to `data/dev/scheduled_validation_latest.json` + bounded history (last 10).
+
+Dev API: `GET /api/validation/scheduled`, summary field `scheduled_validation`, per-frame `frame_summaries`.
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

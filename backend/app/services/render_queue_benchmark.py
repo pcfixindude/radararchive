@@ -43,10 +43,13 @@ DEFAULT_MAX_ZOOM = 1
 @dataclass
 class JobBenchmarkSummary:
     timestamp: Optional[str] = None
+    radar_file_id: Optional[int] = None
     job_id: Optional[int] = None
     status: str = "planned"
+    decode_status: str = "unknown"
     min_zoom: int = 0
     max_zoom: int = 0
+    tiles_planned: int = 0
     progress_total: int = 0
     tiles_written: int = 0
     tiles_skipped: int = 0
@@ -58,10 +61,13 @@ class JobBenchmarkSummary:
     def to_dict(self) -> dict:
         return {
             "timestamp": self.timestamp,
+            "radar_file_id": self.radar_file_id,
             "job_id": self.job_id,
             "status": self.status,
+            "decode_status": self.decode_status,
             "min_zoom": self.min_zoom,
             "max_zoom": self.max_zoom,
+            "tiles_planned": self.tiles_planned,
             "progress_total": self.progress_total,
             "tiles_written": self.tiles_written,
             "tiles_skipped": self.tiles_skipped,
@@ -165,15 +171,21 @@ def _select_benchmark_frames(
     session: Session,
     storage: LocalStorage,
     count: int,
-) -> list[dict[str, Optional[str]]]:
-    frames: list[dict[str, Optional[str]]] = []
+) -> list[dict[str, Optional[str | int]]]:
+    frames: list[dict[str, Optional[str | int]]] = []
     seen: set[str] = set()
 
     for candidate in find_real_mrms_inspect_candidates(session, storage, limit=count):
         if candidate.timestamp in seen:
             continue
         seen.add(candidate.timestamp)
-        frames.append({"timestamp": candidate.timestamp, "raw_path": candidate.raw_path})
+        frames.append(
+            {
+                "timestamp": candidate.timestamp,
+                "raw_path": candidate.raw_path,
+                "radar_file_id": candidate.radar_file_id,
+            }
+        )
         if len(frames) >= count:
             return frames
 
@@ -188,10 +200,28 @@ def _select_benchmark_frames(
         if row.timestamp in seen:
             continue
         seen.add(row.timestamp)
-        frames.append({"timestamp": row.timestamp, "raw_path": row.raw_path})
+        frames.append(
+            {
+                "timestamp": row.timestamp,
+                "raw_path": row.raw_path,
+                "radar_file_id": row.id,
+            }
+        )
         if len(frames) >= count:
             break
     return frames
+
+
+def _decode_status_for_frame(storage: LocalStorage, raw_path: Optional[str]) -> str:
+    if not raw_path:
+        return "no_raw_path"
+    from backend.app.services.decoded_tile_cache import list_decode_artifact_dirs, load_decode_manifest
+
+    for output_dir in list_decode_artifact_dirs(storage):
+        manifest = load_decode_manifest(storage, output_dir)
+        if manifest is not None and manifest.raw_path == raw_path:
+            return "decoded"
+    return "not_decoded"
 
 
 def _estimate_planned_tiles(
@@ -235,18 +265,24 @@ def _job_summary_from_render_job(
     job: Optional[RenderJob],
     *,
     timestamp: Optional[str],
+    radar_file_id: Optional[int],
+    decode_status: str,
     min_zoom: int,
     max_zoom: int,
     elapsed_seconds: float,
+    tiles_planned: int = 0,
     warnings: Optional[list[str]] = None,
     errors: Optional[list[str]] = None,
 ) -> JobBenchmarkSummary:
     if job is None:
         return JobBenchmarkSummary(
             timestamp=timestamp,
+            radar_file_id=radar_file_id,
             status="missing",
+            decode_status=decode_status,
             min_zoom=min_zoom,
             max_zoom=max_zoom,
+            tiles_planned=tiles_planned,
             elapsed_seconds=elapsed_seconds,
             errors=errors or ["job not found"],
         )
@@ -254,12 +290,16 @@ def _job_summary_from_render_job(
     job_errors = list(errors or [])
     if job.error_message:
         job_errors.append(job.error_message)
+    planned = tiles_planned or job.progress_total
     return JobBenchmarkSummary(
         timestamp=timestamp or job.timestamp,
+        radar_file_id=radar_file_id,
         job_id=job.id,
         status=job.status,
+        decode_status=decode_status,
         min_zoom=job.min_zoom,
         max_zoom=job.max_zoom,
+        tiles_planned=planned,
         progress_total=job.progress_total,
         tiles_written=job.tiles_written,
         tiles_skipped=job.tiles_skipped,
@@ -345,7 +385,12 @@ def run_render_queue_benchmark(
 
     for frame in frames:
         frame_start = time.perf_counter()
-        timestamp = frame["timestamp"]
+        timestamp = str(frame["timestamp"])
+        raw_path = frame.get("raw_path")
+        radar_file_id = frame.get("radar_file_id")
+        if isinstance(radar_file_id, str):
+            radar_file_id = int(radar_file_id) if radar_file_id.isdigit() else None
+        decode_status = _decode_status_for_frame(storage, str(raw_path) if raw_path else None)
 
         if dry_run:
             planned_tiles = _estimate_planned_tiles(
@@ -357,10 +402,13 @@ def run_render_queue_benchmark(
             )
             summary = JobBenchmarkSummary(
                 timestamp=timestamp,
+                radar_file_id=int(radar_file_id) if radar_file_id is not None else None,
                 job_id=None,
                 status="dry_run",
+                decode_status=decode_status,
                 min_zoom=lo,
                 max_zoom=hi,
+                tiles_planned=planned_tiles,
                 progress_total=planned_tiles,
                 elapsed_seconds=time.perf_counter() - frame_start,
             )
@@ -387,17 +435,37 @@ def run_render_queue_benchmark(
         for job_id in enqueued_ids:
             frame_start = time.perf_counter()
             timestamp = None
+            radar_file_id = None
+            decode_status = "unknown"
             pending = get_render_job(session, job_id)
             if pending is not None:
                 timestamp = pending.timestamp
+                for frame in frames:
+                    if frame.get("timestamp") == pending.timestamp:
+                        radar_file_id = frame.get("radar_file_id")
+                        decode_status = _decode_status_for_frame(
+                            storage,
+                            str(frame.get("raw_path")) if frame.get("raw_path") else None,
+                        )
+                        break
+            planned_tiles = _estimate_planned_tiles(
+                storage,
+                session,
+                min_zoom=lo,
+                max_zoom=hi,
+                limit=1,
+            )
             finished = _claim_and_run_job(session, storage, job_id, worker)
             report.jobs_processed += 1
             summary = _job_summary_from_render_job(
                 finished,
                 timestamp=timestamp,
+                radar_file_id=int(radar_file_id) if isinstance(radar_file_id, int) else None,
+                decode_status=decode_status,
                 min_zoom=lo,
                 max_zoom=hi,
                 elapsed_seconds=time.perf_counter() - frame_start,
+                tiles_planned=planned_tiles,
             )
             report.job_summaries.append(summary)
             if finished is None:

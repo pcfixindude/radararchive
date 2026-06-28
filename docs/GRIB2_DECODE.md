@@ -264,6 +264,28 @@ Limitations:
 - Run `make validate-real-mrms-batch` first for decode artifacts when benchmarking tile output
 - Higher zoom/count increases tile volume; caps apply
 
+## Scheduled validation (Phase 23)
+
+Cron-friendly local wrapper (default count 3, zoom 0–1; stub/offline by default):
+
+```bash
+make scheduled-validation
+make scheduled-validation ARGS="--json-report"
+make scheduled-validation ARGS="--real --count 3 --min-zoom 0 --max-zoom 1"
+```
+
+Runs: catalog status → batch validation → queue benchmark → render queue status → validation summary.
+
+Persisted to `data/dev/scheduled_validation_latest.json`. API: `GET /api/validation/scheduled`, summary `scheduled_validation`.
+
+Sample cron (not installed automatically):
+
+```cron
+0 */6 * * * cd /path/to/radararchive && make scheduled-validation >> data/dev/scheduled_validation.log 2>&1
+```
+
+Per-frame tile metrics in batch/queue reports: `decode_status`, `tiles_planned`/`tiles_written`/`tiles_skipped`, `render_job_id`, `elapsed_seconds`. `verified_mrms: false`.
+
 ## Inspection CLI
 
 ```bash
@@ -302,6 +324,7 @@ When no decoder is installed, the script still reports gzip size and GRIB magic 
 - `scripts/batch_validate_mrms.py` — batch validation (Phase 21)
 - `scripts/catalog_status.py` — catalog status CLI (Phase 21)
 - `scripts/benchmark_render_queue.py` — queue benchmark CLI (Phase 22)
+- `scripts/run_scheduled_validation.py` — scheduled validation CLI (Phase 23)
 
 ## Non-goals (Phases 11–12)
 

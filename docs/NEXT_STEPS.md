@@ -1,26 +1,26 @@
 # Next Steps
 
-## Phase 23 - Scheduled Local Validation + Deeper Per-Frame Metrics
+## Phase 24 - Operator Runbooks + Validation Notifications
 
-Goal: Add optional cron-friendly scheduled validation (no daemon), richer per-frame tile metrics in batch reports, and clearer operator docs for real-MRMS validation when decoder + network are available.
+Goal: Add local-only operator runbooks for real-MRMS validation, optional log-file notification hooks, and clearer failure triage in the dev panel — still without cloud deployment or verified MRMS claims.
 
 Suggested work:
-1. Cron-friendly wrapper script for batch validation + queue benchmark (bounded, offline-safe defaults)
-2. Per-frame tile metrics in batch validation reports (align with queue benchmark job summaries)
-3. Optional notification hook (local log file only — no external services)
-4. Dev panel drill-down for full validation/benchmark JSON (read-only)
-5. Honest real-MRMS documentation when decoder + network available
-6. Keep placeholder default for offline dev
+1. Operator runbook doc for real mode (decoder install, network, expected warnings)
+2. Optional local log append on scheduled validation failure (no external services)
+3. Dev panel step-level drill-down from scheduled validation report
+4. Align batch and queue per-frame metrics when multiple jobs share one worker pass
+5. Keep placeholder default for offline dev
 
 Do not start yet:
 - Stripe, real auth, HRRR, WPC, native Android
-- Redis/Celery, cloud deployment
+- Redis/Celery, cloud deployment, email/Slack notifications
 - Mandatory GDAL/rasterio/wgrib2
 
-## Phase 22 verification commands
+## Phase 23 verification commands
 
 ```bash
 make test
+make scheduled-validation
 make benchmark-render-queue
 make validate-real-mrms-batch
 make catalog-status

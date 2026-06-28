@@ -198,6 +198,10 @@ Reports are written by CLI commands to `data/dev/`. Not verified MRMS production
 
 `GET /api/validation/benchmarks` — latest queue benchmark report + last 10 compact summaries (dev/prototype).
 
+`GET /api/validation/scheduled` — latest scheduled validation run + last 10 compact summaries (dev/prototype).
+
+Summary additions (Phase 23): `scheduled_validation` compact status, `frame_summaries` per-frame tile metrics (up to 5).
+
 `GET /api/catalog/status` — MRMS catalog frame counts by download/process/render status, latest timestamps.
 
 ## MRMS source discovery (Phase 8 — dev/metadata)

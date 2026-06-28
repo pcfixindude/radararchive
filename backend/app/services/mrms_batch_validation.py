@@ -17,7 +17,7 @@ from backend.app.services.grib2_inspector import Grib2InspectResult, detect_deco
 from backend.app.services.mrms_discovery import register_discovered_files
 from backend.app.services.mrms_downloader import DownloadBatchResult, download_pending_mrms
 from backend.app.services.mrms_validation import DiscoverProtocol, DownloadFn, resolve_validation_source_mode
-from backend.app.services.production_tile_builder import build_production_tiles
+from backend.app.services.production_tile_builder import build_production_tiles, plan_production_tile_jobs
 from backend.app.services.render_queue import enqueue_render_job, recover_stale_running_jobs
 from backend.app.services.storage import LocalStorage
 from backend.app.services.validation_report_store import save_validation_report
@@ -31,20 +31,40 @@ MAX_BATCH_FRAME_COUNT = 10
 @dataclass
 class FrameValidationSummary:
     timestamp: str
+    radar_file_id: Optional[int] = None
     raw_path: Optional[str] = None
     downloaded: bool = False
     inspected: bool = False
     decoded: bool = False
+    decode_status: str = "pending"
+    render_job_id: Optional[int] = None
+    min_zoom: int = 0
+    max_zoom: int = 0
+    tiles_planned: int = 0
+    tiles_written: int = 0
+    tiles_skipped: int = 0
+    output_bytes: int = 0
+    elapsed_seconds: float = 0.0
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
             "timestamp": self.timestamp,
+            "radar_file_id": self.radar_file_id,
             "raw_path": self.raw_path,
             "downloaded": self.downloaded,
             "inspected": self.inspected,
             "decoded": self.decoded,
+            "decode_status": self.decode_status,
+            "render_job_id": self.render_job_id,
+            "min_zoom": self.min_zoom,
+            "max_zoom": self.max_zoom,
+            "tiles_planned": self.tiles_planned,
+            "tiles_written": self.tiles_written,
+            "tiles_skipped": self.tiles_skipped,
+            "output_bytes": self.output_bytes,
+            "elapsed_seconds": round(self.elapsed_seconds, 4),
             "warnings": list(self.warnings),
             "errors": list(self.errors),
         }
@@ -216,34 +236,50 @@ def run_mrms_batch_validation(
 
     if not candidates:
         for item in discoveries[:effective_count]:
+            frame_start = time.perf_counter()
             frame = FrameValidationSummary(timestamp=item.timestamp)
             if item.timestamp in downloaded_timestamps:
                 frame.downloaded = True
+                frame.decode_status = "downloaded"
             frame.warnings.append("No inspectable real .grib2.gz on disk for this frame")
+            frame.elapsed_seconds = time.perf_counter() - frame_start
             report.frame_summaries.append(frame)
         report.warnings.append("No inspectable real MRMS catalog candidates after download.")
         return _finalize_batch_report(report, storage, start, persist=persist)
 
     for candidate in candidates:
+        frame_start = time.perf_counter()
+        radar_file_id = getattr(candidate, "radar_file_id", None)
+        if not isinstance(radar_file_id, int):
+            radar_file_id = None
         frame = FrameValidationSummary(
             timestamp=candidate.timestamp,
+            radar_file_id=radar_file_id,
             raw_path=candidate.raw_path,
             downloaded=candidate.timestamp in downloaded_timestamps,
+            min_zoom=0,
+            max_zoom=0,
         )
+        if frame.downloaded:
+            frame.decode_status = "downloaded"
         inspect_result = inspect(storage, candidate.raw_path)
         if isinstance(inspect_result, Grib2InspectResult):
             if inspect_result.inspectable or inspect_result.file_exists:
                 frame.inspected = True
+                frame.decode_status = "inspected"
                 report.inspected_count += 1
             if inspect_result.error:
                 frame.errors.append(inspect_result.error)
             if not inspect_result.inspectable:
                 frame.warnings.append(f"not inspectable ({inspect_result.raw_kind})")
+                frame.elapsed_seconds = time.perf_counter() - frame_start
                 report.frame_summaries.append(frame)
                 continue
 
         if not availability.any_decoder:
             frame.warnings.append("no optional decoder installed")
+            frame.decode_status = "inspected" if frame.inspected else frame.decode_status
+            frame.elapsed_seconds = time.perf_counter() - frame_start
             report.frame_summaries.append(frame)
             if report.inspected_count and report.decoded_count == 0:
                 report.warnings.append("No optional GRIB2 decoder; decode skipped for all frames.")
@@ -253,12 +289,31 @@ def run_mrms_batch_validation(
         if isinstance(decode_result, Grib2DecodeResult):
             if decode_result.decoder_unavailable:
                 frame.warnings.append("decoder unavailable")
+                frame.decode_status = "decoder_unavailable"
             elif decode_result.error:
                 frame.errors.append(decode_result.error)
+                frame.decode_status = "decode_failed"
             elif decode_result.success:
                 frame.decoded = True
+                frame.decode_status = "decoded"
                 report.decoded_count += 1
+        frame.elapsed_seconds = time.perf_counter() - frame_start
         report.frame_summaries.append(frame)
+
+    if report.decoded_count > 0:
+        planned_jobs, _plan_errors = plan_production_tile_jobs(
+            storage,
+            session,
+            layer="mrms_reflectivity",
+            min_zoom=0,
+            max_zoom=0,
+        )
+        planned_by_timestamp: dict[str, int] = {}
+        for job in planned_jobs:
+            planned_by_timestamp[job.timestamp] = planned_by_timestamp.get(job.timestamp, 0) + 1
+        for frame in report.frame_summaries:
+            if frame.decoded:
+                frame.tiles_planned = planned_by_timestamp.get(frame.timestamp, 0)
 
     if report.decoded_count > 0:
         try:
@@ -292,6 +347,9 @@ def run_mrms_batch_validation(
             artifact_limit=report.decoded_count,
         )
         report.render_jobs_enqueued = 1
+        for frame in report.frame_summaries:
+            if frame.decoded:
+                frame.render_job_id = job.id
 
         if run_worker:
             worker = worker_fn or process_next_render_job
@@ -302,6 +360,11 @@ def run_mrms_batch_validation(
                     report.tiles_written = getattr(processed, "tiles_written", 0)
                     report.tiles_skipped = getattr(processed, "tiles_skipped", 0)
                     report.output_bytes = getattr(processed, "output_bytes", 0)
+                for frame in report.frame_summaries:
+                    if frame.decoded and frame.render_job_id == processed.id:
+                        frame.tiles_written = getattr(processed, "tiles_written", 0)
+                        frame.tiles_skipped = getattr(processed, "tiles_skipped", 0)
+                        frame.output_bytes = getattr(processed, "output_bytes", 0)
             else:
                 report.warnings.append("Worker found no queued jobs to process.")
         else:

@@ -111,21 +111,26 @@ make render-status
 curl http://127.0.0.1:8000/api/render/jobs/summary
 ```
 
-MRMS validation pipeline (Phase 19–22 — experimental, not verified MRMS):
+MRMS validation pipeline (Phase 19–23 — experimental, not verified MRMS):
 
 ```bash
 make validate-real-mrms
 make validate-real-mrms-batch
-make validate-real-mrms-batch ARGS="--count 5 --json-report"
 make benchmark-real-mrms
 make benchmark-render-queue
-make benchmark-render-queue ARGS="--dry-run --json-report"
+make scheduled-validation
+make scheduled-validation ARGS="--json-report"
 make catalog-status
-MRMS_SOURCE_MODE=real make validate-real-mrms-batch ARGS="--real --count 3"
+MRMS_SOURCE_MODE=real make scheduled-validation ARGS="--real --count 3 --min-zoom 0 --max-zoom 1"
 curl http://127.0.0.1:8000/api/validation/summary
-curl http://127.0.0.1:8000/api/validation/history
-curl http://127.0.0.1:8000/api/validation/benchmarks
-curl http://127.0.0.1:8000/api/catalog/status
+curl http://127.0.0.1:8000/api/validation/scheduled
+curl http://127.0.0.1:8000/api/validation/latest
+```
+
+Sample cron (not installed automatically):
+
+```cron
+0 */6 * * * cd /path/to/radararchive && make scheduled-validation >> data/dev/scheduled_validation.log 2>&1
 ```
 
 Feature flags:
@@ -153,8 +158,9 @@ Limitations:
 - `make render-queue-status` reports queue counts and tile/byte totals (prototype — not verified MRMS)
 - `make validate-real-mrms-batch` validates up to 3 frames by default (max 10; prototype only)
 - `make benchmark-render-queue` enqueues multi-zoom jobs (default count 3, zoom 0–1; use `--dry-run` to plan only)
+- `make scheduled-validation` runs catalog + batch + queue benchmark pipeline (cron-friendly; `--real` intentional)
 - `make catalog-status` reports MRMS catalog counts by status
-- Dev validation dashboard: summary/history/benchmarks APIs + frontend Dev Validation panel with Refresh
+- Dev validation dashboard: summary/history/benchmarks/scheduled APIs + panel with Refresh and Show details
 - Build supports `ARGS=` forwarding on Makefile targets (e.g. `make build-production-tiles ARGS="--dry-run"`)
 - `ENABLE_DECODED_TILES=false` by default — map `/tiles` serves placeholders only
 - `ENABLE_PRODUCTION_RADAR_TILES=false` by default — production prototype tiles blocked

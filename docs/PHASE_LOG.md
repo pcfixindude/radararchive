@@ -988,3 +988,38 @@ cd frontend && npm run build
 - History stores compact summaries only (last 10)
 - `verified_mrms` always false
 - Production serving gates unchanged; placeholder default unchanged
+
+## Phase 23 - Scheduled Local Validation + Per-Frame Tile Metrics
+
+Cron-friendly scheduled validation wrapper, richer per-frame tile metrics, and dev panel JSON drill-down.
+
+### Backend
+- `scheduled_validation.py` — orchestrates catalog → batch validation → queue benchmark → queue status → summary
+- `validation_report_store.py` — `data/dev/scheduled_validation_latest.json` + bounded history (last 10)
+- Richer `FrameValidationSummary` and `JobBenchmarkSummary` tile/decode metrics
+- `GET /api/validation/scheduled` — latest scheduled run + history
+- Extended `GET /api/validation/summary` with `scheduled_validation`, `frame_summaries`
+- Extended `GET /api/validation/latest` with `scheduled_validation` blob
+
+### Scripts / Makefile
+- `scripts/run_scheduled_validation.py` — `make scheduled-validation` (`--real`, `--count`, `--min-zoom`, `--max-zoom`, `--json-report`)
+
+### Frontend
+- Dev Validation panel: scheduled run status, per-frame/job tile metrics, Show details JSON drill-down
+
+### Run commands
+
+```bash
+make test
+make scheduled-validation
+make scheduled-validation ARGS="--json-report"
+make benchmark-render-queue
+cd frontend && npm run build
+```
+
+### Known limitations
+- Scheduled run does not install cron; operator must configure manually
+- Real mode may download NOAA MRMS; decoder optional for full decode success
+- Per-frame tile metrics depend on decode artifacts existing locally
+- `verified_mrms` always false
+- Production serving gates unchanged; placeholder default unchanged

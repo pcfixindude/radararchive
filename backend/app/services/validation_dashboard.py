@@ -14,6 +14,7 @@ from backend.app.services.storage import LocalStorage
 from backend.app.services.validation_report_store import (
     load_latest_benchmark_report,
     load_latest_queue_benchmark_report,
+    load_latest_scheduled_validation_report,
     load_latest_validation_report,
     load_queue_benchmark_history,
     load_validation_history,
@@ -29,6 +30,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
     queue_benchmark = load_latest_queue_benchmark_report(storage)
     history = load_validation_history(storage)
     queue_benchmark_history = load_queue_benchmark_history(storage)
+    scheduled = load_latest_scheduled_validation_report(storage)
     catalog = build_catalog_status(session)
 
     return {
@@ -42,6 +44,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "stale_running_job_seconds": settings.stale_running_job_seconds,
         "validation_available": validation is not None,
         "validation": _compact_validation(validation),
+        "frame_summaries": _compact_frame_summaries(validation),
         "benchmark_available": benchmark is not None,
         "benchmark": _compact_benchmark(benchmark),
         "queue_benchmark_available": queue_benchmark is not None,
@@ -50,6 +53,8 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "validation_history_count": len(history),
         "validation_history": history[:5],
         "queue_benchmark_history_count": len(queue_benchmark_history),
+        "scheduled_validation_available": scheduled is not None,
+        "scheduled_validation": _compact_scheduled_validation(scheduled),
         "catalog": catalog,
     }
 
@@ -63,6 +68,7 @@ def build_validation_latest(storage: LocalStorage) -> dict[str, Any]:
         "validation": load_latest_validation_report(storage),
         "benchmark": load_latest_benchmark_report(storage),
         "queue_benchmark": load_latest_queue_benchmark_report(storage),
+        "scheduled_validation": load_latest_scheduled_validation_report(storage),
     }
 
 
@@ -127,14 +133,19 @@ def _compact_queue_benchmark(
     compact_jobs = [
         {
             "timestamp": item.get("timestamp"),
+            "radar_file_id": item.get("radar_file_id"),
             "job_id": item.get("job_id"),
             "status": item.get("status"),
+            "decode_status": item.get("decode_status"),
             "min_zoom": item.get("min_zoom"),
             "max_zoom": item.get("max_zoom"),
+            "tiles_planned": item.get("tiles_planned", item.get("progress_total", 0)),
             "tiles_written": item.get("tiles_written", 0),
             "tiles_skipped": item.get("tiles_skipped", 0),
             "output_bytes": item.get("output_bytes", 0),
             "elapsed_seconds": item.get("elapsed_seconds"),
+            "warnings": (item.get("warnings") or [])[:2],
+            "errors": (item.get("errors") or [])[:2],
         }
         for item in job_summaries[:5]
     ]
@@ -156,6 +167,61 @@ def _compact_queue_benchmark(
         "job_summaries": compact_jobs,
         "warnings": queue_benchmark.get("warnings", [])[:5],
         "errors": queue_benchmark.get("errors", [])[:5],
+        "verified_mrms": False,
+        "prototype": True,
+    }
+
+
+def _compact_frame_summaries(validation: Optional[dict[str, Any]]) -> list[dict[str, Any]]:
+    if validation is None:
+        return []
+    summaries = validation.get("frame_summaries") or []
+    return [
+        {
+            "timestamp": item.get("timestamp"),
+            "radar_file_id": item.get("radar_file_id"),
+            "decode_status": item.get("decode_status"),
+            "render_job_id": item.get("render_job_id"),
+            "min_zoom": item.get("min_zoom"),
+            "max_zoom": item.get("max_zoom"),
+            "tiles_planned": item.get("tiles_planned", 0),
+            "tiles_written": item.get("tiles_written", 0),
+            "tiles_skipped": item.get("tiles_skipped", 0),
+            "output_bytes": item.get("output_bytes", 0),
+            "elapsed_seconds": item.get("elapsed_seconds"),
+            "warnings": (item.get("warnings") or [])[:2],
+            "errors": (item.get("errors") or [])[:2],
+        }
+        for item in summaries[:5]
+    ]
+
+
+def _compact_scheduled_validation(
+    scheduled: Optional[dict[str, Any]],
+) -> Optional[dict[str, Any]]:
+    if scheduled is None:
+        return None
+    batch = scheduled.get("batch_validation") or {}
+    queue = scheduled.get("queue_benchmark") or {}
+    steps = scheduled.get("steps") or []
+    steps_ok = sum(1 for step in steps if step.get("status") == "ok")
+    steps_failed = sum(1 for step in steps if step.get("status") == "error")
+    return {
+        "ran_at": scheduled.get("ran_at"),
+        "source_mode": scheduled.get("source_mode"),
+        "success": scheduled.get("success", False),
+        "exit_code": scheduled.get("exit_code", 1),
+        "effective_count": scheduled.get("effective_count"),
+        "min_zoom": scheduled.get("min_zoom"),
+        "max_zoom": scheduled.get("max_zoom"),
+        "elapsed_seconds": scheduled.get("elapsed_seconds"),
+        "steps_ok": steps_ok,
+        "steps_failed": steps_failed,
+        "batch_decoded_count": batch.get("decoded_count", 0),
+        "queue_jobs_succeeded": queue.get("jobs_succeeded", 0),
+        "queue_jobs_failed": queue.get("jobs_failed", 0),
+        "warnings": scheduled.get("warnings", [])[:5],
+        "errors": scheduled.get("errors", [])[:5],
         "verified_mrms": False,
         "prototype": True,
     }

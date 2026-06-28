@@ -63,14 +63,19 @@ class BenchmarkCompact(BaseModel):
 
 class QueueBenchmarkJobCompact(BaseModel):
     timestamp: Optional[str] = None
+    radar_file_id: Optional[int] = None
     job_id: Optional[int] = None
     status: Optional[str] = None
+    decode_status: Optional[str] = None
     min_zoom: Optional[int] = None
     max_zoom: Optional[int] = None
+    tiles_planned: int = 0
     tiles_written: int = 0
     tiles_skipped: int = 0
     output_bytes: int = 0
     elapsed_seconds: Optional[float] = None
+    warnings: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
 
 
 class QueueBenchmarkCompact(BaseModel):
@@ -143,6 +148,51 @@ class ValidationHistoryResponse(BaseModel):
     entries: list[ValidationHistoryEntry] = Field(default_factory=list)
 
 
+class FrameTileMetricsCompact(BaseModel):
+    timestamp: Optional[str] = None
+    radar_file_id: Optional[int] = None
+    decode_status: Optional[str] = None
+    render_job_id: Optional[int] = None
+    min_zoom: Optional[int] = None
+    max_zoom: Optional[int] = None
+    tiles_planned: int = 0
+    tiles_written: int = 0
+    tiles_skipped: int = 0
+    output_bytes: int = 0
+    elapsed_seconds: Optional[float] = None
+    warnings: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
+
+
+class ScheduledValidationCompact(BaseModel):
+    ran_at: Optional[str] = None
+    source_mode: Optional[str] = None
+    success: bool = False
+    exit_code: int = 1
+    effective_count: Optional[int] = None
+    min_zoom: Optional[int] = None
+    max_zoom: Optional[int] = None
+    elapsed_seconds: Optional[float] = None
+    steps_ok: int = 0
+    steps_failed: int = 0
+    batch_decoded_count: int = 0
+    queue_jobs_succeeded: int = 0
+    queue_jobs_failed: int = 0
+    warnings: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
+    verified_mrms: bool = False
+    prototype: bool = True
+
+
+class ScheduledValidationHistoryResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    count: int = 0
+    max_entries: int = 10
+    latest: Optional[dict[str, Any]] = None
+    entries: list[dict[str, Any]] = Field(default_factory=list)
+
+
 class ValidationSummaryResponse(BaseModel):
     prototype: bool = True
     verified_mrms: bool = False
@@ -161,6 +211,9 @@ class ValidationSummaryResponse(BaseModel):
     validation_history_count: int = 0
     validation_history: list[ValidationHistoryEntry] = Field(default_factory=list)
     queue_benchmark_history_count: int = 0
+    scheduled_validation_available: bool = False
+    scheduled_validation: Optional[ScheduledValidationCompact] = None
+    frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse
 
 
@@ -180,3 +233,4 @@ class ValidationLatestResponse(BaseModel):
     validation: Optional[dict[str, Any]] = None
     benchmark: Optional[dict[str, Any]] = None
     queue_benchmark: Optional[dict[str, Any]] = None
+    scheduled_validation: Optional[dict[str, Any]] = None

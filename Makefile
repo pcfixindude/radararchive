@@ -1,4 +1,4 @@
-.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once discover-mrms download-mrms inspect-grib2 decode-grib2 build-tile-cache build-production-tiles render-status render-queue-status enqueue-render-job render-worker-once render-worker validate-real-mrms validate-real-mrms-batch benchmark-real-mrms benchmark-render-queue catalog-status
+.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once discover-mrms download-mrms inspect-grib2 decode-grib2 build-tile-cache build-production-tiles render-status render-queue-status enqueue-render-job render-worker-once render-worker validate-real-mrms validate-real-mrms-batch benchmark-real-mrms benchmark-render-queue scheduled-validation catalog-status
 
 ARGS ?=
 
@@ -76,6 +76,9 @@ benchmark-real-mrms:
 
 benchmark-render-queue:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/benchmark_render_queue.py $(ARGS)
+
+scheduled-validation:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/run_scheduled_validation.py $(ARGS)
 
 catalog-status:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/catalog_status.py $(ARGS)
