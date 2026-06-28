@@ -11,6 +11,11 @@ from backend.app.services.catalog_status import build_catalog_status
 from backend.app.services.grib2_inspector import detect_decoder_availability
 from backend.app.services.render_queue import get_queue_summary
 from backend.app.services.storage import LocalStorage
+from backend.app.services.validation_failure_log import (
+    compact_failure,
+    count_validation_failures,
+    load_recent_validation_failures,
+)
 from backend.app.services.validation_report_store import (
     load_latest_benchmark_report,
     load_latest_queue_benchmark_report,
@@ -31,6 +36,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
     history = load_validation_history(storage)
     queue_benchmark_history = load_queue_benchmark_history(storage)
     scheduled = load_latest_scheduled_validation_report(storage)
+    recent_failures = load_recent_validation_failures(storage, limit=5)
     catalog = build_catalog_status(session)
 
     return {
@@ -55,6 +61,8 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "queue_benchmark_history_count": len(queue_benchmark_history),
         "scheduled_validation_available": scheduled is not None,
         "scheduled_validation": _compact_scheduled_validation(scheduled),
+        "validation_failures_count": count_validation_failures(storage),
+        "validation_failures_recent": [compact_failure(item) for item in recent_failures],
         "catalog": catalog,
     }
 
@@ -204,8 +212,21 @@ def _compact_scheduled_validation(
     batch = scheduled.get("batch_validation") or {}
     queue = scheduled.get("queue_benchmark") or {}
     steps = scheduled.get("steps") or []
-    steps_ok = sum(1 for step in steps if step.get("status") == "ok")
-    steps_failed = sum(1 for step in steps if step.get("status") == "error")
+    steps_ok = sum(1 for step in steps if step.get("status") in ("succeeded", "warning", "ok"))
+    steps_failed = sum(1 for step in steps if step.get("status") in ("failed", "error"))
+    compact_steps = [
+        {
+            "name": step.get("name"),
+            "status": step.get("status"),
+            "started_at": step.get("started_at"),
+            "finished_at": step.get("finished_at"),
+            "elapsed_seconds": step.get("elapsed_seconds"),
+            "summary": step.get("summary", {}),
+            "warnings": (step.get("warnings") or [])[:2],
+            "errors": (step.get("errors") or [])[:2],
+        }
+        for step in steps
+    ]
     return {
         "ran_at": scheduled.get("ran_at"),
         "source_mode": scheduled.get("source_mode"),
@@ -217,6 +238,7 @@ def _compact_scheduled_validation(
         "elapsed_seconds": scheduled.get("elapsed_seconds"),
         "steps_ok": steps_ok,
         "steps_failed": steps_failed,
+        "steps": compact_steps,
         "batch_decoded_count": batch.get("decoded_count", 0),
         "queue_jobs_succeeded": queue.get("jobs_succeeded", 0),
         "queue_jobs_failed": queue.get("jobs_failed", 0),

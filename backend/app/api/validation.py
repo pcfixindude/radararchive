@@ -8,12 +8,19 @@ from backend.app.database import get_db
 from backend.app.schemas.validation import (
     QueueBenchmarkHistoryResponse,
     ScheduledValidationHistoryResponse,
+    ValidationFailuresResponse,
     ValidationHistoryResponse,
     ValidationLatestResponse,
     ValidationSummaryResponse,
 )
 from backend.app.services.storage import LocalStorage
 from backend.app.services.validation_dashboard import build_validation_latest, build_validation_summary
+from backend.app.services.validation_failure_log import (
+    MAX_FAILURE_ENTRIES,
+    compact_failure,
+    count_validation_failures,
+    load_recent_validation_failures,
+)
 from backend.app.services.validation_report_store import (
     load_latest_queue_benchmark_report,
     load_latest_scheduled_validation_report,
@@ -84,4 +91,19 @@ def validation_scheduled() -> ScheduledValidationHistoryResponse:
         max_entries=10,
         latest=latest,
         entries=entries,
+    )
+
+
+@router.get("/failures", response_model=ValidationFailuresResponse)
+def validation_failures(limit: int = 10) -> ValidationFailuresResponse:
+    """Recent validation failure log entries (dev/prototype, append-only JSONL)."""
+    storage = LocalStorage(settings.local_storage_root)
+    bounded_limit = max(1, min(limit, 25))
+    entries = load_recent_validation_failures(storage, limit=bounded_limit)
+    return ValidationFailuresResponse(
+        prototype=True,
+        verified_mrms=False,
+        count=count_validation_failures(storage),
+        max_entries=MAX_FAILURE_ENTRIES,
+        entries=[compact_failure(item) for item in entries],
     )

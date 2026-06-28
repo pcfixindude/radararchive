@@ -1,6 +1,36 @@
 [
   {
     "batch_decoded_count": 0,
+    "effective_count": 1,
+    "elapsed_seconds": 1.9407,
+    "exit_code": 0,
+    "max_zoom": 0,
+    "min_zoom": 0,
+    "prototype": true,
+    "queue_jobs_failed": 0,
+    "queue_jobs_succeeded": 1,
+    "ran_at": "2026-06-28T13:28:02Z",
+    "source_mode": "real",
+    "success": true,
+    "verified_mrms": false
+  },
+  {
+    "batch_decoded_count": 0,
+    "effective_count": 3,
+    "elapsed_seconds": 0.035,
+    "exit_code": 0,
+    "max_zoom": 1,
+    "min_zoom": 0,
+    "prototype": true,
+    "queue_jobs_failed": 0,
+    "queue_jobs_succeeded": 3,
+    "ran_at": "2026-06-28T13:27:46Z",
+    "source_mode": "stub",
+    "success": true,
+    "verified_mrms": false
+  },
+  {
+    "batch_decoded_count": 0,
     "effective_count": 3,
     "elapsed_seconds": 0.0348,
     "exit_code": 0,

@@ -1023,3 +1023,40 @@ cd frontend && npm run build
 - Per-frame tile metrics depend on decode artifacts existing locally
 - `verified_mrms` always false
 - Production serving gates unchanged; placeholder default unchanged
+
+## Phase 24 - Operator Runbooks + Failure Diagnostics
+
+Step-level scheduled validation drill-down, append-only failure log, smoke test command, and operator runbook.
+
+### Backend
+- `validation_failure_log.py` — append-only `data/dev/validation_failures.jsonl` (max 100)
+- `scheduled_validation.py` — step `started_at`/`finished_at`, statuses succeeded/failed/warning/skipped
+- `run_real_mrms_smoke_test()` — real mode, count 1, zoom 0 only
+- `GET /api/validation/failures` — recent failure entries
+- Summary: `validation_failures_count`, `validation_failures_recent`, `scheduled_validation.steps`
+
+### Scripts / Makefile
+- `scripts/validation_failures.py` — `make validation-failures`
+- `scripts/real_mrms_smoke_test.py` — `make real-mrms-smoke-test`
+
+### Docs
+- `docs/RUNBOOK_REAL_MRMS_VALIDATION.md` — operator troubleshooting guide
+
+### Frontend
+- Dev panel: scheduled step list, failure count/summaries, Show details JSON
+
+### Run commands
+
+```bash
+make test
+make scheduled-validation
+make validation-failures
+make real-mrms-smoke-test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Failure log is dev-only, local disk, not replicated
+- Smoke test still requires network for real downloads
+- `verified_mrms` always false
+- Production serving gates unchanged; placeholder default unchanged

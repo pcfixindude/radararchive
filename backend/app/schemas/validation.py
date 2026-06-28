@@ -164,6 +164,29 @@ class FrameTileMetricsCompact(BaseModel):
     errors: list[str] = Field(default_factory=list)
 
 
+class ScheduledValidationStepCompact(BaseModel):
+    name: Optional[str] = None
+    status: Optional[str] = None
+    started_at: Optional[str] = None
+    finished_at: Optional[str] = None
+    elapsed_seconds: Optional[float] = None
+    summary: dict[str, Any] = Field(default_factory=dict)
+    warnings: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
+
+
+class ValidationFailureCompact(BaseModel):
+    logged_at: Optional[str] = None
+    phase: Optional[str] = None
+    step: Optional[str] = None
+    source_mode: Optional[str] = None
+    command_context: Optional[str] = None
+    error_message: Optional[str] = None
+    warnings: list[str] = Field(default_factory=list)
+    verified_mrms: bool = False
+    prototype: bool = True
+
+
 class ScheduledValidationCompact(BaseModel):
     ran_at: Optional[str] = None
     source_mode: Optional[str] = None
@@ -175,6 +198,7 @@ class ScheduledValidationCompact(BaseModel):
     elapsed_seconds: Optional[float] = None
     steps_ok: int = 0
     steps_failed: int = 0
+    steps: list[ScheduledValidationStepCompact] = Field(default_factory=list)
     batch_decoded_count: int = 0
     queue_jobs_succeeded: int = 0
     queue_jobs_failed: int = 0
@@ -213,6 +237,8 @@ class ValidationSummaryResponse(BaseModel):
     queue_benchmark_history_count: int = 0
     scheduled_validation_available: bool = False
     scheduled_validation: Optional[ScheduledValidationCompact] = None
+    validation_failures_count: int = 0
+    validation_failures_recent: list[ValidationFailureCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse
 
@@ -234,3 +260,11 @@ class ValidationLatestResponse(BaseModel):
     benchmark: Optional[dict[str, Any]] = None
     queue_benchmark: Optional[dict[str, Any]] = None
     scheduled_validation: Optional[dict[str, Any]] = None
+
+
+class ValidationFailuresResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    count: int = 0
+    max_entries: int = 100
+    entries: list[ValidationFailureCompact] = Field(default_factory=list)

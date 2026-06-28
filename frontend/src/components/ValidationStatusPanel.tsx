@@ -58,6 +58,8 @@ export default function ValidationStatusPanel({
   const benchmark = summary.benchmark;
   const queueBenchmark = summary.queue_benchmark ?? null;
   const scheduled = summary.scheduled_validation ?? null;
+  const scheduledSteps = scheduled?.steps ?? [];
+  const recentFailures = summary.validation_failures_recent ?? [];
   const frameSummaries = summary.frame_summaries ?? [];
   const queue = summary.render_queue;
   const catalog = summary.catalog;
@@ -102,6 +104,29 @@ export default function ValidationStatusPanel({
       ) : (
         <p className="validation-meta">No scheduled validation yet — run make scheduled-validation.</p>
       )}
+      {scheduledSteps.length > 0 ? (
+        <ul className="validation-history-list">
+          {scheduledSteps.map((step, index) => (
+            <li key={`${step.name ?? 'step'}-${index}`} className="validation-meta">
+              {step.name ?? '—'}: {step.status ?? '—'}
+              {step.elapsed_seconds != null ? ` (${step.elapsed_seconds.toFixed(2)}s)` : ''}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <p className="validation-meta">
+        Recent failures logged: {summary.validation_failures_count ?? 0}
+      </p>
+      {recentFailures.length > 0 ? (
+        <ul className="validation-history-list">
+          {recentFailures.map((failure, index) => (
+            <li key={`${failure.logged_at ?? 'fail'}-${index}`} className="validation-meta">
+              {formatTimestamp(failure.logged_at)} — {failure.phase ?? '—'}
+              {failure.step ? `/${failure.step}` : ''}: {failure.error_message ?? 'warning'}
+            </li>
+          ))}
+        </ul>
+      ) : null}
       <p className="validation-meta">Validation history: {summary.validation_history_count} saved</p>
       {history.length > 0 ? (
         <ul className="validation-history-list">

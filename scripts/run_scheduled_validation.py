@@ -29,7 +29,10 @@ def _print_report(report) -> None:
     print(f"  elapsed_seconds: {report.elapsed_seconds:.4f}")
     print("  steps:")
     for step in report.steps:
-        print(f"    - {step.name}: {step.status} ({step.elapsed_seconds:.4f}s)")
+        print(
+            f"    - {step.name}: {step.status} ({step.elapsed_seconds:.4f}s) "
+            f"started={step.started_at}"
+        )
     if report.batch_validation:
         batch = report.batch_validation
         print(
@@ -92,6 +95,7 @@ def main() -> None:
             min_zoom=args.min_zoom,
             max_zoom=args.max_zoom,
             real_requested=args.real,
+            command_context="make scheduled-validation",
         )
     finally:
         session.close()

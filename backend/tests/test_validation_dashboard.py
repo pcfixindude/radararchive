@@ -88,6 +88,7 @@ def test_validation_summary_endpoint_empty(client, storage, monkeypatch):
     assert body["benchmark_available"] is False
     assert body["queue_benchmark_available"] is False
     assert body["scheduled_validation_available"] is False
+    assert body["validation_failures_count"] == 0
     assert "render_queue" in body
     assert "catalog" in body
 

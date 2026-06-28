@@ -1,28 +1,27 @@
 # Next Steps
 
-## Phase 24 - Operator Runbooks + Validation Notifications
+## Phase 25 - Validation Alerting Hooks + Deeper Real-MRMS Proof Criteria
 
-Goal: Add local-only operator runbooks for real-MRMS validation, optional log-file notification hooks, and clearer failure triage in the dev panel — still without cloud deployment or verified MRMS claims.
+Goal: Add optional local-only alert hooks (log file markers only), document explicit proof criteria for a future `verified_mrms` phase, and improve failure triage grouping in the dev panel — still without cloud deployment or verified MRMS claims.
 
 Suggested work:
-1. Operator runbook doc for real mode (decoder install, network, expected warnings)
-2. Optional local log append on scheduled validation failure (no external services)
-3. Dev panel step-level drill-down from scheduled validation report
-4. Align batch and queue per-frame metrics when multiple jobs share one worker pass
+1. Failure grouping by step/phase in dev panel
+2. Optional `data/dev/validation_alert.marker` on scheduled failure (local only)
+3. Draft proof checklist for future verified MRMS phase (docs only)
+4. Link runbook sections from dev panel help text
 5. Keep placeholder default for offline dev
 
 Do not start yet:
 - Stripe, real auth, HRRR, WPC, native Android
-- Redis/Celery, cloud deployment, email/Slack notifications
-- Mandatory GDAL/rasterio/wgrib2
+- Redis/Celery, cloud deployment, email/Slack/PagerDuty
+- Setting `verified_mrms=true` without documented proof phase
 
-## Phase 23 verification commands
+## Phase 24 verification commands
 
 ```bash
 make test
 make scheduled-validation
-make benchmark-render-queue
-make validate-real-mrms-batch
+make validation-failures
 make catalog-status
 make render-queue-status
 cd frontend && npm run build

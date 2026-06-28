@@ -286,6 +286,25 @@ Sample cron (not installed automatically):
 
 Per-frame tile metrics in batch/queue reports: `decode_status`, `tiles_planned`/`tiles_written`/`tiles_skipped`, `render_job_id`, `elapsed_seconds`. `verified_mrms: false`.
 
+## Failure logging + operator runbook (Phase 24)
+
+Failure log: `data/dev/validation_failures.jsonl` (append-only, max 100 entries).
+
+```bash
+make validation-failures
+make validation-failures ARGS="--json"
+make real-mrms-smoke-test
+```
+
+Scheduled steps include `started_at`, `finished_at`, `status` (`succeeded`, `failed`, `warning`, `skipped`).
+
+Operator runbook: [RUNBOOK_REAL_MRMS_VALIDATION.md](RUNBOOK_REAL_MRMS_VALIDATION.md)
+
+Common interpretations:
+- **warning** in stub mode: expected (no real GRIB2 decode)
+- **failed** queue step: check `make validation-failures` and render queue status
+- **zero tiles**: missing decode artifacts or production flag off — not necessarily a pipeline crash
+
 ## Inspection CLI
 
 ```bash

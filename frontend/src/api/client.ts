@@ -265,6 +265,29 @@ export type FrameTileMetricsCompact = {
   errors?: string[];
 };
 
+export type ScheduledValidationStepCompact = {
+  name?: string | null;
+  status?: string | null;
+  started_at?: string | null;
+  finished_at?: string | null;
+  elapsed_seconds?: number | null;
+  summary?: Record<string, unknown>;
+  warnings?: string[];
+  errors?: string[];
+};
+
+export type ValidationFailureCompact = {
+  logged_at?: string | null;
+  phase?: string | null;
+  step?: string | null;
+  source_mode?: string | null;
+  command_context?: string | null;
+  error_message?: string | null;
+  warnings?: string[];
+  verified_mrms: boolean;
+  prototype: boolean;
+};
+
 export type ScheduledValidationCompact = {
   ran_at?: string | null;
   source_mode?: string | null;
@@ -276,6 +299,7 @@ export type ScheduledValidationCompact = {
   elapsed_seconds?: number | null;
   steps_ok: number;
   steps_failed: number;
+  steps?: ScheduledValidationStepCompact[];
   batch_decoded_count: number;
   queue_jobs_succeeded: number;
   queue_jobs_failed: number;
@@ -315,6 +339,8 @@ export type ValidationSummary = {
   queue_benchmark_history_count?: number;
   scheduled_validation_available?: boolean;
   scheduled_validation?: ScheduledValidationCompact | null;
+  validation_failures_count?: number;
+  validation_failures_recent?: ValidationFailureCompact[];
   frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;
 };

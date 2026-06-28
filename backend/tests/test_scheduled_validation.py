@@ -80,6 +80,7 @@ def test_scheduled_validation_report_shape_with_mocks(db_session, storage, monke
     assert body["validation_summary"] is not None
     assert report.exit_code == 0
     assert report.success is True
+    assert body["steps"][0]["status"] in ("succeeded", "ok")
 
 
 def test_scheduled_validation_persists_latest_and_history(db_session, storage, monkeypatch):

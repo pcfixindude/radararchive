@@ -202,6 +202,10 @@ Reports are written by CLI commands to `data/dev/`. Not verified MRMS production
 
 Summary additions (Phase 23): `scheduled_validation` compact status, `frame_summaries` per-frame tile metrics (up to 5).
 
+Summary additions (Phase 24): `scheduled_validation.steps` step drill-down, `validation_failures_count`, `validation_failures_recent`.
+
+`GET /api/validation/failures` — recent validation failure log entries (append-only JSONL, max 100).
+
 `GET /api/catalog/status` — MRMS catalog frame counts by download/process/render status, latest timestamps.
 
 ## MRMS source discovery (Phase 8 — dev/metadata)

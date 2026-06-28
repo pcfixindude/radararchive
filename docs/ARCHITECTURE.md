@@ -331,6 +331,17 @@ Persisted to `data/dev/scheduled_validation_latest.json` + bounded history (last
 
 Dev API: `GET /api/validation/scheduled`, summary field `scheduled_validation`, per-frame `frame_summaries`.
 
+### Failure logging + operator runbook (Phase 24)
+Scheduled steps include `started_at`, `finished_at`, `status` (succeeded/failed/warning/skipped), compact per-step metrics.
+
+Append-only failure log: `data/dev/validation_failures.jsonl` (max 100 entries).
+
+CLI: `make validation-failures`, `make real-mrms-smoke-test` (real, count 1, zoom 0).
+
+Dev API: `GET /api/validation/failures`; summary adds `validation_failures_count`, `validation_failures_recent`, `scheduled_validation.steps`.
+
+Operator runbook: `docs/RUNBOOK_REAL_MRMS_VALIDATION.md`.
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

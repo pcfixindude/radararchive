@@ -111,7 +111,9 @@ make render-status
 curl http://127.0.0.1:8000/api/render/jobs/summary
 ```
 
-MRMS validation pipeline (Phase 19–23 — experimental, not verified MRMS):
+MRMS validation pipeline (Phase 19–24 — experimental, not verified MRMS):
+
+See **[docs/RUNBOOK_REAL_MRMS_VALIDATION.md](docs/RUNBOOK_REAL_MRMS_VALIDATION.md)** for operator troubleshooting.
 
 ```bash
 make validate-real-mrms
@@ -119,11 +121,14 @@ make validate-real-mrms-batch
 make benchmark-real-mrms
 make benchmark-render-queue
 make scheduled-validation
+make validation-failures
+make real-mrms-smoke-test
 make scheduled-validation ARGS="--json-report"
 make catalog-status
 MRMS_SOURCE_MODE=real make scheduled-validation ARGS="--real --count 3 --min-zoom 0 --max-zoom 1"
 curl http://127.0.0.1:8000/api/validation/summary
 curl http://127.0.0.1:8000/api/validation/scheduled
+curl http://127.0.0.1:8000/api/validation/failures
 curl http://127.0.0.1:8000/api/validation/latest
 ```
 
@@ -159,6 +164,9 @@ Limitations:
 - `make validate-real-mrms-batch` validates up to 3 frames by default (max 10; prototype only)
 - `make benchmark-render-queue` enqueues multi-zoom jobs (default count 3, zoom 0–1; use `--dry-run` to plan only)
 - `make scheduled-validation` runs catalog + batch + queue benchmark pipeline (cron-friendly; `--real` intentional)
+- `make validation-failures` shows recent local failure log entries
+- `make real-mrms-smoke-test` runs intentional real-mode smoke test (count 1, zoom 0)
+- Operator runbook: [docs/RUNBOOK_REAL_MRMS_VALIDATION.md](docs/RUNBOOK_REAL_MRMS_VALIDATION.md)
 - `make catalog-status` reports MRMS catalog counts by status
 - Dev validation dashboard: summary/history/benchmarks/scheduled APIs + panel with Refresh and Show details
 - Build supports `ARGS=` forwarding on Makefile targets (e.g. `make build-production-tiles ARGS="--dry-run"`)

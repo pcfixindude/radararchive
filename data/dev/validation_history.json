@@ -2,6 +2,32 @@
   {
     "batch": true,
     "decoded_count": 0,
+    "discovered_count": 1,
+    "downloaded_count": 1,
+    "effective_frame_count": 1,
+    "elapsed_seconds": 1.9155,
+    "prototype": true,
+    "requested_frame_count": 1,
+    "source_mode": "real",
+    "validated_at": "2026-06-28T13:28:02Z",
+    "verified_mrms": false
+  },
+  {
+    "batch": true,
+    "decoded_count": 0,
+    "discovered_count": 3,
+    "downloaded_count": 0,
+    "effective_frame_count": 3,
+    "elapsed_seconds": 0.0052,
+    "prototype": true,
+    "requested_frame_count": 3,
+    "source_mode": "stub",
+    "validated_at": "2026-06-28T13:27:46Z",
+    "verified_mrms": false
+  },
+  {
+    "batch": true,
+    "decoded_count": 0,
     "discovered_count": 3,
     "downloaded_count": 0,
     "effective_frame_count": 3,
