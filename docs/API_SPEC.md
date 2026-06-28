@@ -326,9 +326,9 @@ Summary additions (Phase 52): `operator_workflow_presets` compact (`recommended_
 
 Endpoints (Phase 52): `GET /api/validation/operator-workflow-presets` (read-only preset list; `verified_mrms: false`, `local_workflow_only: true`, `does_not_clear_alerts: true`, `does_not_enable_production: true`).
 
-**Preset IDs:** `quick-status-check`, `full-local-proof-review`, `create-review-session-and-export`, `regenerate-digest-checklist-export`, `inspect-worsening-export-trend`, `review-proof-bundle-diff`, `run-scheduled-proof-bundle-operator-status`.
+**Preset IDs:** `quick-status-check`, `full-local-proof-review`, `create-review-session-and-export`, `regenerate-digest-checklist-export`, `regenerate-visual-review`, `inspect-worsening-export-trend`, `review-proof-bundle-diff`, `run-scheduled-proof-bundle-operator-status`.
 
-**Recommendation rules:** digest stale → `regenerate-digest-checklist-export`; no session or worsening/mixed export trend → `create-review-session-and-export`; ok/watch status → `quick-status-check`.
+**Recommendation rules:** digest stale → `regenerate-digest-checklist-export`; visual review stale → `regenerate-visual-review`; no session or worsening/mixed export trend → `create-review-session-and-export`; ok/watch status → `quick-status-check`.
 
 Summary additions (Phase 53): each preset object adds `runbook_path`, `runbook_section`, `runbook_anchor`, `suggested_action`. Presets remain read-only advisory guidance — commands are copy-ready for manual terminal use; the API/UI does not execute commands.
 
@@ -342,13 +342,15 @@ Summary additions (Phase 57): `mrms_visual_review_comparison` compact (`overall_
 
 Endpoints (Phase 57): `GET /api/validation/mrms-visual-review/comparison`; `GET /api/validation/mrms-visual-review/comparison/history`; `GET /api/validation/mrms-visual-review/hint`. Comparison persists `mrms_visual_review_comparison_latest.json` + bounded history when `make mrms-visual-review-compare` runs. Hints are read-only guidance — do not download/decode MRMS or enable production rendering.
 
-**Preset runbook anchors:** `operator-workflow-preset-quick-status-check`, `operator-workflow-preset-full-local-proof-review`, `operator-workflow-preset-create-review-session-and-export`, `operator-workflow-preset-regenerate-digest-checklist-export`, `operator-workflow-preset-inspect-worsening-export-trend`, `operator-workflow-preset-review-proof-bundle-diff`, `operator-workflow-preset-scheduled-proof-bundle-operator-status` — see `docs/RUNBOOK_REAL_MRMS_VALIDATION.md`.
+Summary additions (Phase 58): `operator_review_status` adds `visual_review_regeneration_recommended`, `visual_review_hint_reason`, `latest_visual_review_path`, `latest_visual_review_comparison_status`, `visual_review_artifact_count`, `visual_review_missing_artifact_count`. Workflow preset `regenerate-visual-review` recommended when visual review hint recommends regeneration. Visual review recommendation is local review guidance only — does not verify MRMS, clear alerts, download/decode MRMS, or enable production rendering.
 
-**`status_level` interpretation:** `urgent` — failed validation alert, urgent escalation, or worsening export-diff streak ≥2; `attention` — regeneration hints, worsened/mixed latest export diff, or open attention items; `watch` — stable/mixed export trend with history or escalation/alert watch; `ok` — improving/stable evidence without recommendations; `unknown` — insufficient local review data.
+**Preset runbook anchors:** `operator-workflow-preset-quick-status-check`, `operator-workflow-preset-full-local-proof-review`, `operator-workflow-preset-create-review-session-and-export`, `operator-workflow-preset-regenerate-digest-checklist-export`, `operator-workflow-preset-regenerate-visual-review`, `operator-workflow-preset-inspect-worsening-export-trend`, `operator-workflow-preset-review-proof-bundle-diff`, `operator-workflow-preset-scheduled-proof-bundle-operator-status` — see `docs/RUNBOOK_REAL_MRMS_VALIDATION.md`.
+
+**`status_level` interpretation:** `urgent` — failed validation alert, urgent escalation, or worsening export-diff streak ≥2; `attention` — regeneration hints (digest, visual review, export), worsened/mixed latest export diff, or open attention items; `watch` — stable/mixed export trend with history, visual review comparison mixed/unknown, or escalation/alert watch; `ok` — improving/stable evidence without recommendations; `unknown` — insufficient local review data (except sparse visual-review-only attention when regeneration is recommended).
 
 **Runbook guidance mapping:** urgent/attention/watch status levels; digest/review-export/review-session recommendations; evidence trend worsening/mixed/stable/improving — each maps to a runbook anchor under `docs/RUNBOOK_REAL_MRMS_VALIDATION.md`.
 
-**`top_suggested_command` priority:** (1) digest stale → `make scheduled-proof-bundle-review-export`; (2) session exists, export stale → `make mrms-review-session-export`; (3) trend/session attention → `make mrms-review-session` with `--export-after-create`; (4) no session → initial `make mrms-review-session` with `--export-after-create`.
+**`top_suggested_command` priority:** (1) digest stale → `make scheduled-proof-bundle-review-export`; (2) no session → initial `make mrms-review-session` with `--export-after-create`; (3) session exists, export stale → `make mrms-review-session-export`; (4) trend/session attention → `make mrms-review-session` with `--export-after-create`; (5) visual review stale → `make mrms-visual-review`.
 
 Existing endpoint unchanged: `GET /api/validation/review-sessions/export/diff/history` (full bounded history up to 25).
 

@@ -332,12 +332,22 @@ export default function ValidationStatusPanel({
             Review session recommended: {yesNo(operatorReviewStatus.review_session_recommended ?? false)} —
             review export recommended: {yesNo(operatorReviewStatus.review_export_recommended ?? false)} —
             digest regeneration recommended:{' '}
-            {yesNo(operatorReviewStatus.digest_regeneration_recommended ?? false)}
+            {yesNo(operatorReviewStatus.digest_regeneration_recommended ?? false)} —
+            visual review regeneration recommended:{' '}
+            {yesNo(operatorReviewStatus.visual_review_regeneration_recommended ?? false)}
           </p>
+          {operatorReviewStatus.visual_review_hint_reason ? (
+            <p className="validation-meta">
+              Visual review reason: {operatorReviewStatus.visual_review_hint_reason}
+            </p>
+          ) : null}
           <p className="validation-meta">
             Evidence trend: {operatorReviewStatus.evidence_trend ?? 'unknown'}
             {operatorReviewStatus.latest_export_diff_status
               ? ` — latest export diff: ${operatorReviewStatus.latest_export_diff_status}`
+              : ''}
+            {operatorReviewStatus.latest_visual_review_comparison_status
+              ? ` — visual review comparison: ${operatorReviewStatus.latest_visual_review_comparison_status}`
               : ''}
           </p>
           <p className="validation-meta">
@@ -348,6 +358,17 @@ export default function ValidationStatusPanel({
               ? ` — latest visual review: ${formatTimestamp(operatorReviewStatus.latest_visual_review_at)}`
               : ''}
           </p>
+          {operatorReviewStatus.latest_visual_review_path ? (
+            <p className="validation-meta">
+              Visual review path: <code>{operatorReviewStatus.latest_visual_review_path}</code>
+              {operatorReviewStatus.visual_review_artifact_count != null
+                ? ` — artifacts: ${operatorReviewStatus.visual_review_artifact_count}`
+                : ''}
+              {operatorReviewStatus.visual_review_missing_artifact_count != null
+                ? ` — missing: ${operatorReviewStatus.visual_review_missing_artifact_count}`
+                : ''}
+            </p>
+          ) : null}
           {operatorReviewStatus.latest_visual_review_markdown_path ? (
             <p className="validation-meta">
               Visual review Markdown:{' '}

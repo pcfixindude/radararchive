@@ -17,6 +17,7 @@ from backend.app.services.operator_workflow_presets import (
     PRESET_FULL_LOCAL_PROOF_REVIEW,
     PRESET_QUICK_STATUS_CHECK,
     PRESET_REGENERATE_DIGEST_CHECKLIST_EXPORT,
+    PRESET_REGENERATE_VISUAL_REVIEW,
     build_operator_workflow_presets,
     build_operator_workflow_presets_payload,
     compact_operator_workflow_preset_groups,
@@ -92,6 +93,39 @@ def test_create_review_session_and_export_preset(storage, monkeypatch):
     )
     assert "make mrms-review-session" in preset["command"]
     assert "--export-after-create" in preset["command"]
+
+
+def test_regenerate_visual_review_preset(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", storage.storage_root)
+    preset = _preset_by_id(
+        build_operator_workflow_presets(storage),
+        PRESET_REGENERATE_VISUAL_REVIEW,
+    )
+    assert preset["command"] == "make mrms-visual-review"
+    assert preset["title"] == "Regenerate MRMS visual review"
+
+
+def test_recommendation_visual_review_stale(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", storage.storage_root)
+    status = build_operator_review_status(storage)
+    status["visual_review_regeneration_recommended"] = True
+    presets = build_operator_workflow_presets(storage, status=status)
+    visual = _preset_by_id(presets, PRESET_REGENERATE_VISUAL_REVIEW)
+    assert visual["recommended"] is True
+    assert visual["recommendation_reason"] == "visual_review_stale"
+    assert visual["verified_mrms"] is False
+    assert visual["does_not_clear_alerts"] is True
+    assert visual["does_not_enable_production"] is True
+
+
+def test_existing_preset_ids_remain_present(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", storage.storage_root)
+    presets = build_operator_workflow_presets(storage)
+    preset_ids = {preset["preset_id"] for preset in presets}
+    assert PRESET_REGENERATE_VISUAL_REVIEW in preset_ids
+    assert PRESET_QUICK_STATUS_CHECK in preset_ids
+    assert PRESET_FULL_LOCAL_PROOF_REVIEW in preset_ids
+    assert len(preset_ids) == len(EXPECTED_PRESET_IDS)
 
 
 def test_regenerate_digest_preset(storage, monkeypatch):

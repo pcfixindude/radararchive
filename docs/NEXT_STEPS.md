@@ -1,19 +1,20 @@
 # Next Steps
 
-## Phase 58 - TBD (Draft)
+## Phase 59 - TBD (Draft)
 
-Goal: TBD after Phase 57 visual review comparison and hints.
+Goal: TBD after Phase 58 visual review operator integration.
 
 Do not start yet:
 - Stripe, real auth, HRRR, WPC, native Android
 - Redis/Celery, cloud deployment, email/Slack/webhooks
 - Setting `verified_mrms=true` or production promotion
 
-## Phase 57 verification commands
+## Phase 58 verification commands
 
 ```bash
 make test
-make mrms-visual-review-compare
+make operator-review-status
+make operator-workflow-presets
 make mrms-visual-review-hint
 cd frontend && npm test
 cd frontend && npm run build

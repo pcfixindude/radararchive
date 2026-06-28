@@ -591,6 +591,13 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - `make mrms-visual-review-compare`, `make mrms-visual-review-hint`
 - Previous manifest rotation on visual review save
 
+### Visual review operator integration (Phase 58)
+- `operator_review_status.py` reads `mrms_visual_review`, `mrms_visual_review_comparison`, `mrms_visual_review_hint`
+- Status fields: `visual_review_regeneration_recommended`, `visual_review_hint_reason`, comparison status, artifact counts
+- `top_suggested_command` may recommend `make mrms-visual-review` when visual review is stale (after digest, before export/session when session exists)
+- `operator_workflow_presets.py` adds `regenerate-visual-review` preset in troubleshooting group
+- Dev Validation **Operator Review Status** shows visual review recommendation fields; presets recommend visual review regeneration when stale
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

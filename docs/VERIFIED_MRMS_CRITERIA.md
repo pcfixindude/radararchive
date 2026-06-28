@@ -234,6 +234,10 @@ Dev Validation adds client-side preset filters (recommended-only, optional group
 
 `make mrms-visual-review-compare` and `make mrms-visual-review-hint` compare manifests and suggest regeneration when proof/validation evidence is newer. This is **local review guidance only** — it does **not** verify MRMS, clear alerts, download/decode MRMS, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
 
+## Visual review operator integration (Phase 58)
+
+Operator review status and workflow presets consume visual review comparison/hint data. When visual review is stale, status may rise to `attention`, `top_suggested_command` may recommend `make mrms-visual-review`, and the `regenerate-visual-review` workflow preset is recommended. This is **local review guidance only** — it does **not** verify MRMS, clear alerts, download/decode MRMS, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
+
 ## Scheduled proof bundle monitoring (Phase 32)
 
 `make scheduled-proof-bundle` runs scheduled validation with `--proof --bundle --diff-bundle`. This is **local evidence monitoring only** — it does not verify MRMS or enable production rendering. Alerts may flag `worsened` or `mixed` diff status for operator review.

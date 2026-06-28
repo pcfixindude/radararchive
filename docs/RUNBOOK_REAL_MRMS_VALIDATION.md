@@ -656,6 +656,9 @@ Each preset includes `runbook_path`, `runbook_section`, `runbook_anchor`, and `s
 <a id="operator-workflow-preset-regenerate-digest-checklist-export"></a>
 **`regenerate-digest-checklist-export`** — [Scheduled proof bundle digest + operator review checklist](#scheduled-proof-bundle-digest--operator-review-checklist-phase-39): run `make scheduled-proof-bundle-review-export` when digest/checklist is stale.
 
+<a id="operator-workflow-preset-regenerate-visual-review"></a>
+**`regenerate-visual-review`** — [Visual review operator integration](#visual-review-operator-integration-phase-58): run `make mrms-visual-review` when operator status or visual review hint recommends regeneration.
+
 <a id="operator-workflow-preset-inspect-worsening-export-trend"></a>
 **`inspect-worsening-export-trend`** — [Review session export diff trend hint](#review-session-export-diff-trend-hint-phase-47): run `make mrms-review-session-export-diff-trend-hint` before acting on mixed/worsening trends.
 
@@ -676,10 +679,10 @@ Presets are grouped for quicker scanning:
 | `status-checks` | Status checks | quick-status-check |
 | `full-review` | Full proof review | full-local-proof-review |
 | `review-session-export` | Review session & export | create-review-session-and-export, regenerate-digest-checklist-export |
-| `troubleshooting` | Troubleshooting | inspect-worsening-export-trend, review-proof-bundle-diff |
+| `troubleshooting` | Troubleshooting | inspect-worsening-export-trend, regenerate-visual-review, review-proof-bundle-diff |
 | `scheduled-workflows` | Scheduled workflows | run-scheduled-proof-bundle-operator-status |
 
-**Recommended priority** (lower = act first when multiple presets are recommended): `no_review_session` (1) → `export_diff_trend_worsening_or_mixed` (2) → `digest_or_checklist_stale` (3) → `review_session_recommended` (4) → `operator_review_status_ok_or_watch` (5).
+**Recommended priority** (lower = act first when multiple presets are recommended): `no_review_session` (1) → `export_diff_trend_worsening_or_mixed` (2) → `digest_or_checklist_stale` / `visual_review_stale` (3) → `review_session_recommended` (4) → `operator_review_status_ok_or_watch` (5).
 
 **Dev Validation UI:** Presets render under group headings with `short_reason`, recommended flag, runbook link, and copy-ready command. The UI does not execute commands.
 
@@ -749,6 +752,29 @@ make mrms-visual-review-hint ARGS="--json"
 
 Comparison and hints are **local review guidance only** — they do **not** verify MRMS, clear alerts, download/decode MRMS, or enable production rendering.
 
+## Visual review operator integration (Phase 58)
+
+Operator review status and workflow presets now consume visual review comparison and hint data:
+
+```bash
+make operator-review-status
+make operator-workflow-presets
+```
+
+**Operator review status additions:**
+- `visual_review_regeneration_recommended`, `visual_review_hint_reason`
+- `latest_visual_review_at`, `latest_visual_review_path`, `latest_visual_review_comparison_status`
+- `visual_review_artifact_count`, `visual_review_missing_artifact_count` when a manifest exists
+- Runbook guidance anchor `operator-review-status-visual-review-regeneration` when regeneration is recommended
+
+**Status level:** `attention` when visual review regeneration is recommended and evidence is stale or artifacts are missing; `watch` when visual review exists but comparison is `mixed`/`unknown`; `ok` when visual review is current and no other recommendations apply.
+
+**`top_suggested_command` priority (Phase 58):** after digest regeneration, `make mrms-visual-review` when visual review is stale — unless creating an initial review session is more urgent (no session exists). Review session/export commands still take precedence when a session exists and export/session actions are recommended.
+
+**Workflow preset:** `regenerate-visual-review` (`make mrms-visual-review`) in the troubleshooting group — recommended when `visual_review_regeneration_recommended` is true. Runbook anchor: `operator-workflow-preset-regenerate-visual-review`.
+
+Visual review recommendations are **local review guidance only** — they do **not** verify MRMS, clear alerts, download/decode MRMS, or enable production rendering.
+
 ### Operator review status guidance anchors (Phase 50)
 
 Runbook deep-links from consolidated status (`guidance_items`, `top_guidance_item`):
@@ -757,6 +783,7 @@ Runbook deep-links from consolidated status (`guidance_items`, `top_guidance_ite
 - `operator-review-status-attention` — attention `status_level`
 - `operator-review-status-watch` — watch `status_level`
 - `operator-review-status-digest-regeneration` — digest regeneration recommended
+- `operator-review-status-visual-review-regeneration` — visual review regeneration recommended (Phase 58)
 - `operator-review-status-review-export` — review export recommended
 - `operator-review-status-review-session` — review session recommended
 - `operator-review-status-evidence-worsening` / `evidence-mixed` / `evidence-stable` / `evidence-improving` — evidence trend

@@ -23,6 +23,11 @@ from backend.app.services.mrms_review_session_export_diff import (
     EXPORT_DIFF_LATEST_PATH,
     record_export_diff_metadata,
 )
+from backend.app.services.mrms_visual_review import (
+    SUGGESTED_VISUAL_REVIEW_COMMAND,
+    save_visual_review_report,
+)
+from backend.app.services.mrms_visual_review_compare import record_visual_review_comparison
 from backend.app.services.operator_review_status import (
     SUGGESTED_ATTENTION_SESSION_COMMAND,
     SUGGESTED_INITIAL_SESSION_COMMAND,
@@ -44,6 +49,184 @@ from backend.app.services.validation_alerts import (
     save_validation_alert,
 )
 from backend.app.services.validation_dashboard import build_validation_summary
+
+
+from backend.app.services.validation_report_store import save_latest_validation_report
+
+
+def _visual_report(*, created_at: str, missing_artifact_count: int = 0) -> dict:
+    return {
+        "created_at": created_at,
+        "layers_inspected": ["mrms_reflectivity"],
+        "timestamps_inspected": ["2026-06-28T12:00:00Z"],
+        "frame_count": 1,
+        "artifact_count": 1,
+        "missing_artifact_count": missing_artifact_count,
+        "tile_modes_found": ["placeholder"],
+        "artifacts": [],
+        "json_path": "data/dev/mrms_visual_review_latest.json",
+        "markdown_path": "data/dev/mrms_visual_review_latest.md",
+        "verified_mrms": False,
+        "local_visual_review_only": True,
+        "does_not_clear_alerts": True,
+        "does_not_enable_production": True,
+        "prototype": True,
+    }
+
+
+def test_operator_review_status_includes_visual_review_fields(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
+    status = build_operator_review_status(storage)
+    for key in (
+        "visual_review_regeneration_recommended",
+        "visual_review_hint_reason",
+        "latest_visual_review_path",
+        "latest_visual_review_comparison_status",
+        "visual_review_artifact_count",
+        "visual_review_missing_artifact_count",
+    ):
+        assert key in status
+
+
+def test_stale_visual_review_hint_raises_attention_and_command(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
+    record = create_review_session_record(
+        storage,
+        operator_initials="VR",
+        session_notes="visual stale",
+        accepted_limitations=True,
+    )
+    export_latest_review_session(storage, session=record)
+    _seed_diff_history(storage, [DIFF_UNCHANGED, DIFF_UNCHANGED])
+    save_visual_review_report(
+        storage,
+        _visual_report(created_at="2026-06-28T10:00:00Z"),
+    )
+    save_latest_validation_report(
+        storage,
+        {"ran_at": "2026-06-28T20:00:00Z", "verified_mrms": False},
+    )
+    status = build_operator_review_status(storage)
+    assert status["visual_review_regeneration_recommended"] is True
+    assert status["status_level"] == STATUS_ATTENTION
+    assert status["top_suggested_command"] == SUGGESTED_VISUAL_REVIEW_COMMAND
+    assert status["verified_mrms"] is False
+
+
+def test_stale_visual_review_with_no_session_prefers_initial_session_command(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
+    save_latest_validation_report(
+        storage,
+        {"ran_at": "2026-06-28T20:00:00Z", "verified_mrms": False},
+    )
+    status = build_operator_review_status(storage)
+    assert status["visual_review_regeneration_recommended"] is True
+    assert status["status_level"] == STATUS_ATTENTION
+    assert status["top_suggested_command"] == SUGGESTED_INITIAL_SESSION_COMMAND
+
+
+def test_stale_visual_review_maps_to_runbook_guidance(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
+    status = build_operator_review_status(storage)
+    status["visual_review_regeneration_recommended"] = True
+    guidance = build_operator_review_status_guidance(status)
+    assert any(item["cause"] == "visual_review_regeneration_recommended" for item in guidance)
+    item = next(
+        item for item in guidance if item["cause"] == "visual_review_regeneration_recommended"
+    )
+    assert item["path"] == "docs/RUNBOOK_REAL_MRMS_VALIDATION.md"
+    assert item["anchor"] == "operator-review-status-visual-review-regeneration"
+
+
+def test_visual_review_watch_when_comparison_mixed(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
+    record = create_review_session_record(
+        storage,
+        operator_initials="VR",
+        session_notes="visual watch",
+        accepted_limitations=True,
+    )
+    export_latest_review_session(storage, session=record)
+    _seed_diff_history(storage, [DIFF_IMPROVED, DIFF_UNCHANGED])
+    record_export_diff_metadata(
+        storage,
+        _diff_entry(compared_at="2026-06-28T16:10:00Z", status=DIFF_IMPROVED),
+        baseline_history_entry=_diff_entry(
+            compared_at="2026-06-28T16:09:00Z", status=DIFF_UNCHANGED
+        ),
+    )
+    save_visual_review_report(
+        storage,
+        _visual_report(created_at="2026-06-28T20:00:00Z"),
+    )
+    save_latest_validation_report(
+        storage,
+        {"ran_at": "2026-06-28T19:00:00Z", "verified_mrms": False},
+    )
+
+    def _mixed_comparison(_storage):
+        return {
+            "available": True,
+            "overall_visual_review_diff_status": DIFF_MIXED,
+            "compared_at": "2026-06-28T21:00:00Z",
+            "verified_mrms": False,
+        }
+
+    monkeypatch.setattr(
+        "backend.app.services.operator_review_status.compact_visual_review_comparison_summary",
+        _mixed_comparison,
+    )
+    status = build_operator_review_status(storage)
+    assert status["latest_visual_review_comparison_status"] == DIFF_MIXED
+    assert status["status_level"] == STATUS_WATCH
+    assert status["status_reason"] == "visual_review_comparison_mixed_or_unknown"
+
+
+def test_digest_still_outranks_visual_review_command(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
+
+    def _digest_hint(_storage):
+        return {
+            "digest_regeneration_recommended": True,
+            "reason": "test",
+            "verified_mrms": False,
+        }
+
+    monkeypatch.setattr(
+        "backend.app.services.operator_review_status.build_digest_regeneration_hint",
+        _digest_hint,
+    )
+    status = build_operator_review_status(storage)
+    assert status["visual_review_regeneration_recommended"] is True
+    assert status["top_suggested_command"] == SUGGESTED_SCHEDULED_REVIEW_EXPORT_COMMAND
+
+
+def test_summary_includes_visual_review_recommendation_fields(db_session, storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
+    summary = build_validation_summary(db_session, storage)
+    compact = summary.get("operator_review_status")
+    assert "visual_review_regeneration_recommended" in compact
+    assert "visual_review_hint_reason" in compact
+    assert compact["verified_mrms"] is False
+
+
+def test_endpoint_includes_visual_review_recommendation_fields(client, storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
+    response = client.get("/api/validation/operator-review-status")
+    body = response.json()
+    status = body["status"]
+    assert "visual_review_regeneration_recommended" in status
+    assert "visual_review_hint_reason" in status
+    assert body["verified_mrms"] is False
+    assert body["does_not_clear_alerts"] is True
+
+
+def test_visual_review_recommendation_does_not_download_or_decode(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
+    status = build_operator_review_status(storage)
+    assert status["visual_review_regeneration_recommended"] is True
+    assert status["does_not_enable_production"] is True
+    assert status["verified_mrms"] is False
 
 
 def _diff_entry(*, compared_at: str, status: str) -> dict:
@@ -239,8 +422,9 @@ def test_operator_review_status_guidance_does_not_clear_alerts(storage, monkeypa
 def test_no_data_unknown_behavior(storage, monkeypatch):
     monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
     status = build_operator_review_status(storage)
-    assert status["status_level"] == STATUS_UNKNOWN
-    assert status["evidence_trend"] in ("no_data", "unknown")
+    assert status["status_level"] == STATUS_ATTENTION
+    assert status["status_reason"] == "visual_review_regeneration_recommended"
+    assert status["visual_review_regeneration_recommended"] is True
     assert status["review_session_recommended"] is True
     assert status["top_suggested_command"] == SUGGESTED_INITIAL_SESSION_COMMAND
 
@@ -436,7 +620,7 @@ def test_endpoint_returns_safe_status_when_files_missing(client, storage, monkey
     assert body["local_status_only"] is True
     assert body["does_not_clear_alerts"] is True
     assert body["does_not_enable_production"] is True
-    assert body["status"]["status_level"] == STATUS_UNKNOWN
+    assert body["status"]["status_level"] == STATUS_ATTENTION
 
 
 def test_status_does_not_clear_alerts(storage, monkeypatch):

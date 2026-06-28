@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from backend.app.services.mrms_proof_bundle_diff import DIFF_MIXED, DIFF_WORSENED
+from backend.app.services.mrms_proof_bundle_diff import DIFF_MIXED, DIFF_UNKNOWN, DIFF_WORSENED
 from backend.app.services.mrms_review_session import compact_latest_review_session_summary
 from backend.app.services.mrms_review_session_export import (
     SUGGESTED_EXPORT_COMMAND,
@@ -16,7 +16,12 @@ from backend.app.services.mrms_review_session_export_diff import (
     compact_review_session_export_diff_history_summary,
     compact_review_session_export_diff_summary,
 )
-from backend.app.services.mrms_visual_review import compact_mrms_visual_review
+from backend.app.services.mrms_visual_review import (
+    SUGGESTED_VISUAL_REVIEW_COMMAND,
+    compact_mrms_visual_review,
+)
+from backend.app.services.mrms_visual_review_compare import compact_visual_review_comparison_summary
+from backend.app.services.mrms_visual_review_hint import compact_visual_review_hint
 from backend.app.services.mrms_review_session_export_diff_trend_hint import (
     SUGGESTED_SCHEDULED_REVIEW_EXPORT_COMMAND,
     build_review_session_export_diff_trend_hint,
@@ -119,6 +124,16 @@ OPERATOR_STATUS_GUIDANCE: dict[str, dict[str, str]] = {
             "to refresh local digest/checklist evidence."
         ),
     },
+    "visual_review_regeneration_recommended": {
+        "title": "Visual review regeneration recommended",
+        "path": RUNBOOK_PATH,
+        "anchor": "operator-review-status-visual-review-regeneration",
+        "section_label": "Visual review regeneration recommended",
+        "suggested_action": (
+            "Run make mrms-visual-review to regenerate the local visual review manifest from "
+            "existing tile/render artifacts (does not download or decode MRMS)."
+        ),
+    },
     "review_export_recommended": {
         "title": "Review export recommended",
         "path": RUNBOOK_PATH,
@@ -212,6 +227,8 @@ def build_operator_review_status_guidance(status: dict[str, Any]) -> list[dict[s
         add("status_level_urgent")
     if status.get("digest_regeneration_recommended"):
         add("digest_regeneration_recommended")
+    if status.get("visual_review_regeneration_recommended"):
+        add("visual_review_regeneration_recommended")
     if status.get("review_export_recommended"):
         add("review_export_recommended")
     if status.get("review_session_recommended"):
@@ -315,6 +332,7 @@ def _has_sufficient_data(
 def _pick_top_suggested_command(
     *,
     digest_regeneration_recommended: bool,
+    visual_review_regeneration_recommended: bool,
     review_export_recommended: bool,
     review_session_recommended: bool,
     session_available: bool,
@@ -322,12 +340,14 @@ def _pick_top_suggested_command(
 ) -> Optional[str]:
     if digest_regeneration_recommended:
         return SUGGESTED_SCHEDULED_REVIEW_EXPORT_COMMAND
+    if not session_available and review_session_recommended:
+        return SUGGESTED_INITIAL_SESSION_COMMAND
     if session_available and (review_export_recommended or export_stale):
         return SUGGESTED_EXPORT_COMMAND
     if review_session_recommended and session_available:
         return SUGGESTED_ATTENTION_SESSION_COMMAND
-    if not session_available:
-        return SUGGESTED_INITIAL_SESSION_COMMAND
+    if visual_review_regeneration_recommended:
+        return SUGGESTED_VISUAL_REVIEW_COMMAND
     return None
 
 
@@ -335,6 +355,7 @@ def _top_recommended_action(
     *,
     status_level: str,
     digest_regeneration_recommended: bool,
+    visual_review_regeneration_recommended: bool,
     review_export_recommended: bool,
     review_session_recommended: bool,
     session_available: bool,
@@ -345,6 +366,11 @@ def _top_recommended_action(
         return (
             "Regenerate proof bundle digest/checklist and scheduled review export "
             "(local review only)."
+        )
+    if visual_review_regeneration_recommended:
+        return (
+            "Regenerate MRMS visual review manifest from existing local artifacts "
+            "(local visual review only)."
         )
     if review_export_recommended:
         return "Export the latest review session summary (local review only)."
@@ -369,12 +395,23 @@ def _compute_status_level(
     export_trend_value: str,
     current_mixed_or_worsened_streak: int,
     digest_regeneration_recommended: bool,
+    visual_review_regeneration_recommended: bool,
+    visual_review_stale: bool,
+    visual_review_missing_artifact_count: int,
+    visual_review_available: bool,
+    visual_review_comparison_status: Optional[str],
     review_export_recommended: bool,
     review_session_recommended: bool,
     latest_export_diff_status: Optional[str],
     open_attention_count: int,
     export_diff_history_count: int,
 ) -> tuple[str, str]:
+    if (
+        not has_data
+        and visual_review_regeneration_recommended
+        and visual_review_stale
+    ):
+        return STATUS_ATTENTION, "visual_review_regeneration_recommended"
     if not has_data:
         return STATUS_UNKNOWN, "insufficient_local_review_evidence"
 
@@ -390,6 +427,11 @@ def _compute_status_level(
 
     if digest_regeneration_recommended:
         return STATUS_ATTENTION, "digest_regeneration_recommended"
+    if visual_review_regeneration_recommended and (
+        visual_review_missing_artifact_count > 0
+        or (visual_review_stale and visual_review_available)
+    ):
+        return STATUS_ATTENTION, "visual_review_regeneration_recommended"
     if review_export_recommended:
         return STATUS_ATTENTION, "review_export_regeneration_recommended"
     if latest_export_diff_status in (DIFF_WORSENED, DIFF_MIXED):
@@ -404,6 +446,11 @@ def _compute_status_level(
         and export_diff_history_count > 0
     ):
         return STATUS_WATCH, "export_diff_trend_monitoring"
+    if visual_review_available and visual_review_comparison_status in (
+        DIFF_MIXED,
+        DIFF_UNKNOWN,
+    ):
+        return STATUS_WATCH, "visual_review_comparison_mixed_or_unknown"
     if escalation_level == ESCALATION_WATCH:
         return STATUS_WATCH, "proof_bundle_diff_escalation_watch"
     if alert_status == ALERT_WARNING:
@@ -413,6 +460,7 @@ def _compute_status_level(
         return STATUS_OK, "local_review_evidence_stable"
     if not (
         digest_regeneration_recommended
+        or visual_review_regeneration_recommended
         or review_export_recommended
         or review_session_recommended
     ):
@@ -436,6 +484,8 @@ def build_operator_review_status(storage: LocalStorage) -> dict[str, Any]:
     export_diff_history = compact_review_session_export_diff_history_summary(storage)
     review_export_hint = build_review_export_regeneration_hint(storage)
     visual_review = compact_mrms_visual_review(storage)
+    visual_review_comparison = compact_visual_review_comparison_summary(storage)
+    visual_review_hint = compact_visual_review_hint(storage)
 
     operator_guidance = compact_operator_guidance(alert)
     session_guidance = session_summary.get("open_attention_guidance") or []
@@ -444,6 +494,23 @@ def build_operator_review_status(storage: LocalStorage) -> dict[str, Any]:
     digest_regeneration_recommended = bool(digest_hint.get("digest_regeneration_recommended"))
     review_export_recommended = bool(
         review_export_hint.get("review_export_regeneration_recommended")
+    )
+    visual_review_regeneration_recommended = bool(
+        visual_review_hint.get("visual_review_regeneration_recommended")
+    )
+    visual_review_hint_reason = visual_review_hint.get("reason")
+    visual_review_stale = bool(visual_review_hint.get("stale_visual_review"))
+    visual_review_available = bool(visual_review.get("available"))
+    visual_review_artifact_count = (
+        int(visual_review.get("artifact_count", 0)) if visual_review_available else None
+    )
+    visual_review_missing_artifact_count = (
+        int(visual_review.get("missing_artifact_count", 0)) if visual_review_available else None
+    )
+    latest_visual_review_comparison_status = (
+        visual_review_comparison.get("overall_visual_review_diff_status")
+        if visual_review_comparison.get("available")
+        else None
     )
     session_available = bool(session_summary.get("available"))
     review_session_recommended = (not session_available) or _session_trend_recommends_review(
@@ -466,7 +533,7 @@ def build_operator_review_status(storage: LocalStorage) -> dict[str, Any]:
         digest_hint=digest_hint,
         alert_compact=alert_compact,
         escalation=escalation,
-    )
+    ) or visual_review_available
 
     escalation_level = str(escalation.get("escalation_level") or "none")
     alert_status = (alert_compact or {}).get("status")
@@ -478,6 +545,13 @@ def build_operator_review_status(storage: LocalStorage) -> dict[str, Any]:
         export_trend_value=export_trend_value,
         current_mixed_or_worsened_streak=current_mixed_or_worsened_streak,
         digest_regeneration_recommended=digest_regeneration_recommended,
+        visual_review_regeneration_recommended=visual_review_regeneration_recommended,
+        visual_review_stale=visual_review_stale,
+        visual_review_missing_artifact_count=int(
+            visual_review.get("missing_artifact_count", 0)
+        ),
+        visual_review_available=visual_review_available,
+        visual_review_comparison_status=latest_visual_review_comparison_status,
         review_export_recommended=review_export_recommended,
         review_session_recommended=review_session_recommended,
         latest_export_diff_status=latest_export_diff_status,
@@ -488,6 +562,7 @@ def build_operator_review_status(storage: LocalStorage) -> dict[str, Any]:
     export_stale = bool(trend_hint.get("export_is_stale"))
     top_suggested_command = _pick_top_suggested_command(
         digest_regeneration_recommended=digest_regeneration_recommended,
+        visual_review_regeneration_recommended=visual_review_regeneration_recommended,
         review_export_recommended=review_export_recommended,
         review_session_recommended=review_session_recommended,
         session_available=session_available,
@@ -496,6 +571,7 @@ def build_operator_review_status(storage: LocalStorage) -> dict[str, Any]:
     top_recommended_action = _top_recommended_action(
         status_level=status_level,
         digest_regeneration_recommended=digest_regeneration_recommended,
+        visual_review_regeneration_recommended=visual_review_regeneration_recommended,
         review_export_recommended=review_export_recommended,
         review_session_recommended=review_session_recommended,
         session_available=session_available,
@@ -517,15 +593,27 @@ def build_operator_review_status(storage: LocalStorage) -> dict[str, Any]:
             "review_session_recommended": review_session_recommended,
             "review_export_recommended": review_export_recommended,
             "digest_regeneration_recommended": digest_regeneration_recommended,
+            "visual_review_regeneration_recommended": visual_review_regeneration_recommended,
+            "visual_review_hint_reason": visual_review_hint_reason,
             "evidence_trend": evidence_trend,
             "latest_review_session_at": session_summary.get("created_at"),
             "latest_review_export_at": export_summary.get("created_at"),
             "latest_digest_at": digest_hint.get("latest_digest_at"),
-            "latest_visual_review_at": visual_review.get("created_at") if visual_review.get("available") else None,
-            "latest_visual_review_json_path": visual_review.get("json_path") if visual_review.get("available") else None,
-            "latest_visual_review_markdown_path": visual_review.get("markdown_path")
-            if visual_review.get("available")
+            "latest_visual_review_at": visual_review.get("created_at")
+            if visual_review_available
             else None,
+            "latest_visual_review_path": visual_review.get("json_path")
+            if visual_review_available
+            else None,
+            "latest_visual_review_json_path": visual_review.get("json_path")
+            if visual_review_available
+            else None,
+            "latest_visual_review_markdown_path": visual_review.get("markdown_path")
+            if visual_review_available
+            else None,
+            "latest_visual_review_comparison_status": latest_visual_review_comparison_status,
+            "visual_review_artifact_count": visual_review_artifact_count,
+            "visual_review_missing_artifact_count": visual_review_missing_artifact_count,
             "latest_export_diff_status": latest_export_diff_status,
             "latest_export_diff_trend": latest_export_diff_trend,
             "open_attention_count": open_attention_count if session_available else None,

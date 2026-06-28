@@ -1,10 +1,11 @@
 # Project State
 
-Current phase: Phase 57 complete
+Current phase: Phase 58 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
+- **Visual review operator integration** — stale visual review feeds operator review status and workflow presets
 - **Visual review comparison & hints** — compare manifests, stale regeneration guidance
 - **MRMS visual review artifacts** — local tile evidence manifest and Markdown report
 - **Workflow preset command UX** — recommended-only/group filters and Copy-to-clipboard (does not execute commands)
@@ -22,18 +23,19 @@ ENABLE_PRODUCTION_RADAR_TILES=false
 STALE_RUNNING_JOB_SECONDS=3600
 ```
 
-## Operator commands (Phase 57)
+## Operator commands (Phase 58)
 
 ```bash
+make operator-review-status
+make operator-workflow-presets
 make mrms-visual-review
-make mrms-visual-review-compare
 make mrms-visual-review-hint
-make mrms-visual-review-comparison-history
+make mrms-visual-review-compare
 ```
 
 ## Dev API
 
-`mrms_visual_review_comparison` and `mrms_visual_review_hint` compact fields on validation summary; endpoints under `/api/validation/mrms-visual-review/comparison`, `/comparison/history`, and `/hint`.
+`operator_review_status` includes `visual_review_regeneration_recommended`, comparison status, artifact counts, and runbook guidance for stale visual review. Workflow preset `regenerate-visual-review` is recommended when the visual review hint recommends regeneration.
 
 ## Verified MRMS
 

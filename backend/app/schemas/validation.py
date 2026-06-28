@@ -756,6 +756,8 @@ class OperatorReviewStatusCompact(BaseModel):
     review_session_recommended: bool = False
     review_export_recommended: bool = False
     digest_regeneration_recommended: bool = False
+    visual_review_regeneration_recommended: bool = False
+    visual_review_hint_reason: Optional[str] = None
     evidence_trend: str = "unknown"
     latest_review_session_at: Optional[str] = None
     latest_review_export_at: Optional[str] = None
@@ -776,8 +778,12 @@ class OperatorReviewStatusCompact(BaseModel):
     no_external_notifications: bool = True
     prototype: bool = True
     latest_visual_review_at: Optional[str] = None
+    latest_visual_review_path: Optional[str] = None
     latest_visual_review_json_path: Optional[str] = None
     latest_visual_review_markdown_path: Optional[str] = None
+    latest_visual_review_comparison_status: Optional[str] = None
+    visual_review_artifact_count: Optional[int] = None
+    visual_review_missing_artifact_count: Optional[int] = None
 
 
 class MrmsVisualReviewCompact(BaseModel):

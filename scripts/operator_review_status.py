@@ -40,10 +40,26 @@ def main() -> None:
     print(f"  review_session_recommended: {status.get('review_session_recommended')}")
     print(f"  review_export_recommended: {status.get('review_export_recommended')}")
     print(f"  digest_regeneration_recommended: {status.get('digest_regeneration_recommended')}")
+    print(
+        f"  visual_review_regeneration_recommended: "
+        f"{status.get('visual_review_regeneration_recommended')}"
+    )
+    print(f"  visual_review_hint_reason: {status.get('visual_review_hint_reason')}")
     print(f"  evidence_trend: {status.get('evidence_trend')}")
     print(f"  latest_review_session_at: {status.get('latest_review_session_at')}")
     print(f"  latest_review_export_at: {status.get('latest_review_export_at')}")
     print(f"  latest_digest_at: {status.get('latest_digest_at')}")
+    print(f"  latest_visual_review_at: {status.get('latest_visual_review_at')}")
+    print(f"  latest_visual_review_path: {status.get('latest_visual_review_path')}")
+    print(
+        f"  latest_visual_review_comparison_status: "
+        f"{status.get('latest_visual_review_comparison_status')}"
+    )
+    print(f"  visual_review_artifact_count: {status.get('visual_review_artifact_count')}")
+    print(
+        f"  visual_review_missing_artifact_count: "
+        f"{status.get('visual_review_missing_artifact_count')}"
+    )
     print(f"  open_attention_count: {status.get('open_attention_count')}")
     print(f"  active_guidance_count: {status.get('active_guidance_count')}")
     top_guidance = status.get("top_guidance_item") or {}

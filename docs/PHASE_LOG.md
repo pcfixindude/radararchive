@@ -2074,3 +2074,34 @@ cd frontend && npm run build
 ### Known limitations
 - Comparison requires at least one prior visual review snapshot for baseline diffs
 - Hints are advisory only — do not download, decode, or verify MRMS
+
+## Phase 58 - Visual Review Operator Integration
+
+Integrated MRMS visual review comparison and stale hints into operator review status and workflow presets.
+
+### Backend
+- `operator_review_status.py` reads visual review, comparison, and hint compacts
+- New status fields: `visual_review_regeneration_recommended`, `visual_review_hint_reason`, comparison status, artifact counts
+- Status level considers stale visual review (attention) and mixed/unknown comparison (watch)
+- `top_suggested_command` may recommend `make mrms-visual-review` when stale (after digest; initial session still preferred when no session)
+- Runbook guidance anchor `operator-review-status-visual-review-regeneration`
+- `operator_workflow_presets.py` adds `regenerate-visual-review` preset in troubleshooting group
+
+### Frontend
+- Dev Validation **Operator Review Status** shows visual review recommendation fields
+- Workflow presets include recommended `regenerate-visual-review` when stale
+
+### Run commands
+
+```bash
+make test
+make operator-review-status
+make operator-workflow-presets
+make mrms-visual-review-hint
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Visual review recommendations are local guidance only — do not verify MRMS, clear alerts, download/decode, or enable production rendering
+- Empty dev environments may show visual review attention before other review evidence exists

@@ -20,6 +20,7 @@ PRESET_QUICK_STATUS_CHECK = "quick-status-check"
 PRESET_FULL_LOCAL_PROOF_REVIEW = "full-local-proof-review"
 PRESET_CREATE_REVIEW_SESSION_AND_EXPORT = "create-review-session-and-export"
 PRESET_REGENERATE_DIGEST_CHECKLIST_EXPORT = "regenerate-digest-checklist-export"
+PRESET_REGENERATE_VISUAL_REVIEW = "regenerate-visual-review"
 PRESET_INSPECT_WORSENING_EXPORT_TREND = "inspect-worsening-export-trend"
 PRESET_REVIEW_PROOF_BUNDLE_DIFF = "review-proof-bundle-diff"
 PRESET_RUN_SCHEDULED_PROOF_BUNDLE_OPERATOR_STATUS = "run-scheduled-proof-bundle-operator-status"
@@ -50,6 +51,7 @@ RECOMMENDED_PRIORITY_BY_REASON: dict[str, int] = {
     "no_review_session": 1,
     "export_diff_trend_worsening_or_mixed": 2,
     "digest_or_checklist_stale": 3,
+    "visual_review_stale": 3,
     "review_session_recommended": 4,
     "operator_review_status_ok_or_watch": 5,
 }
@@ -59,6 +61,7 @@ SHORT_REASON_BY_PRESET: dict[str, str] = {
     PRESET_FULL_LOCAL_PROOF_REVIEW: "Refresh proof report, bundle export, and bundle diff.",
     PRESET_CREATE_REVIEW_SESSION_AND_EXPORT: "Record a local review session and export Markdown.",
     PRESET_REGENERATE_DIGEST_CHECKLIST_EXPORT: "Regenerate escalation digest, checklist, and review export.",
+    PRESET_REGENERATE_VISUAL_REVIEW: "Regenerate local MRMS visual review manifest from existing artifacts.",
     PRESET_INSPECT_WORSENING_EXPORT_TREND: "Inspect export diff trend and regeneration hints before acting.",
     PRESET_REVIEW_PROOF_BUNDLE_DIFF: "Compare latest proof bundle evidence against baseline diff.",
     PRESET_RUN_SCHEDULED_PROOF_BUNDLE_OPERATOR_STATUS: (
@@ -71,6 +74,7 @@ EXPECTED_PRESET_IDS = (
     PRESET_FULL_LOCAL_PROOF_REVIEW,
     PRESET_CREATE_REVIEW_SESSION_AND_EXPORT,
     PRESET_REGENERATE_DIGEST_CHECKLIST_EXPORT,
+    PRESET_REGENERATE_VISUAL_REVIEW,
     PRESET_INSPECT_WORSENING_EXPORT_TREND,
     PRESET_REVIEW_PROOF_BUNDLE_DIFF,
     PRESET_RUN_SCHEDULED_PROOF_BUNDLE_OPERATOR_STATUS,
@@ -119,6 +123,15 @@ _PRESET_RUNBOOK_GUIDANCE: dict[str, dict[str, str]] = {
         "suggested_action": (
             "Run make scheduled-proof-bundle-review-export when digest/checklist is stale "
             "or operator status recommends digest regeneration."
+        ),
+    },
+    PRESET_REGENERATE_VISUAL_REVIEW: {
+        "runbook_path": RUNBOOK_PATH,
+        "runbook_section": "MRMS visual review comparison and hints",
+        "runbook_anchor": "operator-workflow-preset-regenerate-visual-review",
+        "suggested_action": (
+            "Run make mrms-visual-review when operator status or visual review hint recommends "
+            "regeneration (local visual review only — does not download or decode MRMS)."
         ),
     },
     PRESET_INSPECT_WORSENING_EXPORT_TREND: {
@@ -213,6 +226,21 @@ _PRESET_DEFINITIONS: list[dict[str, Any]] = [
         ],
     },
     {
+        "preset_id": PRESET_REGENERATE_VISUAL_REVIEW,
+        "group_id": GROUP_TROUBLESHOOTING,
+        "group_title": GROUP_TITLES[GROUP_TROUBLESHOOTING],
+        "priority": 15,
+        "title": "Regenerate MRMS visual review",
+        "description": "Rebuild the local visual review manifest and Markdown from existing tile/render paths.",
+        "when_to_use": "When visual review is stale, missing, or operator status recommends visual review regeneration.",
+        "command": "make mrms-visual-review",
+        "expected_outputs": [
+            "mrms_visual_review_latest.json manifest under data/dev/",
+            "mrms_visual_review_latest.md operator report",
+            "bounded history entry when prior review exists",
+        ],
+    },
+    {
         "preset_id": PRESET_INSPECT_WORSENING_EXPORT_TREND,
         "group_id": GROUP_TROUBLESHOOTING,
         "group_title": GROUP_TITLES[GROUP_TROUBLESHOOTING],
@@ -278,6 +306,9 @@ def _recommendation_for_preset(
 ) -> tuple[bool, Optional[str]]:
     status_level = str(status.get("status_level") or "")
     digest_regeneration_recommended = bool(status.get("digest_regeneration_recommended"))
+    visual_review_regeneration_recommended = bool(
+        status.get("visual_review_regeneration_recommended")
+    )
     review_session_recommended = bool(status.get("review_session_recommended"))
     has_session = bool(status.get("latest_review_session_at"))
     evidence_trend = str(status.get("evidence_trend") or "")
@@ -290,6 +321,11 @@ def _recommendation_for_preset(
     if preset_id == PRESET_REGENERATE_DIGEST_CHECKLIST_EXPORT:
         if digest_regeneration_recommended:
             return True, "digest_or_checklist_stale"
+        return False, None
+
+    if preset_id == PRESET_REGENERATE_VISUAL_REVIEW:
+        if visual_review_regeneration_recommended:
+            return True, "visual_review_stale"
         return False, None
 
     if preset_id == PRESET_CREATE_REVIEW_SESSION_AND_EXPORT:

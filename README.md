@@ -249,8 +249,8 @@ Limitations:
 - `make mrms-review-session-export-diff-history` lists bounded export diff history (`--json`, `--limit`); Dev Validation collapsible **Review export diff history** shows recent entries when expanded
 - `make mrms-review-session-export-diff-trend` summarizes export diff trend (`improving`/`worsening`/`mixed`/`stable`/`no_data`; `--json`, `--limit`)
 - `make mrms-review-session-export-diff-trend-hint` shows when a new review session/export is recommended (`--json`)
-- `make operator-review-status` prints consolidated local operator review status with runbook guidance (`--json`); Dev Validation **Operator Review Status** block stays fixed near the top (not collapsible)
-- `make operator-workflow-presets` lists grouped local workflow presets with runbook guidance, short reasons, and copy-ready commands (`--json`); Dev Validation groups presets by category with recommended-only/group filters and Copy buttons (Phase 55)
+- `make operator-review-status` prints consolidated local operator review status with runbook guidance and visual review recommendation fields (`--json`); Dev Validation **Operator Review Status** block shows visual review staleness (Phase 58)
+- `make operator-workflow-presets` lists grouped local workflow presets with runbook guidance, short reasons, and copy-ready commands (`--json`); includes `regenerate-visual-review` when visual review is stale (Phase 58)
 - `make mrms-visual-review` generates a local visual review manifest (JSON + Markdown) of existing tile/render artifacts (`--json-report`, `--history`); Dev Validation **MRMS Visual Review** collapsible section (Phase 56)
 - `make mrms-visual-review-compare` compares latest vs previous visual review manifests; `make mrms-visual-review-hint` suggests when to regenerate (Phase 57)
 - `make mrms-review-session ARGS="... --export-after-create"` creates a session and immediately exports Markdown (session is kept if export fails)
