@@ -36,3 +36,5 @@ data/dev/proof_bundle_diff_escalation_digest_diff_history.json
 data/dev/mrms_operator_handoff_latest.md
 data/dev/mrms_operator_handoff_latest.json
 data/dev/mrms_review_sessions.json
+data/dev/mrms_review_session_comparison_latest.json
+data/dev/mrms_review_session_comparison_history.json

@@ -174,6 +174,10 @@ Bounded digest export history (`make proof-bundle-diff-escalation-digest-history
 
 Local review session records (`make mrms-review-session`, `POST /api/validation/review-sessions`) are **supporting review evidence only**. They snapshot links to escalation, digest, handoff, acknowledgment, bundle, diff, and proof report metadata at review time. They do **not** verify MRMS, clear alerts, enable production rendering, or satisfy any verified-MRMS criterion.
 
+## Review session comparison + open attention guidance (Phase 42)
+
+Review session comparison (`make mrms-review-session-compare`, `GET /api/validation/review-sessions/comparison`) and open attention runbook guidance in the Dev Validation summary are **supporting local review aids only**. They help operators see what changed between consecutive review sessions and which runbook sections apply to remaining open attention items. They do **not** verify MRMS, clear alerts, enable production rendering, or satisfy any verified-MRMS criterion.
+
 ## Scheduled proof bundle monitoring (Phase 32)
 
 `make scheduled-proof-bundle` runs scheduled validation with `--proof --bundle --diff-bundle`. This is **local evidence monitoring only** — it does not verify MRMS or enable production rendering. Alerts may flag `worsened` or `mixed` diff status for operator review.

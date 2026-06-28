@@ -232,6 +232,8 @@ export default function ValidationStatusPanel({
   const digestDiff = summary.proof_bundle_diff_escalation_digest_diff ?? null;
   const digestRegenerationHint = summary.digest_regeneration_hint ?? null;
   const reviewSessionSummary = summary.mrms_review_session ?? null;
+  const reviewSessionComparison = reviewSessionSummary?.comparison ?? null;
+  const openAttentionGuidance = reviewSessionSummary?.open_attention_guidance ?? [];
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
   const queue = summary.render_queue;
@@ -813,20 +815,92 @@ export default function ValidationStatusPanel({
           </button>
         </div>
         {reviewSessionSummary?.available ? (
-          <p className="validation-meta">
-            Latest session {formatTimestamp(reviewSessionSummary.latest_created_at)} —{' '}
-            {reviewSessionSummary.latest_operator ?? '—'} — escalation{' '}
-            {reviewSessionSummary.latest_escalation_level ?? '—'} — open attention{' '}
-            {reviewSessionSummary.open_attention_count ?? 0}
-          </p>
+          <>
+            <p className="validation-meta">
+              Latest session {formatTimestamp(reviewSessionSummary.latest_created_at)} —{' '}
+              {reviewSessionSummary.latest_operator ?? '—'} — escalation{' '}
+              {reviewSessionSummary.latest_escalation_level ?? '—'} — open attention{' '}
+              {reviewSessionSummary.open_attention_count ?? 0}
+            </p>
+            {reviewSessionComparison?.available ? (
+              <>
+                <p className="validation-meta">
+                  Session comparison: {reviewSessionComparison.overall_review_diff_status ?? 'unknown'}
+                  {reviewSessionComparison.compared_at
+                    ? ` (${formatTimestamp(reviewSessionComparison.compared_at)})`
+                    : ''}
+                </p>
+                <p className="validation-meta">
+                  Baseline {formatTimestamp(reviewSessionComparison.baseline_created_at)} —{' '}
+                  {reviewSessionComparison.baseline_operator ?? '—'} → latest{' '}
+                  {formatTimestamp(reviewSessionComparison.latest_created_at)} —{' '}
+                  {reviewSessionComparison.latest_operator ?? '—'}
+                </p>
+                {reviewSessionComparison.open_attention_count_change ? (
+                  <p className="validation-meta">
+                    Open attention count: baseline{' '}
+                    {reviewSessionComparison.open_attention_count_change.baseline ?? '—'} → latest{' '}
+                    {reviewSessionComparison.open_attention_count_change.latest ?? '—'}
+                  </p>
+                ) : null}
+                {reviewSessionComparison.checklist_reviewed_count_change ? (
+                  <p className="validation-meta">
+                    Checklist reviewed: baseline{' '}
+                    {reviewSessionComparison.checklist_reviewed_count_change.baseline ?? '—'} → latest{' '}
+                    {reviewSessionComparison.checklist_reviewed_count_change.latest ?? '—'}
+                  </p>
+                ) : null}
+                {reviewSessionComparison.checklist_not_reviewed_count_change ? (
+                  <p className="validation-meta">
+                    Checklist not reviewed: baseline{' '}
+                    {reviewSessionComparison.checklist_not_reviewed_count_change.baseline ?? '—'} →
+                    latest{' '}
+                    {reviewSessionComparison.checklist_not_reviewed_count_change.latest ?? '—'}
+                  </p>
+                ) : null}
+                {(reviewSessionComparison.improvements?.length ?? 0) > 0 ? (
+                  <p className="validation-meta">
+                    Improvements: {reviewSessionComparison.improvements?.join(', ')}
+                  </p>
+                ) : null}
+                {(reviewSessionComparison.regressions?.length ?? 0) > 0 ? (
+                  <p className="validation-warn">
+                    Regressions: {reviewSessionComparison.regressions?.join(', ')}
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <p className="validation-meta">
+                No session comparison yet — run make mrms-review-session-compare after two sessions.
+              </p>
+            )}
+            {openAttentionGuidance.length > 0 ? (
+              <section className="validation-open-attention-guidance">
+                <p className="validation-warn">
+                  Open attention runbook guidance (local review only — does not verify MRMS)
+                </p>
+                <ul className="validation-history-list">
+                  {openAttentionGuidance.map((item, index) => (
+                    <li key={`${item.cause}-${index}`} className="validation-meta">
+                      {item.title} — <code>{item.path}</code>
+                      {item.section_label ? ` — section: ${item.section_label}` : ''}
+                      {item.anchor ? ` (anchor: ${item.anchor})` : ''}
+                      {item.attention_item ? ` — item: ${item.attention_item}` : ''}
+                      {item.suggested_action ? ` — ${item.suggested_action}` : ''}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+          </>
         ) : (
           <p className="validation-meta">
             No review sessions — run make mrms-review-session (local only).
           </p>
         )}
         <p className="validation-meta">
-          Local review only — verified_mrms: {yesNo(summary.verified_mrms)} — does not clear alerts
-          or enable production rendering
+          Local comparison only — verified_mrms: {yesNo(summary.verified_mrms)} — does not clear
+          alerts or enable production rendering
         </p>
         {showReviewSessionForm ? (
           <form className="validation-signoff-form" onSubmit={(event) => void handleReviewSessionSubmit(event)}>

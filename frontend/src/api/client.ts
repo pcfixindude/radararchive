@@ -618,6 +618,40 @@ export type DigestRegenerationHintCompact = {
   prototype: boolean;
 };
 
+export type OpenAttentionGuidanceItem = {
+  title: string;
+  path: string;
+  anchor?: string;
+  section_label?: string;
+  cause: string;
+  attention_item?: string;
+  suggested_action?: string;
+  verified_mrms: boolean;
+  local_guidance_only: boolean;
+  prototype: boolean;
+};
+
+export type MrmsReviewSessionComparisonCompact = {
+  available: boolean;
+  overall_review_diff_status?: string | null;
+  compared_at?: string | null;
+  latest_created_at?: string | null;
+  baseline_created_at?: string | null;
+  latest_operator?: string | null;
+  baseline_operator?: string | null;
+  open_attention_count_change?: { baseline?: number; latest?: number } | null;
+  checklist_reviewed_count_change?: { baseline?: number; latest?: number } | null;
+  checklist_not_reviewed_count_change?: { baseline?: number; latest?: number } | null;
+  improvements?: string[];
+  regressions?: string[];
+  history_count?: number;
+  verified_mrms: boolean;
+  local_comparison_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  prototype: boolean;
+};
+
 export type MrmsReviewSessionSummaryCompact = {
   available: boolean;
   session_count: number;
@@ -625,6 +659,8 @@ export type MrmsReviewSessionSummaryCompact = {
   latest_operator?: string | null;
   latest_escalation_level?: string | null;
   open_attention_count: number;
+  open_attention_guidance?: OpenAttentionGuidanceItem[];
+  comparison?: MrmsReviewSessionComparisonCompact | null;
   verified_mrms: boolean;
   local_review_only: boolean;
   does_not_clear_alerts: boolean;

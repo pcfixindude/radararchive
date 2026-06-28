@@ -280,6 +280,10 @@ Summary additions (Phase 41): `mrms_review_session` compact (`latest_created_at`
 
 Endpoints (Phase 41): `GET /api/validation/review-sessions`, `POST /api/validation/review-sessions` (local dev only; requires operator, notes or checklist, accepted limitations).
 
+Summary additions (Phase 42): `mrms_review_session.comparison` compact (`overall_review_diff_status`, baseline/latest timestamps, count changes, improvements/regressions); `mrms_review_session.open_attention_guidance` (runbook path, anchor, section_label, suggested_action per open attention item).
+
+Endpoints (Phase 42): `GET /api/validation/review-sessions/comparison`, `GET /api/validation/review-sessions/comparison/history` (read-only; `verified_mrms: false`, `local_comparison_only: true`).
+
 Scheduled validation report additions (Phase 32): `bundle_requested`, `diff_bundle_requested`, `mrms_proof_bundle`, `mrms_proof_bundle_diff`; steps `proof_report`, `proof_regression`, `proof_bundle_export`, `proof_bundle_diff`.
 
 `GET /api/validation/proof-bundle-diff` — latest proof bundle diff report (`?refresh=true` rebuilds). `verified_mrms: false`, `local_diff_only: true`.

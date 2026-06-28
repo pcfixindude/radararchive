@@ -32,6 +32,7 @@ from backend.app.services.proof_bundle_diff_escalation_digest_diff import (
 from backend.app.services.proof_bundle_diff_escalation_history import (
     load_latest_proof_bundle_diff_escalation_history,
 )
+from backend.app.services.operator_guidance import build_open_attention_guidance
 from backend.app.services.mrms_proof_regression import load_proof_regression_report
 from backend.app.services.storage import LocalStorage
 from backend.app.services.validation_alerts import load_validation_alert
@@ -203,6 +204,7 @@ def create_review_session_record(
         )
 
     open_attention = _build_open_attention_items(storage)
+    open_attention_guidance = build_open_attention_guidance(open_attention)
     evidence = _gather_evidence_links(storage)
 
     record: dict[str, Any] = {
@@ -215,6 +217,7 @@ def create_review_session_record(
         "accepted_limitations_acknowledged": bool(accepted_limitations or limitations_text),
         **evidence,
         "open_attention_items": open_attention,
+        "open_attention_guidance": open_attention_guidance,
         "open_attention_count": len(open_attention),
         "checklist_items_reviewed": valid_reviewed,
         "checklist_items_not_reviewed": not_reviewed,
@@ -230,6 +233,9 @@ def create_review_session_record(
     entries = load_review_sessions(storage)
     entries.insert(0, record)
     _save_review_sessions(storage, entries)
+    from backend.app.services.mrms_review_session_compare import record_review_session_comparison
+
+    record_review_session_comparison(storage, latest_session=record)
     return record
 
 
@@ -259,8 +265,19 @@ def compact_review_session_item(entry: Optional[dict[str, Any]]) -> Optional[dic
 
 
 def compact_latest_review_session_summary(storage: LocalStorage) -> dict[str, Any]:
+    from backend.app.services.mrms_review_session_compare import (
+        compact_review_session_comparison_summary,
+    )
+
     entries = load_review_sessions(storage)
     latest = entries[0] if entries else None
+    open_attention_guidance: list[dict[str, Any]] = []
+    if latest:
+        open_attention_guidance = latest.get("open_attention_guidance") or []
+        if not open_attention_guidance:
+            open_attention_guidance = build_open_attention_guidance(
+                latest.get("open_attention_items") or []
+            )
     return {
         "available": latest is not None,
         "session_count": len(entries),
@@ -272,6 +289,8 @@ def compact_latest_review_session_summary(storage: LocalStorage) -> dict[str, An
         ),
         "latest_escalation_level": (latest or {}).get("latest_escalation_level"),
         "open_attention_count": int((latest or {}).get("open_attention_count", 0)),
+        "open_attention_guidance": open_attention_guidance,
+        "comparison": compact_review_session_comparison_summary(storage),
         "verified_mrms": False,
         "local_review_only": True,
         "does_not_clear_alerts": True,

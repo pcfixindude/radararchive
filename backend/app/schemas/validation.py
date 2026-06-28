@@ -592,6 +592,40 @@ class MrmsReviewSessionEntryCompact(BaseModel):
     prototype: bool = True
 
 
+class OpenAttentionGuidanceItemCompact(BaseModel):
+    title: str
+    path: str
+    anchor: str = ""
+    section_label: str = ""
+    cause: str
+    attention_item: str = ""
+    suggested_action: str = ""
+    verified_mrms: bool = False
+    local_guidance_only: bool = True
+    prototype: bool = True
+
+
+class MrmsReviewSessionComparisonCompact(BaseModel):
+    available: bool = False
+    overall_review_diff_status: Optional[str] = None
+    compared_at: Optional[str] = None
+    latest_created_at: Optional[str] = None
+    baseline_created_at: Optional[str] = None
+    latest_operator: Optional[str] = None
+    baseline_operator: Optional[str] = None
+    open_attention_count_change: Optional[dict[str, Any]] = None
+    checklist_reviewed_count_change: Optional[dict[str, Any]] = None
+    checklist_not_reviewed_count_change: Optional[dict[str, Any]] = None
+    improvements: list[str] = Field(default_factory=list)
+    regressions: list[str] = Field(default_factory=list)
+    history_count: int = 0
+    verified_mrms: bool = False
+    local_comparison_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
 class MrmsReviewSessionSummaryCompact(BaseModel):
     available: bool = False
     session_count: int = 0
@@ -599,12 +633,42 @@ class MrmsReviewSessionSummaryCompact(BaseModel):
     latest_operator: Optional[str] = None
     latest_escalation_level: Optional[str] = None
     open_attention_count: int = 0
+    open_attention_guidance: list[OpenAttentionGuidanceItemCompact] = Field(default_factory=list)
+    comparison: Optional[MrmsReviewSessionComparisonCompact] = None
     verified_mrms: bool = False
     local_review_only: bool = True
     does_not_clear_alerts: bool = True
     does_not_enable_production: bool = True
     no_external_notifications: bool = True
     prototype: bool = True
+
+
+class MrmsReviewSessionComparisonResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_comparison_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    latest: Optional[dict[str, Any]] = None
+    count: int = 0
+    max_entries: int = 25
+    entries: list[dict[str, Any]] = Field(default_factory=list)
+    compact: MrmsReviewSessionComparisonCompact
+
+
+class MrmsReviewSessionComparisonHistoryResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_comparison_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    count: int = 0
+    max_entries: int = 25
+    latest: Optional[dict[str, Any]] = None
+    entries: list[dict[str, Any]] = Field(default_factory=list)
+    compact: MrmsReviewSessionComparisonCompact
 
 
 class MrmsReviewSessionsResponse(BaseModel):

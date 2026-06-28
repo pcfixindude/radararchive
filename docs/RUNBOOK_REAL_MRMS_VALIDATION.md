@@ -434,6 +434,34 @@ curl -X POST http://127.0.0.1:8000/api/validation/review-sessions \
 
 **Warnings:** Review sessions do **not** verify MRMS, clear validation alerts, enable production rendering, or send external notifications.
 
+## MRMS proof review session comparison (Phase 42)
+
+Compare the latest local review session against the previous session and map open attention items to runbook sections — **local comparison only**.
+
+```bash
+make mrms-review-session-compare
+make mrms-review-session-compare ARGS="--json"
+curl http://127.0.0.1:8000/api/validation/review-sessions/comparison
+curl http://127.0.0.1:8000/api/validation/review-sessions/comparison/history
+```
+
+**Comparison fields:** escalation level change, open attention count change, checklist reviewed/not-reviewed counts, proof bundle diff status, proof report status, acknowledgment change, digest/handoff path changes, `overall_review_diff_status` (`no_baseline`, `unchanged`, `improved`, `worsened`, `mixed`, `unknown`), plus `improvements` / `regressions` / `unchanged_items` lists.
+
+**How to interpret comparison:**
+- `improved` — all tracked signals moved in a favorable direction (fewer open attention items, lower escalation, better diff/proof status, more checklist items reviewed)
+- `worsened` — signals moved unfavorably with no offsetting improvements
+- `mixed` — some signals improved and some worsened between sessions
+- `unchanged` — no meaningful signal change between baseline and latest session
+- `no_baseline` — only one session exists (nothing to compare yet)
+
+**Open attention guidance:** Each open attention item from the latest session maps to a runbook path/anchor via `operator_guidance.py` (e.g. escalation → escalation section, digest regeneration → digest history section, stale acknowledgment → digest/ack workflow). Guidance includes a suggested action per item.
+
+**Persistence:** `data/dev/mrms_review_session_comparison_latest.json` + bounded history (max 25, gitignored). Comparison is recorded when creating a review session or running `make mrms-review-session-compare`.
+
+**Dev Validation UI:** Shows comparison status, baseline/latest timestamps, count changes, improvements/regressions, and open attention runbook links with honest safety wording.
+
+**Warnings:** Comparison does **not** verify MRMS, clear alerts, enable production rendering, or send external notifications.
+
 ## Proof bundle diff alert escalation (Phase 36)
 
 Escalation hints combine trend summary, diff alert history, and acknowledgment state — **local operator guidance only**. Escalation does **not** verify MRMS, clear alerts, enable production rendering, or mutate catalog gates.

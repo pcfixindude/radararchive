@@ -490,6 +490,13 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Summary `mrms_review_session` compact
 - Gitignored: `data/dev/mrms_review_sessions.json`
 
+### Review session comparison + open attention guidance (Phase 42)
+- `mrms_review_session_compare.py` — compare latest vs previous session; bounded comparison history (max 25)
+- `operator_guidance.build_open_attention_guidance()` — maps open attention items to runbook paths/sections
+- `GET /api/validation/review-sessions/comparison`, `GET .../comparison/history`
+- Summary `mrms_review_session` adds `comparison` compact + `open_attention_guidance`
+- Gitignored: `data/dev/mrms_review_session_comparison_latest.json`, `..._history.json`
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

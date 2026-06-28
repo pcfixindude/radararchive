@@ -30,6 +30,8 @@ from backend.app.schemas.validation import (
     MrmsReviewSessionCreateRequest,
     MrmsReviewSessionCreateResponse,
     MrmsReviewSessionsResponse,
+    MrmsReviewSessionComparisonResponse,
+    MrmsReviewSessionComparisonHistoryResponse,
     QueueBenchmarkHistoryResponse,
     ScheduledValidationHistoryResponse,
     ValidationAlertsResponse,
@@ -86,6 +88,10 @@ from backend.app.services.mrms_review_session import (
     ReviewSessionValidationError,
     build_review_sessions_payload,
     create_review_session_record,
+)
+from backend.app.services.mrms_review_session_compare import (
+    build_review_session_comparison_payload,
+    record_review_session_comparison,
 )
 from backend.app.services.mrms_proof_report import load_mrms_proof_report
 from backend.app.services.validation_alerts import (
@@ -285,6 +291,40 @@ def validation_signoffs_create(body: MrmsSignoffCreateRequest) -> MrmsSignoffCre
         signoff=record,
         alert=compact_validation_alert(alert),
     )
+
+
+@router.get(
+    "/review-sessions/comparison/history",
+    response_model=MrmsReviewSessionComparisonHistoryResponse,
+)
+def validation_review_sessions_comparison_history() -> MrmsReviewSessionComparisonHistoryResponse:
+    """Bounded review session comparison history (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_review_session_comparison_payload(storage)
+    return MrmsReviewSessionComparisonHistoryResponse(
+        prototype=True,
+        verified_mrms=False,
+        local_comparison_only=True,
+        does_not_clear_alerts=True,
+        does_not_enable_production=True,
+        no_external_notifications=True,
+        count=payload.get("count", 0),
+        max_entries=payload.get("max_entries", 25),
+        latest=payload.get("latest"),
+        entries=payload.get("entries") or [],
+        compact=payload.get("compact") or {},
+    )
+
+
+@router.get(
+    "/review-sessions/comparison",
+    response_model=MrmsReviewSessionComparisonResponse,
+)
+def validation_review_sessions_comparison() -> MrmsReviewSessionComparisonResponse:
+    """Latest review session comparison vs previous session (read-only; local review only)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_review_session_comparison_payload(storage)
+    return MrmsReviewSessionComparisonResponse(**payload)
 
 
 @router.get("/review-sessions", response_model=MrmsReviewSessionsResponse)

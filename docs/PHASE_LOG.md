@@ -1606,3 +1606,35 @@ cd frontend && npm run build
 - Review sessions do not clear alerts or verify MRMS
 - Evidence links are point-in-time snapshots at session creation
 - `verified_mrms` always false
+
+## Phase 42 - Review Session Comparison + Runbook Guidance
+
+Compare consecutive review sessions and surface runbook deep-links for open attention items.
+
+### Backend
+- `mrms_review_session_compare.py` — comparison service, persistence, bounded history (max 25)
+- `operator_guidance.build_open_attention_guidance()` — open attention → runbook mapping
+- `GET /api/validation/review-sessions/comparison`, `GET .../comparison/history`
+- Summary `mrms_review_session` adds `comparison` + `open_attention_guidance`
+- Gitignored: `mrms_review_session_comparison_latest.json`, `mrms_review_session_comparison_history.json`
+
+### Scripts / Makefile
+- `make mrms-review-session-compare` (read-only compare + persist; `--json`)
+
+### Frontend
+- Dev Validation: comparison status, baseline/latest timestamps, count changes, improvements/regressions, open attention runbook links
+
+### Run commands
+
+```bash
+make test
+make mrms-review-session ARGS="--operator TEST --notes 'local test' --accepted-limitations"
+make mrms-review-session-compare
+cd frontend && npm run build
+```
+
+### Known limitations
+- Comparison is local/dev review tooling only — not verified MRMS
+- Requires at least two sessions for baseline comparison (`no_baseline` otherwise)
+- Comparison does not clear alerts or mutate production/catalog/render gates
+- `verified_mrms` always false

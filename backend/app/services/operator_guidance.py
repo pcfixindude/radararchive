@@ -101,6 +101,47 @@ GUIDANCE_BY_CAUSE: dict[str, dict[str, str]] = {
         "anchor": "what-to-do-before-sign-off",
         "section_label": "What to do before sign-off",
     },
+    "proof_bundle_diff_escalation": {
+        "title": "Proof bundle diff escalation",
+        "path": RUNBOOK_PATH,
+        "anchor": "proof-bundle-diff-escalation-stdout-urgent",
+        "section_label": "Escalation history + urgent notice",
+    },
+    "digest_regeneration": {
+        "title": "Digest regeneration recommended",
+        "path": RUNBOOK_PATH,
+        "anchor": "proof-bundle-diff-escalation-digest-history-phase-40",
+        "section_label": "Digest export history + diff",
+    },
+    "stale_acknowledgment": {
+        "title": "Stale diff alert acknowledgment",
+        "path": RUNBOOK_PATH,
+        "anchor": "proof-bundle-diff-escalation-digest-phase-38",
+        "section_label": "Escalation metrics + digest",
+    },
+    "proof_report_failed": {
+        "title": "Proof report failed",
+        "path": RUNBOOK_PATH,
+        "anchor": "proof-regression-and-sign-off-phase-27",
+        "section_label": "Proof regression and sign-off",
+    },
+}
+
+OPEN_ATTENTION_SUGGESTED_ACTIONS: dict[str, str] = {
+    "proof_bundle_diff_escalation": (
+        "Review make proof-bundle-diff-escalation and escalation history; "
+        "follow runbook escalation section — local review only."
+    ),
+    "digest_regeneration": (
+        "Run make proof-bundle-diff-escalation-digest or make scheduled-proof-bundle-digest "
+        "to refresh local digest evidence."
+    ),
+    "stale_acknowledgment": (
+        "Re-run make proof-bundle-diff-acknowledgment after reviewing current diff alerts."
+    ),
+    "proof_report_failed": (
+        "Run make mrms-proof-report and make mrms-proof-regression; compare proof history."
+    ),
 }
 
 
@@ -167,3 +208,68 @@ def build_operator_guidance(alert: Optional[dict[str, Any]]) -> list[dict[str, A
 
 def compact_operator_guidance(alert: Optional[dict[str, Any]]) -> list[dict[str, Any]]:
     return build_operator_guidance(alert)
+
+
+def _match_open_attention_cause(item: str) -> Optional[str]:
+    text = item.strip()
+    if not text:
+        return None
+    lowered = text.lower()
+    if text.startswith("Validation alert:"):
+        return "before_signoff"
+    if text.startswith("Proof bundle diff attention:"):
+        if "mixed" in lowered:
+            return "proof_bundle_diff_mixed"
+        return "proof_bundle_diff_worsened"
+    if text.startswith("Proof regression still active") or text.startswith(
+        "Proof regression detected"
+    ):
+        return CAUSE_PROOF_REGRESSION
+    if text.startswith("Escalation level:"):
+        return "proof_bundle_diff_escalation"
+    if text.startswith("Proof bundle diff status:"):
+        if "mixed" in lowered:
+            return "proof_bundle_diff_mixed"
+        if "worsened" in lowered:
+            return "proof_bundle_diff_worsened"
+        return CAUSE_PROOF_BUNDLE_DIFF_WORSENED
+    if text.startswith("Latest proof report overall_status: failed"):
+        return "proof_report_failed"
+    if text.startswith("Digest regeneration recommended:"):
+        return "digest_regeneration"
+    if text.startswith("Diff alert acknowledgment is stale"):
+        return "stale_acknowledgment"
+    return CAUSE_UNKNOWN
+
+
+def build_open_attention_guidance(open_attention_items: list[str]) -> list[dict[str, Any]]:
+    """Map review session open attention items to runbook guidance (local review only)."""
+    items: list[dict[str, Any]] = []
+    seen_causes: set[str] = set()
+    for attention_item in open_attention_items:
+        cause = _match_open_attention_cause(str(attention_item))
+        if cause is None or cause in seen_causes:
+            continue
+        meta = GUIDANCE_BY_CAUSE.get(cause, GUIDANCE_BY_CAUSE[CAUSE_UNKNOWN])
+        suggested = OPEN_ATTENTION_SUGGESTED_ACTIONS.get(
+            cause,
+            SUGGESTED_ACTIONS.get(cause, SUGGESTED_ACTIONS.get(CAUSE_UNKNOWN, "")),
+        )
+        diff_status = None
+        if cause in ("proof_bundle_diff_worsened", "proof_bundle_diff_mixed"):
+            lowered = attention_item.lower()
+            if "mixed" in lowered:
+                diff_status = DIFF_MIXED
+            elif "worsened" in lowered:
+                diff_status = DIFF_WORSENED
+        guidance = _guidance_item(cause, diff_status=diff_status)
+        guidance["attention_item"] = attention_item
+        guidance["suggested_action"] = suggested or guidance.get("suggested_action", "")
+        guidance["title"] = meta["title"]
+        items.append(guidance)
+        seen_causes.add(cause)
+    return items[:15]
+
+
+def compact_open_attention_guidance(open_attention_items: list[str]) -> list[dict[str, Any]]:
+    return build_open_attention_guidance(open_attention_items)
