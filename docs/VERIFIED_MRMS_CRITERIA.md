@@ -202,6 +202,10 @@ Review session export diff trend hint (`make mrms-review-session-export-diff-tre
 
 Review session export diff history in the Dev Validation summary (`mrms_review_session_export_diff_history`, `make mrms-review-session-export-diff-history`) shows recent consecutive export comparisons (`improved`, `worsened`, `mixed`, `unchanged`, `no_baseline`) for local operator review. This is **supporting local review evidence only** — it does **not** verify MRMS, clear alerts, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
 
+## Operator review status consolidation (Phase 49)
+
+Consolidated operator review status (`operator_review_status`, `make operator-review-status`, `GET /api/validation/operator-review-status`) summarizes validation alerts, escalation/trend hints, digest and export regeneration hints, review session/export/diff/trend/history into one local Dev Validation block. `status_level` (`ok`/`watch`/`attention`/`urgent`/`unknown`) and `top_suggested_command` follow documented priority rules. This is **local consolidation only** — it does **not** verify MRMS, clear alerts, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
+
 ## Scheduled proof bundle monitoring (Phase 32)
 
 `make scheduled-proof-bundle` runs scheduled validation with `--proof --bundle --diff-bundle`. This is **local evidence monitoring only** — it does not verify MRMS or enable production rendering. Alerts may flag `worsened` or `mixed` diff status for operator review.

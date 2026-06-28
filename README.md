@@ -151,6 +151,7 @@ make mrms-review-session-export-diff
 make mrms-review-session-export-diff-history
 make mrms-review-session-export-diff-trend
 make mrms-review-session-export-diff-trend-hint
+make operator-review-status
 make mrms-review-session ARGS="--operator OP --notes 'local review only' --accepted-limitations --export-after-create"
 make real-mrms-smoke-test
 make scheduled-validation ARGS="--proof"
@@ -180,6 +181,7 @@ curl -X POST http://127.0.0.1:8000/api/validation/signoffs \
   -H 'Content-Type: application/json' \
   -d '{"operator_initials":"OP","operator_notes":"local review only"}'
 curl http://127.0.0.1:8000/api/validation/latest
+curl http://127.0.0.1:8000/api/validation/operator-review-status
 ```
 
 Sample cron (not installed automatically):
@@ -245,6 +247,7 @@ Limitations:
 - `make mrms-review-session-export-diff-history` lists bounded export diff history (`--json`, `--limit`); Dev Validation summary shows recent 5 entries with show/hide toggle
 - `make mrms-review-session-export-diff-trend` summarizes export diff trend (`improving`/`worsening`/`mixed`/`stable`/`no_data`; `--json`, `--limit`)
 - `make mrms-review-session-export-diff-trend-hint` shows when a new review session/export is recommended (`--json`)
+- `make operator-review-status` prints consolidated local operator review status (`--json`); Dev Validation shows compact block near top of validation area
 - `make mrms-review-session ARGS="... --export-after-create"` creates a session and immediately exports Markdown (session is kept if export fails)
 - `make mrms-signoff` records local operator sign-off (does not set verified_mrms)
 - `POST /api/validation/signoffs` — dev-only sign-off API (same validation as CLI; does not verify MRMS)

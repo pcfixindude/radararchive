@@ -535,6 +535,12 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Summary: `mrms_review_session_export_diff_history`
 - Read-only — does not change export diff recording
 
+### Operator review status consolidation (Phase 49)
+- `operator_review_status.py` — consolidates validation alerts, escalation/trend hints, digest/export regeneration hints, review session/export/diff/trend/history into one compact status block
+- `GET /api/validation/operator-review-status`
+- Summary: `operator_review_status` compact (`status_level`, recommendations, `top_suggested_command`, `evidence_trend`, timestamps, counts)
+- Read-only — does not mutate alerts, sessions, exports, digests, or production gates
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

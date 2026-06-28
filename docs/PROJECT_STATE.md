@@ -1,13 +1,13 @@
 # Project State
 
-Current phase: Phase 48 complete
+Current phase: Phase 49 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
+- **Operator review status consolidation** — one compact Dev Validation block from local review hints/history/exports/trends
 - **Dev Validation export diff history** — recent entries (max 5) in summary API and UI
 - **Review export diff trend regeneration hints** with scheduled validation tie-in
-- **Review session export diff trends** from bounded export diff history
 - **Default tile serving: placeholder**
 - Not verified real MRMS — warping prototype only
 
@@ -19,17 +19,18 @@ ENABLE_PRODUCTION_RADAR_TILES=false
 STALE_RUNNING_JOB_SECONDS=3600
 ```
 
-## Operator commands (Phase 48)
+## Operator commands (Phase 49)
 
 ```bash
-make mrms-review-session-export-diff-history
-curl http://127.0.0.1:8000/api/validation/summary
+make operator-review-status
+make operator-review-status ARGS="--json"
+curl http://127.0.0.1:8000/api/validation/operator-review-status
 ```
 
 ## Dev API
 
-Summary includes `mrms_review_session_export_diff_history` compact (count, latest status/timestamp, recent entries max 5).
+Summary includes `operator_review_status` compact (`status_level`, recommendations, `top_suggested_command`, `evidence_trend`, timestamps, counts).
 
 ## Verified MRMS
 
-`verified_mrms` is **false** everywhere. Export diff history is local operator evidence only.
+`verified_mrms` is **false** everywhere. Operator review status is local consolidation only — does not verify MRMS, clear alerts, or enable production rendering.

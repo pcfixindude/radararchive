@@ -746,6 +746,42 @@ class ReviewExportRegenerationHintCompact(BaseModel):
     prototype: bool = True
 
 
+class OperatorReviewStatusCompact(BaseModel):
+    available: bool = True
+    created_at: Optional[str] = None
+    status_level: str = "unknown"
+    status_reason: Optional[str] = None
+    top_recommended_action: Optional[str] = None
+    top_suggested_command: Optional[str] = None
+    review_session_recommended: bool = False
+    review_export_recommended: bool = False
+    digest_regeneration_recommended: bool = False
+    evidence_trend: str = "unknown"
+    latest_review_session_at: Optional[str] = None
+    latest_review_export_at: Optional[str] = None
+    latest_digest_at: Optional[str] = None
+    latest_export_diff_status: Optional[str] = None
+    latest_export_diff_trend: Optional[str] = None
+    open_attention_count: Optional[int] = None
+    active_guidance_count: int = 0
+    verified_mrms: bool = False
+    local_status_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    prototype: bool = True
+
+
+class OperatorReviewStatusResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_status_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    status: OperatorReviewStatusCompact
+
+
 class MrmsReviewSessionExportResponse(BaseModel):
     prototype: bool = True
     verified_mrms: bool = False
@@ -1362,6 +1398,7 @@ class ValidationSummaryResponse(BaseModel):
     mrms_review_session_export_diff_trend_hint: Optional[MrmsReviewSessionExportDiffTrendHintCompact] = None
     mrms_review_session_export_diff_history: Optional[MrmsReviewSessionExportDiffHistorySummaryCompact] = None
     review_export_regeneration_hint: Optional[ReviewExportRegenerationHintCompact] = None
+    operator_review_status: Optional[OperatorReviewStatusCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse

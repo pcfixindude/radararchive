@@ -1827,3 +1827,33 @@ cd frontend && npm run build
 - Local/dev review tooling only — not verified MRMS
 - Does not clear alerts or mutate production/catalog/render gates
 - `verified_mrms` always false
+
+## Phase 49 - Operator Review Status Consolidation
+
+Consolidated local operator review status for Dev Validation and CLI.
+
+### Backend
+- `operator_review_status.py` — reads existing validation alert, escalation, digest/export regeneration hints, review session/export/diff/trend/history compacts
+- `GET /api/validation/operator-review-status`
+- Summary: `operator_review_status`
+- Read-only — does not mutate alerts, sessions, exports, digests, or gates
+
+### Scripts / Makefile
+- `make operator-review-status` (`--json`)
+
+### Frontend
+- Dev Validation: compact “Operator Review Status” block near top (level, reason, action, command, recommendations, trend, timestamps, counts)
+
+### Run commands
+
+```bash
+make test
+make operator-review-status
+cd frontend && npm run build
+```
+
+### Known limitations
+- Consolidation summarizes existing local artifacts only — `unknown` when insufficient data
+- Local/dev review tooling only — not verified MRMS
+- Does not clear alerts or mutate production/catalog/render gates
+- `verified_mrms` always false

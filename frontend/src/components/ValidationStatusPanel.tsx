@@ -252,6 +252,7 @@ export default function ValidationStatusPanel({
   const reviewSessionExportDiffTrendHint = summary.mrms_review_session_export_diff_trend_hint ?? null;
   const reviewSessionExportDiffHistory = summary.mrms_review_session_export_diff_history ?? null;
   const reviewExportRegenerationHint = summary.review_export_regeneration_hint ?? null;
+  const operatorReviewStatus = summary.operator_review_status ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
   const queue = summary.render_queue;
@@ -274,6 +275,61 @@ export default function ValidationStatusPanel({
         </div>
       </div>
       <p className="validation-warn">Experimental pipeline — not verified real MRMS.</p>
+      {operatorReviewStatus ? (
+        <section className="validation-operator-review-status">
+          <h3>Operator Review Status</h3>
+          <p
+            className={
+              operatorReviewStatus.status_level === 'urgent' ||
+              operatorReviewStatus.status_level === 'attention'
+                ? 'validation-warn'
+                : 'validation-meta'
+            }
+          >
+            Status: {operatorReviewStatus.status_level ?? 'unknown'}
+            {operatorReviewStatus.status_reason ? ` — ${operatorReviewStatus.status_reason}` : ''}
+          </p>
+          {operatorReviewStatus.top_recommended_action ? (
+            <p className="validation-meta">
+              Top recommended action: {operatorReviewStatus.top_recommended_action}
+            </p>
+          ) : null}
+          {operatorReviewStatus.top_suggested_command ? (
+            <p className="validation-meta">
+              Suggested command: <code>{operatorReviewStatus.top_suggested_command}</code>
+            </p>
+          ) : null}
+          <p className="validation-meta">
+            Review session recommended:{' '}
+            {operatorReviewStatus.review_session_recommended ? 'yes' : 'no'} — review export
+            recommended: {operatorReviewStatus.review_export_recommended ? 'yes' : 'no'} — digest
+            regeneration recommended:{' '}
+            {operatorReviewStatus.digest_regeneration_recommended ? 'yes' : 'no'}
+          </p>
+          <p className="validation-meta">
+            Evidence trend: {operatorReviewStatus.evidence_trend ?? 'unknown'}
+            {operatorReviewStatus.latest_export_diff_status
+              ? ` — latest export diff: ${operatorReviewStatus.latest_export_diff_status}`
+              : ''}
+            {operatorReviewStatus.latest_export_diff_trend
+              ? ` — export diff trend: ${operatorReviewStatus.latest_export_diff_trend}`
+              : ''}
+          </p>
+          <p className="validation-meta">
+            Latest review session: {formatTimestamp(operatorReviewStatus.latest_review_session_at)} —
+            latest export: {formatTimestamp(operatorReviewStatus.latest_review_export_at)} — latest
+            digest: {formatTimestamp(operatorReviewStatus.latest_digest_at)}
+          </p>
+          <p className="validation-meta">
+            Open attention count: {operatorReviewStatus.open_attention_count ?? '—'} — active
+            guidance count: {operatorReviewStatus.active_guidance_count ?? 0}
+          </p>
+          <p className="validation-warn">
+            Local consolidation only — does not verify MRMS, clear alerts, notify externally, or
+            enable production rendering
+          </p>
+        </section>
+      ) : null}
       {validationAlert ? (
         <>
           <p

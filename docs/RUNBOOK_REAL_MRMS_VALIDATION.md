@@ -592,6 +592,25 @@ curl http://127.0.0.1:8000/api/validation/review-sessions/export/diff/history
 
 **Warnings:** History is local-only — does not verify MRMS, clear alerts, notify externally, or enable production rendering.
 
+## Operator review status consolidation (Phase 49)
+
+One compact Dev Validation block summarizes local review hints, exports, trends, and regeneration recommendations.
+
+```bash
+make operator-review-status
+make operator-review-status ARGS="--json"
+curl http://127.0.0.1:8000/api/validation/operator-review-status
+curl http://127.0.0.1:8000/api/validation/summary
+```
+
+**`status_level`:** `ok` — no recommendations, improving/stable evidence; `watch` — stable/mixed trend with history or escalation/alert watch; `attention` — regeneration hints, worsened/mixed export diff, or open attention; `urgent` — failed alert, urgent escalation, or worsening export-diff streak ≥2; `unknown` — insufficient local data.
+
+**Suggested command priority:** digest stale → `make scheduled-proof-bundle-review-export`; export stale (session exists) → `make mrms-review-session-export`; trend/session attention → `make mrms-review-session` with `--export-after-create`; no session → initial session with `--export-after-create`.
+
+**Dev Validation UI:** “Operator Review Status” block near the top shows level, reason, recommended action, suggested command, recommendation flags, evidence trend, timestamps, and counts. Detailed blocks (session form, export diff, trend, history, digest, proof bundle, alerts) remain unchanged.
+
+**Warnings:** Consolidation is local-only — does not verify MRMS, clear alerts, notify externally, or enable production rendering.
+
 ## Scheduled review session export (Phase 44)
 
 Optional scheduled validation step exports the latest review session Markdown after digest/handoff — **local scheduled review only**.

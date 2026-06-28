@@ -314,6 +314,14 @@ Scheduled validation report additions (Phase 47): when `review_export_requested`
 
 Summary additions (Phase 48): `mrms_review_session_export_diff_history` compact (`count`, `latest_status`, `latest_created_at`, `recent` max 5 entries with status, session change, attention/comparison changes, improvement/regression counts).
 
+Summary additions (Phase 49): `operator_review_status` compact (`status_level` `ok`/`watch`/`attention`/`urgent`/`unknown`, `status_reason`, `top_recommended_action`, `top_suggested_command`, `review_session_recommended`, `review_export_recommended`, `digest_regeneration_recommended`, `evidence_trend`, latest session/export/digest timestamps, `open_attention_count`, `active_guidance_count`, safety flags).
+
+Endpoints (Phase 49): `GET /api/validation/operator-review-status` (read-only consolidation; `verified_mrms: false`, `local_status_only: true`, `does_not_clear_alerts: true`, `does_not_enable_production: true`).
+
+**`status_level` interpretation:** `urgent` — failed validation alert, urgent escalation, or worsening export-diff streak ≥2; `attention` — regeneration hints, worsened/mixed latest export diff, or open attention items; `watch` — stable/mixed export trend with history or escalation/alert watch; `ok` — improving/stable evidence without recommendations; `unknown` — insufficient local review data.
+
+**`top_suggested_command` priority:** (1) digest stale → `make scheduled-proof-bundle-review-export`; (2) session exists, export stale → `make mrms-review-session-export`; (3) trend/session attention → `make mrms-review-session` with `--export-after-create`; (4) no session → initial `make mrms-review-session` with `--export-after-create`.
+
 Existing endpoint unchanged: `GET /api/validation/review-sessions/export/diff/history` (full bounded history up to 25).
 
 Scheduled validation report additions (Phase 32): `bundle_requested`, `diff_bundle_requested`, `mrms_proof_bundle`, `mrms_proof_bundle_diff`; steps `proof_report`, `proof_regression`, `proof_bundle_export`, `proof_bundle_diff`.

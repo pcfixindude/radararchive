@@ -704,6 +704,32 @@ export type ReviewExportRegenerationHintCompact = {
   prototype: boolean;
 };
 
+export type OperatorReviewStatusCompact = {
+  available?: boolean;
+  created_at?: string | null;
+  status_level?: string;
+  status_reason?: string | null;
+  top_recommended_action?: string | null;
+  top_suggested_command?: string | null;
+  review_session_recommended?: boolean;
+  review_export_recommended?: boolean;
+  digest_regeneration_recommended?: boolean;
+  evidence_trend?: string;
+  latest_review_session_at?: string | null;
+  latest_review_export_at?: string | null;
+  latest_digest_at?: string | null;
+  latest_export_diff_status?: string | null;
+  latest_export_diff_trend?: string | null;
+  open_attention_count?: number | null;
+  active_guidance_count?: number;
+  verified_mrms: boolean;
+  local_status_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  no_external_notifications?: boolean;
+  prototype: boolean;
+};
+
 export type MrmsReviewSessionCreateRequest = {
   operator_name?: string;
   operator_initials?: string;
@@ -1147,6 +1173,7 @@ export type ValidationSummary = {
   mrms_review_session_export_diff_trend_hint?: MrmsReviewSessionExportDiffTrendHintCompact | null;
   mrms_review_session_export_diff_history?: MrmsReviewSessionExportDiffHistoryCompact | null;
   review_export_regeneration_hint?: ReviewExportRegenerationHintCompact | null;
+  operator_review_status?: OperatorReviewStatusCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;
