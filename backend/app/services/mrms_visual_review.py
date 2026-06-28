@@ -26,6 +26,7 @@ from backend.app.services.storage import LocalStorage
 from backend.app.services.tile_pyramid import build_production_tile_repo_path
 
 VISUAL_REVIEW_LATEST_JSON = "dev/mrms_visual_review_latest.json"
+VISUAL_REVIEW_PREVIOUS_JSON = "dev/mrms_visual_review_previous.json"
 VISUAL_REVIEW_LATEST_MD = "dev/mrms_visual_review_latest.md"
 VISUAL_REVIEW_HISTORY = "dev/mrms_visual_review_history.json"
 MAX_VISUAL_REVIEW_HISTORY = 25
@@ -364,7 +365,39 @@ def load_latest_visual_review(storage: LocalStorage) -> Optional[dict[str, Any]]
     return None
 
 
+def _previous_json_repo_path(storage: LocalStorage) -> str:
+    return storage.normalize_path(VISUAL_REVIEW_PREVIOUS_JSON)
+
+
+def snapshot_previous_visual_review(storage: LocalStorage) -> None:
+    """Copy current latest visual review to previous snapshot before overwrite."""
+    latest = load_latest_visual_review(storage)
+    if latest is None:
+        return
+    repo_path = _previous_json_repo_path(storage)
+    storage.ensure_directories(repo_path.rsplit("/", 1)[0])
+    storage.absolute_path(repo_path).write_text(
+        json.dumps(latest, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
+
+
+def load_previous_visual_review(storage: LocalStorage) -> Optional[dict[str, Any]]:
+    repo_path = _previous_json_repo_path(storage)
+    abs_path = storage.absolute_path(repo_path)
+    if not abs_path.is_file():
+        return None
+    try:
+        data = json.loads(abs_path.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            return data
+    except (json.JSONDecodeError, OSError):
+        pass
+    return None
+
+
 def save_visual_review_report(storage: LocalStorage, report: dict[str, Any]) -> dict[str, Any]:
+    snapshot_previous_visual_review(storage)
     json_repo = _latest_json_repo_path(storage)
     md_repo = _latest_md_repo_path(storage)
     storage.ensure_directories(json_repo.rsplit("/", 1)[0])

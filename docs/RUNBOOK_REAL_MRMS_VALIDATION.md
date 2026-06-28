@@ -726,6 +726,29 @@ make mrms-visual-review-history ARGS="--json-report --limit 10"
 
 Visual review is **supporting local operator evidence only** — it does **not** verify MRMS, clear alerts, notify externally, or enable production rendering.
 
+## MRMS visual review comparison and hints (Phase 57)
+
+Compare latest vs previous visual review manifests and detect stale reviews:
+
+```bash
+make mrms-visual-review-compare
+make mrms-visual-review-compare ARGS="--json"
+make mrms-visual-review-comparison-history
+make mrms-visual-review-hint
+make mrms-visual-review-hint ARGS="--json"
+```
+
+**Comparison status (`overall_visual_review_diff_status`):**
+- `no_baseline` — first visual review or no previous snapshot
+- `unchanged` — artifact/missing counts and tile modes stable
+- `improved` — more artifacts, fewer missing warnings, and/or better tile modes
+- `worsened` — fewer artifacts or more missing warnings
+- `mixed` — both improvements and regressions
+
+**Regeneration hint:** recommends `make mrms-visual-review` when no visual review exists, when proof/validation/bundle evidence is newer than the latest visual review, or when missing artifacts coincide with newer proof/render activity.
+
+Comparison and hints are **local review guidance only** — they do **not** verify MRMS, clear alerts, download/decode MRMS, or enable production rendering.
+
 ### Operator review status guidance anchors (Phase 50)
 
 Runbook deep-links from consolidated status (`guidance_items`, `top_guidance_item`):

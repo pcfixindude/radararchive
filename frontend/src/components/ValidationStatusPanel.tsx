@@ -259,6 +259,8 @@ export default function ValidationStatusPanel({
   const operatorReviewStatus = summary.operator_review_status ?? null;
   const operatorWorkflowPresets = summary.operator_workflow_presets ?? null;
   const mrmsVisualReview = summary.mrms_visual_review ?? null;
+  const mrmsVisualReviewComparison = summary.mrms_visual_review_comparison ?? null;
+  const mrmsVisualReviewHint = summary.mrms_visual_review_hint ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -489,8 +491,53 @@ export default function ValidationStatusPanel({
       >
         <p className="validation-meta">
           Local visual review only — inspects existing tile/render artifacts on disk. Does not verify
-          MRMS, clear alerts, or enable production rendering.
+          MRMS, clear alerts, enable production rendering, or download/decode new MRMS data.
         </p>
+        {mrmsVisualReviewComparison?.available ? (
+          <p className="validation-meta">
+            Comparison status: {mrmsVisualReviewComparison.overall_visual_review_diff_status ?? '—'}
+            {mrmsVisualReviewComparison.compared_at
+              ? ` — compared ${formatTimestamp(mrmsVisualReviewComparison.compared_at)}`
+              : ''}
+          </p>
+        ) : (
+          <p className="validation-meta">
+            Comparison: no baseline yet — run <code>make mrms-visual-review-compare</code> after two
+            visual reviews.
+          </p>
+        )}
+        {mrmsVisualReviewComparison?.artifact_count_change ? (
+          <p className="validation-meta">
+            Artifact count change: {mrmsVisualReviewComparison.artifact_count_change.baseline ?? '—'}{' '}
+            → {mrmsVisualReviewComparison.artifact_count_change.latest ?? '—'}
+          </p>
+        ) : null}
+        {mrmsVisualReviewComparison?.missing_artifact_count_change ? (
+          <p className="validation-meta">
+            Missing artifact count change:{' '}
+            {mrmsVisualReviewComparison.missing_artifact_count_change.baseline ?? '—'} →{' '}
+            {mrmsVisualReviewComparison.missing_artifact_count_change.latest ?? '—'}
+          </p>
+        ) : null}
+        {((mrmsVisualReviewComparison?.tile_modes_added?.length ?? 0) > 0 ||
+          (mrmsVisualReviewComparison?.tile_modes_removed?.length ?? 0) > 0) ? (
+          <p className="validation-meta">
+            Tile modes added:{' '}
+            {(mrmsVisualReviewComparison?.tile_modes_added ?? []).join(', ') || '—'} — removed:{' '}
+            {(mrmsVisualReviewComparison?.tile_modes_removed ?? []).join(', ') || '—'}
+          </p>
+        ) : null}
+        <p className="validation-meta">
+          Regenerate visual review recommended:{' '}
+          {yesNo(mrmsVisualReviewHint?.visual_review_regeneration_recommended ?? false)}
+          {mrmsVisualReviewHint?.reason ? ` — ${mrmsVisualReviewHint.reason}` : ''}
+        </p>
+        {mrmsVisualReviewHint?.latest_relevant_evidence_at ? (
+          <p className="validation-meta">
+            Latest relevant evidence:{' '}
+            {formatTimestamp(mrmsVisualReviewHint.latest_relevant_evidence_at)}
+          </p>
+        ) : null}
         {mrmsVisualReview?.available ? (
           <>
             <p className="validation-meta">
@@ -526,7 +573,11 @@ export default function ValidationStatusPanel({
           </p>
         )}
         <CommandLine
-          command={mrmsVisualReview?.suggested_next_command ?? 'make mrms-visual-review'}
+          command={
+            mrmsVisualReviewHint?.suggested_command ??
+            mrmsVisualReview?.suggested_next_command ??
+            'make mrms-visual-review'
+          }
           label="Suggested command"
           manualCopy
         />

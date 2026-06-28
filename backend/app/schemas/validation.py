@@ -842,6 +842,77 @@ class MrmsVisualReviewHistoryResponse(BaseModel):
     compact: MrmsVisualReviewCompact
 
 
+class MrmsVisualReviewComparisonCompact(BaseModel):
+    available: bool = False
+    overall_visual_review_diff_status: Optional[str] = None
+    compared_at: Optional[str] = None
+    latest_created_at: Optional[str] = None
+    baseline_created_at: Optional[str] = None
+    artifact_count_change: Optional[dict[str, Any]] = None
+    missing_artifact_count_change: Optional[dict[str, Any]] = None
+    tile_modes_added: list[str] = Field(default_factory=list)
+    tile_modes_removed: list[str] = Field(default_factory=list)
+    history_count: int = 0
+    verified_mrms: bool = False
+    local_visual_review_comparison_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class MrmsVisualReviewHintCompact(BaseModel):
+    available: bool = True
+    visual_review_regeneration_recommended: bool = False
+    reason: Optional[str] = None
+    suggested_command: Optional[str] = None
+    latest_visual_review_at: Optional[str] = None
+    latest_relevant_evidence_at: Optional[str] = None
+    stale_visual_review: bool = False
+    verified_mrms: bool = False
+    local_hint_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class MrmsVisualReviewComparisonResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_visual_review_comparison_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    latest: Optional[dict[str, Any]] = None
+    count: int = 0
+    max_entries: int = 25
+    entries: list[dict[str, Any]] = Field(default_factory=list)
+    compact: MrmsVisualReviewComparisonCompact
+
+
+class MrmsVisualReviewComparisonHistoryResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_visual_review_comparison_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    count: int = 0
+    max_entries: int = 25
+    entries: list[dict[str, Any]] = Field(default_factory=list)
+    compact: MrmsVisualReviewComparisonCompact
+
+
+class MrmsVisualReviewHintResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_hint_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    hint: dict[str, Any] = Field(default_factory=dict)
+    compact: MrmsVisualReviewHintCompact
+
+
 class ScheduledOperatorStatusCompact(BaseModel):
     operator_status_requested: bool = False
     operator_status_generated: bool = False
@@ -1566,6 +1637,8 @@ class ValidationSummaryResponse(BaseModel):
     operator_review_status: Optional[OperatorReviewStatusCompact] = None
     operator_workflow_presets: Optional[OperatorWorkflowPresetsCompact] = None
     mrms_visual_review: Optional[MrmsVisualReviewCompact] = None
+    mrms_visual_review_comparison: Optional[MrmsVisualReviewComparisonCompact] = None
+    mrms_visual_review_hint: Optional[MrmsVisualReviewHintCompact] = None
     scheduled_operator_status: Optional[ScheduledOperatorStatusCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)

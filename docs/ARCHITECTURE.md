@@ -585,6 +585,12 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Dev Validation **MRMS Visual Review** collapsible section
 - Tile modes: placeholder, placeholder_for_real_raw, decoded_prototype, production_gated, production_rendered_cache, unknown
 
+### Visual review comparison and hints (Phase 57)
+- `mrms_visual_review_compare.py` — `overall_visual_review_diff_status` (no_baseline/unchanged/improved/worsened/mixed)
+- `mrms_visual_review_hint.py` — `visual_review_regeneration_recommended`, stale evidence detection
+- `make mrms-visual-review-compare`, `make mrms-visual-review-hint`
+- Previous manifest rotation on visual review save
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

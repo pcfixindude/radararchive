@@ -766,6 +766,37 @@ export type MrmsVisualReviewCompact = {
   does_not_enable_production: boolean;
 };
 
+export type MrmsVisualReviewComparisonCompact = {
+  available?: boolean;
+  overall_visual_review_diff_status?: string | null;
+  compared_at?: string | null;
+  latest_created_at?: string | null;
+  baseline_created_at?: string | null;
+  artifact_count_change?: { baseline?: number; latest?: number } | null;
+  missing_artifact_count_change?: { baseline?: number; latest?: number } | null;
+  tile_modes_added?: string[];
+  tile_modes_removed?: string[];
+  history_count?: number;
+  verified_mrms: boolean;
+  local_visual_review_comparison_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+};
+
+export type MrmsVisualReviewHintCompact = {
+  available?: boolean;
+  visual_review_regeneration_recommended?: boolean;
+  reason?: string | null;
+  suggested_command?: string | null;
+  latest_visual_review_at?: string | null;
+  latest_relevant_evidence_at?: string | null;
+  stale_visual_review?: boolean;
+  verified_mrms: boolean;
+  local_hint_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+};
+
 export type OperatorWorkflowPresetsCompact = {
   available?: boolean;
   recommended_count?: number;
@@ -1275,6 +1306,8 @@ export type ValidationSummary = {
   operator_review_status?: OperatorReviewStatusCompact | null;
   operator_workflow_presets?: OperatorWorkflowPresetsCompact | null;
   mrms_visual_review?: MrmsVisualReviewCompact | null;
+  mrms_visual_review_comparison?: MrmsVisualReviewComparisonCompact | null;
+  mrms_visual_review_hint?: MrmsVisualReviewHintCompact | null;
   scheduled_operator_status?: ScheduledOperatorStatusCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];

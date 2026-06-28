@@ -15,6 +15,8 @@ from backend.app.services.mrms_operator_handoff import (
 )
 from backend.app.services.operator_guidance import compact_operator_guidance
 from backend.app.services.mrms_visual_review import compact_mrms_visual_review
+from backend.app.services.mrms_visual_review_compare import compact_visual_review_comparison_summary
+from backend.app.services.mrms_visual_review_hint import compact_visual_review_hint
 from backend.app.services.operator_review_status import (
     compact_operator_review_status,
     compact_scheduled_operator_status,
@@ -197,6 +199,8 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "operator_review_status": compact_operator_review_status(storage),
         "operator_workflow_presets": compact_operator_workflow_presets(storage),
         "mrms_visual_review": compact_mrms_visual_review(storage),
+        "mrms_visual_review_comparison": compact_visual_review_comparison_summary(storage),
+        "mrms_visual_review_hint": compact_visual_review_hint(storage),
         "scheduled_operator_status": compact_scheduled_operator_status(scheduled),
         "runbook_references": RUNBOOK_LINK_METADATA,
         "catalog": catalog,

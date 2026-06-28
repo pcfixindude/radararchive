@@ -230,6 +230,10 @@ Dev Validation adds client-side preset filters (recommended-only, optional group
 
 `make mrms-visual-review` inspects existing local catalog/tile artifacts and writes JSON + Markdown manifests under `data/dev/`. Tile modes distinguish placeholder, decoded prototype, and production-gated/cache paths. This is **local visual evidence only** — it does **not** verify MRMS, clear alerts, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
 
+## MRMS visual review comparison and hints (Phase 57)
+
+`make mrms-visual-review-compare` and `make mrms-visual-review-hint` compare manifests and suggest regeneration when proof/validation evidence is newer. This is **local review guidance only** — it does **not** verify MRMS, clear alerts, download/decode MRMS, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
+
 ## Scheduled proof bundle monitoring (Phase 32)
 
 `make scheduled-proof-bundle` runs scheduled validation with `--proof --bundle --diff-bundle`. This is **local evidence monitoring only** — it does not verify MRMS or enable production rendering. Alerts may flag `worsened` or `mixed` diff status for operator review.

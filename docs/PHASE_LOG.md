@@ -2046,3 +2046,31 @@ cd frontend && npm run build
 ### Known limitations
 - Read-only inspection — does not download, decode GRIB2, or render new tiles
 - Does not verify MRMS, clear alerts, or enable production rendering
+
+## Phase 57 - Visual Review Comparison and Hints
+
+Compare visual review manifests and suggest when to regenerate.
+
+### Backend
+- `mrms_visual_review_compare.py` — latest vs previous manifest comparison with bounded history
+- `mrms_visual_review_hint.py` — stale visual review regeneration hint from proof/validation evidence timestamps
+- Previous manifest snapshot (`mrms_visual_review_previous.json`) on save
+- Endpoints: `/mrms-visual-review/comparison`, `/comparison/history`, `/hint`
+- Summary: `mrms_visual_review_comparison`, `mrms_visual_review_hint` compact fields
+
+### Frontend
+- Dev Validation MRMS Visual Review shows comparison status, count changes, tile mode deltas, regeneration hint
+
+### Run commands
+
+```bash
+make test
+make mrms-visual-review-compare
+make mrms-visual-review-hint
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Comparison requires at least one prior visual review snapshot for baseline diffs
+- Hints are advisory only — do not download, decode, or verify MRMS

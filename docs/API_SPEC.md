@@ -338,6 +338,10 @@ Summary additions (Phase 56): `mrms_visual_review` compact (`available`, `create
 
 Endpoints (Phase 56): `GET /api/validation/mrms-visual-review` (latest manifest or safe empty state); `GET /api/validation/mrms-visual-review/history` (`limit` max 25). Read-only — inspects existing artifacts only; `verified_mrms: false`, `local_visual_review_only: true`, `does_not_clear_alerts: true`, `does_not_enable_production: true`.
 
+Summary additions (Phase 57): `mrms_visual_review_comparison` compact (`overall_visual_review_diff_status`, `artifact_count_change`, `missing_artifact_count_change`, `tile_modes_added`, `tile_modes_removed`, …); `mrms_visual_review_hint` compact (`visual_review_regeneration_recommended`, `reason`, `stale_visual_review`, `latest_relevant_evidence_at`, …).
+
+Endpoints (Phase 57): `GET /api/validation/mrms-visual-review/comparison`; `GET /api/validation/mrms-visual-review/comparison/history`; `GET /api/validation/mrms-visual-review/hint`. Comparison persists `mrms_visual_review_comparison_latest.json` + bounded history when `make mrms-visual-review-compare` runs. Hints are read-only guidance — do not download/decode MRMS or enable production rendering.
+
 **Preset runbook anchors:** `operator-workflow-preset-quick-status-check`, `operator-workflow-preset-full-local-proof-review`, `operator-workflow-preset-create-review-session-and-export`, `operator-workflow-preset-regenerate-digest-checklist-export`, `operator-workflow-preset-inspect-worsening-export-trend`, `operator-workflow-preset-review-proof-bundle-diff`, `operator-workflow-preset-scheduled-proof-bundle-operator-status` — see `docs/RUNBOOK_REAL_MRMS_VALIDATION.md`.
 
 **`status_level` interpretation:** `urgent` — failed validation alert, urgent escalation, or worsening export-diff streak ≥2; `attention` — regeneration hints, worsened/mixed latest export diff, or open attention items; `watch` — stable/mixed export trend with history or escalation/alert watch; `ok` — improving/stable evidence without recommendations; `unknown` — insufficient local review data.

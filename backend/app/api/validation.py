@@ -39,6 +39,9 @@ from backend.app.schemas.validation import (
     MrmsReviewSessionExportDiffTrendResponse,
     MrmsReviewSessionExportDiffTrendHintResponse,
     MrmsVisualReviewHistoryResponse,
+    MrmsVisualReviewComparisonHistoryResponse,
+    MrmsVisualReviewComparisonResponse,
+    MrmsVisualReviewHintResponse,
     MrmsVisualReviewResponse,
     OperatorReviewStatusResponse,
     OperatorWorkflowPresetsResponse,
@@ -120,6 +123,11 @@ from backend.app.services.mrms_visual_review import (
     build_mrms_visual_review_history_payload,
     build_mrms_visual_review_payload,
 )
+from backend.app.services.mrms_visual_review_compare import (
+    build_visual_review_comparison_history_payload,
+    build_visual_review_comparison_payload,
+)
+from backend.app.services.mrms_visual_review_hint import build_visual_review_hint_payload
 from backend.app.services.operator_review_status import build_operator_review_status_payload
 from backend.app.services.operator_workflow_presets import build_operator_workflow_presets_payload
 from backend.app.services.mrms_proof_report import load_mrms_proof_report
@@ -336,6 +344,36 @@ def validation_operator_workflow_presets() -> OperatorWorkflowPresetsResponse:
     storage = LocalStorage(settings.local_storage_root)
     payload = build_operator_workflow_presets_payload(storage)
     return OperatorWorkflowPresetsResponse(**payload)
+
+
+@router.get("/mrms-visual-review/hint", response_model=MrmsVisualReviewHintResponse)
+def validation_mrms_visual_review_hint() -> MrmsVisualReviewHintResponse:
+    """Stale visual review regeneration hint (read-only; local hint only)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_visual_review_hint_payload(storage)
+    return MrmsVisualReviewHintResponse(**payload)
+
+
+@router.get(
+    "/mrms-visual-review/comparison/history",
+    response_model=MrmsVisualReviewComparisonHistoryResponse,
+)
+def validation_mrms_visual_review_comparison_history(
+    limit: int = 25,
+) -> MrmsVisualReviewComparisonHistoryResponse:
+    """Bounded MRMS visual review comparison history (read-only; local review only)."""
+    storage = LocalStorage(settings.local_storage_root)
+    bounded = max(1, min(limit, 25))
+    payload = build_visual_review_comparison_history_payload(storage, limit=bounded)
+    return MrmsVisualReviewComparisonHistoryResponse(**payload)
+
+
+@router.get("/mrms-visual-review/comparison", response_model=MrmsVisualReviewComparisonResponse)
+def validation_mrms_visual_review_comparison() -> MrmsVisualReviewComparisonResponse:
+    """Latest MRMS visual review comparison (read-only; local visual evidence only)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_visual_review_comparison_payload(storage)
+    return MrmsVisualReviewComparisonResponse(**payload)
 
 
 @router.get("/mrms-visual-review", response_model=MrmsVisualReviewResponse)
