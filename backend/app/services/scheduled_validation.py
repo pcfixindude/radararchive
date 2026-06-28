@@ -104,6 +104,9 @@ class ScheduledValidationReport:
     handoff_path: Optional[str] = None
     handoff_reason: Optional[str] = None
     diff_status_that_triggered_handoff: Optional[str] = None
+    notify_stdout_requested: bool = False
+    urgent_stdout_notice_triggered: bool = False
+    urgent_stdout_notice_at: Optional[str] = None
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     elapsed_seconds: float = 0.0
@@ -141,6 +144,9 @@ class ScheduledValidationReport:
             "handoff_path": self.handoff_path,
             "handoff_reason": self.handoff_reason,
             "diff_status_that_triggered_handoff": self.diff_status_that_triggered_handoff,
+            "notify_stdout_requested": self.notify_stdout_requested,
+            "urgent_stdout_notice_triggered": self.urgent_stdout_notice_triggered,
+            "urgent_stdout_notice_at": self.urgent_stdout_notice_at,
             "warnings": list(self.warnings),
             "errors": list(self.errors),
             "elapsed_seconds": round(self.elapsed_seconds, 4),
@@ -259,6 +265,7 @@ def run_scheduled_validation(
     bundle_requested: bool = False,
     diff_bundle_requested: bool = False,
     handoff_requested: bool = False,
+    notify_stdout: bool = False,
     persist: bool = True,
     command_context: Optional[str] = None,
     batch_fn: Optional[Callable[..., BatchValidationReport]] = None,
@@ -284,6 +291,7 @@ def run_scheduled_validation(
     report.bundle_requested = bundle_requested
     report.diff_bundle_requested = diff_bundle_requested
     report.handoff_requested = handoff_requested
+    report.notify_stdout_requested = notify_stdout
     report.warnings.append(
         "Scheduled validation is local dev/prototype tooling — not verified MRMS production"
     )
@@ -637,6 +645,37 @@ def run_scheduled_validation(
 
     report.elapsed_seconds = time.perf_counter() - start
     report.ran_at = _utc_now()
+
+    if diff_bundle_requested:
+        from backend.app.services.proof_bundle_diff_escalation import (
+            build_proof_bundle_diff_escalation,
+        )
+        from backend.app.services.proof_bundle_diff_escalation_history import (
+            record_proof_bundle_diff_escalation_history,
+        )
+        from backend.app.services.proof_bundle_diff_escalation_stdout import (
+            maybe_trigger_urgent_stdout_notice,
+        )
+
+        escalation = build_proof_bundle_diff_escalation(storage)
+        record_proof_bundle_diff_escalation_history(
+            storage,
+            escalation,
+            source="scheduled_validation",
+            run_id=report.ran_at,
+            skip_duplicate=True,
+        )
+        stdout_record = maybe_trigger_urgent_stdout_notice(
+            storage,
+            escalation,
+            notify_stdout=notify_stdout,
+            production_rendering_enabled=settings.enable_production_radar_tiles,
+            source="scheduled_validation",
+        )
+        if stdout_record is not None:
+            report.urgent_stdout_notice_triggered = True
+            report.urgent_stdout_notice_at = stdout_record.get("triggered_at")
+
     report.success = not report.errors and all(
         step.status in (STEP_SUCCEEDED, STEP_WARNING, STEP_SKIPPED) for step in report.steps
     )

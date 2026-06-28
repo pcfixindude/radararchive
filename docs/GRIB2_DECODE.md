@@ -355,6 +355,8 @@ Sign-off via `make mrms-signoff` or dev-only `POST /api/validation/signoffs` is 
 
 `make proof-bundle-diff-escalation` combines trend, history, and acknowledgment into escalation levels (`none`/`watch`/`attention`/`urgent`) with runbook section hints. Escalation is local guidance only — it does not verify MRMS output or clear alerts.
 
+`make proof-bundle-diff-escalation-history` prints bounded escalation snapshots. `make scheduled-proof-bundle-notify` runs scheduled proof bundle with optional local stdout urgent notice when escalation is urgent — no external notifications.
+
 ## Inspection CLI
 
 ```bash

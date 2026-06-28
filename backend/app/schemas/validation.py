@@ -242,6 +242,10 @@ class ValidationAlertCompact(BaseModel):
     proof_bundle_diff_escalation_guidance_items: list[OperatorGuidanceItemCompact] = Field(
         default_factory=list
     )
+    proof_bundle_diff_escalation_history_count: int = 0
+    latest_proof_bundle_diff_escalation_snapshot_at: Optional[str] = None
+    urgent_stdout_notice_triggered: bool = False
+    urgent_stdout_notice_at: Optional[str] = None
     operator_guidance: list[OperatorGuidanceItemCompact] = Field(default_factory=list)
     verified_mrms: bool = False
     prototype: bool = True
@@ -285,6 +289,52 @@ class ProofBundleDiffEscalationResponse(BaseModel):
     local_escalation_only: bool = True
     does_not_clear_alerts: bool = True
     escalation: ProofBundleDiffEscalationCompact
+
+
+class ProofBundleDiffEscalationHistoryEntryCompact(BaseModel):
+    created_at: Optional[str] = None
+    escalation_level: str = "none"
+    reason: str = ""
+    latest_diff_status: Optional[str] = None
+    current_attention_streak: int = 0
+    acknowledgment_status: str = "none"
+    stale_acknowledgment: bool = False
+    suggested_next_action: str = ""
+    guidance_item_count: int = 0
+    source: Optional[str] = None
+    verified_mrms: bool = False
+    local_history_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class ProofBundleDiffEscalationHistoryCompact(BaseModel):
+    available: bool = False
+    count: int = 0
+    max_entries: int = 25
+    latest_snapshot_at: Optional[str] = None
+    latest_escalation_level: Optional[str] = None
+    recent: list[ProofBundleDiffEscalationHistoryEntryCompact] = Field(default_factory=list)
+    urgent_stdout_notice_triggered: bool = False
+    urgent_stdout_notice_at: Optional[str] = None
+    urgent_stdout_local_only: bool = True
+    verified_mrms: bool = False
+    local_history_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class ProofBundleDiffEscalationHistoryResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_history_only: bool = True
+    does_not_clear_alerts: bool = True
+    count: int = 0
+    max_entries: int = 25
+    latest: Optional[ProofBundleDiffEscalationHistoryEntryCompact] = None
+    entries: list[ProofBundleDiffEscalationHistoryEntryCompact] = Field(default_factory=list)
 
 
 class ValidationAlertsResponse(BaseModel):
@@ -746,6 +796,7 @@ class ValidationSummaryResponse(BaseModel):
     proof_bundle_diff_alert_trend: Optional[ProofBundleDiffAlertTrendCompact] = None
     proof_bundle_diff_acknowledgment: Optional[ProofBundleDiffAcknowledgmentCompact] = None
     proof_bundle_diff_escalation: Optional[ProofBundleDiffEscalationCompact] = None
+    proof_bundle_diff_escalation_history: Optional[ProofBundleDiffEscalationHistoryCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse

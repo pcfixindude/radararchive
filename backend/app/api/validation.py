@@ -15,6 +15,7 @@ from backend.app.schemas.validation import (
     ProofBundleDiffAlertHistoryResponse,
     ProofBundleDiffAlertTrendResponse,
     ProofBundleDiffEscalationResponse,
+    ProofBundleDiffEscalationHistoryResponse,
     OperatorHandoffResponse,
     MrmsProofRegressionHistoryResponse,
     MrmsProofRegressionResponse,
@@ -51,6 +52,9 @@ from backend.app.services.proof_bundle_diff_alert_trends import (
 )
 from backend.app.services.proof_bundle_diff_escalation import (
     build_proof_bundle_diff_escalation_payload,
+)
+from backend.app.services.proof_bundle_diff_escalation_history import (
+    build_proof_bundle_diff_escalation_history_payload,
 )
 from backend.app.services.mrms_proof_history import (
     build_proof_history_payload,
@@ -335,6 +339,20 @@ def validation_proof_bundle_diff_escalation() -> ProofBundleDiffEscalationRespon
     storage = LocalStorage(settings.local_storage_root)
     payload = build_proof_bundle_diff_escalation_payload(storage)
     return ProofBundleDiffEscalationResponse(**payload)
+
+
+@router.get(
+    "/proof-bundle-diff-escalation-history",
+    response_model=ProofBundleDiffEscalationHistoryResponse,
+)
+def validation_proof_bundle_diff_escalation_history(
+    limit: int = 25,
+) -> ProofBundleDiffEscalationHistoryResponse:
+    """Bounded proof bundle diff escalation history (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    bounded = max(1, min(limit, 25))
+    payload = build_proof_bundle_diff_escalation_history_payload(storage, limit=bounded)
+    return ProofBundleDiffEscalationHistoryResponse(**payload)
 
 
 @router.get(

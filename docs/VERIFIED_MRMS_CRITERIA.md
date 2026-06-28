@@ -154,6 +154,10 @@ Trend summary (`make proof-bundle-diff-alert-trend`) and local acknowledgment no
 
 Escalation hints (`make proof-bundle-diff-escalation`) are **supporting review evidence only**. They surface worsening streaks and stale acknowledgments with runbook section links. Escalation does **not** verify MRMS, clear alerts, enable production rendering, or satisfy any verified-MRMS criterion.
 
+## Proof bundle diff escalation history + stdout notices (Phase 37)
+
+Bounded escalation history (`make proof-bundle-diff-escalation-history`) and optional `--notify-stdout` urgent terminal notices are **supporting review evidence only**. They help operators track escalation over time and see urgent conditions during scheduled runs. They do **not** verify MRMS, clear alerts, enable production rendering, or send external notifications.
+
 ## Scheduled proof bundle monitoring (Phase 32)
 
 `make scheduled-proof-bundle` runs scheduled validation with `--proof --bundle --diff-bundle`. This is **local evidence monitoring only** — it does not verify MRMS or enable production rendering. Alerts may flag `worsened` or `mixed` diff status for operator review.

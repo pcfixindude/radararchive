@@ -371,6 +371,10 @@ export type ValidationAlertCompact = {
   proof_bundle_diff_escalation_reason?: string | null;
   proof_bundle_diff_escalation_suggested_next_action?: string | null;
   proof_bundle_diff_escalation_guidance_items?: OperatorGuidanceItem[];
+  proof_bundle_diff_escalation_history_count?: number;
+  latest_proof_bundle_diff_escalation_snapshot_at?: string | null;
+  urgent_stdout_notice_triggered?: boolean;
+  urgent_stdout_notice_at?: string | null;
   operator_guidance?: OperatorGuidanceItem[];
   verified_mrms: boolean;
   prototype: boolean;
@@ -472,6 +476,41 @@ export type ProofBundleDiffEscalationCompact = {
   trend?: string | null;
   verified_mrms: boolean;
   local_escalation_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  prototype: boolean;
+};
+
+export type ProofBundleDiffEscalationHistoryEntry = {
+  created_at?: string | null;
+  escalation_level: string;
+  reason?: string;
+  latest_diff_status?: string | null;
+  current_attention_streak?: number;
+  acknowledgment_status?: string;
+  stale_acknowledgment?: boolean;
+  suggested_next_action?: string;
+  guidance_item_count?: number;
+  source?: string | null;
+  verified_mrms: boolean;
+  local_history_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  prototype: boolean;
+};
+
+export type ProofBundleDiffEscalationHistoryCompact = {
+  available: boolean;
+  count: number;
+  max_entries?: number;
+  latest_snapshot_at?: string | null;
+  latest_escalation_level?: string | null;
+  recent?: ProofBundleDiffEscalationHistoryEntry[];
+  urgent_stdout_notice_triggered?: boolean;
+  urgent_stdout_notice_at?: string | null;
+  urgent_stdout_local_only?: boolean;
+  verified_mrms: boolean;
+  local_history_only: boolean;
   does_not_clear_alerts: boolean;
   does_not_enable_production: boolean;
   prototype: boolean;
@@ -735,6 +774,7 @@ export type ValidationSummary = {
   proof_bundle_diff_alert_trend?: ProofBundleDiffAlertTrendCompact | null;
   proof_bundle_diff_acknowledgment?: ProofBundleDiffAcknowledgmentCompact | null;
   proof_bundle_diff_escalation?: ProofBundleDiffEscalationCompact | null;
+  proof_bundle_diff_escalation_history?: ProofBundleDiffEscalationHistoryCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;

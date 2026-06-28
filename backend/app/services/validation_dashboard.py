@@ -24,6 +24,10 @@ from backend.app.services.proof_bundle_diff_alert_trends import (
 from backend.app.services.proof_bundle_diff_escalation import (
     compact_proof_bundle_diff_escalation,
 )
+from backend.app.services.proof_bundle_diff_escalation_history import (
+    compact_proof_bundle_diff_escalation_history_summary,
+    load_recent_proof_bundle_diff_escalation_history,
+)
 from backend.app.services.proof_bundle_diff_alert_history import (
     compact_latest_proof_bundle_diff_alert,
     load_recent_proof_bundle_diff_alert_history,
@@ -125,6 +129,9 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "proof_bundle_diff_alert_trend": compact_proof_bundle_diff_alert_trend(storage),
         "proof_bundle_diff_acknowledgment": compact_diff_acknowledgment_summary(storage),
         "proof_bundle_diff_escalation": compact_proof_bundle_diff_escalation(storage),
+        "proof_bundle_diff_escalation_history": compact_proof_bundle_diff_escalation_history_summary(
+            storage
+        ),
         "runbook_references": RUNBOOK_LINK_METADATA,
         "catalog": catalog,
     }
@@ -152,6 +159,10 @@ def build_validation_latest(storage: LocalStorage) -> dict[str, Any]:
         ),
         "proof_bundle_diff_alert_trend": compact_proof_bundle_diff_alert_trend(storage),
         "proof_bundle_diff_acknowledgments": load_diff_acknowledgments(storage)[:25],
+        "proof_bundle_diff_escalation": compact_proof_bundle_diff_escalation(storage),
+        "proof_bundle_diff_escalation_history": load_recent_proof_bundle_diff_escalation_history(
+            storage, limit=25
+        ),
     }
 
 

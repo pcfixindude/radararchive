@@ -47,6 +47,7 @@ export default function ValidationStatusPanel({
   const [showDiffAlertTimeline, setShowDiffAlertTimeline] = useState(false);
   const [showDiffAlertTrend, setShowDiffAlertTrend] = useState(false);
   const [showDiffEscalation, setShowDiffEscalation] = useState(false);
+  const [showDiffEscalationHistory, setShowDiffEscalationHistory] = useState(false);
   const [ackOperator, setAckOperator] = useState('');
   const [ackNote, setAckNote] = useState('');
   const [ackSubmitting, setAckSubmitting] = useState(false);
@@ -184,6 +185,7 @@ export default function ValidationStatusPanel({
   const diffAlertTrend = summary.proof_bundle_diff_alert_trend ?? null;
   const diffAck = summary.proof_bundle_diff_acknowledgment ?? null;
   const diffEscalation = summary.proof_bundle_diff_escalation ?? null;
+  const diffEscalationHistory = summary.proof_bundle_diff_escalation_history ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
   const queue = summary.render_queue;
@@ -544,6 +546,65 @@ export default function ValidationStatusPanel({
               alerts
             </p>
           </>
+        ) : null}
+      </section>
+      <section className="validation-diff-escalation-history">
+        <div className="validation-header-actions">
+          <p className="validation-meta">
+            Escalation history (local monitoring only — terminal stdout notices are local only; no
+            external notifications; does not verify MRMS; does not clear alerts)
+          </p>
+          <button
+            type="button"
+            className="validation-refresh"
+            onClick={() => setShowDiffEscalationHistory((value) => !value)}
+          >
+            {showDiffEscalationHistory ? 'Hide history' : 'Show history'}
+          </button>
+        </div>
+        {diffEscalationHistory?.available ||
+        (validationAlert?.proof_bundle_diff_escalation_history_count ?? 0) > 0 ? (
+          <p className="validation-meta">
+            Snapshots: {diffEscalationHistory?.count ?? validationAlert?.proof_bundle_diff_escalation_history_count ?? 0}
+            {diffEscalationHistory?.latest_snapshot_at ||
+            validationAlert?.latest_proof_bundle_diff_escalation_snapshot_at
+              ? ` — latest ${formatTimestamp(
+                  diffEscalationHistory?.latest_snapshot_at ??
+                    validationAlert?.latest_proof_bundle_diff_escalation_snapshot_at
+                )}`
+              : ''}
+          </p>
+        ) : (
+          <p className="validation-meta">
+            No escalation history — run make proof-bundle-diff-escalation or scheduled-proof-bundle.
+          </p>
+        )}
+        {(diffEscalationHistory?.urgent_stdout_notice_triggered ||
+          validationAlert?.urgent_stdout_notice_triggered) && (
+          <p className="validation-warn">
+            Urgent stdout notice triggered{' '}
+            {formatTimestamp(
+              diffEscalationHistory?.urgent_stdout_notice_at ??
+                validationAlert?.urgent_stdout_notice_at
+            )}{' '}
+            — local terminal only; does not verify MRMS
+          </p>
+        )}
+        {showDiffEscalationHistory && (diffEscalationHistory?.recent ?? []).length > 0 ? (
+          <ul className="validation-history-list">
+            {(diffEscalationHistory?.recent ?? []).map((entry, index) => (
+              <li
+                key={`${entry.created_at ?? 'escalation'}-${entry.escalation_level}-${index}`}
+                className={entry.escalation_level === 'urgent' ? 'validation-warn' : 'validation-meta'}
+              >
+                {formatTimestamp(entry.created_at)} — {entry.escalation_level ?? 'none'}
+                {entry.latest_diff_status ? ` (${entry.latest_diff_status})` : ''}
+                {entry.stale_acknowledgment ? ' — stale ack' : ''}
+              </li>
+            ))}
+          </ul>
+        ) : showDiffEscalationHistory ? (
+          <p className="validation-meta">No recent escalation snapshots in summary.</p>
         ) : null}
       </section>
       <section className="validation-diff-alert-trend">

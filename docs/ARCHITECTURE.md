@@ -455,6 +455,13 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Summary `proof_bundle_diff_escalation`; alert fields for level, stale ack, guidance items
 - Does **not** clear alerts, verify MRMS, or enable production rendering
 
+### Diff alert escalation history + stdout notices (Phase 37)
+- `proof_bundle_diff_escalation_history.py` — bounded snapshots (25 max) on escalation evaluation
+- `proof_bundle_diff_escalation_stdout.py` — optional `--notify-stdout` urgent terminal notice (no external notifications)
+- `GET /api/validation/proof-bundle-diff-escalation-history`
+- Summary `proof_bundle_diff_escalation_history`; alert history count + stdout notice status
+- Gitignored: `proof_bundle_diff_escalation_history.json`, `proof_bundle_diff_escalation_stdout_latest.json`
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

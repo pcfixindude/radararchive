@@ -343,9 +343,19 @@ def build_validation_alert(
     from backend.app.services.proof_bundle_diff_escalation import (
         build_proof_bundle_diff_escalation,
     )
+    from backend.app.services.proof_bundle_diff_escalation_history import (
+        compact_proof_bundle_diff_escalation_history_summary,
+        count_proof_bundle_diff_escalation_history,
+        load_latest_proof_bundle_diff_escalation_history,
+        load_recent_proof_bundle_diff_escalation_history,
+    )
 
     diff_alert_trend = build_proof_bundle_diff_alert_trend(storage)
     diff_escalation = build_proof_bundle_diff_escalation(storage)
+    escalation_history_count = count_proof_bundle_diff_escalation_history(storage)
+    latest_escalation_snapshot = load_latest_proof_bundle_diff_escalation_history(storage)
+    escalation_history_recent = load_recent_proof_bundle_diff_escalation_history(storage, limit=5)
+    escalation_history_summary = compact_proof_bundle_diff_escalation_history_summary(storage)
     latest_ack = load_latest_diff_acknowledgment(storage)
     ack_count = count_diff_acknowledgments(storage)
     operator_attention_needed = (
@@ -402,6 +412,15 @@ def build_validation_alert(
             "suggested_next_action"
         ),
         "proof_bundle_diff_escalation_guidance_items": diff_escalation.get("guidance_items", []),
+        "proof_bundle_diff_escalation_history_count": escalation_history_count,
+        "latest_proof_bundle_diff_escalation_snapshot_at": (latest_escalation_snapshot or {}).get(
+            "created_at"
+        ),
+        "proof_bundle_diff_escalation_history_recent": escalation_history_recent,
+        "urgent_stdout_notice_triggered": bool(
+            escalation_history_summary.get("urgent_stdout_notice_triggered")
+        ),
+        "urgent_stdout_notice_at": escalation_history_summary.get("urgent_stdout_notice_at"),
         "production_rendering_enabled": settings.enable_production_radar_tiles,
         "verified_mrms": False,
         "prototype": True,
@@ -495,6 +514,14 @@ def compact_validation_alert(alert: Optional[dict[str, Any]]) -> Optional[dict[s
         "proof_bundle_diff_escalation_guidance_items": (
             alert.get("proof_bundle_diff_escalation_guidance_items") or []
         )[:8],
+        "proof_bundle_diff_escalation_history_count": int(
+            alert.get("proof_bundle_diff_escalation_history_count", 0)
+        ),
+        "latest_proof_bundle_diff_escalation_snapshot_at": alert.get(
+            "latest_proof_bundle_diff_escalation_snapshot_at"
+        ),
+        "urgent_stdout_notice_triggered": bool(alert.get("urgent_stdout_notice_triggered")),
+        "urgent_stdout_notice_at": alert.get("urgent_stdout_notice_at"),
         "suggested_next_action": alert.get("suggested_next_action"),
         "grouped_failure_causes": grouped[:5],
         "operator_guidance": (alert.get("operator_guidance") or [])[:8],

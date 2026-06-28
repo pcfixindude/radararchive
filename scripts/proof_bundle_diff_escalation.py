@@ -10,6 +10,9 @@ from backend.app.config import settings
 from backend.app.services.proof_bundle_diff_escalation import (
     build_proof_bundle_diff_escalation_payload,
 )
+from backend.app.services.proof_bundle_diff_escalation_history import (
+    record_escalation_from_storage,
+)
 from backend.app.services.storage import LocalStorage
 
 
@@ -18,6 +21,11 @@ def main() -> None:
         description="Show proof bundle diff alert escalation hints (Phase 36 — local guidance only)."
     )
     parser.add_argument("--json", action="store_true", help="Print JSON payload")
+    parser.add_argument(
+        "--no-record",
+        action="store_true",
+        help="Do not append escalation snapshot to bounded history",
+    )
     args = parser.parse_args()
 
     print(
@@ -27,6 +35,12 @@ def main() -> None:
     )
 
     storage = LocalStorage(settings.local_storage_root)
+    if not args.no_record:
+        record_escalation_from_storage(
+            storage,
+            source="proof_bundle_diff_escalation_cli",
+            skip_duplicate=True,
+        )
     payload = build_proof_bundle_diff_escalation_payload(storage)
     escalation = payload.get("escalation") or {}
 

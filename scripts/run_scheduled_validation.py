@@ -64,6 +64,12 @@ def _print_report(report) -> None:
         )
         if report.handoff_path:
             print(f"  handoff path: {report.handoff_path}")
+    if report.notify_stdout_requested:
+        print(
+            f"  urgent stdout notice: requested=yes triggered={report.urgent_stdout_notice_triggered}"
+        )
+        if report.urgent_stdout_notice_at:
+            print(f"  urgent stdout notice at: {report.urgent_stdout_notice_at}")
     print(f"  verified_mrms: {report.verified_mrms}")
     for warning in report.warnings:
         print(f"  warning: {warning}")
@@ -107,6 +113,13 @@ def main() -> None:
         action="store_true",
         help="When diff is worsened/mixed, auto-regenerate operator handoff checklist (local only)",
     )
+    parser.add_argument(
+        "--notify-stdout",
+        "--urgent-stdout",
+        dest="notify_stdout",
+        action="store_true",
+        help="Print local terminal urgent notice when escalation level is urgent (stdout only)",
+    )
     args = parser.parse_args()
 
     print(
@@ -140,6 +153,7 @@ def main() -> None:
             bundle_requested=args.bundle,
             diff_bundle_requested=args.diff_bundle,
             handoff_requested=args.handoff,
+            notify_stdout=args.notify_stdout,
             command_context="make scheduled-validation",
         )
     finally:

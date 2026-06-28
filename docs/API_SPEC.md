@@ -256,6 +256,12 @@ Summary additions (Phase 35): `proof_bundle_diff_alert_trend` compact (`trend`, 
 
 Summary additions (Phase 36): `proof_bundle_diff_escalation` compact (`escalation_level`, `reason`, `stale_acknowledgment`, `suggested_next_action`, `guidance_items`). Validation alert adds `proof_bundle_diff_escalation_level`, `proof_bundle_diff_escalation_stale_ack`, `proof_bundle_diff_escalation_reason`, `proof_bundle_diff_escalation_suggested_next_action`, `proof_bundle_diff_escalation_guidance_items`.
 
+`GET /api/validation/proof-bundle-diff-escalation-history` — bounded escalation snapshot history (`?limit=25` max). `verified_mrms: false`, `local_history_only: true`. Read-only.
+
+Summary additions (Phase 37): `proof_bundle_diff_escalation_history` compact (`count`, `latest_snapshot_at`, `recent`, `urgent_stdout_notice_triggered/at`). Validation alert adds `proof_bundle_diff_escalation_history_count`, `latest_proof_bundle_diff_escalation_snapshot_at`, `urgent_stdout_notice_triggered/at`.
+
+Scheduled validation: optional `--notify-stdout` / `--urgent-stdout` prints local urgent notice when escalation is urgent; `make scheduled-proof-bundle-notify` runs proof bundle + handoff + notify.
+
 Scheduled validation report additions (Phase 32): `bundle_requested`, `diff_bundle_requested`, `mrms_proof_bundle`, `mrms_proof_bundle_diff`; steps `proof_report`, `proof_regression`, `proof_bundle_export`, `proof_bundle_diff`.
 
 `GET /api/validation/proof-bundle-diff` — latest proof bundle diff report (`?refresh=true` rebuilds). `verified_mrms: false`, `local_diff_only: true`.

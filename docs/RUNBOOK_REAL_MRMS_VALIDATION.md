@@ -290,6 +290,36 @@ curl -X POST http://127.0.0.1:8000/api/validation/proof-bundle-diff-acknowledgme
 
 Acknowledgments persist to `data/dev/proof_bundle_diff_acknowledgments.json` (gitignored, max 50).
 
+## Proof bundle diff escalation history + stdout urgent notice (Phase 37)
+
+Bounded escalation snapshots and optional **local terminal stdout** urgent notices — **does not verify MRMS**, clear alerts, enable production rendering, or send external notifications.
+
+```bash
+make proof-bundle-diff-escalation
+make proof-bundle-diff-escalation-history
+make proof-bundle-diff-escalation-history ARGS="--json"
+make scheduled-proof-bundle-notify
+make scheduled-proof-bundle ARGS="--notify-stdout"
+curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-history
+```
+
+**Escalation history:**
+- Recorded when running `make proof-bundle-diff-escalation` and scheduled proof bundle diff steps
+- Persisted to `data/dev/proof_bundle_diff_escalation_history.json` (gitignored, max 25)
+- Duplicate exact snapshots in the same run are skipped
+
+**Stdout urgent notice (`--notify-stdout` / `--urgent-stdout`):**
+- Only prints when escalation level is **urgent**
+- Header: `URGENT LOCAL VALIDATION NOTICE`
+- Includes reason, suggested action, runbook path/section
+- States `verified_mrms: false` and production rendering status
+- **Local terminal only** — no email, SMS, Slack, webhooks, or push notifications
+- Latest notice metadata: `data/dev/proof_bundle_diff_escalation_stdout_latest.json` (gitignored)
+
+<a id="proof-bundle-diff-escalation-stdout-urgent"></a>
+
+**What urgent stdout notice means:** Operator should review escalation history and runbook guidance immediately in the local dev environment. The notice is a review aid only — it does **not** verify MRMS, clear alerts, or enable production rendering.
+
 ## Proof bundle diff alert escalation (Phase 36)
 
 Escalation hints combine trend summary, diff alert history, and acknowledgment state — **local operator guidance only**. Escalation does **not** verify MRMS, clear alerts, enable production rendering, or mutate catalog gates.

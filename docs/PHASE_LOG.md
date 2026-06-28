@@ -1456,3 +1456,30 @@ cd frontend && npm run build
 - Escalation does not clear alerts or verify MRMS
 - Escalation does not enable production rendering or mutate catalog gates
 - `verified_mrms` always false
+
+## Phase 37 - Escalation History + Stdout Urgent Notices
+
+Bounded escalation snapshots and optional local terminal urgent notices during scheduled runs.
+
+### Backend
+- `proof_bundle_diff_escalation_history.py` — bounded snapshots (25 max)
+- `proof_bundle_diff_escalation_stdout.py` — `--notify-stdout` urgent notice (no external notifications)
+- `GET /api/validation/proof-bundle-diff-escalation-history`
+- Summary `proof_bundle_diff_escalation_history`; alert history count + stdout status
+
+### Scripts / Makefile
+- `make proof-bundle-diff-escalation-history`, `make scheduled-proof-bundle-notify`
+
+### Run commands
+
+```bash
+make test
+make proof-bundle-diff-escalation-history
+make scheduled-proof-bundle-notify
+cd frontend && npm run build
+```
+
+### Known limitations
+- Stdout notices are local terminal only — no email/Slack/webhooks
+- History does not clear alerts or verify MRMS
+- `verified_mrms` always false
