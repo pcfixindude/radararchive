@@ -2216,3 +2216,30 @@ cd frontend && npm run build
 ### Known limitations
 - Preflight is advisory only — `candidate_preflight_ready` is not verified MRMS or production authorization
 - Does not download/decode/render, clear alerts, enable production rendering, or mutate catalog/render gates
+
+## Phase 63 - Gated Real MRMS Rendering Candidate Dry-Run Plan
+
+Local advisory dry-run plan documenting prerequisites, future operator commands (not run now), expected artifacts, rollback/stop conditions, and evidence checklist.
+
+### Backend
+- `mrms_render_candidate_dry_run_plan.py` — dry-run plan generation, conservative `blocked` / `needs_review` / `dry_run_plan_ready` status
+- Paths: `mrms_render_candidate_dry_run_plan.json`, `mrms_render_candidate_dry_run_plan.md`
+- `compact_render_candidate_dry_run_plan()` on validation summary
+- API: `GET/POST /api/validation/mrms-render-candidate/dry-run-plan`
+- CLI: `scripts/mrms_render_candidate_dry_run_plan.py`; `make mrms-render-candidate-dry-run-plan`
+
+### Frontend
+- Dev Validation **MRMS render candidate dry-run plan** collapsible with blockers, warnings, prerequisites, stop conditions, expected outputs
+
+### Run commands
+
+```bash
+make test
+make mrms-render-candidate-dry-run-plan --refresh
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Dry-run plan is advisory only — does not download/decode/render or execute listed candidate commands
+- `dry_run_plan_ready` is not production authorization

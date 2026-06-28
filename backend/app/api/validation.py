@@ -49,6 +49,7 @@ from backend.app.schemas.validation import (
     MrmsVisualReviewSampleAnnotationUpsertRequest,
     MrmsVisualReviewSampleAnnotationUpsertResponse,
     MrmsRenderCandidatePreflightResponse,
+    MrmsRenderCandidateDryRunPlanResponse,
     MrmsVisualReviewResponse,
     OperatorReviewStatusResponse,
     OperatorWorkflowPresetsResponse,
@@ -149,6 +150,10 @@ from backend.app.services.mrms_visual_review_sample_readiness import (
 from backend.app.services.mrms_render_candidate_preflight import (
     build_render_candidate_preflight_payload,
     generate_render_candidate_preflight,
+)
+from backend.app.services.mrms_render_candidate_dry_run_plan import (
+    build_render_candidate_dry_run_plan_payload,
+    generate_render_candidate_dry_run_plan,
 )
 from backend.app.services.operator_review_status import build_operator_review_status_payload
 from backend.app.services.operator_workflow_presets import build_operator_workflow_presets_payload
@@ -383,6 +388,29 @@ def validation_mrms_render_candidate_preflight_refresh() -> MrmsRenderCandidateP
     generate_render_candidate_preflight(storage)
     payload = build_render_candidate_preflight_payload(storage)
     return MrmsRenderCandidatePreflightResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/dry-run-plan",
+    response_model=MrmsRenderCandidateDryRunPlanResponse,
+)
+def validation_mrms_render_candidate_dry_run_plan() -> MrmsRenderCandidateDryRunPlanResponse:
+    """Local MRMS render candidate dry-run plan (read-only advisory; does not execute steps)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_render_candidate_dry_run_plan_payload(storage)
+    return MrmsRenderCandidateDryRunPlanResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/dry-run-plan",
+    response_model=MrmsRenderCandidateDryRunPlanResponse,
+)
+def validation_mrms_render_candidate_dry_run_plan_refresh() -> MrmsRenderCandidateDryRunPlanResponse:
+    """Dev/local only — regenerate render candidate dry-run plan; does NOT download/decode/render."""
+    storage = LocalStorage(settings.local_storage_root)
+    generate_render_candidate_dry_run_plan(storage)
+    payload = build_render_candidate_dry_run_plan_payload(storage)
+    return MrmsRenderCandidateDryRunPlanResponse(**payload)
 
 
 @router.get(

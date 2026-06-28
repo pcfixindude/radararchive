@@ -8,6 +8,7 @@ import {
   submitVisualReviewSampleAnnotation,
   refreshVisualReviewSampleReadiness,
   refreshRenderCandidatePreflight,
+  refreshRenderCandidateDryRunPlan,
   submitDiffAcknowledgment,
   type MrmsProofHistory,
   type MrmsProofRegressionHistory,
@@ -76,6 +77,9 @@ export default function ValidationStatusPanel({
   const [preflightRefreshing, setPreflightRefreshing] = useState(false);
   const [preflightMessage, setPreflightMessage] = useState<string | null>(null);
   const [preflightError, setPreflightError] = useState<string | null>(null);
+  const [dryRunPlanRefreshing, setDryRunPlanRefreshing] = useState(false);
+  const [dryRunPlanMessage, setDryRunPlanMessage] = useState<string | null>(null);
+  const [dryRunPlanError, setDryRunPlanError] = useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -319,6 +323,24 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleDryRunPlanRefresh() {
+    setDryRunPlanMessage(null);
+    setDryRunPlanError(null);
+    setDryRunPlanRefreshing(true);
+    const result = await refreshRenderCandidateDryRunPlan();
+    setDryRunPlanRefreshing(false);
+    if (!result.ok) {
+      setDryRunPlanError(result.error);
+      return;
+    }
+    setDryRunPlanMessage(
+      `Dry-run plan refreshed (${result.data.compact.plan_status ?? '—'}) — local advisory only; does not download/decode/render.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   if (!summary) {
     return (
       <section className="panel validation-panel">
@@ -386,6 +408,7 @@ export default function ValidationStatusPanel({
   const mrmsVisualReviewSampleSet = summary.mrms_visual_review_sample_set ?? null;
   const mrmsVisualReviewSampleReadiness = summary.mrms_visual_review_sample_readiness ?? null;
   const mrmsRenderCandidatePreflight = summary.mrms_render_candidate_preflight ?? null;
+  const mrmsRenderCandidateDryRunPlan = summary.mrms_render_candidate_dry_run_plan ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -1031,6 +1054,123 @@ export default function ValidationStatusPanel({
             'make mrms-render-candidate-preflight --refresh'
           }
           label="Suggested preflight command"
+          manualCopy
+        />
+        <SafetyNote />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="MRMS render candidate dry-run plan"
+        className="validation-render-candidate-dry-run-plan"
+        summary={
+          <p className="validation-meta">
+            {mrmsRenderCandidateDryRunPlan?.plan_status
+              ? `Advisory ${mrmsRenderCandidateDryRunPlan.plan_status} — ${mrmsRenderCandidateDryRunPlan.blocking_items?.length ?? 0} blocking`
+              : 'No dry-run plan yet — run make mrms-render-candidate-dry-run-plan --refresh'}
+          </p>
+        }
+      >
+        <p className="validation-warn">
+          Local advisory dry-run plan only. Does not verify MRMS, enable production rendering,
+          download/decode/render by default, create production tiles, clear alerts, or authorize
+          production use. Listed operator commands are for a future gated attempt — not run now.
+        </p>
+        {mrmsRenderCandidateDryRunPlan ? (
+          <>
+            <p className="validation-meta">
+              Plan status: {mrmsRenderCandidateDryRunPlan.plan_status ?? '—'} — reason:{' '}
+              {mrmsRenderCandidateDryRunPlan.plan_reason ?? '—'}
+            </p>
+            {(mrmsRenderCandidateDryRunPlan.blocking_items ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Blockers</strong>
+                <ul>
+                  {(mrmsRenderCandidateDryRunPlan.blocking_items ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="validation-meta">Blockers: none</p>
+            )}
+            {(mrmsRenderCandidateDryRunPlan.warnings ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Warnings</strong>
+                <ul>
+                  {(mrmsRenderCandidateDryRunPlan.warnings ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {(mrmsRenderCandidateDryRunPlan.prerequisites ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Prerequisites</strong>
+                <ul>
+                  {(mrmsRenderCandidateDryRunPlan.prerequisites ?? []).slice(0, 5).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {(mrmsRenderCandidateDryRunPlan.stop_conditions ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Stop conditions</strong>
+                <ul>
+                  {(mrmsRenderCandidateDryRunPlan.stop_conditions ?? []).slice(0, 5).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {(mrmsRenderCandidateDryRunPlan.expected_artifacts ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Expected outputs</strong>
+                <ul>
+                  {(mrmsRenderCandidateDryRunPlan.expected_artifacts ?? []).slice(0, 6).map((item) => (
+                    <li key={item.path}>
+                      <code>{item.path}</code> — {item.description}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {mrmsRenderCandidateDryRunPlan.json_path ? (
+              <p className="validation-meta">
+                JSON: <code>{mrmsRenderCandidateDryRunPlan.json_path}</code>
+              </p>
+            ) : null}
+            {mrmsRenderCandidateDryRunPlan.markdown_path ? (
+              <p className="validation-meta">
+                Markdown: <code>{mrmsRenderCandidateDryRunPlan.markdown_path}</code>
+              </p>
+            ) : null}
+            {mrmsRenderCandidateDryRunPlan.next_phase_recommendation ? (
+              <p className="validation-meta">
+                Next phase: {mrmsRenderCandidateDryRunPlan.next_phase_recommendation}
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            Generate a local dry-run plan after preflight and sample readiness evidence are in place.
+          </p>
+        )}
+        <button
+          type="button"
+          className="validation-refresh"
+          onClick={() => void handleDryRunPlanRefresh()}
+          disabled={dryRunPlanRefreshing}
+        >
+          {dryRunPlanRefreshing ? 'Refreshing…' : 'Refresh dry-run plan (local only)'}
+        </button>
+        {dryRunPlanMessage ? <p className="validation-meta">{dryRunPlanMessage}</p> : null}
+        {dryRunPlanError ? <p className="validation-warn">{dryRunPlanError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateDryRunPlan?.suggested_command ??
+            'make mrms-render-candidate-dry-run-plan --refresh'
+          }
+          label="Suggested dry-run plan command"
           manualCopy
         />
         <SafetyNote />

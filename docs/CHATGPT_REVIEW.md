@@ -9,10 +9,10 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 62
-- Latest phase: Phase 62 — Gated real MRMS rendering candidate preflight
-- Latest commit: `72f1300`
-- Latest tag: `phase-62-render-candidate-preflight`
+- Completed through phase: 63
+- Latest phase: Phase 63 — Gated real MRMS rendering candidate dry-run plan
+- Latest commit: `12869db`
+- Latest tag: `phase-63-render-candidate-dry-run-plan`
 - Push status: pushed to origin main with tag
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
@@ -27,19 +27,20 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Visual review sample set: local drilldown only; does not verify MRMS, clear alerts, or enable production rendering
 - Sample-set annotations/readiness: local advisory only; `candidate_ready` is **not** production authorization
 - Render candidate preflight: local advisory only; `candidate_preflight_ready` is **not** production authorization
+- Render candidate dry-run plan: local advisory only; does not download/decode/render by default; `dry_run_plan_ready` is **not** production authorization
 - Scheduled visual review: explicit opt-in only via `--visual-review` or `make scheduled-proof-bundle-visual-review`
 
 ## Latest phase summary
 
-- Phase: **62**
-- Purpose: Add a strictly gated local preflight checklist evaluating readiness for a future real MRMS rendering candidate path.
-- Main command added: `make mrms-render-candidate-preflight`
-- API added: `GET/POST /api/validation/mrms-render-candidate/preflight`
-- Tests: backend 672 passed; frontend vitest 8 passed; frontend build succeeded
+- Phase: **63**
+- Purpose: Add a local dry-run plan documenting prerequisites, safety checks, future operator commands, expected artifacts, rollback/stop conditions, and evidence checklist without executing candidate steps.
+- Main command added: `make mrms-render-candidate-dry-run-plan`
+- API added: `GET/POST /api/validation/mrms-render-candidate/dry-run-plan`
+- Tests: backend 687 passed; frontend vitest 8 passed; frontend build succeeded
 - Known limitations:
-  - Preflight is advisory/local-only — does not verify MRMS, authorize production rendering, download/decode, or create production tiles
-  - Conservative blocking on safety gate violations, missing visual evidence, non-`candidate_ready` sample readiness, and sample review issues
-  - Warnings (e.g. missing proof bundle) can yield `needs_review` even when blockers are clear
+  - Dry-run plan is advisory/local-only — listed commands are NOT run by this phase
+  - Conservative blocking when Phase 62 preflight is missing/blocked or sample readiness is not candidate_ready
+  - `needs_review` when preflight has warnings but no blockers
   - `verified_mrms` remains false
 
 ## Current capabilities
@@ -57,26 +58,27 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Visual review sample-set JSON/Markdown with drilldown UI
 - Sample-set annotations JSON, readiness Markdown, and Dev Validation annotation/readiness UI
 - Render candidate preflight JSON/Markdown with Dev Validation preflight UI
+- Render candidate dry-run plan JSON/Markdown with Dev Validation dry-run plan UI
 
 ## Current focus
 
-The project is in the **local visual evidence review** block, now with a gated render-candidate preflight checklist.
+The project is in the **local visual evidence review** block with gated preflight and dry-run planning before any real MRMS rendering candidate attempt.
 
-The next major direction should describe a strictly gated dry-run plan before any real MRMS rendering candidate attempt.
+The next major direction should add an explicitly disabled-by-default command scaffold for a future candidate attempt.
 
 Do **not** promote to verified MRMS yet.
 
 ## Next recommended phase
 
-- Phase number: **63**
-- Phase title: Gated real MRMS rendering candidate dry-run plan
-- Goal: Add a local, explicitly gated dry-run plan that describes the exact commands, prerequisites, expected outputs, rollback/safety checks, and evidence requirements for a future real MRMS rendering candidate attempt, without executing download/decode/render work by default.
-- Why this is next: Phase 62 assembles advisory preflight evidence; Phase 63 should document the exact gated dry-run operator path before any real rendering candidate attempt.
+- Phase number: **64**
+- Phase title: Gated real MRMS rendering candidate command scaffold
+- Goal: Add an explicitly disabled-by-default command scaffold for a future real MRMS rendering candidate attempt, with hard safety gates, dry-run-only default behavior, and no production tile serving.
+- Why this is next: Phase 63 documents the gated dry-run operator path; Phase 64 should scaffold future commands with hard safety gates while remaining disabled by default.
 - Safety boundaries:
-  - local-only
+  - local-only scaffold by default
   - no MRMS verification claim
-  - no production rendering by default
-  - no download/decode/render execution unless explicitly scoped as documented dry-run steps disabled by default
+  - no production rendering
+  - no download/decode/render execution unless explicitly gated and disabled by default
   - no alert clearing
   - no mutation of catalog/render gates
 
@@ -97,12 +99,12 @@ Read first:
 - docs/VERIFIED_MRMS_CRITERIA.md
 - docs/GRIB2_DECODE.md
 
-Task: Implement Phase 63 only.
+Task: Implement Phase 64 only.
 
-Goal: Add a local, explicitly gated dry-run plan for a future real MRMS rendering candidate attempt without executing download/decode/render work by default.
+Goal: Add an explicitly disabled-by-default command scaffold for a future real MRMS rendering candidate attempt, with hard safety gates, dry-run-only default behavior, and no production tile serving.
 
 Requirements (summary):
-- Persist local dry-run plan JSON/Markdown under data/dev/ (gitignored)
+- Persist local scaffold JSON/Markdown under data/dev/ (gitignored)
 - Expose read-only API/status and Dev Validation UI
 - Keep verified_mrms false and production rendering gated
 - Do not download/decode/render by default, clear alerts, or mutate catalog/render gates

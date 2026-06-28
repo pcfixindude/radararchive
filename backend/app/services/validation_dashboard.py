@@ -27,6 +27,9 @@ from backend.app.services.mrms_visual_review_sample_readiness import (
 from backend.app.services.mrms_render_candidate_preflight import (
     compact_render_candidate_preflight,
 )
+from backend.app.services.mrms_render_candidate_dry_run_plan import (
+    compact_render_candidate_dry_run_plan,
+)
 from backend.app.services.operator_review_status import (
     compact_operator_review_status,
     compact_scheduled_operator_status,
@@ -215,6 +218,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "mrms_visual_review_sample_set": compact_visual_review_sample_set(storage),
         "mrms_visual_review_sample_readiness": compact_visual_review_sample_readiness(storage),
         "mrms_render_candidate_preflight": compact_render_candidate_preflight(storage),
+        "mrms_render_candidate_dry_run_plan": compact_render_candidate_dry_run_plan(storage),
         "scheduled_operator_status": compact_scheduled_operator_status(scheduled),
         "runbook_references": RUNBOOK_LINK_METADATA,
         "catalog": catalog,

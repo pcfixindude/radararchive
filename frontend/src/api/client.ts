@@ -947,6 +947,31 @@ export type MrmsRenderCandidatePreflightCompact = {
   candidate_preflight_ready_is_not_production_authorization: boolean;
 };
 
+export type MrmsRenderCandidateDryRunPlanCompact = {
+  available?: boolean;
+  plan_status?: string | null;
+  plan_reason?: string | null;
+  blocking_items?: string[];
+  warnings?: string[];
+  created_at?: string | null;
+  json_path?: string | null;
+  markdown_path?: string | null;
+  suggested_command?: string | null;
+  prerequisites?: string[];
+  stop_conditions?: string[];
+  expected_artifacts?: Array<{ path?: string; description?: string }>;
+  next_phase_recommendation?: string | null;
+  verified_mrms: boolean;
+  local_advisory_dry_run_plan_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  does_not_create_production_tiles: boolean;
+  does_not_execute_candidate_steps: boolean;
+  no_external_notifications: boolean;
+  does_not_authorize_production_use: boolean;
+};
+
 export type OperatorWorkflowPresetsCompact = {
   available?: boolean;
   recommended_count?: number;
@@ -1486,6 +1511,7 @@ export type ValidationSummary = {
   mrms_visual_review_sample_set?: MrmsVisualReviewSampleSetCompact | null;
   mrms_visual_review_sample_readiness?: MrmsVisualReviewSampleReadinessCompact | null;
   mrms_render_candidate_preflight?: MrmsRenderCandidatePreflightCompact | null;
+  mrms_render_candidate_dry_run_plan?: MrmsRenderCandidateDryRunPlanCompact | null;
   scheduled_operator_status?: ScheduledOperatorStatusCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
@@ -1710,6 +1736,24 @@ export async function refreshRenderCandidatePreflight(): Promise<
       return { ok: false, error: `Render candidate preflight refresh failed (${response.status})` };
     }
     const data = (await response.json()) as { compact: MrmsRenderCandidatePreflightCompact };
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function refreshRenderCandidateDryRunPlan(): Promise<
+  | { ok: true; data: { compact: MrmsRenderCandidateDryRunPlanCompact } }
+  | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(`${API_BASE}/api/validation/mrms-render-candidate/dry-run-plan`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      return { ok: false, error: `Render candidate dry-run plan refresh failed (${response.status})` };
+    }
+    const data = (await response.json()) as { compact: MrmsRenderCandidateDryRunPlanCompact };
     return { ok: true, data };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
