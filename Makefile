@@ -95,6 +95,9 @@ scheduled-proof-bundle-digest:
 scheduled-proof-bundle-review-export:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/run_scheduled_validation.py --proof --bundle --diff-bundle --handoff --digest --review-export $(ARGS)
 
+scheduled-proof-bundle-operator-status:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/run_scheduled_validation.py --proof --bundle --diff-bundle --handoff --digest --review-export --operator-status $(ARGS)
+
 validation-failures:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/validation_failures.py $(ARGS)
 

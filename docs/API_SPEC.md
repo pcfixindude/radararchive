@@ -318,7 +318,13 @@ Summary additions (Phase 49): `operator_review_status` compact (`status_level` `
 
 Endpoints (Phase 49): `GET /api/validation/operator-review-status` (read-only consolidation; `verified_mrms: false`, `local_status_only: true`, `does_not_clear_alerts: true`, `does_not_enable_production: true`).
 
+Summary additions (Phase 50): `operator_review_status` adds `guidance_items`, `top_guidance_item`, `runbook_path`, `runbook_section`, `suggested_action`. `scheduled_operator_status` compact from latest scheduled report (`operator_status_level`, `operator_status_reason`, `operator_status_top_suggested_command`, …).
+
+Scheduled validation report additions (Phase 50): when `operator_status_requested` (explicit `--operator-status` or implicit with `--review-export`), report includes operator status fields and `operator_review_status` step. Generation failure sets `operator_status_generated: false` and `operator_status_error` without failing the whole run.
+
 **`status_level` interpretation:** `urgent` — failed validation alert, urgent escalation, or worsening export-diff streak ≥2; `attention` — regeneration hints, worsened/mixed latest export diff, or open attention items; `watch` — stable/mixed export trend with history or escalation/alert watch; `ok` — improving/stable evidence without recommendations; `unknown` — insufficient local review data.
+
+**Runbook guidance mapping:** urgent/attention/watch status levels; digest/review-export/review-session recommendations; evidence trend worsening/mixed/stable/improving — each maps to a runbook anchor under `docs/RUNBOOK_REAL_MRMS_VALIDATION.md`.
 
 **`top_suggested_command` priority:** (1) digest stale → `make scheduled-proof-bundle-review-export`; (2) session exists, export stale → `make mrms-review-session-export`; (3) trend/session attention → `make mrms-review-session` with `--export-after-create`; (4) no session → initial `make mrms-review-session` with `--export-after-create`.
 

@@ -120,6 +120,15 @@ class ScheduledValidationReport:
     review_export_reason: Optional[str] = None
     review_export_elapsed_seconds: Optional[float] = None
     review_export_trend_hint: Optional[dict[str, Any]] = None
+    operator_status_requested: bool = False
+    operator_status_generated: bool = False
+    operator_status_level: Optional[str] = None
+    operator_status_reason: Optional[str] = None
+    operator_status_top_recommended_action: Optional[str] = None
+    operator_status_top_suggested_command: Optional[str] = None
+    operator_status_evidence_trend: Optional[str] = None
+    operator_status_elapsed_seconds: Optional[float] = None
+    operator_status_error: Optional[str] = None
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     elapsed_seconds: float = 0.0
@@ -173,6 +182,15 @@ class ScheduledValidationReport:
             "review_export_reason": self.review_export_reason,
             "review_export_elapsed_seconds": self.review_export_elapsed_seconds,
             "review_export_trend_hint": self.review_export_trend_hint,
+            "operator_status_requested": self.operator_status_requested,
+            "operator_status_generated": self.operator_status_generated,
+            "operator_status_level": self.operator_status_level,
+            "operator_status_reason": self.operator_status_reason,
+            "operator_status_top_recommended_action": self.operator_status_top_recommended_action,
+            "operator_status_top_suggested_command": self.operator_status_top_suggested_command,
+            "operator_status_evidence_trend": self.operator_status_evidence_trend,
+            "operator_status_elapsed_seconds": self.operator_status_elapsed_seconds,
+            "operator_status_error": self.operator_status_error,
             "warnings": list(self.warnings),
             "errors": list(self.errors),
             "elapsed_seconds": round(self.elapsed_seconds, 4),
@@ -294,6 +312,7 @@ def run_scheduled_validation(
     notify_stdout: bool = False,
     digest_requested: bool = False,
     review_export_requested: bool = False,
+    operator_status_requested: bool = False,
     persist: bool = True,
     command_context: Optional[str] = None,
     batch_fn: Optional[Callable[..., BatchValidationReport]] = None,
@@ -322,6 +341,8 @@ def run_scheduled_validation(
     report.notify_stdout_requested = notify_stdout
     report.digest_requested = digest_requested
     report.review_export_requested = review_export_requested
+    effective_operator_status = operator_status_requested or review_export_requested
+    report.operator_status_requested = effective_operator_status
     report.warnings.append(
         "Scheduled validation is local dev/prototype tooling — not verified MRMS production"
     )
@@ -836,6 +857,62 @@ def run_scheduled_validation(
         )
 
         report.review_export_trend_hint = build_review_session_export_diff_trend_hint(storage)
+
+    if effective_operator_status:
+        operator_status_step = ScheduledValidationStep(
+            name="operator_review_status",
+            started_at=_utc_now(),
+        )
+        operator_start = time.perf_counter()
+        try:
+            from backend.app.services.operator_review_status import compact_operator_review_status
+
+            status = compact_operator_review_status(storage)
+            report.operator_status_generated = True
+            report.operator_status_level = status.get("status_level")
+            report.operator_status_reason = status.get("status_reason")
+            report.operator_status_top_recommended_action = status.get("top_recommended_action")
+            report.operator_status_top_suggested_command = status.get("top_suggested_command")
+            report.operator_status_evidence_trend = status.get("evidence_trend")
+            operator_status_step.summary = {
+                "operator_status_generated": True,
+                "operator_status_level": report.operator_status_level,
+                "operator_status_reason": report.operator_status_reason,
+                "operator_status_top_recommended_action": report.operator_status_top_recommended_action,
+                "operator_status_top_suggested_command": report.operator_status_top_suggested_command,
+                "operator_status_evidence_trend": report.operator_status_evidence_trend,
+                "runbook_path": status.get("runbook_path"),
+                "runbook_section": status.get("runbook_section"),
+                "verified_mrms": False,
+                "local_status_only": True,
+            }
+            report.warnings.append(
+                "Operator review status consolidated (local review only — does NOT verify MRMS)"
+            )
+        except Exception as exc:  # noqa: BLE001
+            report.operator_status_generated = False
+            report.operator_status_reason = "generation_failed"
+            report.operator_status_error = str(exc)
+            operator_status_step.warnings.append(str(exc))
+            operator_status_step.summary = {
+                "operator_status_generated": False,
+                "operator_status_reason": report.operator_status_reason,
+                "operator_status_error": report.operator_status_error,
+                "verified_mrms": False,
+                "local_status_only": True,
+            }
+        operator_status_step.elapsed_seconds = time.perf_counter() - operator_start
+        report.operator_status_elapsed_seconds = round(operator_status_step.elapsed_seconds, 4)
+        operator_status_step.finished_at = _utc_now()
+        _finalize_step_status(operator_status_step)
+        report.steps.append(operator_status_step)
+        _log_step_failures(
+            storage,
+            phase="scheduled_validation",
+            source_mode=mode,
+            command_context=command_context,
+            step=operator_status_step,
+        )
 
     report.success = not report.errors and all(
         step.status in (STEP_SUCCEEDED, STEP_WARNING, STEP_SKIPPED) for step in report.steps

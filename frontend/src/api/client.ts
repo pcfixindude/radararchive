@@ -722,6 +722,29 @@ export type OperatorReviewStatusCompact = {
   latest_export_diff_trend?: string | null;
   open_attention_count?: number | null;
   active_guidance_count?: number;
+  guidance_items?: OperatorGuidanceItem[];
+  top_guidance_item?: OperatorGuidanceItem | null;
+  runbook_path?: string | null;
+  runbook_section?: string | null;
+  suggested_action?: string | null;
+  verified_mrms: boolean;
+  local_status_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  no_external_notifications?: boolean;
+  prototype: boolean;
+};
+
+export type ScheduledOperatorStatusCompact = {
+  operator_status_requested: boolean;
+  operator_status_generated: boolean;
+  operator_status_level?: string | null;
+  operator_status_reason?: string | null;
+  operator_status_top_recommended_action?: string | null;
+  operator_status_top_suggested_command?: string | null;
+  operator_status_evidence_trend?: string | null;
+  operator_status_elapsed_seconds?: number | null;
+  operator_status_error?: string | null;
   verified_mrms: boolean;
   local_status_only: boolean;
   does_not_clear_alerts: boolean;
@@ -1174,6 +1197,7 @@ export type ValidationSummary = {
   mrms_review_session_export_diff_history?: MrmsReviewSessionExportDiffHistoryCompact | null;
   review_export_regeneration_hint?: ReviewExportRegenerationHintCompact | null;
   operator_review_status?: OperatorReviewStatusCompact | null;
+  scheduled_operator_status?: ScheduledOperatorStatusCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;

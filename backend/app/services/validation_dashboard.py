@@ -14,7 +14,10 @@ from backend.app.services.mrms_operator_handoff import (
     load_latest_operator_handoff,
 )
 from backend.app.services.operator_guidance import compact_operator_guidance
-from backend.app.services.operator_review_status import compact_operator_review_status
+from backend.app.services.operator_review_status import (
+    compact_operator_review_status,
+    compact_scheduled_operator_status,
+)
 from backend.app.services.proof_bundle_diff_acknowledgment import (
     compact_diff_acknowledgment_summary,
     load_diff_acknowledgments,
@@ -190,6 +193,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         ),
         "review_export_regeneration_hint": build_review_export_regeneration_hint(storage),
         "operator_review_status": compact_operator_review_status(storage),
+        "scheduled_operator_status": compact_scheduled_operator_status(scheduled),
         "runbook_references": RUNBOOK_LINK_METADATA,
         "catalog": catalog,
     }
@@ -230,6 +234,7 @@ def build_validation_latest(storage: LocalStorage) -> dict[str, Any]:
         ),
         "proof_bundle_diff_escalation_digest_diff": load_latest_digest_diff_metadata(storage),
         "digest_regeneration_hint": build_digest_regeneration_hint(storage),
+        "operator_review_status": compact_operator_review_status(storage),
         "mrms_review_sessions": build_review_sessions_payload(storage, limit=10).get("entries", []),
     }
 

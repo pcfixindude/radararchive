@@ -541,6 +541,14 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Summary: `operator_review_status` compact (`status_level`, recommendations, `top_suggested_command`, `evidence_trend`, timestamps, counts)
 - Read-only — does not mutate alerts, sessions, exports, digests, or production gates
 
+### Scheduled operator review status + runbook guidance (Phase 50)
+- `build_operator_review_status_guidance()` — runbook deep-links for urgent/attention/watch, regeneration hints, evidence trends
+- `compact_scheduled_operator_status()` — summary compact from latest scheduled report
+- Scheduled validation: `--operator-status` flag; auto-runs when `--review-export` requested
+- `make scheduled-proof-bundle-operator-status`
+- Summary: `scheduled_operator_status` compact; `operator_review_status` includes `guidance_items`, `top_guidance_item`, `runbook_path`, `runbook_section`, `suggested_action`
+- Read-only — does not mutate alerts, sessions, exports, digests, or gates
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

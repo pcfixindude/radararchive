@@ -1,23 +1,24 @@
 # Next Steps
 
-## Phase 50 - Operator Review Status Follow-through (Draft)
+## Phase 51 - Dev Validation UX Polish (Draft)
 
-Goal: Optional deeper tie-in between consolidated operator review status and scheduled validation reporting — still local-only.
+Goal: Optional collapsible detail sections in Dev Validation panel — still local-only.
 
 Suggested work:
-1. Surface `operator_review_status` on scheduled validation reports when review export runs
-2. Optional runbook deep-links from `top_recommended_action` causes
-3. Collapsible detail sections in Dev Validation panel (optional UX)
+1. Collapse/expand toggles for detailed review/export/diff/history blocks
+2. Link scheduled operator status causes to runbook anchors in UI
+3. Optional scheduled validation flag to surface operator status without review export
 
 Do not start yet:
 - Stripe, real auth, HRRR, WPC, native Android
 - Redis/Celery, cloud deployment, email/Slack/webhooks
 - Setting `verified_mrms=true` or production promotion
 
-## Phase 49 verification commands
+## Phase 50 verification commands
 
 ```bash
 make test
 make operator-review-status
+make scheduled-proof-bundle-operator-status
 cd frontend && npm run build
 ```

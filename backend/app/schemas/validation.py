@@ -764,6 +764,29 @@ class OperatorReviewStatusCompact(BaseModel):
     latest_export_diff_trend: Optional[str] = None
     open_attention_count: Optional[int] = None
     active_guidance_count: int = 0
+    guidance_items: list[OperatorGuidanceItemCompact] = Field(default_factory=list)
+    top_guidance_item: Optional[OperatorGuidanceItemCompact] = None
+    runbook_path: Optional[str] = None
+    runbook_section: Optional[str] = None
+    suggested_action: Optional[str] = None
+    verified_mrms: bool = False
+    local_status_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    prototype: bool = True
+
+
+class ScheduledOperatorStatusCompact(BaseModel):
+    operator_status_requested: bool = False
+    operator_status_generated: bool = False
+    operator_status_level: Optional[str] = None
+    operator_status_reason: Optional[str] = None
+    operator_status_top_recommended_action: Optional[str] = None
+    operator_status_top_suggested_command: Optional[str] = None
+    operator_status_evidence_trend: Optional[str] = None
+    operator_status_elapsed_seconds: Optional[float] = None
+    operator_status_error: Optional[str] = None
     verified_mrms: bool = False
     local_status_only: bool = True
     does_not_clear_alerts: bool = True
@@ -1399,6 +1422,7 @@ class ValidationSummaryResponse(BaseModel):
     mrms_review_session_export_diff_history: Optional[MrmsReviewSessionExportDiffHistorySummaryCompact] = None
     review_export_regeneration_hint: Optional[ReviewExportRegenerationHintCompact] = None
     operator_review_status: Optional[OperatorReviewStatusCompact] = None
+    scheduled_operator_status: Optional[ScheduledOperatorStatusCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse

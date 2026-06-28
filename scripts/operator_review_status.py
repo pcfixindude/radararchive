@@ -46,6 +46,13 @@ def main() -> None:
     print(f"  latest_digest_at: {status.get('latest_digest_at')}")
     print(f"  open_attention_count: {status.get('open_attention_count')}")
     print(f"  active_guidance_count: {status.get('active_guidance_count')}")
+    top_guidance = status.get("top_guidance_item") or {}
+    if top_guidance:
+        print(f"  top_guidance: {top_guidance.get('title')} — {top_guidance.get('path')}")
+        if top_guidance.get("section_label"):
+            print(f"  runbook_section: {top_guidance.get('section_label')}")
+        if top_guidance.get("suggested_action"):
+            print(f"  suggested_action: {top_guidance.get('suggested_action')}")
     print(f"  verified_mrms: {payload.get('verified_mrms')}")
 
 

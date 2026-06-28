@@ -253,6 +253,7 @@ export default function ValidationStatusPanel({
   const reviewSessionExportDiffHistory = summary.mrms_review_session_export_diff_history ?? null;
   const reviewExportRegenerationHint = summary.review_export_regeneration_hint ?? null;
   const operatorReviewStatus = summary.operator_review_status ?? null;
+  const scheduledOperatorStatus = summary.scheduled_operator_status ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
   const queue = summary.render_queue;
@@ -297,6 +298,47 @@ export default function ValidationStatusPanel({
           {operatorReviewStatus.top_suggested_command ? (
             <p className="validation-meta">
               Suggested command: <code>{operatorReviewStatus.top_suggested_command}</code>
+            </p>
+          ) : null}
+          {operatorReviewStatus.top_guidance_item ? (
+            <p className="validation-meta">
+              Top guidance: {operatorReviewStatus.top_guidance_item.title}
+              {operatorReviewStatus.runbook_path ? (
+                <>
+                  {' '}
+                  — <code>{operatorReviewStatus.runbook_path}</code>
+                </>
+              ) : null}
+              {operatorReviewStatus.runbook_section
+                ? ` — section: ${operatorReviewStatus.runbook_section}`
+                : ''}
+            </p>
+          ) : null}
+          {operatorReviewStatus.suggested_action ? (
+            <p className="validation-meta">
+              Suggested action: {operatorReviewStatus.suggested_action}
+            </p>
+          ) : null}
+          {scheduledOperatorStatus?.operator_status_requested ? (
+            <p className="validation-meta">
+              Scheduled operator status: level{' '}
+              {scheduledOperatorStatus.operator_status_level ?? '—'}
+              {scheduledOperatorStatus.operator_status_reason
+                ? ` — ${scheduledOperatorStatus.operator_status_reason}`
+                : ''}
+              {scheduledOperatorStatus.operator_status_top_suggested_command ? (
+                <>
+                  {' '}
+                  — command:{' '}
+                  <code>{scheduledOperatorStatus.operator_status_top_suggested_command}</code>
+                </>
+              ) : null}
+              {scheduledOperatorStatus.operator_status_error ? (
+                <span className="validation-warn">
+                  {' '}
+                  — error: {scheduledOperatorStatus.operator_status_error}
+                </span>
+              ) : null}
             </p>
           ) : null}
           <p className="validation-meta">

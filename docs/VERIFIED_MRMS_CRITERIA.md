@@ -206,6 +206,10 @@ Review session export diff history in the Dev Validation summary (`mrms_review_s
 
 Consolidated operator review status (`operator_review_status`, `make operator-review-status`, `GET /api/validation/operator-review-status`) summarizes validation alerts, escalation/trend hints, digest and export regeneration hints, review session/export/diff/trend/history into one local Dev Validation block. `status_level` (`ok`/`watch`/`attention`/`urgent`/`unknown`) and `top_suggested_command` follow documented priority rules. This is **local consolidation only** — it does **not** verify MRMS, clear alerts, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
 
+## Scheduled operator review status + runbook guidance (Phase 50)
+
+Scheduled operator review status (`make scheduled-proof-bundle-operator-status`, `--operator-status` on scheduled validation; also runs automatically with `--review-export`) adds consolidated status fields to the scheduled report and runbook deep-links (`guidance_items`, `top_guidance_item`, `runbook_path`, `runbook_section`). Operator status guidance maps urgent/attention/watch levels, regeneration recommendations, and evidence trends to runbook sections. This is **local review guidance only** — it does **not** verify MRMS, clear alerts, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
+
 ## Scheduled proof bundle monitoring (Phase 32)
 
 `make scheduled-proof-bundle` runs scheduled validation with `--proof --bundle --diff-bundle`. This is **local evidence monitoring only** — it does not verify MRMS or enable production rendering. Alerts may flag `worsened` or `mixed` diff status for operator review.

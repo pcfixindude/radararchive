@@ -125,6 +125,7 @@ make scheduled-proof-bundle
 make scheduled-proof-bundle-handoff
 make scheduled-proof-bundle-digest
 make scheduled-proof-bundle-review-export
+make scheduled-proof-bundle-operator-status
 make proof-bundle-diff-alert-history
 make proof-bundle-diff-alert-trend
 make proof-bundle-diff-escalation
@@ -219,7 +220,8 @@ Limitations:
 - `make scheduled-proof-bundle` runs scheduled validation with proof report, bundle export, and diff (local monitoring only)
 - `make scheduled-proof-bundle-handoff` adds optional operator handoff auto-regeneration when diff is worsened/mixed (does not verify MRMS)
 - `make scheduled-proof-bundle-digest` runs proof bundle pipeline with escalation digest export and extended operator review checklist (local only; does not verify MRMS or notify externally)
-- `make scheduled-proof-bundle-review-export` runs the digest sequence plus review session Markdown export (`--review-export`; skips safely when no review session exists)
+- `make scheduled-proof-bundle-review-export` runs the digest sequence plus review session Markdown export (`--review-export`; skips safely when no review session exists; also consolidates operator review status)
+- `make scheduled-proof-bundle-operator-status` runs the full proof/review sequence with explicit `--operator-status` and runbook guidance in the scheduled report
 - `make proof-bundle-diff-alert-history` shows bounded diff alert timeline (local evidence monitoring only)
 - `make proof-bundle-diff-alert-trend` summarizes worsening/improving/mixed/stable trend over recent history
 - `make proof-bundle-diff-escalation` shows escalation level and runbook guidance for worsening/stale-ack trends (local only)
@@ -247,7 +249,7 @@ Limitations:
 - `make mrms-review-session-export-diff-history` lists bounded export diff history (`--json`, `--limit`); Dev Validation summary shows recent 5 entries with show/hide toggle
 - `make mrms-review-session-export-diff-trend` summarizes export diff trend (`improving`/`worsening`/`mixed`/`stable`/`no_data`; `--json`, `--limit`)
 - `make mrms-review-session-export-diff-trend-hint` shows when a new review session/export is recommended (`--json`)
-- `make operator-review-status` prints consolidated local operator review status (`--json`); Dev Validation shows compact block near top of validation area
+- `make operator-review-status` prints consolidated local operator review status with runbook guidance (`--json`); Dev Validation shows compact block near top of validation area
 - `make mrms-review-session ARGS="... --export-after-create"` creates a session and immediately exports Markdown (session is kept if export fails)
 - `make mrms-signoff` records local operator sign-off (does not set verified_mrms)
 - `POST /api/validation/signoffs` — dev-only sign-off API (same validation as CLI; does not verify MRMS)

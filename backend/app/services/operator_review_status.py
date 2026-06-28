@@ -28,7 +28,7 @@ from backend.app.services.mrms_review_session_export_diff_trends import (
     TREND_WORSENING,
     compact_review_session_export_diff_trend,
 )
-from backend.app.services.operator_guidance import compact_operator_guidance
+from backend.app.services.operator_guidance import RUNBOOK_PATH, compact_operator_guidance
 from backend.app.services.proof_bundle_diff_alert_trends import (
     compact_proof_bundle_diff_alert_trend,
 )
@@ -76,6 +76,170 @@ SESSION_TREND_REASONS = frozenset(
         "export_diff_trend_mixed_streak",
     }
 )
+
+OPERATOR_STATUS_GUIDANCE: dict[str, dict[str, str]] = {
+    "status_level_urgent": {
+        "title": "Urgent operator review status",
+        "path": RUNBOOK_PATH,
+        "anchor": "operator-review-status-urgent",
+        "section_label": "Urgent operator review status",
+        "suggested_action": (
+            "Address urgent local review signals before sign-off or production promotion. "
+            "Follow runbook urgent section and suggested commands."
+        ),
+    },
+    "status_level_attention": {
+        "title": "Attention operator review status",
+        "path": RUNBOOK_PATH,
+        "anchor": "operator-review-status-attention",
+        "section_label": "Attention operator review status",
+        "suggested_action": (
+            "Review open local attention items and follow the top suggested command "
+            "(local review only)."
+        ),
+    },
+    "status_level_watch": {
+        "title": "Watch operator review status",
+        "path": RUNBOOK_PATH,
+        "anchor": "operator-review-status-watch",
+        "section_label": "Watch operator review status",
+        "suggested_action": (
+            "Monitor local review evidence trends; re-check operator review status after "
+            "the next scheduled proof/review run."
+        ),
+    },
+    "digest_regeneration_recommended": {
+        "title": "Digest regeneration recommended",
+        "path": RUNBOOK_PATH,
+        "anchor": "operator-review-status-digest-regeneration",
+        "section_label": "Digest regeneration recommended",
+        "suggested_action": (
+            "Run make scheduled-proof-bundle-review-export or make scheduled-proof-bundle-digest "
+            "to refresh local digest/checklist evidence."
+        ),
+    },
+    "review_export_recommended": {
+        "title": "Review export recommended",
+        "path": RUNBOOK_PATH,
+        "anchor": "operator-review-status-review-export",
+        "section_label": "Review export recommended",
+        "suggested_action": (
+            "Run make mrms-review-session-export to export the latest review session summary "
+            "(local review only)."
+        ),
+    },
+    "review_session_recommended": {
+        "title": "Review session recommended",
+        "path": RUNBOOK_PATH,
+        "anchor": "operator-review-status-review-session",
+        "section_label": "Review session recommended",
+        "suggested_action": (
+            "Run make mrms-review-session with --accepted-limitations and --export-after-create "
+            "to record a new local review session."
+        ),
+    },
+    "evidence_trend_worsening": {
+        "title": "Evidence trend worsening",
+        "path": RUNBOOK_PATH,
+        "anchor": "operator-review-status-evidence-worsening",
+        "section_label": "Evidence trend worsening",
+        "suggested_action": (
+            "Review export diff trend and history; consider a new review session with export "
+            "(local review only)."
+        ),
+    },
+    "evidence_trend_mixed": {
+        "title": "Evidence trend mixed",
+        "path": RUNBOOK_PATH,
+        "anchor": "operator-review-status-evidence-mixed",
+        "section_label": "Evidence trend mixed",
+        "suggested_action": (
+            "Compare export diff history entries and follow runbook mixed-trend guidance."
+        ),
+    },
+    "evidence_trend_stable": {
+        "title": "Evidence trend stable",
+        "path": RUNBOOK_PATH,
+        "anchor": "operator-review-status-evidence-stable",
+        "section_label": "Evidence trend stable",
+        "suggested_action": (
+            "Continue local monitoring; no mandatory action unless regeneration hints appear."
+        ),
+    },
+    "evidence_trend_improving": {
+        "title": "Evidence trend improving",
+        "path": RUNBOOK_PATH,
+        "anchor": "operator-review-status-evidence-improving",
+        "section_label": "Evidence trend improving",
+        "suggested_action": (
+            "Evidence is improving locally — keep monitoring; does not verify MRMS."
+        ),
+    },
+}
+
+
+def _status_guidance_item(cause: str) -> dict[str, Any]:
+    meta = OPERATOR_STATUS_GUIDANCE.get(cause, OPERATOR_STATUS_GUIDANCE["status_level_attention"])
+    return {
+        "title": meta["title"],
+        "path": meta["path"],
+        "anchor": meta.get("anchor", ""),
+        "section_label": meta.get("section_label", meta["title"]),
+        "cause": cause,
+        "suggested_action": meta.get("suggested_action", ""),
+        "verified_mrms": False,
+        "local_guidance_only": True,
+        "prototype": True,
+    }
+
+
+def build_operator_review_status_guidance(status: dict[str, Any]) -> list[dict[str, Any]]:
+    """Map consolidated operator review status to runbook guidance items."""
+    items: list[dict[str, Any]] = []
+    seen: set[str] = set()
+
+    def add(cause: str) -> None:
+        if cause in seen:
+            return
+        items.append(_status_guidance_item(cause))
+        seen.add(cause)
+
+    status_level = str(status.get("status_level") or STATUS_UNKNOWN)
+    evidence_trend = str(status.get("evidence_trend") or EVIDENCE_UNKNOWN)
+
+    if status_level == STATUS_URGENT:
+        add("status_level_urgent")
+    if status.get("digest_regeneration_recommended"):
+        add("digest_regeneration_recommended")
+    if status.get("review_export_recommended"):
+        add("review_export_recommended")
+    if status.get("review_session_recommended"):
+        add("review_session_recommended")
+    if status_level == STATUS_ATTENTION:
+        add("status_level_attention")
+    if evidence_trend == EVIDENCE_WORSENING:
+        add("evidence_trend_worsening")
+    elif evidence_trend == EVIDENCE_MIXED:
+        add("evidence_trend_mixed")
+    if status_level == STATUS_WATCH:
+        add("status_level_watch")
+    if evidence_trend == EVIDENCE_STABLE:
+        add("evidence_trend_stable")
+    elif evidence_trend == EVIDENCE_IMPROVING:
+        add("evidence_trend_improving")
+
+    return items[:8]
+
+
+def _attach_guidance_fields(status: dict[str, Any]) -> dict[str, Any]:
+    guidance_items = build_operator_review_status_guidance(status)
+    top = guidance_items[0] if guidance_items else None
+    status["guidance_items"] = guidance_items
+    status["top_guidance_item"] = top
+    status["runbook_path"] = top.get("path") if top else None
+    status["runbook_section"] = (top or {}).get("section_label") or (top or {}).get("anchor")
+    status["suggested_action"] = (top or {}).get("suggested_action")
+    return status
 
 
 def _utc_now_iso() -> str:
@@ -341,23 +505,54 @@ def build_operator_review_status(storage: LocalStorage) -> dict[str, Any]:
         else _resolve_evidence_trend(export_diff_trend, proof_alert_trend)
     )
 
+    return _attach_guidance_fields(
+        {
+            "created_at": _utc_now_iso(),
+            "status_level": status_level,
+            "status_reason": status_reason,
+            "top_recommended_action": top_recommended_action,
+            "top_suggested_command": top_suggested_command,
+            "review_session_recommended": review_session_recommended,
+            "review_export_recommended": review_export_recommended,
+            "digest_regeneration_recommended": digest_regeneration_recommended,
+            "evidence_trend": evidence_trend,
+            "latest_review_session_at": session_summary.get("created_at"),
+            "latest_review_export_at": export_summary.get("created_at"),
+            "latest_digest_at": digest_hint.get("latest_digest_at"),
+            "latest_export_diff_status": latest_export_diff_status,
+            "latest_export_diff_trend": latest_export_diff_trend,
+            "open_attention_count": open_attention_count if session_available else None,
+            "active_guidance_count": active_guidance_count,
+            "verified_mrms": False,
+            "local_status_only": True,
+            "does_not_clear_alerts": True,
+            "does_not_enable_production": True,
+            "no_external_notifications": True,
+            "prototype": True,
+        }
+    )
+
+
+def compact_scheduled_operator_status(
+    scheduled: Optional[dict[str, Any]],
+) -> Optional[dict[str, Any]]:
+    """Compact operator status step from the latest scheduled validation report."""
+    if scheduled is None:
+        return None
     return {
-        "created_at": _utc_now_iso(),
-        "status_level": status_level,
-        "status_reason": status_reason,
-        "top_recommended_action": top_recommended_action,
-        "top_suggested_command": top_suggested_command,
-        "review_session_recommended": review_session_recommended,
-        "review_export_recommended": review_export_recommended,
-        "digest_regeneration_recommended": digest_regeneration_recommended,
-        "evidence_trend": evidence_trend,
-        "latest_review_session_at": session_summary.get("created_at"),
-        "latest_review_export_at": export_summary.get("created_at"),
-        "latest_digest_at": digest_hint.get("latest_digest_at"),
-        "latest_export_diff_status": latest_export_diff_status,
-        "latest_export_diff_trend": latest_export_diff_trend,
-        "open_attention_count": open_attention_count if session_available else None,
-        "active_guidance_count": active_guidance_count,
+        "operator_status_requested": bool(scheduled.get("operator_status_requested")),
+        "operator_status_generated": bool(scheduled.get("operator_status_generated")),
+        "operator_status_level": scheduled.get("operator_status_level"),
+        "operator_status_reason": scheduled.get("operator_status_reason"),
+        "operator_status_top_recommended_action": scheduled.get(
+            "operator_status_top_recommended_action"
+        ),
+        "operator_status_top_suggested_command": scheduled.get(
+            "operator_status_top_suggested_command"
+        ),
+        "operator_status_evidence_trend": scheduled.get("operator_status_evidence_trend"),
+        "operator_status_elapsed_seconds": scheduled.get("operator_status_elapsed_seconds"),
+        "operator_status_error": scheduled.get("operator_status_error"),
         "verified_mrms": False,
         "local_status_only": True,
         "does_not_clear_alerts": True,

@@ -1857,3 +1857,35 @@ cd frontend && npm run build
 - Local/dev review tooling only — not verified MRMS
 - Does not clear alerts or mutate production/catalog/render gates
 - `verified_mrms` always false
+
+## Phase 50 - Scheduled Operator Review Status + Runbook Guidance
+
+Scheduled validation tie-in and runbook deep-links for consolidated operator review status.
+
+### Backend
+- `build_operator_review_status_guidance()` — maps status levels, recommendations, evidence trends to runbook anchors
+- `operator_review_status` adds `guidance_items`, `top_guidance_item`, `runbook_path`, `runbook_section`, `suggested_action`
+- Scheduled validation: `--operator-status`; auto with `--review-export`
+- Report fields: `operator_status_*`; step `operator_review_status`
+- Summary: `scheduled_operator_status` compact
+
+### Scripts / Makefile
+- `make scheduled-proof-bundle-operator-status`
+- `scripts/run_scheduled_validation.py --operator-status`
+
+### Frontend
+- Dev Validation: top guidance, runbook path/section, suggested action, scheduled operator status
+
+### Run commands
+
+```bash
+make test
+make scheduled-proof-bundle-operator-status
+cd frontend && npm run build
+```
+
+### Known limitations
+- Operator status build failure does not fail scheduled run — sets `operator_status_error`
+- Local/dev review tooling only — not verified MRMS
+- Does not clear alerts or mutate production/catalog/render gates
+- `verified_mrms` always false

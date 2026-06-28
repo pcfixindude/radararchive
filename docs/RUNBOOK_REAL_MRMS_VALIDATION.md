@@ -611,6 +611,36 @@ curl http://127.0.0.1:8000/api/validation/summary
 
 **Warnings:** Consolidation is local-only — does not verify MRMS, clear alerts, notify externally, or enable production rendering.
 
+### Operator review status guidance anchors (Phase 50)
+
+Runbook deep-links from consolidated status (`guidance_items`, `top_guidance_item`):
+
+- `operator-review-status-urgent` — urgent `status_level`
+- `operator-review-status-attention` — attention `status_level`
+- `operator-review-status-watch` — watch `status_level`
+- `operator-review-status-digest-regeneration` — digest regeneration recommended
+- `operator-review-status-review-export` — review export recommended
+- `operator-review-status-review-session` — review session recommended
+- `operator-review-status-evidence-worsening` / `evidence-mixed` / `evidence-stable` / `evidence-improving` — evidence trend
+
+## Scheduled operator review status (Phase 50)
+
+Optional scheduled validation step consolidates operator review status after proof/review steps — **local scheduled review only**.
+
+```bash
+make scheduled-proof-bundle-operator-status
+make scheduled-proof-bundle-operator-status ARGS="--json-report"
+make scheduled-validation ARGS="--proof --bundle --diff-bundle --handoff --digest --review-export --operator-status"
+```
+
+**When to use:** After a full local proof → bundle → diff → handoff → digest → review export sequence when you want the scheduled report to end with consolidated status and runbook guidance.
+
+**Auto-inclusion:** `--review-export` / `make scheduled-proof-bundle-review-export` also runs operator status consolidation (no separate flag required). Default `make scheduled-validation` is unchanged.
+
+**Report fields:** `operator_status_requested`, `operator_status_generated`, `operator_status_level`, `operator_status_reason`, `operator_status_top_recommended_action`, `operator_status_top_suggested_command`, `operator_status_evidence_trend`, `operator_status_elapsed_seconds`, `operator_status_error` (if build fails — does not fail the whole scheduled run).
+
+**Warnings:** Scheduled operator status is local-only — does not verify MRMS, clear alerts, notify externally, or enable production rendering.
+
 ## Scheduled review session export (Phase 44)
 
 Optional scheduled validation step exports the latest review session Markdown after digest/handoff — **local scheduled review only**.

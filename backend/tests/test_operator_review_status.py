@@ -33,6 +33,7 @@ from backend.app.services.operator_review_status import (
     STATUS_URGENT,
     STATUS_WATCH,
     build_operator_review_status,
+    build_operator_review_status_guidance,
     compact_operator_review_status,
 )
 from backend.app.services.proof_bundle_diff_alert_history import record_proof_bundle_diff_alert_history
@@ -106,12 +107,133 @@ def test_operator_review_status_shape(storage, monkeypatch):
         "local_status_only",
         "does_not_clear_alerts",
         "does_not_enable_production",
+        "guidance_items",
+        "top_guidance_item",
+        "runbook_path",
+        "runbook_section",
+        "suggested_action",
     ):
         assert key in status
     assert status["verified_mrms"] is False
     assert status["local_status_only"] is True
     assert status["does_not_clear_alerts"] is True
     assert status["does_not_enable_production"] is True
+    assert isinstance(status["guidance_items"], list)
+
+
+def test_urgent_status_maps_to_runbook_guidance(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
+    save_validation_alert(
+        storage,
+        {
+            "status": ALERT_FAILED,
+            "updated_at": "2026-06-28T16:00:00Z",
+            "latest_run_at": "2026-06-28T16:00:00Z",
+            "failure_count": 1,
+            "warning_count": 0,
+            "operator_attention_needed": True,
+            "verified_mrms": False,
+        },
+    )
+    status = build_operator_review_status(storage)
+    guidance = build_operator_review_status_guidance(status)
+    assert any(item["cause"] == "status_level_urgent" for item in guidance)
+    assert status["top_guidance_item"]["cause"] == "status_level_urgent"
+    assert status["runbook_path"] == "docs/RUNBOOK_REAL_MRMS_VALIDATION.md"
+    assert status["runbook_section"]
+
+
+def test_attention_status_maps_to_runbook_guidance(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
+    record = create_review_session_record(
+        storage,
+        operator_initials="AT",
+        session_notes="attention",
+        accepted_limitations=True,
+    )
+    export_latest_review_session(storage, session=record)
+    _seed_diff_history(storage, [DIFF_UNCHANGED, DIFF_UNCHANGED])
+    latest_repo = storage.normalize_path(EXPORT_DIFF_LATEST_PATH)
+    latest = json.loads(storage.absolute_path(latest_repo).read_text(encoding="utf-8"))
+    latest["overall_export_diff_status"] = DIFF_MIXED
+    storage.absolute_path(latest_repo).write_text(json.dumps(latest, indent=2), encoding="utf-8")
+    status = build_operator_review_status(storage)
+    guidance = build_operator_review_status_guidance(status)
+    assert status["status_level"] == STATUS_ATTENTION
+    assert any(
+        item["cause"] in ("status_level_attention", "review_session_recommended")
+        for item in guidance
+    )
+
+
+def test_digest_regeneration_maps_to_runbook_guidance(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
+
+    def _digest_hint(_storage):
+        return {
+            "digest_regeneration_recommended": True,
+            "reason": "test",
+            "verified_mrms": False,
+        }
+
+    monkeypatch.setattr(
+        "backend.app.services.operator_review_status.build_digest_regeneration_hint",
+        _digest_hint,
+    )
+    status = build_operator_review_status(storage)
+    guidance = build_operator_review_status_guidance(status)
+    assert any(item["cause"] == "digest_regeneration_recommended" for item in guidance)
+
+
+def test_review_export_recommended_maps_to_runbook_guidance(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
+    _seed_diff_history(storage, [DIFF_UNCHANGED, DIFF_UNCHANGED])
+    first = create_review_session_record(
+        storage,
+        operator_initials="OLD",
+        session_notes="older",
+        accepted_limitations=True,
+    )
+    export_latest_review_session(storage, session=first)
+    create_review_session_record(
+        storage,
+        operator_initials="NEW",
+        session_notes="newer",
+        accepted_limitations=True,
+    )
+    status = build_operator_review_status(storage)
+    guidance = build_operator_review_status_guidance(status)
+    assert status["review_export_recommended"] is True
+    assert any(item["cause"] == "review_export_recommended" for item in guidance)
+
+
+def test_review_session_recommended_maps_to_runbook_guidance(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
+    status = build_operator_review_status(storage)
+    guidance = build_operator_review_status_guidance(status)
+    assert status["review_session_recommended"] is True
+    assert any(item["cause"] == "review_session_recommended" for item in guidance)
+
+
+def test_operator_review_status_guidance_does_not_clear_alerts(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
+    save_validation_alert(
+        storage,
+        {
+            "status": ALERT_FAILED,
+            "updated_at": "2026-06-28T16:00:00Z",
+            "latest_run_at": "2026-06-28T16:00:00Z",
+            "failure_count": 1,
+            "warning_count": 0,
+            "operator_attention_needed": True,
+            "verified_mrms": False,
+        },
+    )
+    before = load_validation_alert(storage)
+    status = build_operator_review_status(storage)
+    assert status["top_guidance_item"] is not None
+    after = load_validation_alert(storage)
+    assert after.get("status") == before.get("status")
 
 
 def test_no_data_unknown_behavior(storage, monkeypatch):

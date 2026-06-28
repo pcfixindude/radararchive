@@ -92,6 +92,19 @@ def _print_report(report) -> None:
             print(f"  review export metadata path: {report.review_export_metadata_path}")
         if report.review_export_elapsed_seconds is not None:
             print(f"  review export elapsed_seconds: {report.review_export_elapsed_seconds:.4f}")
+    if report.operator_status_requested:
+        print(
+            f"  operator review status: requested=yes generated={report.operator_status_generated} "
+            f"level={report.operator_status_level} reason={report.operator_status_reason}"
+        )
+        if report.operator_status_top_suggested_command:
+            print(f"  operator status command: {report.operator_status_top_suggested_command}")
+        if report.operator_status_evidence_trend:
+            print(f"  operator status evidence_trend: {report.operator_status_evidence_trend}")
+        if report.operator_status_elapsed_seconds is not None:
+            print(f"  operator status elapsed_seconds: {report.operator_status_elapsed_seconds:.4f}")
+        if report.operator_status_error:
+            print(f"  operator status error: {report.operator_status_error}")
     print(f"  verified_mrms: {report.verified_mrms}")
     for warning in report.warnings:
         print(f"  warning: {warning}")
@@ -156,6 +169,12 @@ def main() -> None:
         action="store_true",
         help="After digest/handoff steps, export latest review session Markdown (local only)",
     )
+    parser.add_argument(
+        "--operator-status",
+        dest="operator_status",
+        action="store_true",
+        help="Include consolidated operator review status in scheduled report (also runs with --review-export)",
+    )
     args = parser.parse_args()
 
     print(
@@ -192,6 +211,7 @@ def main() -> None:
             notify_stdout=args.notify_stdout,
             digest_requested=args.digest,
             review_export_requested=args.review_export,
+            operator_status_requested=args.operator_status,
             command_context="make scheduled-validation",
         )
     finally:
