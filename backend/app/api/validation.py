@@ -6,13 +6,18 @@ from sqlalchemy.orm import Session
 from backend.app.config import settings
 from backend.app.database import get_db
 from backend.app.schemas.validation import (
+    QueueBenchmarkHistoryResponse,
     ValidationHistoryResponse,
     ValidationLatestResponse,
     ValidationSummaryResponse,
 )
 from backend.app.services.storage import LocalStorage
 from backend.app.services.validation_dashboard import build_validation_latest, build_validation_summary
-from backend.app.services.validation_report_store import load_validation_history
+from backend.app.services.validation_report_store import (
+    load_latest_queue_benchmark_report,
+    load_queue_benchmark_history,
+    load_validation_history,
+)
 
 router = APIRouter(prefix="/validation", tags=["validation-dev"])
 
@@ -43,5 +48,21 @@ def validation_history() -> ValidationHistoryResponse:
         verified_mrms=False,
         count=len(entries),
         max_entries=10,
+        entries=entries,
+    )
+
+
+@router.get("/benchmarks", response_model=QueueBenchmarkHistoryResponse)
+def validation_benchmarks() -> QueueBenchmarkHistoryResponse:
+    """Latest queue benchmark report and bounded history (dev/prototype)."""
+    storage = LocalStorage(settings.local_storage_root)
+    entries = load_queue_benchmark_history(storage)
+    latest = load_latest_queue_benchmark_report(storage)
+    return QueueBenchmarkHistoryResponse(
+        prototype=True,
+        verified_mrms=False,
+        count=len(entries),
+        max_entries=10,
+        latest=latest,
         entries=entries,
     )

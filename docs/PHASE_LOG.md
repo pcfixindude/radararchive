@@ -951,3 +951,40 @@ cd frontend && npm run build
 - History stores compact summaries only (last 10)
 - `verified_mrms` always false
 - Production serving gates unchanged; placeholder default unchanged
+
+## Phase 22 - Multi-Zoom Queue Benchmark + Validation History UI
+
+Queue-based multi-zoom benchmark for small batches, persisted queue benchmark reports, and dev panel history/benchmark display.
+
+### Backend
+- `render_queue_benchmark.py` — enqueue one job per frame, bounded worker processing, per-job + aggregate metrics
+- Safe defaults: count 3 (max 10), zoom 0–1 (clamped to z4)
+- `validation_report_store.py` — `data/dev/queue_benchmark_latest.json` + bounded history (last 10)
+- Extended `GET /api/validation/summary` with `queue_benchmark`, compact `validation_history`, queue benchmark history count
+- `GET /api/validation/benchmarks` — latest queue benchmark + history
+- Extended `GET /api/validation/latest` with `queue_benchmark` blob
+
+### Scripts / Makefile
+- `scripts/benchmark_render_queue.py` — `make benchmark-render-queue` (`--count`, `--min-zoom`, `--max-zoom`, `--force`, `--dry-run`, `--json-report`)
+
+### Frontend
+- Dev Validation panel: recent validation history list, queue benchmark metrics, per-job summaries, queue succeeded count
+
+### Run commands
+
+```bash
+make test
+make benchmark-render-queue
+make benchmark-render-queue ARGS="--dry-run --json-report"
+make validate-real-mrms-batch
+make catalog-status
+make render-queue-status
+cd frontend && npm run build
+```
+
+### Known limitations
+- Queue benchmark uses local catalog frames; does not auto-discover/download in real mode
+- Without decode artifacts, worker jobs may succeed with 0 tiles written
+- History stores compact summaries only (last 10)
+- `verified_mrms` always false
+- Production serving gates unchanged; placeholder default unchanged

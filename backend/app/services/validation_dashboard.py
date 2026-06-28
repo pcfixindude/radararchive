@@ -13,7 +13,9 @@ from backend.app.services.render_queue import get_queue_summary
 from backend.app.services.storage import LocalStorage
 from backend.app.services.validation_report_store import (
     load_latest_benchmark_report,
+    load_latest_queue_benchmark_report,
     load_latest_validation_report,
+    load_queue_benchmark_history,
     load_validation_history,
 )
 
@@ -24,7 +26,9 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
     queue = get_queue_summary(session)
     validation = load_latest_validation_report(storage)
     benchmark = load_latest_benchmark_report(storage)
+    queue_benchmark = load_latest_queue_benchmark_report(storage)
     history = load_validation_history(storage)
+    queue_benchmark_history = load_queue_benchmark_history(storage)
     catalog = build_catalog_status(session)
 
     return {
@@ -40,8 +44,12 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "validation": _compact_validation(validation),
         "benchmark_available": benchmark is not None,
         "benchmark": _compact_benchmark(benchmark),
+        "queue_benchmark_available": queue_benchmark is not None,
+        "queue_benchmark": _compact_queue_benchmark(queue_benchmark),
         "render_queue": queue.to_dict(),
         "validation_history_count": len(history),
+        "validation_history": history[:5],
+        "queue_benchmark_history_count": len(queue_benchmark_history),
         "catalog": catalog,
     }
 
@@ -54,6 +62,7 @@ def build_validation_latest(storage: LocalStorage) -> dict[str, Any]:
         "production_rendering_enabled": settings.enable_production_radar_tiles,
         "validation": load_latest_validation_report(storage),
         "benchmark": load_latest_benchmark_report(storage),
+        "queue_benchmark": load_latest_queue_benchmark_report(storage),
     }
 
 
@@ -104,6 +113,49 @@ def _compact_benchmark(benchmark: Optional[dict[str, Any]]) -> Optional[dict[str
         "decoder_used": benchmark.get("decoder_used"),
         "warnings": benchmark.get("warnings", [])[:5],
         "errors": benchmark.get("errors", [])[:5],
+        "verified_mrms": False,
+        "prototype": True,
+    }
+
+
+def _compact_queue_benchmark(
+    queue_benchmark: Optional[dict[str, Any]],
+) -> Optional[dict[str, Any]]:
+    if queue_benchmark is None:
+        return None
+    job_summaries = queue_benchmark.get("job_summaries", [])
+    compact_jobs = [
+        {
+            "timestamp": item.get("timestamp"),
+            "job_id": item.get("job_id"),
+            "status": item.get("status"),
+            "min_zoom": item.get("min_zoom"),
+            "max_zoom": item.get("max_zoom"),
+            "tiles_written": item.get("tiles_written", 0),
+            "tiles_skipped": item.get("tiles_skipped", 0),
+            "output_bytes": item.get("output_bytes", 0),
+            "elapsed_seconds": item.get("elapsed_seconds"),
+        }
+        for item in job_summaries[:5]
+    ]
+    return {
+        "benchmarked_at": queue_benchmark.get("benchmarked_at"),
+        "source_mode": queue_benchmark.get("source_mode"),
+        "effective_count": queue_benchmark.get("effective_count"),
+        "min_zoom": queue_benchmark.get("min_zoom"),
+        "max_zoom": queue_benchmark.get("max_zoom"),
+        "dry_run": queue_benchmark.get("dry_run", False),
+        "jobs_enqueued": queue_benchmark.get("jobs_enqueued", 0),
+        "jobs_processed": queue_benchmark.get("jobs_processed", 0),
+        "jobs_succeeded": queue_benchmark.get("jobs_succeeded", 0),
+        "jobs_failed": queue_benchmark.get("jobs_failed", 0),
+        "total_tiles_written": queue_benchmark.get("total_tiles_written", 0),
+        "total_tiles_skipped": queue_benchmark.get("total_tiles_skipped", 0),
+        "total_output_bytes": queue_benchmark.get("total_output_bytes", 0),
+        "total_elapsed_seconds": queue_benchmark.get("total_elapsed_seconds"),
+        "job_summaries": compact_jobs,
+        "warnings": queue_benchmark.get("warnings", [])[:5],
+        "errors": queue_benchmark.get("errors", [])[:5],
         "verified_mrms": False,
         "prototype": True,
     }

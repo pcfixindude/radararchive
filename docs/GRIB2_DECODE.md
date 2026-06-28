@@ -245,6 +245,25 @@ Batch report includes per-frame summaries, aggregate tile metrics, `elapsed_seco
 
 History: last 10 runs in `data/dev/validation_history.json`. API: `GET /api/validation/history`.
 
+## Queue benchmark (Phase 22)
+
+Multi-zoom tile builds through the render queue (default count 3, max 10; default zoom 0–1):
+
+```bash
+make benchmark-render-queue
+make benchmark-render-queue ARGS="--count 3 --min-zoom 0 --max-zoom 1 --json-report"
+make benchmark-render-queue ARGS="--dry-run"
+```
+
+Report includes per-job summaries (`job_id`, `status`, `tiles_written`/`tiles_skipped`, `output_bytes`, `elapsed_seconds`) and aggregate job/tile totals. `verified_mrms: false`.
+
+Persisted to `data/dev/queue_benchmark_latest.json` with bounded history (last 10). Dev API: `GET /api/validation/benchmarks`, `GET /api/validation/summary` (`queue_benchmark`).
+
+Limitations:
+- Does not discover/download MRMS by default; uses local catalog frames
+- Run `make validate-real-mrms-batch` first for decode artifacts when benchmarking tile output
+- Higher zoom/count increases tile volume; caps apply
+
 ## Inspection CLI
 
 ```bash
@@ -282,6 +301,7 @@ When no decoder is installed, the script still reports gzip size and GRIB magic 
 - `scripts/benchmark_real_mrms.py` — MRMS benchmark timing (Phase 20)
 - `scripts/batch_validate_mrms.py` — batch validation (Phase 21)
 - `scripts/catalog_status.py` — catalog status CLI (Phase 21)
+- `scripts/benchmark_render_queue.py` — queue benchmark CLI (Phase 22)
 
 ## Non-goals (Phases 11–12)
 

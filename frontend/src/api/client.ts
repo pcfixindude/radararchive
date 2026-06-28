@@ -196,6 +196,54 @@ export type BenchmarkCompact = {
   prototype: boolean;
 };
 
+export type QueueBenchmarkJobCompact = {
+  timestamp?: string | null;
+  job_id?: number | null;
+  status?: string | null;
+  min_zoom?: number | null;
+  max_zoom?: number | null;
+  tiles_written: number;
+  tiles_skipped: number;
+  output_bytes: number;
+  elapsed_seconds?: number | null;
+};
+
+export type QueueBenchmarkCompact = {
+  benchmarked_at?: string | null;
+  source_mode?: string | null;
+  effective_count?: number | null;
+  min_zoom?: number | null;
+  max_zoom?: number | null;
+  dry_run: boolean;
+  jobs_enqueued: number;
+  jobs_processed: number;
+  jobs_succeeded: number;
+  jobs_failed: number;
+  total_tiles_written: number;
+  total_tiles_skipped: number;
+  total_output_bytes: number;
+  total_elapsed_seconds?: number | null;
+  job_summaries: QueueBenchmarkJobCompact[];
+  warnings: string[];
+  errors: string[];
+  verified_mrms: boolean;
+  prototype: boolean;
+};
+
+export type ValidationHistoryEntry = {
+  validated_at?: string | null;
+  source_mode?: string | null;
+  batch?: boolean;
+  requested_frame_count?: number | null;
+  effective_frame_count?: number | null;
+  discovered_count: number;
+  downloaded_count: number;
+  decoded_count: number;
+  elapsed_seconds?: number | null;
+  verified_mrms: boolean;
+  prototype: boolean;
+};
+
 export type ValidationSummary = {
   prototype: boolean;
   verified_mrms: boolean;
@@ -208,8 +256,12 @@ export type ValidationSummary = {
   validation: ValidationCompact | null;
   benchmark_available: boolean;
   benchmark: BenchmarkCompact | null;
+  queue_benchmark_available?: boolean;
+  queue_benchmark?: QueueBenchmarkCompact | null;
   render_queue: RenderQueueSummary;
   validation_history_count: number;
+  validation_history?: ValidationHistoryEntry[];
+  queue_benchmark_history_count?: number;
   catalog: CatalogStatus;
 };
 

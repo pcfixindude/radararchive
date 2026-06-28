@@ -111,17 +111,20 @@ make render-status
 curl http://127.0.0.1:8000/api/render/jobs/summary
 ```
 
-MRMS validation pipeline (Phase 19–21 — experimental, not verified MRMS):
+MRMS validation pipeline (Phase 19–22 — experimental, not verified MRMS):
 
 ```bash
 make validate-real-mrms
 make validate-real-mrms-batch
 make validate-real-mrms-batch ARGS="--count 5 --json-report"
 make benchmark-real-mrms
+make benchmark-render-queue
+make benchmark-render-queue ARGS="--dry-run --json-report"
 make catalog-status
 MRMS_SOURCE_MODE=real make validate-real-mrms-batch ARGS="--real --count 3"
 curl http://127.0.0.1:8000/api/validation/summary
 curl http://127.0.0.1:8000/api/validation/history
+curl http://127.0.0.1:8000/api/validation/benchmarks
 curl http://127.0.0.1:8000/api/catalog/status
 ```
 
@@ -149,8 +152,9 @@ Limitations:
 - `make enqueue-render-job` + `make render-worker-once` / `make render-worker` process builds via SQLite queue (no Redis)
 - `make render-queue-status` reports queue counts and tile/byte totals (prototype — not verified MRMS)
 - `make validate-real-mrms-batch` validates up to 3 frames by default (max 10; prototype only)
+- `make benchmark-render-queue` enqueues multi-zoom jobs (default count 3, zoom 0–1; use `--dry-run` to plan only)
 - `make catalog-status` reports MRMS catalog counts by status
-- Dev validation dashboard: summary/history/catalog APIs + frontend Dev Validation panel with Refresh
+- Dev validation dashboard: summary/history/benchmarks APIs + frontend Dev Validation panel with Refresh
 - Build supports `ARGS=` forwarding on Makefile targets (e.g. `make build-production-tiles ARGS="--dry-run"`)
 - `ENABLE_DECODED_TILES=false` by default — map `/tiles` serves placeholders only
 - `ENABLE_PRODUCTION_RADAR_TILES=false` by default — production prototype tiles blocked

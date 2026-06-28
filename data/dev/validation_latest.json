@@ -6,7 +6,7 @@
   "download_skipped": 3,
   "downloaded_count": 0,
   "effective_frame_count": 3,
-  "elapsed_seconds": 0.013,
+  "elapsed_seconds": 0.0102,
   "errors": [],
   "frame_summaries": [
     {
@@ -61,7 +61,7 @@
   "tiles_planned": 0,
   "tiles_skipped": 0,
   "tiles_written": 0,
-  "validated_at": "2026-06-28T06:09:15Z",
+  "validated_at": "2026-06-28T06:16:51Z",
   "verified_mrms": false,
   "warnings": [
     "Stub/offline mode: stub downloads are not real GRIB2; inspect/decode need real .grib2.gz",

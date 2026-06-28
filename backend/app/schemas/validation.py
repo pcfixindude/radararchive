@@ -61,6 +61,40 @@ class BenchmarkCompact(BaseModel):
     prototype: bool = True
 
 
+class QueueBenchmarkJobCompact(BaseModel):
+    timestamp: Optional[str] = None
+    job_id: Optional[int] = None
+    status: Optional[str] = None
+    min_zoom: Optional[int] = None
+    max_zoom: Optional[int] = None
+    tiles_written: int = 0
+    tiles_skipped: int = 0
+    output_bytes: int = 0
+    elapsed_seconds: Optional[float] = None
+
+
+class QueueBenchmarkCompact(BaseModel):
+    benchmarked_at: Optional[str] = None
+    source_mode: Optional[str] = None
+    effective_count: Optional[int] = None
+    min_zoom: Optional[int] = None
+    max_zoom: Optional[int] = None
+    dry_run: bool = False
+    jobs_enqueued: int = 0
+    jobs_processed: int = 0
+    jobs_succeeded: int = 0
+    jobs_failed: int = 0
+    total_tiles_written: int = 0
+    total_tiles_skipped: int = 0
+    total_output_bytes: int = 0
+    total_elapsed_seconds: Optional[float] = None
+    job_summaries: list[QueueBenchmarkJobCompact] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
+    verified_mrms: bool = False
+    prototype: bool = True
+
+
 class RenderQueueCompact(BaseModel):
     queued: int = 0
     running: int = 0
@@ -121,9 +155,22 @@ class ValidationSummaryResponse(BaseModel):
     validation: Optional[ValidationCompact] = None
     benchmark_available: bool = False
     benchmark: Optional[BenchmarkCompact] = None
+    queue_benchmark_available: bool = False
+    queue_benchmark: Optional[QueueBenchmarkCompact] = None
     render_queue: RenderQueueCompact
     validation_history_count: int = 0
+    validation_history: list[ValidationHistoryEntry] = Field(default_factory=list)
+    queue_benchmark_history_count: int = 0
     catalog: CatalogStatusResponse
+
+
+class QueueBenchmarkHistoryResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    count: int = 0
+    max_entries: int = 10
+    latest: Optional[dict[str, Any]] = None
+    entries: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ValidationLatestResponse(BaseModel):
@@ -132,3 +179,4 @@ class ValidationLatestResponse(BaseModel):
     production_rendering_enabled: bool = False
     validation: Optional[dict[str, Any]] = None
     benchmark: Optional[dict[str, Any]] = None
+    queue_benchmark: Optional[dict[str, Any]] = None

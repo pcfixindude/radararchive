@@ -185,13 +185,18 @@ No delete/reset endpoints. Process jobs with `make render-worker-once` (one job)
 - `decoder_available`, `decoder_summary`, `stale_running_job_seconds`
 - `validation` — latest validation counts (if `make validate-real-mrms` has run)
 - `benchmark` — latest benchmark tile/timing metrics (if `make benchmark-real-mrms` has run)
+- `queue_benchmark` — latest queue benchmark metrics (if `make benchmark-render-queue` has run)
+- `validation_history` — up to 5 most recent compact validation runs (full list: `/api/validation/history`)
+- `queue_benchmark_history_count` — number of saved queue benchmark summaries
 - `render_queue` — same metrics as `/api/render/jobs/summary`
 
-`GET /api/validation/latest` — full persisted JSON blobs for validation and benchmark reports (or `null`).
+`GET /api/validation/latest` — full persisted JSON blobs for validation, benchmark, and queue_benchmark reports (or `null`).
 
 Reports are written by CLI commands to `data/dev/`. Not verified MRMS production output.
 
 `GET /api/validation/history` — last 10 compact validation runs (dev/prototype).
+
+`GET /api/validation/benchmarks` — latest queue benchmark report + last 10 compact summaries (dev/prototype).
 
 `GET /api/catalog/status` — MRMS catalog frame counts by download/process/render status, latest timestamps.
 

@@ -301,6 +301,21 @@ Dev API additions:
 - `GET /api/validation/history` — last 10 compact validation runs
 - `GET /api/catalog/status` — MRMS catalog counts by status + latest timestamps
 
+### Queue benchmark (Phase 22)
+Multi-zoom tile builds through the render queue for small batches:
+
+1. Select up to N catalog frames (default 3, max 10)
+2. Enqueue one `production_tiles` job per frame (`min_zoom`/`max_zoom`, default 0–1)
+3. Process jobs via render worker (bounded; `mark_catalog=false`)
+4. Collect per-job metrics + aggregate totals
+5. Persist to `data/dev/queue_benchmark_latest.json` + bounded history (last 10)
+
+CLI: `make benchmark-render-queue` (`--dry-run` plans only; `--force` rebuilds tiles)
+
+Dev API additions:
+- `GET /api/validation/benchmarks` — latest queue benchmark + history
+- `GET /api/validation/summary` — adds `queue_benchmark`, compact `validation_history`
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

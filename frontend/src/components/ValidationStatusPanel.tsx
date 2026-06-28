@@ -4,6 +4,13 @@ function yesNo(value: boolean): string {
   return value ? 'yes' : 'no';
 }
 
+function formatTimestamp(value: string | null | undefined): string {
+  if (!value) {
+    return '—';
+  }
+  return value.replace('T', ' ').replace('Z', ' UTC');
+}
+
 export default function ValidationStatusPanel({
   summary,
   onRefresh,
@@ -32,8 +39,10 @@ export default function ValidationStatusPanel({
 
   const validation = summary.validation;
   const benchmark = summary.benchmark;
+  const queueBenchmark = summary.queue_benchmark ?? null;
   const queue = summary.render_queue;
   const catalog = summary.catalog;
+  const history = summary.validation_history ?? [];
 
   return (
     <section className="panel validation-panel">
@@ -56,9 +65,21 @@ export default function ValidationStatusPanel({
         Catalog: {catalog.total_frames} frames ({catalog.mrms_discovered_frames} MRMS discovered)
       </p>
       <p className="validation-meta">
-        Queue: queued {queue.queued}, running {queue.running}, failed {queue.failed}
+        Queue: queued {queue.queued}, running {queue.running}, succeeded {queue.succeeded}, failed {queue.failed}
       </p>
       <p className="validation-meta">Validation history: {summary.validation_history_count} saved</p>
+      {history.length > 0 ? (
+        <ul className="validation-history-list">
+          {history.map((entry, index) => (
+            <li key={`${entry.validated_at ?? 'entry'}-${index}`} className="validation-meta">
+              {formatTimestamp(entry.validated_at)} — {entry.source_mode ?? '—'}
+              {entry.batch ? ` batch ${entry.effective_frame_count ?? entry.requested_frame_count ?? '?'}` : ''}: decoded{' '}
+              {entry.decoded_count}
+              {entry.elapsed_seconds != null ? ` (${entry.elapsed_seconds.toFixed(1)}s)` : ''}
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {validation ? (
         <>
           <p className="validation-meta">
@@ -79,10 +100,35 @@ export default function ValidationStatusPanel({
       )}
       {benchmark ? (
         <p className="validation-meta">
-          Benchmark: tiles {benchmark.tiles_written}/{benchmark.tiles_planned}, build{' '}
+          Stage benchmark: tiles {benchmark.tiles_written}/{benchmark.tiles_planned}, build{' '}
           {benchmark.tile_build_elapsed_seconds.toFixed(2)}s, zoom {benchmark.min_zoom}–{benchmark.max_zoom}
         </p>
       ) : null}
+      {queueBenchmark ? (
+        <>
+          <p className="validation-meta">
+            Queue benchmark ({formatTimestamp(queueBenchmark.benchmarked_at)}): jobs {queueBenchmark.jobs_succeeded}/
+            {queueBenchmark.jobs_processed} ok, zoom {queueBenchmark.min_zoom}–{queueBenchmark.max_zoom}, tiles{' '}
+            {queueBenchmark.total_tiles_written} written
+            {queueBenchmark.total_elapsed_seconds != null
+              ? ` (${queueBenchmark.total_elapsed_seconds.toFixed(2)}s)`
+              : ''}
+          </p>
+          {queueBenchmark.job_summaries.length > 0 ? (
+            <ul className="validation-history-list">
+              {queueBenchmark.job_summaries.map((job, index) => (
+                <li key={`${job.job_id ?? 'dry'}-${index}`} className="validation-meta">
+                  {job.job_id != null ? `job ${job.job_id}` : 'planned'} ({formatTimestamp(job.timestamp)}):{' '}
+                  {job.status ?? '—'}, tiles {job.tiles_written}
+                  {job.elapsed_seconds != null ? ` (${job.elapsed_seconds.toFixed(2)}s)` : ''}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </>
+      ) : (
+        <p className="validation-meta">No queue benchmark yet — run make benchmark-render-queue.</p>
+      )}
     </section>
   );
 }
