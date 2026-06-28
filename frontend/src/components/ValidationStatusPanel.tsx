@@ -251,6 +251,9 @@ export default function ValidationStatusPanel({
   const reviewExportRegenerationHint = summary.review_export_regeneration_hint ?? null;
   const operatorReviewStatus = summary.operator_review_status ?? null;
   const operatorWorkflowPresets = summary.operator_workflow_presets ?? null;
+  const workflowPresetById = Object.fromEntries(
+    (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
+  );
   const scheduledOperatorStatus = summary.scheduled_operator_status ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
@@ -337,46 +340,66 @@ export default function ValidationStatusPanel({
           }
         >
           <p className="validation-meta">
-            Presets organize existing local commands — advisory only. Copy commands manually from the
+            Presets are grouped by workflow category — advisory only. Copy commands manually from the
             terminal; the UI does not execute them.
           </p>
-          <ul className="validation-history-list validation-workflow-preset-list">
-            {[...(operatorWorkflowPresets.presets ?? [])]
-              .sort((a, b) => Number(b.recommended ?? false) - Number(a.recommended ?? false))
-              .map((preset) => (
-                <li
-                  key={preset.preset_id}
-                  className={
-                    preset.recommended ? 'validation-workflow-preset-recommended' : 'validation-meta'
+          {(operatorWorkflowPresets.operator_workflow_preset_groups ?? []).map((group) => (
+            <section key={group.group_id} className="validation-workflow-preset-group">
+              <h4 className="validation-workflow-preset-group-title">
+                {group.group_title ?? group.group_id}
+                {group.recommended_count ? ` — ${group.recommended_count} recommended` : ''}
+              </h4>
+              <ul className="validation-history-list validation-workflow-preset-list">
+                {(group.presets ?? []).map((entry) => {
+                  const preset = workflowPresetById[entry.preset_id];
+                  if (!preset) {
+                    return null;
                   }
-                >
-                  <p className="validation-meta">
-                    <strong>{preset.title}</strong> — recommended: {yesNo(preset.recommended ?? false)}
-                    {preset.recommendation_reason ? ` (${preset.recommendation_reason})` : ''}
-                  </p>
-                  <p className="validation-meta">{preset.when_to_use}</p>
-                  {preset.suggested_action ? (
-                    <p className="validation-meta">Suggested action: {preset.suggested_action}</p>
-                  ) : null}
-                  {preset.runbook_path ? (
-                    <p className="validation-meta">
-                      Runbook: <code>{preset.runbook_path}</code>
-                      {preset.runbook_section ? ` — ${preset.runbook_section}` : ''}
-                      {preset.runbook_anchor ? ` (#${preset.runbook_anchor})` : ''}
-                    </p>
-                  ) : null}
-                  <CommandLine command={preset.command} label="Exact command" manualCopy />
-                  {(preset.expected_outputs?.length ?? 0) > 0 ? (
-                    <p className="validation-meta">
-                      Expected outputs: {preset.expected_outputs?.join('; ')}
-                    </p>
-                  ) : null}
-                  {(preset.safety_notes?.length ?? 0) > 0 ? (
-                    <p className="validation-meta">{preset.safety_notes?.[0]}</p>
-                  ) : null}
-                </li>
-              ))}
-          </ul>
+                  return (
+                    <li
+                      key={preset.preset_id}
+                      className={
+                        preset.recommended
+                          ? 'validation-workflow-preset-recommended'
+                          : 'validation-meta'
+                      }
+                    >
+                      {preset.short_reason ? (
+                        <p className="validation-meta">
+                          <strong>{preset.short_reason}</strong>
+                        </p>
+                      ) : null}
+                      <p className="validation-meta">
+                        <strong>{preset.title}</strong> — recommended:{' '}
+                        {yesNo(preset.recommended ?? false)}
+                        {preset.recommendation_reason ? ` (${preset.recommendation_reason})` : ''}
+                        {preset.recommended_priority != null
+                          ? ` — priority ${preset.recommended_priority}`
+                          : ''}
+                      </p>
+                      <p className="validation-meta">{preset.when_to_use}</p>
+                      {preset.suggested_action ? (
+                        <p className="validation-meta">Suggested action: {preset.suggested_action}</p>
+                      ) : null}
+                      {preset.runbook_path ? (
+                        <p className="validation-meta">
+                          Runbook: <code>{preset.runbook_path}</code>
+                          {preset.runbook_section ? ` — ${preset.runbook_section}` : ''}
+                          {preset.runbook_anchor ? ` (#${preset.runbook_anchor})` : ''}
+                        </p>
+                      ) : null}
+                      <CommandLine command={preset.command} label="Exact command" manualCopy />
+                      {(preset.expected_outputs?.length ?? 0) > 0 ? (
+                        <p className="validation-meta">
+                          Expected outputs: {preset.expected_outputs?.join('; ')}
+                        </p>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))}
           <SafetyNote />
         </CollapsibleSection>
       ) : null}

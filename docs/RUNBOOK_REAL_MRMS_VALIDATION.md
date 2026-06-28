@@ -667,6 +667,22 @@ Each preset includes `runbook_path`, `runbook_section`, `runbook_anchor`, and `s
 
 **Copy-ready commands:** Dev Validation shows each preset command in a monospace block with “Copy this command manually” wording. Presets remain advisory and local-only.
 
+## Operator workflow preset groups (Phase 54)
+
+Presets are grouped for quicker scanning:
+
+| group_id | group_title | Presets |
+|---|---|---|
+| `status-checks` | Status checks | quick-status-check |
+| `full-review` | Full proof review | full-local-proof-review |
+| `review-session-export` | Review session & export | create-review-session-and-export, regenerate-digest-checklist-export |
+| `troubleshooting` | Troubleshooting | inspect-worsening-export-trend, review-proof-bundle-diff |
+| `scheduled-workflows` | Scheduled workflows | run-scheduled-proof-bundle-operator-status |
+
+**Recommended priority** (lower = act first when multiple presets are recommended): `no_review_session` (1) → `export_diff_trend_worsening_or_mixed` (2) → `digest_or_checklist_stale` (3) → `review_session_recommended` (4) → `operator_review_status_ok_or_watch` (5).
+
+**Dev Validation UI:** Presets render under group headings with `short_reason`, recommended flag, runbook link, and copy-ready command. The UI does not execute commands.
+
 ### Operator review status guidance anchors (Phase 50)
 
 Runbook deep-links from consolidated status (`guidance_items`, `top_guidance_item`):

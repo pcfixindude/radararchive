@@ -567,6 +567,11 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Runbook anchors in `docs/RUNBOOK_REAL_MRMS_VALIDATION.md` Phase 53 section
 - Dev Validation: copy-ready command blocks with manual-copy wording (no browser execution)
 
+### Grouped workflow presets (Phase 54)
+- Preset groups: status-checks, full-review, review-session-export, troubleshooting, scheduled-workflows
+- `operator_workflow_preset_groups` compact; recommended_priority sorting
+- Dev Validation renders presets under group headings
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

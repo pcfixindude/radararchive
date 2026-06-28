@@ -218,6 +218,10 @@ Operator workflow presets (`operator_workflow_presets`, `make operator-workflow-
 
 Each preset includes `runbook_path`, `runbook_section`, `runbook_anchor`, and `suggested_action` for runbook deep-links. Dev Validation and `make operator-workflow-presets` show copy-ready commands for manual terminal use — presets do **not** execute commands automatically. This remains **local advisory guidance only** — it does **not** verify MRMS, clear alerts, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
 
+## Operator workflow preset groups (Phase 54)
+
+Grouped presets (`operator_workflow_preset_groups`, `group_id`, `group_title`, `priority`, `recommended_priority`, `short_reason`) organize workflows into status checks, full review, review session/export, troubleshooting, and scheduled workflows. Recommended presets sort by urgency-derived `recommended_priority`. This is **local presentation and guidance only** — it does **not** verify MRMS, clear alerts, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
+
 ## Scheduled proof bundle monitoring (Phase 32)
 
 `make scheduled-proof-bundle` runs scheduled validation with `--proof --bundle --diff-bundle`. This is **local evidence monitoring only** — it does not verify MRMS or enable production rendering. Alerts may flag `worsened` or `mixed` diff status for operator review.

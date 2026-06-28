@@ -805,6 +805,26 @@ class OperatorReviewStatusResponse(BaseModel):
     status: OperatorReviewStatusCompact
 
 
+class OperatorWorkflowPresetGroupEntryCompact(BaseModel):
+    preset_id: str
+    title: str
+    recommended: bool = False
+    recommended_priority: Optional[int] = None
+    short_reason: Optional[str] = None
+    priority: int = 999
+
+
+class OperatorWorkflowPresetGroupCompact(BaseModel):
+    group_id: str
+    group_title: Optional[str] = None
+    preset_count: int = 0
+    recommended_count: int = 0
+    presets: list[OperatorWorkflowPresetGroupEntryCompact] = Field(default_factory=list)
+    verified_mrms: bool = False
+    local_workflow_only: bool = True
+    prototype: bool = True
+
+
 class OperatorWorkflowPresetCompact(BaseModel):
     preset_id: str
     title: str
@@ -815,6 +835,11 @@ class OperatorWorkflowPresetCompact(BaseModel):
     safety_notes: list[str] = Field(default_factory=list)
     recommended: bool = False
     recommendation_reason: Optional[str] = None
+    group_id: Optional[str] = None
+    group_title: Optional[str] = None
+    priority: int = 999
+    recommended_priority: Optional[int] = None
+    short_reason: Optional[str] = None
     runbook_path: Optional[str] = None
     runbook_section: Optional[str] = None
     runbook_anchor: Optional[str] = None
@@ -831,6 +856,9 @@ class OperatorWorkflowPresetsCompact(BaseModel):
     available: bool = True
     recommended_count: int = 0
     presets: list[OperatorWorkflowPresetCompact] = Field(default_factory=list)
+    operator_workflow_preset_groups: list[OperatorWorkflowPresetGroupCompact] = Field(
+        default_factory=list
+    )
     verified_mrms: bool = False
     local_workflow_only: bool = True
     does_not_clear_alerts: bool = True
@@ -849,6 +877,9 @@ class OperatorWorkflowPresetsResponse(BaseModel):
     recommended_count: int = 0
     presets: list[OperatorWorkflowPresetCompact] = Field(default_factory=list)
     recommended_presets: list[OperatorWorkflowPresetCompact] = Field(default_factory=list)
+    operator_workflow_preset_groups: list[OperatorWorkflowPresetGroupCompact] = Field(
+        default_factory=list
+    )
 
 
 class MrmsReviewSessionExportResponse(BaseModel):

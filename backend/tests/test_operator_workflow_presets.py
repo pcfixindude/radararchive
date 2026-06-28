@@ -12,12 +12,14 @@ from backend.app.services.operator_review_status import (
 )
 from backend.app.services.operator_workflow_presets import (
     EXPECTED_PRESET_IDS,
+    GROUP_ORDER,
     PRESET_CREATE_REVIEW_SESSION_AND_EXPORT,
     PRESET_FULL_LOCAL_PROOF_REVIEW,
     PRESET_QUICK_STATUS_CHECK,
     PRESET_REGENERATE_DIGEST_CHECKLIST_EXPORT,
     build_operator_workflow_presets,
     build_operator_workflow_presets_payload,
+    compact_operator_workflow_preset_groups,
     compact_operator_workflow_presets,
 )
 from backend.app.services.validation_dashboard import build_validation_summary
@@ -53,6 +55,11 @@ def test_preset_shape(storage, monkeypatch):
         "runbook_section",
         "runbook_anchor",
         "suggested_action",
+        "group_id",
+        "group_title",
+        "priority",
+        "recommended_priority",
+        "short_reason",
         "verified_mrms",
         "local_workflow_only",
         "does_not_clear_alerts",
@@ -146,6 +153,76 @@ def test_recommended_presets_sorted_first(storage, monkeypatch):
     presets = build_operator_workflow_presets(storage, status=status)
     recommended = [preset for preset in presets if preset["recommended"]]
     assert presets[: len(recommended)] == recommended
+
+
+def test_each_preset_has_grouping_fields(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", storage.storage_root)
+    presets = build_operator_workflow_presets(storage)
+    for preset_id in EXPECTED_PRESET_IDS:
+        preset = _preset_by_id(presets, preset_id)
+        assert preset.get("group_id"), f"{preset_id} missing group_id"
+        assert preset.get("group_title"), f"{preset_id} missing group_title"
+        assert isinstance(preset.get("priority"), int), f"{preset_id} missing priority"
+        assert preset.get("short_reason"), f"{preset_id} missing short_reason"
+
+
+def test_recommended_priority_sorting(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", storage.storage_root)
+    status = build_operator_review_status(storage)
+    status["latest_review_session_at"] = None
+    status["digest_regeneration_recommended"] = True
+    presets = build_operator_workflow_presets(storage, status=status)
+    recommended = [preset for preset in presets if preset["recommended"]]
+    assert len(recommended) >= 2
+    priorities = [preset["recommended_priority"] for preset in recommended]
+    assert priorities == sorted(priorities)
+
+
+def test_group_compact_summary_shape(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", storage.storage_root)
+    presets = build_operator_workflow_presets(storage)
+    groups = compact_operator_workflow_preset_groups(presets)
+    assert len(groups) == len(GROUP_ORDER)
+    for group in groups:
+        assert group.get("group_id")
+        assert group.get("group_title")
+        assert group.get("preset_count", 0) > 0
+        assert "presets" in group
+
+
+def test_summary_includes_grouping_fields(db_session, storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", storage.storage_root)
+    summary = build_validation_summary(db_session, storage)
+    compact = summary.get("operator_workflow_presets")
+    assert compact.get("operator_workflow_preset_groups")
+    preset = compact["presets"][0]
+    assert preset.get("group_id")
+    assert preset.get("short_reason")
+
+
+def test_endpoint_includes_grouping_fields(client, storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", storage.storage_root)
+    response = client.get("/api/validation/operator-workflow-presets")
+    body = response.json()
+    assert body.get("operator_workflow_preset_groups")
+    preset = body["presets"][0]
+    assert preset.get("group_id")
+    assert preset.get("group_title")
+    assert preset.get("short_reason")
+
+
+def test_script_json_includes_grouping_fields(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", storage.storage_root)
+    import json
+
+    payload = build_operator_workflow_presets_payload(storage)
+    preset = payload["presets"][0]
+    assert preset.get("group_id")
+    assert preset.get("short_reason")
+    assert payload.get("operator_workflow_preset_groups")
+    serialized = json.dumps(payload)
+    assert "group_id" in serialized
+    assert "operator_workflow_preset_groups" in serialized
 
 
 def test_summary_includes_operator_workflow_presets(db_session, storage, monkeypatch):

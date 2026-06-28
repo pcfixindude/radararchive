@@ -250,7 +250,7 @@ Limitations:
 - `make mrms-review-session-export-diff-trend` summarizes export diff trend (`improving`/`worsening`/`mixed`/`stable`/`no_data`; `--json`, `--limit`)
 - `make mrms-review-session-export-diff-trend-hint` shows when a new review session/export is recommended (`--json`)
 - `make operator-review-status` prints consolidated local operator review status with runbook guidance (`--json`); Dev Validation **Operator Review Status** block stays fixed near the top (not collapsible)
-- `make operator-workflow-presets` lists local operator workflow presets with runbook guidance and copy-ready commands (`--json`); Dev Validation **Operator Workflow Presets** shows recommended presets with runbook path/section and manual copy wording (Phase 53)
+- `make operator-workflow-presets` lists grouped local workflow presets with runbook guidance, short reasons, and copy-ready commands (`--json`); Dev Validation groups presets by category (Phase 54)
 - `make mrms-review-session ARGS="... --export-after-create"` creates a session and immediately exports Markdown (session is kept if export fails)
 - `make mrms-signoff` records local operator sign-off (does not set verified_mrms)
 - `POST /api/validation/signoffs` — dev-only sign-off API (same validation as CLI; does not verify MRMS)

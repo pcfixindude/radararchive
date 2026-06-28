@@ -82,6 +82,16 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
   font-size: 0.95rem;
 }
 
+.validation-workflow-preset-group {
+  margin: 0.75rem 0 0;
+}
+
+.validation-workflow-preset-group-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .validation-workflow-preset-list {
   margin-top: 0.5rem;
 }

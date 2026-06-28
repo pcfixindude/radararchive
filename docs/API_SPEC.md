@@ -332,6 +332,8 @@ Endpoints (Phase 52): `GET /api/validation/operator-workflow-presets` (read-only
 
 Summary additions (Phase 53): each preset object adds `runbook_path`, `runbook_section`, `runbook_anchor`, `suggested_action`. Presets remain read-only advisory guidance — commands are copy-ready for manual terminal use; the API/UI does not execute commands.
 
+Summary additions (Phase 54): each preset adds `group_id`, `group_title`, `priority`, `recommended_priority`, `short_reason`. Compact `operator_workflow_preset_groups` lists groups (`status-checks`, `full-review`, `review-session-export`, `troubleshooting`, `scheduled-workflows`) with per-group preset summaries. Sort order: recommended first, then `recommended_priority` (lower = higher urgency: no session → worsening/mixed trend → digest stale → session recommended → ok/watch), then `priority`.
+
 **Preset runbook anchors:** `operator-workflow-preset-quick-status-check`, `operator-workflow-preset-full-local-proof-review`, `operator-workflow-preset-create-review-session-and-export`, `operator-workflow-preset-regenerate-digest-checklist-export`, `operator-workflow-preset-inspect-worsening-export-trend`, `operator-workflow-preset-review-proof-bundle-diff`, `operator-workflow-preset-scheduled-proof-bundle-operator-status` — see `docs/RUNBOOK_REAL_MRMS_VALIDATION.md`.
 
 **`status_level` interpretation:** `urgent` — failed validation alert, urgent escalation, or worsening export-diff streak ≥2; `attention` — regeneration hints, worsened/mixed latest export diff, or open attention items; `watch` — stable/mixed export trend with history or escalation/alert watch; `ok` — improving/stable evidence without recommendations; `unknown` — insufficient local review data.

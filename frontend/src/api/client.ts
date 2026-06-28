@@ -704,6 +704,23 @@ export type ReviewExportRegenerationHintCompact = {
   prototype: boolean;
 };
 
+export type OperatorWorkflowPresetGroupEntryCompact = {
+  preset_id: string;
+  title: string;
+  recommended?: boolean;
+  recommended_priority?: number | null;
+  short_reason?: string | null;
+  priority?: number;
+};
+
+export type OperatorWorkflowPresetGroupCompact = {
+  group_id: string;
+  group_title?: string | null;
+  preset_count?: number;
+  recommended_count?: number;
+  presets?: OperatorWorkflowPresetGroupEntryCompact[];
+};
+
 export type OperatorWorkflowPresetCompact = {
   preset_id: string;
   title: string;
@@ -714,6 +731,11 @@ export type OperatorWorkflowPresetCompact = {
   safety_notes?: string[];
   recommended?: boolean;
   recommendation_reason?: string | null;
+  group_id?: string | null;
+  group_title?: string | null;
+  priority?: number;
+  recommended_priority?: number | null;
+  short_reason?: string | null;
   runbook_path?: string | null;
   runbook_section?: string | null;
   runbook_anchor?: string | null;
@@ -728,6 +750,7 @@ export type OperatorWorkflowPresetsCompact = {
   available?: boolean;
   recommended_count?: number;
   presets?: OperatorWorkflowPresetCompact[];
+  operator_workflow_preset_groups?: OperatorWorkflowPresetGroupCompact[];
   verified_mrms: boolean;
   local_workflow_only: boolean;
   does_not_clear_alerts: boolean;

@@ -1969,3 +1969,27 @@ cd frontend && npm run build
 ### Known limitations
 - Advisory guidance only — operators copy commands manually
 - Does not verify MRMS, clear alerts, or mutate gates
+
+## Phase 54 - Grouped Operator Workflow Presets
+
+Preset grouping and recommended priority for clearer local workflow navigation.
+
+### Backend
+- Preset fields: `group_id`, `group_title`, `priority`, `recommended_priority`, `short_reason`
+- Groups: status-checks, full-review, review-session-export, troubleshooting, scheduled-workflows
+- Compact `operator_workflow_preset_groups` in summary and endpoint payload
+- Sort: recommended → recommended_priority → priority
+
+### Frontend
+- Dev Validation presets grouped by `group_title` with short_reason at top of each card
+
+### Run commands
+
+```bash
+make test
+make operator-workflow-presets
+cd frontend && npm run build
+```
+
+### Known limitations
+- Grouping is presentation only — does not change commands or verification behavior
