@@ -11,7 +11,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 61
 - Latest phase: Phase 61 — Visual sample-set review annotations and candidate readiness scoring
-- Latest commit: `d90e939`
+- Latest commit: `63c052f`
 - Latest tag: `phase-61-visual-sample-readiness`
 - Push status: pushed to origin main with tag
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
