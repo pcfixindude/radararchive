@@ -124,7 +124,10 @@ make scheduled-validation
 make validation-failures
 make validation-alerts
 make mrms-proof-report
+make mrms-proof-regression
+make mrms-signoff
 make real-mrms-smoke-test
+make scheduled-validation ARGS="--proof"
 make scheduled-validation ARGS="--json-report"
 make catalog-status
 MRMS_SOURCE_MODE=real make scheduled-validation ARGS="--real --count 3 --min-zoom 0 --max-zoom 1"
@@ -133,6 +136,8 @@ curl http://127.0.0.1:8000/api/validation/scheduled
 curl http://127.0.0.1:8000/api/validation/failures
 curl http://127.0.0.1:8000/api/validation/alerts
 curl http://127.0.0.1:8000/api/validation/proof
+curl http://127.0.0.1:8000/api/validation/proof-regression
+curl http://127.0.0.1:8000/api/validation/signoffs
 curl http://127.0.0.1:8000/api/validation/latest
 ```
 
@@ -171,6 +176,8 @@ Limitations:
 - `make validation-failures` shows recent local failure log entries
 - `make validation-alerts` shows local validation alert marker and grouped failure causes
 - `make mrms-proof-report` generates draft verified-MRMS proof evidence report (not verified MRMS)
+- `make mrms-proof-regression` detects proof evidence regressions vs previous report
+- `make mrms-signoff` records local operator sign-off (does not set verified_mrms)
 - `make real-mrms-smoke-test` runs intentional real-mode smoke test (count 1, zoom 0)
 - Operator runbook: [docs/RUNBOOK_REAL_MRMS_VALIDATION.md](docs/RUNBOOK_REAL_MRMS_VALIDATION.md)
 - Verified MRMS proof criteria (not met): [docs/VERIFIED_MRMS_CRITERIA.md](docs/VERIFIED_MRMS_CRITERIA.md)

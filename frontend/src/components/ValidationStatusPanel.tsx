@@ -65,6 +65,8 @@ export default function ValidationStatusPanel({
   const groupedCauses = summary.grouped_failure_causes ?? validationAlert?.grouped_failure_causes ?? [];
   const mrmsProof = summary.mrms_proof ?? null;
   const proofCounts = mrmsProof?.criteria_counts;
+  const proofRegression = summary.mrms_proof_regression ?? null;
+  const signoffSummary = summary.mrms_signoff ?? null;
   const queue = summary.render_queue;
   const catalog = summary.catalog;
   const history = summary.validation_history ?? [];
@@ -144,6 +146,25 @@ export default function ValidationStatusPanel({
       ) : (
         <p className="validation-meta">No proof report yet — run make mrms-proof-report.</p>
       )}
+      {proofRegression ? (
+        <>
+          <p className={proofRegression.regression_detected ? 'validation-warn' : 'validation-meta'}>
+            Proof regression: {proofRegression.regression_status ?? 'inconclusive'}
+            {proofRegression.regression_detected ? ' — operator attention needed' : ''}
+          </p>
+          <p className="validation-meta">
+            Regression findings: {proofRegression.regression_count ?? 0}
+            {proofRegression.checked_at ? ` (${formatTimestamp(proofRegression.checked_at)})` : ''}
+          </p>
+        </>
+      ) : null}
+      {signoffSummary ? (
+        <p className="validation-meta">
+          Local sign-off only ({signoffSummary.signoff_count ?? 0} recorded) — latest{' '}
+          {formatTimestamp(signoffSummary.latest_signoff_at)} — does not enable production rendering — not verified
+          MRMS
+        </p>
+      ) : null}
       <p className="validation-meta">Placeholder default: {yesNo(summary.placeholder_default)}</p>
       <p className="validation-meta">
         Production rendering: {summary.production_rendering_enabled ? 'enabled (flag on)' : 'disabled (default)'}

@@ -205,6 +205,8 @@ class ValidationAlertCompact(BaseModel):
     operator_attention_needed: bool = False
     suggested_next_action: Optional[str] = None
     grouped_failure_causes: list[GroupedFailureCauseCompact] = Field(default_factory=list)
+    proof_regression_detected: bool = False
+    proof_regression_count: int = 0
     verified_mrms: bool = False
     prototype: bool = True
 
@@ -241,6 +243,40 @@ class MrmsProofResponse(BaseModel):
     proof_only: bool = True
     operator_review_required: bool = True
     report: Optional[dict[str, Any]] = None
+
+
+class MrmsProofRegressionCompact(BaseModel):
+    checked_at: Optional[str] = None
+    regression_status: str = "inconclusive"
+    regression_detected: bool = False
+    regression_count: int = 0
+    current_overall_status: Optional[str] = None
+    previous_overall_status: Optional[str] = None
+    verified_mrms: bool = False
+    prototype: bool = True
+
+
+class MrmsProofRegressionResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    report: Optional[dict[str, Any]] = None
+
+
+class MrmsSignoffSummaryCompact(BaseModel):
+    signoff_count: int = 0
+    latest_signoff_at: Optional[str] = None
+    latest_operator: Optional[str] = None
+    verified_mrms: bool = False
+    local_signoff_only: bool = True
+    does_not_set_verified_mrms: bool = True
+    prototype: bool = True
+
+
+class MrmsSignoffsResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    count: int = 0
+    entries: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ScheduledValidationCompact(BaseModel):
@@ -299,6 +335,9 @@ class ValidationSummaryResponse(BaseModel):
     grouped_failure_causes: list[GroupedFailureCauseCompact] = Field(default_factory=list)
     mrms_proof: Optional[MrmsProofCompact] = None
     mrms_proof_available: bool = False
+    mrms_proof_regression: Optional[MrmsProofRegressionCompact] = None
+    mrms_proof_regression_available: bool = False
+    mrms_signoff: Optional[MrmsSignoffSummaryCompact] = None
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse
 
@@ -322,6 +361,8 @@ class ValidationLatestResponse(BaseModel):
     scheduled_validation: Optional[dict[str, Any]] = None
     validation_alert: Optional[dict[str, Any]] = None
     mrms_proof: Optional[dict[str, Any]] = None
+    mrms_proof_regression: Optional[dict[str, Any]] = None
+    mrms_signoffs: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ValidationFailuresResponse(BaseModel):

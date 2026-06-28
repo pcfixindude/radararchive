@@ -369,6 +369,23 @@ CLI: `make mrms-proof-report` (`--count`, `--json-report`, explicit `--real`).
 
 Dev API: `GET /api/validation/proof`; summary field `mrms_proof` compact status.
 
+### Proof regression + operator sign-off (Phase 27)
+Compare latest proof report vs previous snapshot (`mrms_proof_previous.json`).
+
+Regression kinds: overall status worsened, passed criteria decreased, failed/warning increased, frame count drop, tile/geo/decoder evidence loss.
+
+Persisted: `data/dev/mrms_proof_regression_latest.json` + history (last 10).
+
+Validation alerts: `proof_regression_detected`, grouped cause `proof_regression`, operator attention when regression detected.
+
+Sign-offs: `mrms_signoff.py` → `data/dev/mrms_signoffs.json` (requires operator identity + notes or limitations; `verified_mrms: false` always).
+
+CLI: `make mrms-proof-regression`, `make mrms-signoff`.
+
+Scheduled validation: optional `--proof` runs proof report + regression after pipeline.
+
+Dev API: `GET /api/validation/proof-regression`, `GET /api/validation/signoffs`; summary adds `mrms_proof_regression`, `mrms_signoff`.
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

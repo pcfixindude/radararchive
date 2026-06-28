@@ -28,10 +28,10 @@ from backend.app.services.render_metadata import DEFAULT_MRMS_BOUNDS, load_geo_m
 from backend.app.services.render_status import classify_frame_render_status
 from backend.app.services.storage import LocalStorage
 from backend.app.services.tile_pyramid import build_production_tile_repo_path, validate_geo_metadata
-from backend.app.services.validation_alerts import load_validation_alert
 from backend.app.sources.mrms import MRMS_CATALOG_SOURCE
 
 MRMS_PROOF_LATEST_PATH = "dev/mrms_proof_latest.json"
+MRMS_PROOF_PREVIOUS_PATH = "dev/mrms_proof_previous.json"
 MRMS_PROOF_HISTORY_PATH = "dev/mrms_proof_history.json"
 MAX_PROOF_HISTORY = 10
 DEFAULT_PROOF_FRAME_COUNT = 3
@@ -628,6 +628,8 @@ def _aggregate_frame_criteria(
 
 
 def _evaluate_alert_hygiene(storage: LocalStorage) -> dict[str, Any]:
+    from backend.app.services.validation_alerts import load_validation_alert
+
     alert = load_validation_alert(storage)
     if alert is None:
         return _criterion_record(
@@ -768,7 +770,21 @@ def generate_mrms_proof_report(
     }
 
 
+def snapshot_previous_proof_report(storage: LocalStorage) -> None:
+    """Copy current latest proof report to previous snapshot before overwrite."""
+    latest = load_mrms_proof_report(storage)
+    if latest is None:
+        return
+    repo_path = storage.normalize_path(MRMS_PROOF_PREVIOUS_PATH)
+    storage.ensure_directories(repo_path.rsplit("/", 1)[0])
+    storage.absolute_path(repo_path).write_text(
+        json.dumps(latest, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
+
+
 def save_mrms_proof_report(storage: LocalStorage, report: dict[str, Any]) -> str:
+    snapshot_previous_proof_report(storage)
     record = dict(report)
     record.setdefault("generated_at", _utc_now())
     record.setdefault("verified_mrms", False)

@@ -24,7 +24,8 @@ from backend.app.services.render_queue_benchmark import (
     RenderQueueBenchmarkReport,
     run_render_queue_benchmark,
 )
-from backend.app.services.storage import LocalStorage
+from backend.app.services.mrms_proof_report import generate_mrms_proof_report, save_mrms_proof_report
+from backend.app.services.mrms_proof_regression import run_proof_regression_check
 from backend.app.services.validation_dashboard import build_validation_summary
 from backend.app.services.validation_failure_log import append_validation_failure
 from backend.app.services.validation_alerts import refresh_validation_alert
@@ -83,6 +84,9 @@ class ScheduledValidationReport:
     queue_benchmark: Optional[dict[str, Any]] = None
     render_queue: Optional[dict[str, Any]] = None
     validation_summary: Optional[dict[str, Any]] = None
+    mrms_proof: Optional[dict[str, Any]] = None
+    mrms_proof_regression: Optional[dict[str, Any]] = None
+    proof_requested: bool = False
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     elapsed_seconds: float = 0.0
@@ -108,6 +112,9 @@ class ScheduledValidationReport:
             "queue_benchmark": self.queue_benchmark,
             "render_queue": self.render_queue,
             "validation_summary": self.validation_summary,
+            "mrms_proof": self.mrms_proof,
+            "mrms_proof_regression": self.mrms_proof_regression,
+            "proof_requested": self.proof_requested,
             "warnings": list(self.warnings),
             "errors": list(self.errors),
             "elapsed_seconds": round(self.elapsed_seconds, 4),
@@ -200,6 +207,20 @@ def _log_report_failures(
         )
 
 
+def run_scheduled_proof_pipeline(
+    session: Session,
+    storage: LocalStorage,
+    *,
+    count: int,
+    source_mode: str,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Generate proof report, run regression check (stub-safe, no promotion)."""
+    proof = generate_mrms_proof_report(session, storage, count=count, source_mode=source_mode)
+    save_mrms_proof_report(storage, proof)
+    regression = run_proof_regression_check(storage)
+    return proof, regression
+
+
 def run_scheduled_validation(
     session: Session,
     storage: LocalStorage,
@@ -208,6 +229,7 @@ def run_scheduled_validation(
     min_zoom: int = DEFAULT_SCHEDULED_MIN_ZOOM,
     max_zoom: int = DEFAULT_SCHEDULED_MAX_ZOOM,
     real_requested: bool = False,
+    proof_requested: bool = False,
     persist: bool = True,
     command_context: Optional[str] = None,
     batch_fn: Optional[Callable[..., BatchValidationReport]] = None,
@@ -229,6 +251,7 @@ def run_scheduled_validation(
         prototype=True,
         command_context=command_context,
     )
+    report.proof_requested = proof_requested
     report.warnings.append(
         "Scheduled validation is local dev/prototype tooling — not verified MRMS production"
     )
@@ -393,6 +416,35 @@ def run_scheduled_validation(
         command_context=command_context,
         step=summary_step,
     )
+
+    if proof_requested:
+        proof_step = ScheduledValidationStep(name="mrms_proof_report", started_at=_utc_now())
+        proof_start = time.perf_counter()
+        try:
+            proof, regression = run_scheduled_proof_pipeline(
+                session, storage, count=count, source_mode=mode
+            )
+            report.mrms_proof = proof
+            report.mrms_proof_regression = regression
+            proof_step.summary = {
+                "overall_status": proof.get("overall_status"),
+                "frame_count": proof.get("frame_count"),
+                "regression_detected": regression.get("regression_detected"),
+                "regression_count": regression.get("regression_count"),
+                "verified_mrms": False,
+            }
+            proof_step.warnings.append(
+                "Proof report is draft evidence — NOT verified MRMS; sign-off does not enable production"
+            )
+            if regression.get("regression_detected"):
+                proof_step.warnings.append("MRMS proof regression detected")
+                report.warnings.append("Proof regression detected after scheduled validation")
+        except Exception as exc:  # noqa: BLE001 — keep scheduled run resilient
+            proof_step.errors.append(str(exc))
+        proof_step.elapsed_seconds = time.perf_counter() - proof_start
+        proof_step.finished_at = _utc_now()
+        _finalize_step_status(proof_step)
+        report.steps.append(proof_step)
 
     report.elapsed_seconds = time.perf_counter() - start
     report.ran_at = _utc_now()

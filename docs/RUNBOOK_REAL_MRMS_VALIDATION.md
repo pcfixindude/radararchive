@@ -109,7 +109,22 @@ Operator sign-off template: [MRMS_OPERATOR_SIGNOFF_TEMPLATE.md](MRMS_OPERATOR_SI
 
 ```bash
 curl http://127.0.0.1:8000/api/validation/proof
+curl http://127.0.0.1:8000/api/validation/proof-regression
+curl http://127.0.0.1:8000/api/validation/signoffs
 ```
+
+## Proof regression and sign-off (Phase 27)
+
+```bash
+make mrms-proof-regression
+make mrms-proof-regression ARGS="--refresh-alert"
+make mrms-signoff ARGS="--initials OP --notes 'reviewed draft proof' --accepted-limitations 'prototype only'"
+make scheduled-validation ARGS="--proof"
+```
+
+Regression file: `data/dev/mrms_proof_regression_latest.json`. Sign-offs: `data/dev/mrms_signoffs.json`.
+
+**Sign-off does not set `verified_mrms=true` or enable production rendering.**
 
 ## Check recent failures
 

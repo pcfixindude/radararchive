@@ -214,6 +214,12 @@ Summary additions (Phase 26): `mrms_proof` compact proof status (`overall_status
 
 `GET /api/validation/proof` — latest draft MRMS proof report JSON (`data/dev/mrms_proof_latest.json`). `verified_mrms: false`, `proof_only: true`.
 
+Summary additions (Phase 27): `mrms_proof_regression` compact status, `mrms_signoff` summary (`signoff_count`, `latest_signoff_at`).
+
+`GET /api/validation/proof-regression` — latest regression report (`?refresh=true` re-runs check). `verified_mrms: false`.
+
+`GET /api/validation/signoffs` — local operator sign-off records (read-only). `verified_mrms: false`.
+
 `GET /api/catalog/status` — MRMS catalog frame counts by download/process/render status, latest timestamps.
 
 ## MRMS source discovery (Phase 8 — dev/metadata)

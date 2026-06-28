@@ -9,7 +9,9 @@ from sqlalchemy.orm import Session
 from backend.app.config import settings
 from backend.app.services.catalog_status import build_catalog_status
 from backend.app.services.grib2_inspector import detect_decoder_availability
+from backend.app.services.mrms_proof_regression import compact_proof_regression, load_proof_regression_report
 from backend.app.services.mrms_proof_report import compact_mrms_proof_report, load_mrms_proof_report
+from backend.app.services.mrms_signoff import compact_signoff_summary, load_signoffs
 from backend.app.services.render_queue import get_queue_summary
 from backend.app.services.storage import LocalStorage
 from backend.app.services.validation_alerts import (
@@ -47,6 +49,8 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
     if alert is None:
         alert = refresh_validation_alert(storage, scheduled=scheduled)
     proof = load_mrms_proof_report(storage)
+    regression = load_proof_regression_report(storage)
+    signoff_summary = compact_signoff_summary(storage)
     catalog = build_catalog_status(session)
 
     return {
@@ -77,6 +81,9 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "grouped_failure_causes": (alert or {}).get("grouped_failure_causes", [])[:5],
         "mrms_proof": compact_mrms_proof_report(proof),
         "mrms_proof_available": proof is not None,
+        "mrms_proof_regression": compact_proof_regression(regression),
+        "mrms_proof_regression_available": regression is not None,
+        "mrms_signoff": signoff_summary,
         "catalog": catalog,
     }
 
@@ -93,6 +100,8 @@ def build_validation_latest(storage: LocalStorage) -> dict[str, Any]:
         "scheduled_validation": load_latest_scheduled_validation_report(storage),
         "validation_alert": load_validation_alert(storage),
         "mrms_proof": load_mrms_proof_report(storage),
+        "mrms_proof_regression": load_proof_regression_report(storage),
+        "mrms_signoffs": load_signoffs(storage)[:10],
     }
 
 

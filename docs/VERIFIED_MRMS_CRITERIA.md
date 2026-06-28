@@ -110,6 +110,22 @@ Criterion IDs evaluated: `real_noaa_source`, `decoder_and_artifacts`, `product_t
 
 **Signing the operator template does NOT set `verified_mrms=true`.**
 
+## Regression and sign-off workflow (Phase 27)
+
+After each `make mrms-proof-report`, the previous latest report is snapshotted for comparison.
+
+```bash
+make mrms-proof-regression
+make mrms-signoff ARGS="--initials OP --notes 'reviewed' --accepted-limitations 'prototype only'"
+```
+
+- Regression report: `data/dev/mrms_proof_regression_latest.json`
+- Sign-offs: `data/dev/mrms_signoffs.json` (local only)
+- Validation alerts include `proof_regression` cause when regression detected
+- `make scheduled-validation ARGS="--proof"` runs proof + regression after validation
+
+Sign-off records `verified_mrms: false` and `does_not_set_verified_mrms: true` always.
+
 ## Related docs
 
 - [RUNBOOK_REAL_MRMS_VALIDATION.md](RUNBOOK_REAL_MRMS_VALIDATION.md) — how to run and troubleshoot

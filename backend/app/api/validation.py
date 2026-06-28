@@ -6,7 +6,9 @@ from sqlalchemy.orm import Session
 from backend.app.config import settings
 from backend.app.database import get_db
 from backend.app.schemas.validation import (
+    MrmsProofRegressionResponse,
     MrmsProofResponse,
+    MrmsSignoffsResponse,
     QueueBenchmarkHistoryResponse,
     ScheduledValidationHistoryResponse,
     ValidationAlertsResponse,
@@ -16,7 +18,9 @@ from backend.app.schemas.validation import (
     ValidationSummaryResponse,
 )
 from backend.app.services.storage import LocalStorage
+from backend.app.services.mrms_proof_regression import load_proof_regression_report, run_proof_regression_check
 from backend.app.services.mrms_proof_report import load_mrms_proof_report
+from backend.app.services.mrms_signoff import load_signoffs
 from backend.app.services.validation_alerts import load_validation_alert, refresh_validation_alert
 from backend.app.services.validation_dashboard import build_validation_latest, build_validation_summary
 from backend.app.services.validation_failure_log import (
@@ -141,4 +145,33 @@ def validation_proof() -> MrmsProofResponse:
         proof_only=True,
         operator_review_required=True,
         report=report,
+    )
+
+
+@router.get("/proof-regression", response_model=MrmsProofRegressionResponse)
+def validation_proof_regression(refresh: bool = False) -> MrmsProofRegressionResponse:
+    """Latest MRMS proof regression report (dev/prototype)."""
+    storage = LocalStorage(settings.local_storage_root)
+    if refresh:
+        report = run_proof_regression_check(storage)
+        refresh_validation_alert(storage)
+    else:
+        report = load_proof_regression_report(storage)
+    return MrmsProofRegressionResponse(
+        prototype=True,
+        verified_mrms=False,
+        report=report,
+    )
+
+
+@router.get("/signoffs", response_model=MrmsSignoffsResponse)
+def validation_signoffs() -> MrmsSignoffsResponse:
+    """Local operator sign-off records (read-only; does not set verified_mrms)."""
+    storage = LocalStorage(settings.local_storage_root)
+    entries = load_signoffs(storage)
+    return MrmsSignoffsResponse(
+        prototype=True,
+        verified_mrms=False,
+        count=len(entries),
+        entries=entries[:25],
     )

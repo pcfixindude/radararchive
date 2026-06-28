@@ -327,6 +327,13 @@ Interpretation:
 - `insufficient_evidence` / `failed` in stub mode is **expected** — not verified MRMS
 - `ready_for_operator_review` means automated checks passed enough for human review — still `verified_mrms: false`
 - Visual sanity and operator review criteria remain manual (see [MRMS_OPERATOR_SIGNOFF_TEMPLATE.md](MRMS_OPERATOR_SIGNOFF_TEMPLATE.md))
+- Proof regression compares consecutive proof runs — first run is `inconclusive`
+
+## Proof regression (Phase 27)
+
+When a new proof report is worse than the previous snapshot, `make mrms-proof-regression` records findings and validation alerts may show `proof_regression`.
+
+Sign-off via `make mrms-signoff` is local audit only — `verified_mrms` stays false.
 
 ## Inspection CLI
 

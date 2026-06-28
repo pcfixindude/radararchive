@@ -1,28 +1,28 @@
 # Next Steps
 
-## Phase 27 - Proof Report Regression Hooks + Sign-Off Persistence (Draft)
+## Phase 28 - Proof History Drill-Down + Sign-Off Review UI (Draft)
 
-Goal: Persist completed operator sign-offs locally, tie proof report regressions to validation alerts, and add optional proof-report step to scheduled validation — still without `verified_mrms=true` or production rendering by default.
+Goal: Dev panel drill-down for proof/regression history, optional sign-off form in UI (local API POST behind dev flag), and tighter alert ↔ proof linkage — still without `verified_mrms=true`.
 
 Suggested work:
-1. Optional `data/dev/mrms_operator_signoff.json` record (local only)
-2. Alert marker refresh when proof `overall_status` regresses
-3. Optional scheduled-validation `--proof` flag (stub default)
-4. Dev panel link to sign-off template and latest proof JSON
-5. Proof history drill-down in validation latest API
+1. Proof/regression history endpoints with bounded entries
+2. Optional dev-only sign-off POST (validated, no verified_mrms)
+3. Alert refresh when sign-off recorded after regression
+4. Scheduled validation report includes proof step summary in API compact view
 
 Do not start yet:
 - Stripe, real auth, HRRR, WPC, native Android
-- Redis/Celery, cloud deployment, email/Slack/PagerDuty
-- Setting `verified_mrms=true` without documented launch review phase
+- Redis/Celery, cloud deployment
+- Setting `verified_mrms=true` or production promotion via sign-off
 
-## Phase 26 verification commands
+## Phase 27 verification commands
 
 ```bash
 make test
 make mrms-proof-report
+make mrms-proof-regression
 make validation-alerts
-make scheduled-validation
+make scheduled-validation ARGS="--proof"
 make catalog-status
 make render-queue-status
 cd frontend && npm run build

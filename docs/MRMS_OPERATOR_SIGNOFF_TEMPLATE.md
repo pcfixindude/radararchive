@@ -37,11 +37,19 @@ Use this template when reviewing a **draft proof report** from `make mrms-proof-
 
 > This sign-off documents operator review of draft MRMS proof evidence. It does **not** certify verified MRMS production output and does **not** enable `verified_mrms=true`.
 
+## Recording sign-off (Phase 27)
+
+```bash
+make mrms-signoff ARGS="--operator-name 'Jane Operator' --notes 'Reviewed proof JSON' --accepted-limitations 'Prototype only'"
+make mrms-signoff ARGS="--initials JO --accepted-limitations 'Not verified MRMS'"
+```
+
+Persisted locally at `data/dev/mrms_signoffs.json`. Read via `GET /api/validation/signoffs`.
+
 ## Related commands
 
 ```bash
 make mrms-proof-report
-make mrms-proof-report ARGS="--json-report"
+make mrms-proof-regression
 make validation-alerts
-make validation-failures
 ```

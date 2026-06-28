@@ -26,6 +26,7 @@ CAUSE_NO_GRIB2_ARTIFACT = "no_grib2_artifact"
 CAUSE_ZERO_TILES_WRITTEN = "zero_tiles_written"
 CAUSE_PRODUCTION_FLAG_OFF = "production_flag_off"
 CAUSE_CATALOG_GATE_MISSING = "catalog_gate_missing"
+CAUSE_PROOF_REGRESSION = "proof_regression"
 CAUSE_UNKNOWN = "unknown"
 
 SUGGESTED_ACTIONS: dict[str, str] = {
@@ -35,6 +36,7 @@ SUGGESTED_ACTIONS: dict[str, str] = {
     CAUSE_ZERO_TILES_WRITTEN: "Ensure decode artifacts exist; lower zoom/count; prototype tiles may be zero in stub mode.",
     CAUSE_PRODUCTION_FLAG_OFF: "Production serving is off by default; set ENABLE_PRODUCTION_RADAR_TILES only when intentional.",
     CAUSE_CATALOG_GATE_MISSING: "Build production tiles and satisfy catalog gate before expecting production-prototype tiles.",
+    CAUSE_PROOF_REGRESSION: "Review make mrms-proof-regression and re-run make mrms-proof-report; compare proof history.",
     CAUSE_UNKNOWN: "Review make validation-failures and docs/RUNBOOK_REAL_MRMS_VALIDATION.md.",
 }
 
@@ -103,6 +105,8 @@ def classify_failure_cause(message: Optional[str]) -> str:
         return CAUSE_PRODUCTION_FLAG_OFF
     if "catalog gate" in text or "catalog_gate" in text:
         return CAUSE_CATALOG_GATE_MISSING
+    if "proof regression" in text or "proof_regression" in text:
+        return CAUSE_PROOF_REGRESSION
     return CAUSE_UNKNOWN
 
 
@@ -184,7 +188,10 @@ def _resolve_alert_status(
     scheduled: Optional[dict[str, Any]],
     failure_count: int,
     warning_count: int,
+    proof_regression_detected: bool = False,
 ) -> str:
+    if proof_regression_detected:
+        return ALERT_FAILED
     if scheduled is not None:
         if not scheduled.get("success", True) or scheduled.get("exit_code", 0) != 0:
             return ALERT_FAILED
@@ -221,16 +228,37 @@ def build_validation_alert(
     scheduled: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
     """Build alert summary from failure log and latest scheduled run."""
+    from backend.app.services.mrms_proof_regression import load_proof_regression_report
+
     all_failures = load_all_validation_failures(storage)
     recent = load_recent_validation_failures(storage, limit=25)
     scheduled = scheduled if scheduled is not None else load_latest_scheduled_validation_report(storage)
 
     log_failure_count, log_warning_count = _count_warning_vs_failure_entries(all_failures)
     grouped = group_validation_failures(all_failures)
+
+    regression = load_proof_regression_report(storage)
+    proof_regression_detected = bool(regression and regression.get("regression_detected"))
+    if proof_regression_detected and regression:
+        findings = regression.get("findings") or []
+        for finding in findings[:5]:
+            grouped.insert(
+                0,
+                {
+                    "step": "proof_regression",
+                    "cause": CAUSE_PROOF_REGRESSION,
+                    "message": finding.get("message", "Proof regression detected"),
+                    "normalized_message": finding.get("kind", "proof_regression"),
+                    "count": 1,
+                    "latest_logged_at": regression.get("checked_at"),
+                },
+            )
+
     status = _resolve_alert_status(
         scheduled=scheduled,
         failure_count=log_failure_count,
         warning_count=log_warning_count,
+        proof_regression_detected=proof_regression_detected,
     )
 
     latest_run_at = None
@@ -246,9 +274,17 @@ def build_validation_alert(
         "failure_count": log_failure_count,
         "warning_count": log_warning_count,
         "total_logged": len(all_failures),
-        "grouped_failure_causes": grouped,
-        "suggested_next_action": _suggested_action(grouped, status),
-        "operator_attention_needed": status in (ALERT_WARNING, ALERT_FAILED),
+        "grouped_failure_causes": grouped[:10],
+        "suggested_next_action": (
+            SUGGESTED_ACTIONS[CAUSE_PROOF_REGRESSION]
+            if proof_regression_detected
+            else _suggested_action(grouped, status)
+        ),
+        "operator_attention_needed": status in (ALERT_WARNING, ALERT_FAILED)
+        or proof_regression_detected,
+        "proof_regression_detected": proof_regression_detected,
+        "proof_regression_status": (regression or {}).get("regression_status"),
+        "proof_regression_count": int((regression or {}).get("regression_count", 0)),
         "production_rendering_enabled": settings.enable_production_radar_tiles,
         "verified_mrms": False,
         "prototype": True,
@@ -302,6 +338,8 @@ def compact_validation_alert(alert: Optional[dict[str, Any]]) -> Optional[dict[s
         "failure_count": alert.get("failure_count", 0),
         "warning_count": alert.get("warning_count", 0),
         "operator_attention_needed": alert.get("operator_attention_needed", False),
+        "proof_regression_detected": alert.get("proof_regression_detected", False),
+        "proof_regression_count": alert.get("proof_regression_count", 0),
         "suggested_next_action": alert.get("suggested_next_action"),
         "grouped_failure_causes": grouped[:5],
         "verified_mrms": False,

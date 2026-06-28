@@ -1,0 +1,14 @@
+{
+  "checked_at": "2026-06-28T13:49:33Z",
+  "current_overall_status": "failed",
+  "current_proof_generated_at": "2026-06-28T13:49:33Z",
+  "findings": [],
+  "previous_overall_status": "failed",
+  "previous_proof_generated_at": "2026-06-28T13:42:14Z",
+  "proof_only": true,
+  "prototype": true,
+  "regression_count": 0,
+  "regression_detected": false,
+  "regression_status": "none",
+  "verified_mrms": false
+}

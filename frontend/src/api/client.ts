@@ -351,6 +351,27 @@ export type MrmsProofCompact = {
   prototype: boolean;
 };
 
+export type MrmsProofRegressionCompact = {
+  checked_at?: string | null;
+  regression_status: string;
+  regression_detected: boolean;
+  regression_count: number;
+  current_overall_status?: string | null;
+  previous_overall_status?: string | null;
+  verified_mrms: boolean;
+  prototype: boolean;
+};
+
+export type MrmsSignoffSummaryCompact = {
+  signoff_count: number;
+  latest_signoff_at?: string | null;
+  latest_operator?: string | null;
+  verified_mrms: boolean;
+  local_signoff_only: boolean;
+  does_not_set_verified_mrms: boolean;
+  prototype: boolean;
+};
+
 export type ValidationLatest = {
   prototype: boolean;
   verified_mrms: boolean;
@@ -361,6 +382,8 @@ export type ValidationLatest = {
   scheduled_validation: Record<string, unknown> | null;
   validation_alert: Record<string, unknown> | null;
   mrms_proof: Record<string, unknown> | null;
+  mrms_proof_regression: Record<string, unknown> | null;
+  mrms_signoffs: Record<string, unknown>[];
 };
 
 export type ValidationSummary = {
@@ -389,6 +412,9 @@ export type ValidationSummary = {
   grouped_failure_causes?: GroupedFailureCauseCompact[];
   mrms_proof?: MrmsProofCompact | null;
   mrms_proof_available?: boolean;
+  mrms_proof_regression?: MrmsProofRegressionCompact | null;
+  mrms_proof_regression_available?: boolean;
+  mrms_signoff?: MrmsSignoffSummaryCompact | null;
   frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;
 };

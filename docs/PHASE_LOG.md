@@ -1131,3 +1131,37 @@ cd frontend && npm run build
 - Stub mode produces `insufficient_evidence` by design
 - `verified_mrms` always false
 - Production serving gates unchanged; placeholder default unchanged
+
+## Phase 27 - Proof Regression Hooks + Operator Sign-Off Persistence
+
+Detect worsening MRMS proof evidence, surface regressions in validation alerts, persist local operator sign-offs.
+
+### Backend
+- `mrms_proof_regression.py` — compare latest vs previous proof, persist regression report
+- `mrms_signoff.py` — local sign-off records (`mrms_signoffs.json`)
+- `validation_alerts.py` — `proof_regression` cause bucket and alert fields
+- `scheduled_validation.py` — optional `--proof` pipeline step
+- `GET /api/validation/proof-regression`, `GET /api/validation/signoffs`
+
+### Scripts / Makefile
+- `scripts/mrms_proof_regression.py` — `make mrms-proof-regression`
+- `scripts/mrms_signoff.py` — `make mrms-signoff`
+
+### Frontend
+- Dev panel: proof regression status, sign-off count/timestamp
+
+### Run commands
+
+```bash
+make test
+make mrms-proof-report
+make mrms-proof-regression
+make scheduled-validation ARGS="--proof"
+cd frontend && npm run build
+```
+
+### Known limitations
+- Regression needs at least two proof runs for meaningful comparison
+- Sign-off is CLI/local JSON only (no verified_mrms promotion)
+- `verified_mrms` always false
+- Production serving gates unchanged; placeholder default unchanged

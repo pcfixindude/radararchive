@@ -66,6 +66,11 @@ def main() -> None:
     parser.add_argument("--min-zoom", type=int, default=DEFAULT_SCHEDULED_MIN_ZOOM)
     parser.add_argument("--max-zoom", type=int, default=DEFAULT_SCHEDULED_MAX_ZOOM)
     parser.add_argument("--json-report", action="store_true", help="Print JSON report")
+    parser.add_argument(
+        "--proof",
+        action="store_true",
+        help="After validation, run proof report + regression check (stub-safe)",
+    )
     args = parser.parse_args()
 
     print(
@@ -95,6 +100,7 @@ def main() -> None:
             min_zoom=args.min_zoom,
             max_zoom=args.max_zoom,
             real_requested=args.real,
+            proof_requested=args.proof,
             command_context="make scheduled-validation",
         )
     finally:
