@@ -244,6 +244,14 @@ Summary additions (Phase 34): `proof_bundle_diff_alert` compact (latest timeline
 
 `GET /api/validation/proof-bundle-diff-alert-history` — bounded diff alert timeline (`?limit=25` max). `verified_mrms: false`, `local_history_only: true`. Read-only; recording happens during diff evaluation.
 
+Summary additions (Phase 35): `proof_bundle_diff_alert_trend` compact (`trend`, streaks, last worsened/mixed/improved timestamps), `proof_bundle_diff_acknowledgment` compact. Validation alert adds `diff_acknowledgment_count`, `latest_diff_acknowledgment_at/operator`, `diff_alert_acknowledged_but_still_active`, `proof_bundle_diff_alert_trend`.
+
+`GET /api/validation/proof-bundle-diff-alert-trend` — trend summary (`?window=10` max 25). `verified_mrms: false`, `local_trend_only: true`.
+
+`GET /api/validation/proof-bundle-diff-acknowledgments` — bounded acknowledgment list (read-only).
+
+`POST /api/validation/proof-bundle-diff-acknowledgments` — dev/local acknowledgment (`operator_initials`/`operator_name`, `note` required). Does **not** clear alerts or set `verified_mrms`. Response includes `diff_alert_still_active`.
+
 Scheduled validation report additions (Phase 32): `bundle_requested`, `diff_bundle_requested`, `mrms_proof_bundle`, `mrms_proof_bundle_diff`; steps `proof_report`, `proof_regression`, `proof_bundle_export`, `proof_bundle_diff`.
 
 `GET /api/validation/proof-bundle-diff` — latest proof bundle diff report (`?refresh=true` rebuilds). `verified_mrms: false`, `local_diff_only: true`.

@@ -351,6 +351,8 @@ Sign-off via `make mrms-signoff` or dev-only `POST /api/validation/signoffs` is 
 
 `make proof-bundle-diff-alert-history` prints the bounded diff alert timeline recorded on each diff evaluation — local evidence monitoring only; does not verify MRMS.
 
+`make proof-bundle-diff-alert-trend` summarizes recent diff alert history into worsening/improving/mixed/stable trend with attention streaks. `make proof-bundle-diff-acknowledge` records a local operator note that does **not** clear alerts.
+
 ## Inspection CLI
 
 ```bash

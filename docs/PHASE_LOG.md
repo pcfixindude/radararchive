@@ -1396,3 +1396,34 @@ cd frontend && npm run build
 - Duplicate exact diff results in the same run are skipped (not re-appended)
 - Timeline does not auto-clear validation alerts when status improves
 - `verified_mrms` always false; production gates unchanged
+
+## Phase 35 - Diff Alert Trend Summary + Operator Acknowledgment
+
+Trend analysis over diff alert history and optional local acknowledgment notes.
+
+### Backend
+- `proof_bundle_diff_alert_trends.py` — trend: worsening/improving/mixed/stable/no_data, streaks
+- `proof_bundle_diff_acknowledgment.py` — bounded local ack records (50 max)
+- Summary/alert: trend compact, acknowledgment count, acknowledged-but-still-active flag
+- `GET /api/validation/proof-bundle-diff-alert-trend`
+- `GET/POST /api/validation/proof-bundle-diff-acknowledgments`
+
+### Scripts / Makefile
+- `make proof-bundle-diff-alert-trend`, `make proof-bundle-diff-acknowledge`
+
+### Frontend
+- Dev Validation trend summary + acknowledgment form (local only)
+
+### Run commands
+
+```bash
+make test
+make proof-bundle-diff-alert-trend
+make proof-bundle-diff-acknowledge ARGS="--operator OP --note 'local ack'"
+cd frontend && npm run build
+```
+
+### Known limitations
+- Acknowledgment does not clear validation alerts
+- Trend window defaults to 10 entries
+- `verified_mrms` always false

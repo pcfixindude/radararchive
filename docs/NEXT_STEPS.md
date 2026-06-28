@@ -1,30 +1,28 @@
 # Next Steps
 
-## Phase 35 - Diff Alert Trend Summary + Operator Ack (Draft)
+## Phase 36 - Diff Alert Escalation Hints + Runbook Deep Links (Draft)
 
-Goal: Add compact trend summary over diff alert history (worsened→improved transitions, attention streaks) and optional explicit operator acknowledgment notes — still without `verified_mrms=true`.
+Goal: Surface escalation hints when trend is worsening with active attention streak, and link trend states to specific runbook sections — still without `verified_mrms=true`.
 
 Suggested work:
-1. Trend compact on summary API (`attention_streak`, `last_improved_at`, `status_changes_count`)
-2. Optional local ack record when operator reviews worsened/mixed timeline (does not clear alerts automatically)
-3. Dev panel trend chips alongside timeline list
-4. Runbook note: improving diff status requires evidence review, not silent alert clear
+1. Trend-based operator guidance items in validation alert
+2. Escalation hint when `worsening` trend + acknowledgment stale
+3. Dev panel chips for trend state with runbook section labels
+4. Optional bounded acknowledgment history in summary API
 
 Do not start yet:
 - Stripe, real auth, HRRR, WPC, native Android
 - Redis/Celery, cloud deployment
 - Setting `verified_mrms=true` or production promotion
 
-## Phase 34 verification commands
+## Phase 35 verification commands
 
 ```bash
 make test
 make proof-bundle-diff-alert-history
-make scheduled-validation
+make proof-bundle-diff-alert-trend
+make proof-bundle-diff-acknowledge ARGS="--operator TEST --note 'local test acknowledgment only'"
 make scheduled-proof-bundle
-make scheduled-proof-bundle-handoff
-make mrms-proof-bundle
-make mrms-proof-bundle-diff
 make validation-alerts
 cd frontend && npm run build
 ```

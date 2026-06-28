@@ -260,6 +260,36 @@ Persisted to `data/dev/proof_bundle_diff_alert_history.json` (last 25 entries, g
 
 Timeline history does **not** verify MRMS, enable production rendering, or mutate catalog gates.
 
+## Proof bundle diff alert trend + acknowledgment (Phase 35)
+
+Trend summary and optional local operator acknowledgment — **does not verify MRMS** or clear alerts silently.
+
+```bash
+make proof-bundle-diff-alert-trend
+make proof-bundle-diff-alert-trend ARGS="--json"
+make proof-bundle-diff-acknowledge ARGS="--operator OP --note 'Reviewed worsened diff locally'"
+curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-alert-trend
+curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-acknowledgments
+curl -X POST http://127.0.0.1:8000/api/validation/proof-bundle-diff-acknowledgments \
+  -H 'Content-Type: application/json' \
+  -d '{"operator_initials":"OP","note":"local acknowledgment only"}'
+```
+
+**Trend values (local monitoring only):**
+- `worsening` — recent worsened signals dominate or attention streak active
+- `improving` — recent improved signals exceed worsened
+- `mixed` — mixed diff statuses in recent window
+- `stable` — mostly unchanged
+- `no_data` — no diff alert history yet
+
+**Acknowledgment means:**
+- Operator recorded a local review note tied to latest diff context
+- Does **not** clear validation alerts, proof regressions, or production gates
+- Does **not** set `verified_mrms=true` or enable production rendering
+- Alert may remain active after acknowledgment (`diff_alert_acknowledged_but_still_active`)
+
+Acknowledgments persist to `data/dev/proof_bundle_diff_acknowledgments.json` (gitignored, max 50).
+
 ## Proof bundle diff worsened
 
 <a id="proof-bundle-diff-worsened"></a>

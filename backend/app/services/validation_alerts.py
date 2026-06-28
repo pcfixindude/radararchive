@@ -332,6 +332,26 @@ def build_validation_alert(
     latest_diff_alert_history = load_latest_proof_bundle_diff_alert_history(storage)
     diff_alert_history_count = count_proof_bundle_diff_alert_history(storage)
 
+    from backend.app.services.proof_bundle_diff_acknowledgment import (
+        count_diff_acknowledgments,
+        load_latest_diff_acknowledgment,
+    )
+    from backend.app.services.proof_bundle_diff_alert_trends import (
+        build_proof_bundle_diff_alert_trend,
+    )
+
+    diff_alert_trend = build_proof_bundle_diff_alert_trend(storage)
+    latest_ack = load_latest_diff_acknowledgment(storage)
+    ack_count = count_diff_acknowledgments(storage)
+    operator_attention_needed = (
+        status in (ALERT_WARNING, ALERT_FAILED)
+        or proof_regression_detected
+        or proof_bundle_diff_attention
+    )
+    diff_alert_acknowledged_but_still_active = bool(
+        latest_ack and proof_bundle_diff_attention and operator_attention_needed
+    )
+
     alert_body: dict[str, Any] = {
         "status": status,
         "latest_run_at": latest_run_at,
@@ -347,9 +367,7 @@ def build_validation_alert(
             if proof_bundle_diff_attention
             else _suggested_action(grouped, status)
         ),
-        "operator_attention_needed": status in (ALERT_WARNING, ALERT_FAILED)
-        or proof_regression_detected
-        or proof_bundle_diff_attention,
+        "operator_attention_needed": operator_attention_needed,
         "proof_regression_detected": proof_regression_detected,
         "proof_regression_status": (regression or {}).get("regression_status"),
         "proof_regression_count": int((regression or {}).get("regression_count", 0)),
@@ -367,6 +385,11 @@ def build_validation_alert(
         "latest_proof_bundle_diff_alert_at": (latest_diff_alert_history or {}).get("created_at"),
         "latest_proof_bundle_diff_alert_status": (latest_diff_alert_history or {}).get("diff_status")
         or proof_bundle_diff_status,
+        "proof_bundle_diff_alert_trend": diff_alert_trend.get("trend"),
+        "diff_acknowledgment_count": ack_count,
+        "latest_diff_acknowledgment_at": (latest_ack or {}).get("created_at"),
+        "latest_diff_acknowledgment_operator": (latest_ack or {}).get("operator"),
+        "diff_alert_acknowledged_but_still_active": diff_alert_acknowledged_but_still_active,
         "production_rendering_enabled": settings.enable_production_radar_tiles,
         "verified_mrms": False,
         "prototype": True,
@@ -442,6 +465,13 @@ def compact_validation_alert(alert: Optional[dict[str, Any]]) -> Optional[dict[s
         ),
         "latest_proof_bundle_diff_alert_at": alert.get("latest_proof_bundle_diff_alert_at"),
         "latest_proof_bundle_diff_alert_status": alert.get("latest_proof_bundle_diff_alert_status"),
+        "proof_bundle_diff_alert_trend": alert.get("proof_bundle_diff_alert_trend"),
+        "diff_acknowledgment_count": int(alert.get("diff_acknowledgment_count", 0)),
+        "latest_diff_acknowledgment_at": alert.get("latest_diff_acknowledgment_at"),
+        "latest_diff_acknowledgment_operator": alert.get("latest_diff_acknowledgment_operator"),
+        "diff_alert_acknowledged_but_still_active": bool(
+            alert.get("diff_alert_acknowledged_but_still_active")
+        ),
         "suggested_next_action": alert.get("suggested_next_action"),
         "grouped_failure_causes": grouped[:5],
         "operator_guidance": (alert.get("operator_guidance") or [])[:8],

@@ -3,6 +3,7 @@ import {
   fetchProofReviewData,
   fetchValidationLatest,
   submitSignoff,
+  submitDiffAcknowledgment,
   type MrmsProofHistory,
   type MrmsProofRegressionHistory,
   type MrmsSignoffsList,
@@ -44,6 +45,12 @@ export default function ValidationStatusPanel({
   const [signoffSubmitting, setSignoffSubmitting] = useState(false);
   const [signoffMessage, setSignoffMessage] = useState<string | null>(null);
   const [showDiffAlertTimeline, setShowDiffAlertTimeline] = useState(false);
+  const [showDiffAlertTrend, setShowDiffAlertTrend] = useState(false);
+  const [ackOperator, setAckOperator] = useState('');
+  const [ackNote, setAckNote] = useState('');
+  const [ackSubmitting, setAckSubmitting] = useState(false);
+  const [ackMessage, setAckMessage] = useState<string | null>(null);
+  const [ackError, setAckError] = useState<string | null>(null);
   const [signoffError, setSignoffError] = useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
@@ -110,6 +117,31 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleAckSubmit(event: FormEvent) {
+    event.preventDefault();
+    setAckMessage(null);
+    setAckError(null);
+    setAckSubmitting(true);
+    const result = await submitDiffAcknowledgment({
+      operator_initials: ackOperator.trim() || undefined,
+      note: ackNote.trim(),
+    });
+    setAckSubmitting(false);
+    if (!result.ok) {
+      setAckError(result.error);
+      return;
+    }
+    setAckMessage(
+      result.data.diff_alert_still_active
+        ? 'Acknowledgment recorded — diff alert may still be active (does not clear alerts).'
+        : 'Acknowledgment recorded (local only — does not verify MRMS).',
+    );
+    setAckNote('');
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   if (!summary) {
     return (
       <section className="panel validation-panel">
@@ -148,6 +180,8 @@ export default function ValidationStatusPanel({
     summary.operator_guidance ?? validationAlert?.operator_guidance ?? [];
   const diffAlertTimeline = summary.proof_bundle_diff_alert_history ?? [];
   const diffAlertLatest = summary.proof_bundle_diff_alert ?? null;
+  const diffAlertTrend = summary.proof_bundle_diff_alert_trend ?? null;
+  const diffAck = summary.proof_bundle_diff_acknowledgment ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
   const queue = summary.render_queue;
@@ -430,6 +464,89 @@ export default function ValidationStatusPanel({
         ) : showDiffAlertTimeline ? (
           <p className="validation-meta">No timeline entries in summary — run make proof-bundle-diff-alert-history.</p>
         ) : null}
+      </section>
+      <section className="validation-diff-alert-trend">
+        <div className="validation-header-actions">
+          <p className="validation-meta">
+            Diff alert trend (local evidence monitoring only — does not verify MRMS)
+          </p>
+          <button
+            type="button"
+            className="validation-refresh"
+            onClick={() => setShowDiffAlertTrend((value) => !value)}
+          >
+            {showDiffAlertTrend ? 'Hide trend' : 'Show trend'}
+          </button>
+        </div>
+        {diffAlertTrend?.available || validationAlert?.proof_bundle_diff_alert_trend ? (
+          <p className="validation-meta">
+            Trend: {diffAlertTrend?.trend ?? validationAlert?.proof_bundle_diff_alert_trend ?? 'no_data'}
+            {diffAlertTrend?.latest_status ? ` — latest ${diffAlertTrend.latest_status}` : ''}
+            {diffAlertTrend?.current_attention_streak
+              ? ` — attention streak ${diffAlertTrend.current_attention_streak}`
+              : ''}
+          </p>
+        ) : (
+          <p className="validation-meta">No trend data — run make proof-bundle-diff-alert-trend after diff history.</p>
+        )}
+        {showDiffAlertTrend && diffAlertTrend ? (
+          <>
+            <p className="validation-meta">
+              Last worsened: {formatTimestamp(diffAlertTrend.last_worsened_at)} — last mixed:{' '}
+              {formatTimestamp(diffAlertTrend.last_mixed_at)} — last improved:{' '}
+              {formatTimestamp(diffAlertTrend.last_improved_at)}
+            </p>
+            <p className="validation-meta">
+              Recent counts — worsened {diffAlertTrend.recent_worsened_count}, mixed{' '}
+              {diffAlertTrend.recent_mixed_count}, improved {diffAlertTrend.recent_improved_count},
+              unchanged {diffAlertTrend.recent_unchanged_count}
+            </p>
+            {diffAlertTrend.suggested_next_action ? (
+              <p className="validation-meta">Suggested: {diffAlertTrend.suggested_next_action}</p>
+            ) : null}
+          </>
+        ) : null}
+        {diffAck?.available || (validationAlert?.diff_acknowledgment_count ?? 0) > 0 ? (
+          <p className="validation-meta">
+            Latest acknowledgment {formatTimestamp(diffAck?.created_at ?? validationAlert?.latest_diff_acknowledgment_at)}{' '}
+            — {diffAck?.operator ?? validationAlert?.latest_diff_acknowledgment_operator ?? '—'} (
+            {validationAlert?.diff_acknowledgment_count ?? diffAck?.count ?? 0} total)
+          </p>
+        ) : (
+          <p className="validation-meta">No diff alert acknowledgments recorded yet.</p>
+        )}
+        {validationAlert?.diff_alert_acknowledged_but_still_active ? (
+          <p className="validation-warn">
+            Acknowledged but diff alert still active — acknowledgment does not clear alerts or verify MRMS
+          </p>
+        ) : null}
+        <p className="validation-meta">
+          Local acknowledgment only — does not enable production rendering — verified_mrms:{' '}
+          {yesNo(summary.verified_mrms)}
+        </p>
+        <form className="validation-ack-form" onSubmit={(event) => void handleAckSubmit(event)}>
+          <p className="validation-warn">
+            Dev acknowledgment form — local only; does not clear alerts or verify MRMS.
+          </p>
+          <label className="validation-meta">
+            Operator initials or name
+            <input
+              type="text"
+              value={ackOperator}
+              onChange={(event) => setAckOperator(event.target.value)}
+              autoComplete="name"
+            />
+          </label>
+          <label className="validation-meta">
+            Note (required)
+            <textarea value={ackNote} onChange={(event) => setAckNote(event.target.value)} rows={2} />
+          </label>
+          <button type="submit" className="validation-refresh" disabled={ackSubmitting}>
+            {ackSubmitting ? 'Submitting…' : 'Submit local acknowledgment'}
+          </button>
+          {ackMessage ? <p className="validation-meta">{ackMessage}</p> : null}
+          {ackError ? <p className="validation-warn">{ackError}</p> : null}
+        </form>
       </section>
       {runbookReferences.length > 0 ? (
         <section className="validation-runbook-links">

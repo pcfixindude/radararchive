@@ -230,6 +230,11 @@ class ValidationAlertCompact(BaseModel):
     proof_bundle_diff_alert_history_count: int = 0
     latest_proof_bundle_diff_alert_at: Optional[str] = None
     latest_proof_bundle_diff_alert_status: Optional[str] = None
+    proof_bundle_diff_alert_trend: Optional[str] = None
+    diff_acknowledgment_count: int = 0
+    latest_diff_acknowledgment_at: Optional[str] = None
+    latest_diff_acknowledgment_operator: Optional[str] = None
+    diff_alert_acknowledged_but_still_active: bool = False
     operator_guidance: list[OperatorGuidanceItemCompact] = Field(default_factory=list)
     verified_mrms: bool = False
     prototype: bool = True
@@ -526,6 +531,87 @@ class ProofBundleDiffAlertHistoryResponse(BaseModel):
     entries: list[ProofBundleDiffAlertEntryCompact] = Field(default_factory=list)
 
 
+class ProofBundleDiffAlertTrendCompact(BaseModel):
+    available: bool = False
+    latest_status: Optional[str] = None
+    latest_at: Optional[str] = None
+    last_worsened_at: Optional[str] = None
+    last_mixed_at: Optional[str] = None
+    last_improved_at: Optional[str] = None
+    last_unchanged_at: Optional[str] = None
+    current_attention_streak: int = 0
+    current_non_attention_streak: int = 0
+    recent_worsened_count: int = 0
+    recent_mixed_count: int = 0
+    recent_improved_count: int = 0
+    recent_unchanged_count: int = 0
+    trend: str = "no_data"
+    window_size: int = 10
+    history_count: int = 0
+    suggested_next_action: Optional[str] = None
+    verified_mrms: bool = False
+    local_trend_only: bool = True
+    prototype: bool = True
+
+
+class ProofBundleDiffAlertTrendResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_trend_only: bool = True
+    trend: ProofBundleDiffAlertTrendCompact
+
+
+class ProofBundleDiffAcknowledgmentCompact(BaseModel):
+    available: bool = False
+    count: int = 0
+    acknowledgment_id: Optional[str] = None
+    created_at: Optional[str] = None
+    operator: Optional[str] = None
+    operator_name: Optional[str] = None
+    operator_initials: Optional[str] = None
+    note: Optional[str] = None
+    related_diff_status: Optional[str] = None
+    related_bundle_id: Optional[str] = None
+    related_baseline_bundle_id: Optional[str] = None
+    acknowledged_attention: bool = False
+    verified_mrms: bool = False
+    local_acknowledgment_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class ProofBundleDiffAcknowledgmentCreateRequest(BaseModel):
+    operator_name: Optional[str] = None
+    operator_initials: Optional[str] = None
+    note: str = ""
+    related_diff_status: Optional[str] = None
+    related_bundle_id: Optional[str] = None
+    related_baseline_bundle_id: Optional[str] = None
+    acknowledged_attention: Optional[bool] = None
+
+
+class ProofBundleDiffAcknowledgmentCreateResponse(BaseModel):
+    verified_mrms: bool = False
+    local_acknowledgment_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    production_enabled: bool = False
+    diff_alert_still_active: bool = False
+    acknowledgment: dict[str, Any]
+
+
+class ProofBundleDiffAcknowledgmentsResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_acknowledgment_only: bool = True
+    does_not_clear_alerts: bool = True
+    count: int = 0
+    max_entries: int = 50
+    latest: Optional[ProofBundleDiffAcknowledgmentCompact] = None
+    entries: list[ProofBundleDiffAcknowledgmentCompact] = Field(default_factory=list)
+
+
 class OperatorHandoffCompact(BaseModel):
     available: bool = False
     created_at: Optional[str] = None
@@ -610,6 +696,8 @@ class ValidationSummaryResponse(BaseModel):
     proof_bundle_diff_alert_history: list[ProofBundleDiffAlertEntryCompact] = Field(
         default_factory=list
     )
+    proof_bundle_diff_alert_trend: Optional[ProofBundleDiffAlertTrendCompact] = None
+    proof_bundle_diff_acknowledgment: Optional[ProofBundleDiffAcknowledgmentCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse
@@ -640,6 +728,8 @@ class ValidationLatestResponse(BaseModel):
     mrms_proof_bundle_diff: Optional[dict[str, Any]] = None
     operator_handoff: Optional[dict[str, Any]] = None
     proof_bundle_diff_alert_history: list[dict[str, Any]] = Field(default_factory=list)
+    proof_bundle_diff_alert_trend: Optional[dict[str, Any]] = None
+    proof_bundle_diff_acknowledgments: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ValidationFailuresResponse(BaseModel):

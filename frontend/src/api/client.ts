@@ -361,6 +361,11 @@ export type ValidationAlertCompact = {
   proof_bundle_diff_alert_history_count?: number;
   latest_proof_bundle_diff_alert_at?: string | null;
   latest_proof_bundle_diff_alert_status?: string | null;
+  proof_bundle_diff_alert_trend?: string | null;
+  diff_acknowledgment_count?: number;
+  latest_diff_acknowledgment_at?: string | null;
+  latest_diff_acknowledgment_operator?: string | null;
+  diff_alert_acknowledged_but_still_active?: boolean;
   operator_guidance?: OperatorGuidanceItem[];
   verified_mrms: boolean;
   prototype: boolean;
@@ -406,6 +411,61 @@ export type ProofBundleDiffAlertCompact = {
   verified_mrms: boolean;
   local_history_only: boolean;
   prototype: boolean;
+};
+
+export type ProofBundleDiffAlertTrendCompact = {
+  available: boolean;
+  latest_status?: string | null;
+  latest_at?: string | null;
+  last_worsened_at?: string | null;
+  last_mixed_at?: string | null;
+  last_improved_at?: string | null;
+  last_unchanged_at?: string | null;
+  current_attention_streak: number;
+  current_non_attention_streak: number;
+  recent_worsened_count: number;
+  recent_mixed_count: number;
+  recent_improved_count: number;
+  recent_unchanged_count: number;
+  trend: string;
+  window_size?: number;
+  history_count?: number;
+  suggested_next_action?: string | null;
+  verified_mrms: boolean;
+  local_trend_only: boolean;
+  prototype: boolean;
+};
+
+export type ProofBundleDiffAcknowledgmentCompact = {
+  available: boolean;
+  count: number;
+  acknowledgment_id?: string | null;
+  created_at?: string | null;
+  operator?: string | null;
+  note?: string | null;
+  related_diff_status?: string | null;
+  acknowledged_attention?: boolean;
+  verified_mrms: boolean;
+  local_acknowledgment_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  prototype: boolean;
+};
+
+export type ProofBundleDiffAcknowledgmentCreateRequest = {
+  operator_name?: string;
+  operator_initials?: string;
+  note: string;
+};
+
+export type ProofBundleDiffAcknowledgmentCreateResponse = {
+  verified_mrms: boolean;
+  local_acknowledgment_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  production_enabled: boolean;
+  diff_alert_still_active: boolean;
+  acknowledgment: Record<string, unknown>;
 };
 
 export type GroupedFailureCauseCompact = {
@@ -647,6 +707,8 @@ export type ValidationSummary = {
   operator_guidance?: OperatorGuidanceItem[];
   proof_bundle_diff_alert?: ProofBundleDiffAlertCompact | null;
   proof_bundle_diff_alert_history?: ProofBundleDiffAlertEntry[];
+  proof_bundle_diff_alert_trend?: ProofBundleDiffAlertTrendCompact | null;
+  proof_bundle_diff_acknowledgment?: ProofBundleDiffAcknowledgmentCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;
@@ -747,6 +809,36 @@ export async function fetchSignoffsList(): Promise<MrmsSignoffsList | null> {
     return response.json() as Promise<MrmsSignoffsList>;
   } catch {
     return null;
+  }
+}
+
+export async function submitDiffAcknowledgment(
+  payload: ProofBundleDiffAcknowledgmentCreateRequest,
+): Promise<
+  { ok: true; data: ProofBundleDiffAcknowledgmentCreateResponse } | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(`${API_BASE}/api/validation/proof-bundle-diff-acknowledgments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      let error = `Acknowledgment failed (${response.status})`;
+      try {
+        const body = (await response.json()) as { detail?: string };
+        if (body.detail) {
+          error = body.detail;
+        }
+      } catch {
+        // keep default error
+      }
+      return { ok: false, error };
+    }
+    const data = (await response.json()) as ProofBundleDiffAcknowledgmentCreateResponse;
+    return { ok: true, data };
+  } catch {
+    return { ok: false, error: 'Acknowledgment request failed' };
   }
 }
 

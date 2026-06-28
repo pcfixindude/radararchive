@@ -9,7 +9,11 @@ from backend.app.schemas.validation import (
     MrmsProofBundleDiffResponse,
     MrmsProofBundlesResponse,
     MrmsProofHistoryResponse,
+    ProofBundleDiffAcknowledgmentCreateRequest,
+    ProofBundleDiffAcknowledgmentCreateResponse,
+    ProofBundleDiffAcknowledgmentsResponse,
     ProofBundleDiffAlertHistoryResponse,
+    ProofBundleDiffAlertTrendResponse,
     OperatorHandoffResponse,
     MrmsProofRegressionHistoryResponse,
     MrmsProofRegressionResponse,
@@ -27,13 +31,22 @@ from backend.app.schemas.validation import (
 )
 from backend.app.services.storage import LocalStorage
 from backend.app.services.mrms_proof_bundle import build_proof_bundles_list_payload
+from backend.app.services.proof_bundle_diff_alert_history import (
+    build_proof_bundle_diff_alert_history_payload,
+)
 from backend.app.services.mrms_proof_bundle_diff import (
     build_proof_bundle_diff_report,
     load_latest_proof_bundle_diff,
+    proof_bundle_diff_requires_attention,
 )
 from backend.app.services.mrms_operator_handoff import load_latest_operator_handoff
-from backend.app.services.proof_bundle_diff_alert_history import (
-    build_proof_bundle_diff_alert_history_payload,
+from backend.app.services.proof_bundle_diff_acknowledgment import (
+    DiffAcknowledgmentValidationError,
+    build_diff_acknowledgments_payload,
+    create_diff_acknowledgment,
+)
+from backend.app.services.proof_bundle_diff_alert_trends import (
+    build_proof_bundle_diff_alert_trend_payload,
 )
 from backend.app.services.mrms_proof_history import (
     build_proof_history_payload,
@@ -293,3 +306,72 @@ def validation_proof_bundle_diff_alert_history(
     bounded = max(1, min(limit, 25))
     payload = build_proof_bundle_diff_alert_history_payload(storage, limit=bounded)
     return ProofBundleDiffAlertHistoryResponse(**payload)
+
+
+@router.get(
+    "/proof-bundle-diff-alert-trend",
+    response_model=ProofBundleDiffAlertTrendResponse,
+)
+def validation_proof_bundle_diff_alert_trend(
+    window: int = 10,
+) -> ProofBundleDiffAlertTrendResponse:
+    """Proof bundle diff alert trend summary (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    bounded = max(1, min(window, 25))
+    payload = build_proof_bundle_diff_alert_trend_payload(storage, window=bounded)
+    return ProofBundleDiffAlertTrendResponse(**payload)
+
+
+@router.get(
+    "/proof-bundle-diff-acknowledgments",
+    response_model=ProofBundleDiffAcknowledgmentsResponse,
+)
+def validation_proof_bundle_diff_acknowledgments(
+    limit: int = 25,
+) -> ProofBundleDiffAcknowledgmentsResponse:
+    """Bounded local diff alert acknowledgments (read-only; does not clear alerts)."""
+    storage = LocalStorage(settings.local_storage_root)
+    bounded = max(1, min(limit, 50))
+    payload = build_diff_acknowledgments_payload(storage, limit=bounded)
+    return ProofBundleDiffAcknowledgmentsResponse(**payload)
+
+
+@router.post(
+    "/proof-bundle-diff-acknowledgments",
+    response_model=ProofBundleDiffAcknowledgmentCreateResponse,
+)
+def validation_proof_bundle_diff_acknowledgments_create(
+    body: ProofBundleDiffAcknowledgmentCreateRequest,
+) -> ProofBundleDiffAcknowledgmentCreateResponse:
+    """Dev/local only — record diff alert acknowledgment; does NOT clear alerts or verify MRMS."""
+    storage = LocalStorage(settings.local_storage_root)
+    try:
+        record = create_diff_acknowledgment(
+            storage,
+            operator_name=body.operator_name,
+            operator_initials=body.operator_initials,
+            note=body.note,
+            related_diff_status=body.related_diff_status,
+            related_bundle_id=body.related_bundle_id,
+            related_baseline_bundle_id=body.related_baseline_bundle_id,
+            acknowledged_attention=body.acknowledged_attention,
+        )
+    except DiffAcknowledgmentValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    alert = load_validation_alert(storage)
+    diff_status = (alert or {}).get("proof_bundle_diff_status")
+    diff_alert_still_active = bool(
+        proof_bundle_diff_requires_attention(diff_status)
+        or (alert or {}).get("proof_bundle_diff_attention")
+    )
+
+    return ProofBundleDiffAcknowledgmentCreateResponse(
+        verified_mrms=False,
+        local_acknowledgment_only=True,
+        does_not_clear_alerts=True,
+        does_not_enable_production=True,
+        production_enabled=settings.enable_production_radar_tiles,
+        diff_alert_still_active=diff_alert_still_active,
+        acknowledgment=record,
+    )

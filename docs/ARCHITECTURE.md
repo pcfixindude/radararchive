@@ -441,6 +441,13 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - `GET /api/validation/proof-bundle-diff-alert-history`; `make proof-bundle-diff-alert-history`
 - Duplicate exact diff results skipped; does **not** verify MRMS or clear alerts silently
 
+### Diff alert trend + acknowledgment (Phase 35)
+- `proof_bundle_diff_alert_trends.py` — trend summary (worsening/improving/mixed/stable/no_data)
+- `proof_bundle_diff_acknowledgment.py` — local ack notes (50 max); does **not** clear alerts
+- `GET /api/validation/proof-bundle-diff-alert-trend`
+- `GET/POST /api/validation/proof-bundle-diff-acknowledgments`
+- Summary includes `proof_bundle_diff_alert_trend` and `proof_bundle_diff_acknowledgment`
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4
