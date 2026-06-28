@@ -618,6 +618,39 @@ export type DigestRegenerationHintCompact = {
   prototype: boolean;
 };
 
+export type MrmsReviewSessionSummaryCompact = {
+  available: boolean;
+  session_count: number;
+  latest_created_at?: string | null;
+  latest_operator?: string | null;
+  latest_escalation_level?: string | null;
+  open_attention_count: number;
+  verified_mrms: boolean;
+  local_review_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  no_external_notifications?: boolean;
+  prototype: boolean;
+};
+
+export type MrmsReviewSessionCreateRequest = {
+  operator_name?: string;
+  operator_initials?: string;
+  session_notes?: string;
+  checklist_items_reviewed?: string[];
+  accepted_limitations?: boolean;
+  accepted_limitations_text?: string;
+};
+
+export type MrmsReviewSessionCreateResponse = {
+  verified_mrms: boolean;
+  local_review_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  production_enabled: boolean;
+  review_session: Record<string, unknown>;
+};
+
 export type ProofBundleDiffAcknowledgmentCreateRequest = {
   operator_name?: string;
   operator_initials?: string;
@@ -905,6 +938,7 @@ export type ValidationSummary = {
   proof_bundle_diff_escalation_digest_history?: ProofBundleDiffEscalationDigestHistoryCompact | null;
   proof_bundle_diff_escalation_digest_diff?: ProofBundleDiffEscalationDigestDiffCompact | null;
   digest_regeneration_hint?: DigestRegenerationHintCompact | null;
+  mrms_review_session?: MrmsReviewSessionSummaryCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;
@@ -1035,6 +1069,34 @@ export async function submitDiffAcknowledgment(
     return { ok: true, data };
   } catch {
     return { ok: false, error: 'Acknowledgment request failed' };
+  }
+}
+
+export async function submitReviewSession(
+  payload: MrmsReviewSessionCreateRequest,
+): Promise<{ ok: true; data: MrmsReviewSessionCreateResponse } | { ok: false; error: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/api/validation/review-sessions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      let error = `Review session failed (${response.status})`;
+      try {
+        const body = (await response.json()) as { detail?: string };
+        if (body.detail) {
+          error = body.detail;
+        }
+      } catch {
+        // keep default error
+      }
+      return { ok: false, error };
+    }
+    const data = (await response.json()) as MrmsReviewSessionCreateResponse;
+    return { ok: true, data };
+  } catch {
+    return { ok: false, error: 'Review session request failed' };
   }
 }
 

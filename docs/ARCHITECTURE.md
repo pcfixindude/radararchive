@@ -484,6 +484,12 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - `GET /api/validation/proof-bundle-diff-escalation-digest-history`, `GET .../digest-diff`
 - Summary: `proof_bundle_diff_escalation_digest_history`, `proof_bundle_diff_escalation_digest_diff`, `digest_regeneration_hint`
 
+### Local MRMS proof review sessions (Phase 41)
+- `mrms_review_session.py` — bounded session records (max 50) linking escalation/digest/handoff/diff/bundle/proof evidence
+- `GET/POST /api/validation/review-sessions` (POST does not clear alerts or verify MRMS)
+- Summary `mrms_review_session` compact
+- Gitignored: `data/dev/mrms_review_sessions.json`
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

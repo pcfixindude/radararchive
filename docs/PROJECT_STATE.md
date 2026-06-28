@@ -1,15 +1,14 @@
 # Project State
 
-Current phase: Phase 40 complete
+Current phase: Phase 41 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
 - MRMS discovery → download → decode prototype pipeline
-- **Digest export history** (bounded, last 25) and **digest diff metadata**
-- **Digest regeneration hints** in Dev Validation summary
+- **Local MRMS proof review sessions** linking escalation, digest, handoff, diff, and bundle evidence
+- **Digest export history** and **digest diff metadata** with regeneration hints
 - **Scheduled proof bundle digest** (`make scheduled-proof-bundle-digest`)
-- **Proof bundle diff escalation metrics** and local Markdown digest export
 - **Default tile serving: placeholder**
 - Not verified real MRMS — warping prototype only
 
@@ -21,12 +20,11 @@ ENABLE_PRODUCTION_RADAR_TILES=false
 STALE_RUNNING_JOB_SECONDS=3600
 ```
 
-## Operator commands (Phase 40)
+## Operator commands (Phase 41)
 
 ```bash
-make proof-bundle-diff-escalation-digest-history
-make proof-bundle-diff-escalation-digest-diff
-make proof-bundle-diff-escalation-digest
+make mrms-review-session ARGS="--operator OP --notes 'local review' --accepted-limitations"
+make mrms-review-sessions
 make scheduled-proof-bundle-digest
 make validation-alerts
 ```
@@ -35,10 +33,9 @@ make validation-alerts
 
 ```bash
 curl http://127.0.0.1:8000/api/validation/summary
-curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-digest-history
-curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-digest-diff
+curl http://127.0.0.1:8000/api/validation/review-sessions
 ```
 
 ## Verified MRMS
 
-`verified_mrms` is **false** everywhere. Digest history, diff metadata, and regeneration hints are local review aids only — no external notifications.
+`verified_mrms` is **false** everywhere. Review sessions are local operator evidence only — no external notifications.

@@ -276,6 +276,10 @@ Summary additions (Phase 40): `proof_bundle_diff_escalation_digest_history`, `pr
 
 New read-only endpoints (Phase 40): `GET /api/validation/proof-bundle-diff-escalation-digest-history`, `GET /api/validation/proof-bundle-diff-escalation-digest-diff`.
 
+Summary additions (Phase 41): `mrms_review_session` compact (`latest_created_at`, `latest_operator`, `latest_escalation_level`, `open_attention_count`, safety flags).
+
+Endpoints (Phase 41): `GET /api/validation/review-sessions`, `POST /api/validation/review-sessions` (local dev only; requires operator, notes or checklist, accepted limitations).
+
 Scheduled validation report additions (Phase 32): `bundle_requested`, `diff_bundle_requested`, `mrms_proof_bundle`, `mrms_proof_bundle_diff`; steps `proof_report`, `proof_regression`, `proof_bundle_export`, `proof_bundle_diff`.
 
 `GET /api/validation/proof-bundle-diff` — latest proof bundle diff report (`?refresh=true` rebuilds). `verified_mrms: false`, `local_diff_only: true`.

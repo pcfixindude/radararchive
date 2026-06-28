@@ -61,6 +61,10 @@ from backend.app.services.mrms_proof_bundle_diff import (
 from backend.app.services.mrms_proof_regression import compact_proof_regression, load_proof_regression_report
 from backend.app.services.mrms_proof_report import compact_mrms_proof_report, load_mrms_proof_report
 from backend.app.services.mrms_signoff import compact_signoff_summary, load_signoffs
+from backend.app.services.mrms_review_session import (
+    compact_latest_review_session_summary,
+    build_review_sessions_payload,
+)
 from backend.app.services.render_queue import get_queue_summary
 from backend.app.services.storage import LocalStorage
 from backend.app.services.validation_alerts import (
@@ -156,6 +160,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "proof_bundle_diff_escalation_digest_history": compact_digest_history_summary(storage),
         "proof_bundle_diff_escalation_digest_diff": compact_digest_diff_summary(storage),
         "digest_regeneration_hint": build_digest_regeneration_hint(storage),
+        "mrms_review_session": compact_latest_review_session_summary(storage),
         "runbook_references": RUNBOOK_LINK_METADATA,
         "catalog": catalog,
     }
@@ -196,6 +201,7 @@ def build_validation_latest(storage: LocalStorage) -> dict[str, Any]:
         ),
         "proof_bundle_diff_escalation_digest_diff": load_latest_digest_diff_metadata(storage),
         "digest_regeneration_hint": build_digest_regeneration_hint(storage),
+        "mrms_review_sessions": build_review_sessions_payload(storage, limit=10).get("entries", []),
     }
 
 

@@ -571,6 +571,75 @@ class MrmsSignoffCreateResponse(BaseModel):
     alert: Optional[ValidationAlertCompact] = None
 
 
+class MrmsReviewSessionEntryCompact(BaseModel):
+    session_id: Optional[str] = None
+    created_at: Optional[str] = None
+    operator: Optional[str] = None
+    session_notes: Optional[str] = None
+    latest_escalation_level: Optional[str] = None
+    latest_escalation_snapshot_at: Optional[str] = None
+    latest_digest_path: Optional[str] = None
+    latest_operator_handoff_path: Optional[str] = None
+    latest_proof_bundle_diff_status: Optional[str] = None
+    latest_proof_report_status: Optional[str] = None
+    open_attention_count: int = 0
+    checklist_items_reviewed: list[str] = Field(default_factory=list)
+    checklist_items_not_reviewed: list[str] = Field(default_factory=list)
+    verified_mrms: bool = False
+    local_review_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class MrmsReviewSessionSummaryCompact(BaseModel):
+    available: bool = False
+    session_count: int = 0
+    latest_created_at: Optional[str] = None
+    latest_operator: Optional[str] = None
+    latest_escalation_level: Optional[str] = None
+    open_attention_count: int = 0
+    verified_mrms: bool = False
+    local_review_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    prototype: bool = True
+
+
+class MrmsReviewSessionsResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_review_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    count: int = 0
+    max_entries: int = 50
+    latest: Optional[MrmsReviewSessionEntryCompact] = None
+    entries: list[MrmsReviewSessionEntryCompact] = Field(default_factory=list)
+    compact: MrmsReviewSessionSummaryCompact
+
+
+class MrmsReviewSessionCreateRequest(BaseModel):
+    operator_name: Optional[str] = None
+    operator_initials: Optional[str] = None
+    session_notes: Optional[str] = None
+    checklist_items_reviewed: list[str] = Field(default_factory=list)
+    accepted_limitations: bool = False
+    accepted_limitations_text: Optional[str] = None
+
+
+class MrmsReviewSessionCreateResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_review_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    production_enabled: bool = False
+    review_session: dict[str, Any]
+
+
 class MrmsProofHistoryEntryCompact(BaseModel):
     generated_at: Optional[str] = None
     overall_status: str = "not_started"
@@ -978,6 +1047,7 @@ class ValidationSummaryResponse(BaseModel):
         ProofBundleDiffEscalationDigestDiffCompact
     ] = None
     digest_regeneration_hint: Optional[DigestRegenerationHintCompact] = None
+    mrms_review_session: Optional[MrmsReviewSessionSummaryCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse

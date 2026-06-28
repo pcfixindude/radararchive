@@ -224,7 +224,8 @@ def test_summary_includes_digest_history_diff_hint(db_session, storage, monkeypa
     assert "digest_regeneration_recommended" in hint
 
 
-def test_digest_history_endpoint_empty(client):
+def test_digest_history_endpoint_empty(client, storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
     response = client.get("/api/validation/proof-bundle-diff-escalation-digest-history")
     assert response.status_code == 200
     body = response.json()
@@ -232,7 +233,8 @@ def test_digest_history_endpoint_empty(client):
     assert body["count"] == 0
 
 
-def test_digest_diff_endpoint_empty(client):
+def test_digest_diff_endpoint_empty(client, storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
     response = client.get("/api/validation/proof-bundle-diff-escalation-digest-diff")
     assert response.status_code == 200
     body = response.json()

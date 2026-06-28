@@ -1,27 +1,25 @@
 # Next Steps
 
-## Phase 41 - Operator Digest Review Sessions (Draft)
+## Phase 42 - Review Session Comparison + Runbook Links (Draft)
 
-Goal: Lightweight local “review session” records tying digest export, checklist acknowledgment, and escalation snapshot — still no external notifications, no `verified_mrms=true`.
+Goal: Compare review sessions across time and surface runbook deep-links from open attention items — still local-only.
 
 Suggested work:
-1. Optional local review session JSON (gitignored) linking digest path + operator note
-2. Dev panel link from regeneration hint to runbook section
-3. Bounded review session history (last 10)
-4. Compare review sessions across digest exports
+1. Review session diff between consecutive sessions
+2. Dev panel link open attention items to runbook anchors
+3. Optional export review session summary Markdown (gitignored)
+4. Tie review sessions to scheduled digest regeneration hints
 
 Do not start yet:
 - Stripe, real auth, HRRR, WPC, native Android
 - Redis/Celery, cloud deployment, email/Slack/webhooks
 - Setting `verified_mrms=true` or production promotion
 
-## Phase 40 verification commands
+## Phase 41 verification commands
 
 ```bash
 make test
-make proof-bundle-diff-escalation-digest-history
-make proof-bundle-diff-escalation-digest-diff
-make proof-bundle-diff-escalation-digest
-make scheduled-proof-bundle-digest
+make mrms-review-session ARGS="--operator TEST --notes 'local test review only' --accepted-limitations"
+make mrms-review-sessions
 cd frontend && npm run build
 ```

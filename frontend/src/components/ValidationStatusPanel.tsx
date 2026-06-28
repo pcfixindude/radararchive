@@ -3,6 +3,7 @@ import {
   fetchProofReviewData,
   fetchValidationLatest,
   submitSignoff,
+  submitReviewSession,
   submitDiffAcknowledgment,
   type MrmsProofHistory,
   type MrmsProofRegressionHistory,
@@ -56,6 +57,13 @@ export default function ValidationStatusPanel({
   const [ackMessage, setAckMessage] = useState<string | null>(null);
   const [ackError, setAckError] = useState<string | null>(null);
   const [signoffError, setSignoffError] = useState<string | null>(null);
+  const [reviewSessionOperator, setReviewSessionOperator] = useState('');
+  const [reviewSessionNotes, setReviewSessionNotes] = useState('');
+  const [reviewSessionAcceptedLimitations, setReviewSessionAcceptedLimitations] = useState(false);
+  const [reviewSessionSubmitting, setReviewSessionSubmitting] = useState(false);
+  const [reviewSessionMessage, setReviewSessionMessage] = useState<string | null>(null);
+  const [reviewSessionError, setReviewSessionError] = useState<string | null>(null);
+  const [showReviewSessionForm, setShowReviewSessionForm] = useState(false);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -146,6 +154,35 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleReviewSessionSubmit(event: FormEvent) {
+    event.preventDefault();
+    setReviewSessionMessage(null);
+    setReviewSessionError(null);
+    setReviewSessionSubmitting(true);
+    const result = await submitReviewSession({
+      operator_initials: reviewSessionOperator.trim() || undefined,
+      session_notes: reviewSessionNotes.trim() || undefined,
+      accepted_limitations: reviewSessionAcceptedLimitations,
+      accepted_limitations_text: reviewSessionAcceptedLimitations
+        ? 'Accepted known prototype limitations (local review session only).'
+        : undefined,
+    });
+    setReviewSessionSubmitting(false);
+    if (!result.ok) {
+      setReviewSessionError(result.error);
+      return;
+    }
+    setReviewSessionMessage(
+      'Local review session recorded — does not verify MRMS, clear alerts, or enable production rendering.',
+    );
+    setReviewSessionOperator('');
+    setReviewSessionNotes('');
+    setReviewSessionAcceptedLimitations(false);
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   if (!summary) {
     return (
       <section className="panel validation-panel">
@@ -194,6 +231,7 @@ export default function ValidationStatusPanel({
   const digestHistory = summary.proof_bundle_diff_escalation_digest_history ?? null;
   const digestDiff = summary.proof_bundle_diff_escalation_digest_diff ?? null;
   const digestRegenerationHint = summary.digest_regeneration_hint ?? null;
+  const reviewSessionSummary = summary.mrms_review_session ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
   const queue = summary.render_queue;
@@ -761,6 +799,72 @@ export default function ValidationStatusPanel({
               verified_mrms: {yesNo(summary.verified_mrms)}
             </p>
           </>
+        ) : null}
+      </section>
+      <section className="validation-review-session">
+        <div className="validation-header-actions">
+          <p className="validation-meta">MRMS proof review session (local review only — does not verify MRMS)</p>
+          <button
+            type="button"
+            className="validation-refresh"
+            onClick={() => setShowReviewSessionForm((value) => !value)}
+          >
+            {showReviewSessionForm ? 'Hide session form' : 'Show session form'}
+          </button>
+        </div>
+        {reviewSessionSummary?.available ? (
+          <p className="validation-meta">
+            Latest session {formatTimestamp(reviewSessionSummary.latest_created_at)} —{' '}
+            {reviewSessionSummary.latest_operator ?? '—'} — escalation{' '}
+            {reviewSessionSummary.latest_escalation_level ?? '—'} — open attention{' '}
+            {reviewSessionSummary.open_attention_count ?? 0}
+          </p>
+        ) : (
+          <p className="validation-meta">
+            No review sessions — run make mrms-review-session (local only).
+          </p>
+        )}
+        <p className="validation-meta">
+          Local review only — verified_mrms: {yesNo(summary.verified_mrms)} — does not clear alerts
+          or enable production rendering
+        </p>
+        {showReviewSessionForm ? (
+          <form className="validation-signoff-form" onSubmit={(event) => void handleReviewSessionSubmit(event)}>
+            <p className="validation-warn">
+              Review session form — local evidence link only; does not verify MRMS; does not clear
+              alerts; does not enable production rendering.
+            </p>
+            <label className="validation-meta">
+              Operator initials or name
+              <input
+                type="text"
+                value={reviewSessionOperator}
+                onChange={(event) => setReviewSessionOperator(event.target.value)}
+                autoComplete="name"
+              />
+            </label>
+            <label className="validation-meta">
+              Session notes
+              <textarea
+                value={reviewSessionNotes}
+                onChange={(event) => setReviewSessionNotes(event.target.value)}
+                rows={2}
+              />
+            </label>
+            <label className="validation-meta">
+              <input
+                type="checkbox"
+                checked={reviewSessionAcceptedLimitations}
+                onChange={(event) => setReviewSessionAcceptedLimitations(event.target.checked)}
+              />{' '}
+              I accept this review session does not verify MRMS (required)
+            </label>
+            <button type="submit" className="validation-refresh" disabled={reviewSessionSubmitting}>
+              {reviewSessionSubmitting ? 'Submitting…' : 'Submit local review session'}
+            </button>
+            {reviewSessionMessage ? <p className="validation-meta">{reviewSessionMessage}</p> : null}
+            {reviewSessionError ? <p className="validation-warn">{reviewSessionError}</p> : null}
+          </form>
         ) : null}
       </section>
       <section className="validation-diff-alert-trend">

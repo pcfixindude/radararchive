@@ -406,6 +406,34 @@ curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-digest-di
 
 **Warnings:** Digest history/diff/hints do **not** verify MRMS, clear alerts, or enable production rendering.
 
+## MRMS proof review sessions (Phase 41)
+
+Local review session records link escalation snapshot, digest export, operator handoff, acknowledgment, proof bundle, diff, and proof report metadata — **local operator evidence only**.
+
+```bash
+make mrms-review-session ARGS="--operator TEST --notes 'reviewed local digest only' --accepted-limitations"
+make mrms-review-session ARGS="--json --operator TEST --notes 'review notes' --accepted-limitations"
+make mrms-review-sessions
+make mrms-review-sessions ARGS="--json"
+curl http://127.0.0.1:8000/api/validation/review-sessions
+curl -X POST http://127.0.0.1:8000/api/validation/review-sessions \
+  -H 'Content-Type: application/json' \
+  -d '{"operator_initials":"API","session_notes":"local review","accepted_limitations":true}'
+```
+
+**What a review session means:**
+- A timestamped local record of what evidence the operator reviewed (digest path, handoff path, bundle/diff status, escalation level)
+- Captures open attention items still needing follow-up at review time
+- Optional checklist items marked reviewed vs not reviewed
+- Does **not** certify verified MRMS or replace sign-off
+
+**Dev Validation UI:**
+- Summary shows latest session operator, escalation level, open attention count
+- Optional form: operator, notes, accepted limitations checkbox
+- Refresh reloads summary after submit
+
+**Warnings:** Review sessions do **not** verify MRMS, clear validation alerts, enable production rendering, or send external notifications.
+
 ## Proof bundle diff alert escalation (Phase 36)
 
 Escalation hints combine trend summary, diff alert history, and acknowledgment state — **local operator guidance only**. Escalation does **not** verify MRMS, clear alerts, enable production rendering, or mutate catalog gates.

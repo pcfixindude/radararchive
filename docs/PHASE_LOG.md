@@ -1576,3 +1576,33 @@ cd frontend && npm run build
 - History/diff derived from local metadata only — not verified MRMS
 - Regeneration hints are suggestions only — no auto-export or notifications
 - `verified_mrms` always false
+
+## Phase 41 - Local MRMS Proof Review Sessions
+
+Review session records linking escalation, digest, handoff, acknowledgment, bundle, diff, and proof report evidence.
+
+### Backend
+- `mrms_review_session.py` — create/list, validation, open attention items, checklist tracking
+- `GET/POST /api/validation/review-sessions`
+- Summary `mrms_review_session` compact
+- Gitignored: `data/dev/mrms_review_sessions.json` (max 50)
+
+### Scripts / Makefile
+- `make mrms-review-session`, `make mrms-review-sessions`
+
+### Frontend
+- Dev Validation review session status + optional submit form
+
+### Run commands
+
+```bash
+make test
+make mrms-review-session ARGS="--operator TEST --notes 'local test' --accepted-limitations"
+make mrms-review-sessions
+cd frontend && npm run build
+```
+
+### Known limitations
+- Review sessions do not clear alerts or verify MRMS
+- Evidence links are point-in-time snapshots at session creation
+- `verified_mrms` always false

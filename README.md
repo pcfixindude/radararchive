@@ -141,6 +141,8 @@ make mrms-proof-history
 make mrms-proof-bundle
 make mrms-proof-bundle-diff
 make mrms-operator-handoff
+make mrms-review-session ARGS="--operator OP --notes 'local review only' --accepted-limitations"
+make mrms-review-sessions
 make mrms-signoff
 make real-mrms-smoke-test
 make scheduled-validation ARGS="--proof"
@@ -225,6 +227,8 @@ Limitations:
 - `make mrms-proof-bundle` exports local proof evidence folder + ZIP (does not verify MRMS)
 - `make mrms-proof-bundle-diff` compares latest vs baseline bundle evidence (local review only)
 - `make mrms-operator-handoff` generates local operator handoff Markdown checklist
+- `make mrms-review-session` records local MRMS proof review session linking digest/escalation/diff evidence (does not verify MRMS)
+- `make mrms-review-sessions` lists bounded review session history (read-only)
 - `make mrms-signoff` records local operator sign-off (does not set verified_mrms)
 - `POST /api/validation/signoffs` — dev-only sign-off API (same validation as CLI; does not verify MRMS)
 - Dev Validation **Show proof review** includes sign-off form + scheduled proof-step compact status

@@ -27,6 +27,9 @@ from backend.app.schemas.validation import (
     MrmsSignoffCreateRequest,
     MrmsSignoffCreateResponse,
     MrmsSignoffsResponse,
+    MrmsReviewSessionCreateRequest,
+    MrmsReviewSessionCreateResponse,
+    MrmsReviewSessionsResponse,
     QueueBenchmarkHistoryResponse,
     ScheduledValidationHistoryResponse,
     ValidationAlertsResponse,
@@ -79,6 +82,11 @@ from backend.app.services.mrms_proof_history import (
 )
 from backend.app.services.mrms_proof_regression import load_proof_regression_report, run_proof_regression_check
 from backend.app.services.mrms_signoff import SignoffValidationError, create_signoff_and_refresh_alert
+from backend.app.services.mrms_review_session import (
+    ReviewSessionValidationError,
+    build_review_sessions_payload,
+    create_review_session_record,
+)
 from backend.app.services.mrms_proof_report import load_mrms_proof_report
 from backend.app.services.validation_alerts import (
     compact_validation_alert,
@@ -276,6 +284,44 @@ def validation_signoffs_create(body: MrmsSignoffCreateRequest) -> MrmsSignoffCre
         proof_regression_still_active=bool(record.get("proof_regression_still_active_after_signoff")),
         signoff=record,
         alert=compact_validation_alert(alert),
+    )
+
+
+@router.get("/review-sessions", response_model=MrmsReviewSessionsResponse)
+def validation_review_sessions(limit: int = 50) -> MrmsReviewSessionsResponse:
+    """Bounded local MRMS proof review sessions (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    bounded = max(1, min(limit, 50))
+    payload = build_review_sessions_payload(storage, limit=bounded)
+    return MrmsReviewSessionsResponse(**payload)
+
+
+@router.post("/review-sessions", response_model=MrmsReviewSessionCreateResponse)
+def validation_review_sessions_create(
+    body: MrmsReviewSessionCreateRequest,
+) -> MrmsReviewSessionCreateResponse:
+    """Dev/local only — record MRMS proof review session; does NOT verify MRMS or clear alerts."""
+    storage = LocalStorage(settings.local_storage_root)
+    try:
+        record = create_review_session_record(
+            storage,
+            operator_name=body.operator_name,
+            operator_initials=body.operator_initials,
+            session_notes=body.session_notes,
+            checklist_items_reviewed=body.checklist_items_reviewed,
+            accepted_limitations=body.accepted_limitations,
+            accepted_limitations_text=body.accepted_limitations_text,
+        )
+    except ReviewSessionValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    return MrmsReviewSessionCreateResponse(
+        verified_mrms=False,
+        local_review_only=True,
+        does_not_clear_alerts=True,
+        does_not_enable_production=True,
+        production_enabled=settings.enable_production_radar_tiles,
+        review_session=record,
     )
 
 
