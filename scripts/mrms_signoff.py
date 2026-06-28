@@ -7,7 +7,7 @@ import json
 import sys
 
 from backend.app.config import settings
-from backend.app.services.mrms_signoff import SignoffValidationError, create_signoff_record
+from backend.app.services.mrms_signoff import SignoffValidationError, create_signoff_and_refresh_alert
 from backend.app.services.storage import LocalStorage
 
 
@@ -32,7 +32,7 @@ def main() -> None:
 
     storage = LocalStorage(settings.local_storage_root)
     try:
-        record = create_signoff_record(
+        record, _alert = create_signoff_and_refresh_alert(
             storage,
             operator_name=args.operator_name,
             operator_initials=args.initials,
@@ -56,6 +56,7 @@ def main() -> None:
     print(f"  proof_report_timestamp: {record.get('proof_report_timestamp')}")
     print(f"  verified_mrms: {record.get('verified_mrms')}")
     print(f"  does_not_set_verified_mrms: {record.get('does_not_set_verified_mrms')}")
+    print(f"  does_not_enable_production: {record.get('does_not_enable_production')}")
     print(f"  production_enabled: {record.get('production_enabled')}")
 
 

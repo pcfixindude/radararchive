@@ -124,7 +124,11 @@ make mrms-signoff ARGS="--initials OP --notes 'reviewed' --accepted-limitations 
 - Validation alerts include `proof_regression` cause when regression detected
 - `make scheduled-validation ARGS="--proof"` runs proof + regression after validation
 
-Sign-off records `verified_mrms: false` and `does_not_set_verified_mrms: true` always.
+Sign-off records `verified_mrms: false`, `does_not_set_verified_mrms: true`, and `does_not_enable_production: true` always.
+
+## Dev sign-off API (Phase 29)
+
+Optional dev/local `POST /api/validation/signoffs` shares the same validation as `make mrms-signoff`. Response always includes `verified_mrms: false` and `local_signoff_only: true`. Sign-off refreshes the validation alert but does **not** clear proof regression automatically.
 
 ## Proof review history (Phase 28)
 

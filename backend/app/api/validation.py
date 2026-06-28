@@ -1,6 +1,6 @@
 """Dev/prototype validation dashboard API — not verified MRMS production."""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from backend.app.config import settings
@@ -10,6 +10,8 @@ from backend.app.schemas.validation import (
     MrmsProofRegressionHistoryResponse,
     MrmsProofRegressionResponse,
     MrmsProofResponse,
+    MrmsSignoffCreateRequest,
+    MrmsSignoffCreateResponse,
     MrmsSignoffsResponse,
     QueueBenchmarkHistoryResponse,
     ScheduledValidationHistoryResponse,
@@ -26,8 +28,13 @@ from backend.app.services.mrms_proof_history import (
     build_signoffs_list_payload,
 )
 from backend.app.services.mrms_proof_regression import load_proof_regression_report, run_proof_regression_check
+from backend.app.services.mrms_signoff import SignoffValidationError, create_signoff_and_refresh_alert
 from backend.app.services.mrms_proof_report import load_mrms_proof_report
-from backend.app.services.validation_alerts import load_validation_alert, refresh_validation_alert
+from backend.app.services.validation_alerts import (
+    compact_validation_alert,
+    load_validation_alert,
+    refresh_validation_alert,
+)
 from backend.app.services.validation_dashboard import build_validation_latest, build_validation_summary
 from backend.app.services.validation_failure_log import (
     MAX_FAILURE_ENTRIES,
@@ -192,3 +199,31 @@ def validation_signoffs(limit: int = 25) -> MrmsSignoffsResponse:
     storage = LocalStorage(settings.local_storage_root)
     payload = build_signoffs_list_payload(storage, limit=limit)
     return MrmsSignoffsResponse(**payload)
+
+
+@router.post("/signoffs", response_model=MrmsSignoffCreateResponse)
+def validation_signoffs_create(body: MrmsSignoffCreateRequest) -> MrmsSignoffCreateResponse:
+    """Dev/local only — record operator proof review; does NOT verify MRMS or enable production."""
+    storage = LocalStorage(settings.local_storage_root)
+    try:
+        record, alert = create_signoff_and_refresh_alert(
+            storage,
+            operator_name=body.operator_name,
+            operator_initials=body.operator_initials,
+            operator_notes=body.operator_notes,
+            accepted_limitations=body.accepted_limitations,
+            proof_report_timestamp=body.proof_report_timestamp,
+            frame_count_reviewed=body.frame_count_reviewed,
+        )
+    except SignoffValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    return MrmsSignoffCreateResponse(
+        verified_mrms=False,
+        local_signoff_only=True,
+        does_not_enable_production=True,
+        production_enabled=settings.enable_production_radar_tiles,
+        proof_regression_still_active=bool(record.get("proof_regression_still_active_after_signoff")),
+        signoff=record,
+        alert=compact_validation_alert(alert),
+    )

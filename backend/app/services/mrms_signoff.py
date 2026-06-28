@@ -105,11 +105,19 @@ def create_signoff_record(
         "accepted_limitations": (accepted_limitations or "").strip() or None,
         "verified_mrms": False,
         "does_not_set_verified_mrms": True,
+        "does_not_enable_production": True,
         "production_enabled": settings.enable_production_radar_tiles,
         "no_automatic_promotion": True,
         "local_signoff_only": True,
         "prototype": True,
     }
+
+    from backend.app.services.mrms_proof_regression import load_proof_regression_report
+
+    regression = load_proof_regression_report(storage)
+    regression_active = bool(regression and regression.get("regression_detected"))
+    record["proof_regression_reviewed"] = regression_active
+    record["proof_regression_still_active_after_signoff"] = regression_active
 
     entries = load_signoffs(storage)
     entries.insert(0, record)
@@ -117,20 +125,69 @@ def create_signoff_record(
     return record
 
 
+def create_signoff_and_refresh_alert(
+    storage: LocalStorage,
+    *,
+    operator_name: Optional[str] = None,
+    operator_initials: Optional[str] = None,
+    operator_notes: Optional[str] = None,
+    accepted_limitations: Optional[str] = None,
+    proof_report_timestamp: Optional[str] = None,
+    frame_count_reviewed: Optional[int] = None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Create sign-off and refresh alert marker (regression stays active if present)."""
+    from backend.app.services.validation_alerts import refresh_validation_alert, save_validation_alert
+
+    record = create_signoff_record(
+        storage,
+        operator_name=operator_name,
+        operator_initials=operator_initials,
+        operator_notes=operator_notes,
+        accepted_limitations=accepted_limitations,
+        proof_report_timestamp=proof_report_timestamp,
+        frame_count_reviewed=frame_count_reviewed,
+    )
+
+    alert = refresh_validation_alert(storage)
+    regression_still_active = bool(record.get("proof_regression_still_active_after_signoff"))
+    alert["latest_signoff_at"] = record.get("created_at")
+    alert["latest_signoff_operator"] = record.get("operator_name") or record.get("operator_initials")
+    alert["proof_regression_reviewed"] = bool(record.get("proof_regression_reviewed"))
+    alert["proof_regression_still_active"] = regression_still_active
+    if regression_still_active:
+        alert["suggested_next_action"] = (
+            "Operator sign-off recorded (local only — not verified MRMS). "
+            "Proof regression remains active until evidence improves; see make mrms-proof-regression."
+        )
+    save_validation_alert(storage, alert)
+    return record, alert
+
+
+def _proof_regression_still_active(storage: LocalStorage) -> bool:
+    from backend.app.services.mrms_proof_regression import load_proof_regression_report
+
+    regression = load_proof_regression_report(storage)
+    return bool(regression and regression.get("regression_detected"))
+
+
 def compact_signoff_summary(storage: LocalStorage) -> dict[str, Any]:
     from backend.app.services.mrms_proof_history import compact_signoff_item
 
     entries = load_signoffs(storage)
     latest = entries[0] if entries else None
+    regression_still_active = _proof_regression_still_active(storage)
     return {
         "signoff_count": len(entries),
         "latest_signoff_at": latest.get("created_at") if latest else None,
         "latest_operator": (
             latest.get("operator_name") or latest.get("operator_initials") if latest else None
         ),
+        "proof_regression_still_active": regression_still_active,
+        "proof_regression_reviewed": bool(latest and latest.get("proof_regression_reviewed")),
         "verified_mrms": False,
         "local_signoff_only": True,
         "does_not_set_verified_mrms": True,
+        "does_not_enable_production": True,
         "prototype": True,
     }
 

@@ -216,9 +216,13 @@ Summary additions (Phase 26): `mrms_proof` compact proof status (`overall_status
 
 Summary additions (Phase 27): `mrms_proof_regression` compact status, `mrms_signoff` summary (`signoff_count`, `latest_signoff_at`).
 
+Summary additions (Phase 29): `scheduled_validation.proof_step` compact (`ran`, `status`, `elapsed_seconds`, `proof_regression_status`); `mrms_signoff` adds `proof_regression_still_active`, `proof_regression_reviewed`; `validation_alert` adds `latest_signoff_at`, `proof_regression_still_active`.
+
 `GET /api/validation/proof-regression` — latest regression report (`?refresh=true` re-runs check). `verified_mrms: false`.
 
 `GET /api/validation/signoffs` — local operator sign-off records (read-only, compact). `verified_mrms: false`.
+
+`POST /api/validation/signoffs` — **dev/local only** — record operator proof review. Required: `operator_name` or `operator_initials`; `operator_notes` or `accepted_limitations`. Optional: `proof_report_timestamp`, `frame_count_reviewed`. Response always includes `verified_mrms: false`, `local_signoff_only: true`, `does_not_enable_production: true`, `production_enabled` (current flag only). Refreshes validation alert marker; does **not** clear proof regression or enable production rendering.
 
 `GET /api/validation/proof/history` — bounded proof report history (last 10) + latest compact. `verified_mrms: false`.
 

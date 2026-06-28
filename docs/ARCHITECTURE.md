@@ -397,6 +397,13 @@ CLI: `make mrms-proof-history` (`--regression`, `--signoffs`, `--json`).
 
 Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 
+### Dev sign-off API + alert linkage (Phase 29)
+- `POST /api/validation/signoffs` — dev/local only; same validation as CLI (`validate_signoff_input`)
+- Refreshes validation alert after sign-off; records `latest_signoff_at` on alert
+- Proof regression **remains active** after sign-off until evidence improves (review-only)
+- Summary: `scheduled_validation.proof_step` compact when `--proof` used
+- Frontend: dev sign-off form in proof review section (local sign-off only wording)
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

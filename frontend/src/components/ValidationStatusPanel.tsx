@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import {
   fetchProofReviewData,
   fetchValidationLatest,
+  submitSignoff,
   type MrmsProofHistory,
   type MrmsProofRegressionHistory,
   type MrmsSignoffsList,
@@ -36,6 +37,13 @@ export default function ValidationStatusPanel({
   const [regressionHistory, setRegressionHistory] = useState<MrmsProofRegressionHistory | null>(null);
   const [signoffsList, setSignoffsList] = useState<MrmsSignoffsList | null>(null);
   const [proofReviewLoading, setProofReviewLoading] = useState(false);
+  const [signoffOperator, setSignoffOperator] = useState('');
+  const [signoffNotes, setSignoffNotes] = useState('');
+  const [signoffLimitations, setSignoffLimitations] = useState('');
+  const [signoffAcceptedLimitations, setSignoffAcceptedLimitations] = useState(false);
+  const [signoffSubmitting, setSignoffSubmitting] = useState(false);
+  const [signoffMessage, setSignoffMessage] = useState<string | null>(null);
+  const [signoffError, setSignoffError] = useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -72,6 +80,35 @@ export default function ValidationStatusPanel({
     setShowDetails(true);
   }
 
+  async function handleSignoffSubmit(event: FormEvent) {
+    event.preventDefault();
+    setSignoffMessage(null);
+    setSignoffError(null);
+    const limitationsText = signoffAcceptedLimitations
+      ? signoffLimitations.trim() || 'Accepted known prototype limitations (local sign-off only).'
+      : signoffLimitations.trim();
+    setSignoffSubmitting(true);
+    const result = await submitSignoff({
+      operator_initials: signoffOperator.trim() || undefined,
+      operator_notes: signoffNotes.trim() || undefined,
+      accepted_limitations: limitationsText || undefined,
+    });
+    setSignoffSubmitting(false);
+    if (!result.ok) {
+      setSignoffError(result.error);
+      return;
+    }
+    setSignoffMessage('Local sign-off recorded — does not verify MRMS or enable production rendering.');
+    setSignoffOperator('');
+    setSignoffNotes('');
+    setSignoffLimitations('');
+    setSignoffAcceptedLimitations(false);
+    await loadProofReview();
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   if (!summary) {
     return (
       <section className="panel validation-panel">
@@ -102,6 +139,7 @@ export default function ValidationStatusPanel({
   const proofCounts = mrmsProof?.criteria_counts;
   const proofRegression = summary.mrms_proof_regression ?? null;
   const signoffSummary = summary.mrms_signoff ?? null;
+  const scheduledProofStep = scheduled?.proof_step ?? null;
   const queue = summary.render_queue;
   const catalog = summary.catalog;
   const history = summary.validation_history ?? [];
@@ -198,6 +236,14 @@ export default function ValidationStatusPanel({
           Local sign-off only ({signoffSummary.signoff_count ?? 0} recorded) — latest{' '}
           {formatTimestamp(signoffSummary.latest_signoff_at)} — does not enable production rendering — not verified
           MRMS
+          {signoffSummary.proof_regression_still_active
+            ? ' — proof regression still active after sign-off'
+            : ''}
+        </p>
+      ) : null}
+      {validationAlert?.proof_regression_still_active ? (
+        <p className="validation-warn">
+          Proof regression remains active after sign-off — evidence must improve before alert clears.
         </p>
       ) : null}
       <div className="validation-header-actions" style={{ marginTop: '0.5rem' }}>
@@ -263,6 +309,45 @@ export default function ValidationStatusPanel({
           ) : (
             <p className="validation-meta">No sign-offs — run make mrms-signoff (local only).</p>
           )}
+          <form className="validation-signoff-form" onSubmit={(event) => void handleSignoffSubmit(event)}>
+            <p className="validation-warn">
+              Dev sign-off form — local sign-off only; does not verify MRMS; does not enable production rendering.
+            </p>
+            <label className="validation-meta">
+              Operator initials or name
+              <input
+                type="text"
+                value={signoffOperator}
+                onChange={(event) => setSignoffOperator(event.target.value)}
+                autoComplete="name"
+              />
+            </label>
+            <label className="validation-meta">
+              Notes
+              <textarea value={signoffNotes} onChange={(event) => setSignoffNotes(event.target.value)} rows={2} />
+            </label>
+            <label className="validation-meta">
+              <input
+                type="checkbox"
+                checked={signoffAcceptedLimitations}
+                onChange={(event) => setSignoffAcceptedLimitations(event.target.checked)}
+              />{' '}
+              I accept known prototype limitations (local review only)
+            </label>
+            <label className="validation-meta">
+              Accepted limitations (optional text)
+              <input
+                type="text"
+                value={signoffLimitations}
+                onChange={(event) => setSignoffLimitations(event.target.value)}
+              />
+            </label>
+            <button type="submit" className="validation-refresh" disabled={signoffSubmitting}>
+              {signoffSubmitting ? 'Submitting…' : 'Submit local sign-off'}
+            </button>
+            {signoffMessage ? <p className="validation-meta">{signoffMessage}</p> : null}
+            {signoffError ? <p className="validation-warn">{signoffError}</p> : null}
+          </form>
         </section>
       ) : null}
       <p className="validation-meta">Placeholder default: {yesNo(summary.placeholder_default)}</p>
@@ -277,6 +362,18 @@ export default function ValidationStatusPanel({
       <p className="validation-meta">
         Queue: queued {queue.queued}, running {queue.running}, succeeded {queue.succeeded}, failed {queue.failed}
       </p>
+      {scheduledProofStep?.proof_requested || scheduledProofStep?.ran ? (
+        <p className="validation-meta">
+          Scheduled proof step: {scheduledProofStep.ran ? scheduledProofStep.status ?? '—' : 'not run'}
+          {scheduledProofStep.elapsed_seconds != null
+            ? ` (${scheduledProofStep.elapsed_seconds.toFixed(2)}s)`
+            : ''}
+          {scheduledProofStep.proof_regression_status
+            ? ` — regression ${scheduledProofStep.proof_regression_status}`
+            : ''}
+          {scheduledProofStep.proof_regression_detected ? ' (regression detected)' : ''}
+        </p>
+      ) : null}
       {scheduled ? (
         <p className="validation-meta">
           Scheduled run ({formatTimestamp(scheduled.ran_at)}):{' '}

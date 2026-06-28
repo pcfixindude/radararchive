@@ -138,6 +138,27 @@ make mrms-proof-history ARGS="--signoffs"
 
 Dev Validation panel: **Show proof review** — proof history, regression history, sign-off list (local only, not verified MRMS).
 
+## Dev sign-off form and API (Phase 29)
+
+Dev-only operator review — **does not verify MRMS** and **does not enable production rendering**.
+
+```bash
+# CLI (refreshes alert marker after sign-off)
+make mrms-signoff ARGS="--initials OP --notes 'reviewed draft proof' --accepted-limitations 'prototype only'"
+
+# API (dev/local only)
+curl -X POST http://127.0.0.1:8000/api/validation/signoffs \
+  -H 'Content-Type: application/json' \
+  -d '{"operator_initials":"OP","operator_notes":"local review only"}'
+```
+
+Dev Validation panel: **Show proof review** → dev sign-off form with honest local-only wording.
+
+After sign-off:
+- Validation alert refreshes with `latest_signoff_at`
+- If proof regression was active, it **remains active** until evidence improves (sign-off records review only)
+- Summary shows `scheduled_validation.proof_step` when scheduled validation ran with `--proof`
+
 ## Check recent failures
 
 ```bash

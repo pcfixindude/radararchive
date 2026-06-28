@@ -229,6 +229,38 @@ def _compact_frame_summaries(validation: Optional[dict[str, Any]]) -> list[dict[
     ]
 
 
+def _compact_scheduled_proof_step(
+    scheduled: Optional[dict[str, Any]],
+) -> Optional[dict[str, Any]]:
+    if scheduled is None:
+        return None
+    steps = scheduled.get("steps") or []
+    proof_step = next((step for step in steps if step.get("name") == "mrms_proof_report"), None)
+    proof_requested = bool(scheduled.get("proof_requested"))
+    if proof_step is None and not proof_requested:
+        return {
+            "ran": False,
+            "proof_requested": False,
+            "status": None,
+            "elapsed_seconds": None,
+            "proof_regression_status": None,
+            "proof_regression_detected": False,
+            "verified_mrms": False,
+            "prototype": True,
+        }
+    regression_after = scheduled.get("mrms_proof_regression") or {}
+    return {
+        "ran": proof_step is not None,
+        "proof_requested": proof_requested or proof_step is not None,
+        "status": (proof_step or {}).get("status"),
+        "elapsed_seconds": (proof_step or {}).get("elapsed_seconds"),
+        "proof_regression_status": regression_after.get("regression_status"),
+        "proof_regression_detected": bool(regression_after.get("regression_detected")),
+        "verified_mrms": False,
+        "prototype": True,
+    }
+
+
 def _compact_scheduled_validation(
     scheduled: Optional[dict[str, Any]],
 ) -> Optional[dict[str, Any]]:
@@ -269,6 +301,7 @@ def _compact_scheduled_validation(
         "queue_jobs_failed": queue.get("jobs_failed", 0),
         "warnings": scheduled.get("warnings", [])[:5],
         "errors": scheduled.get("errors", [])[:5],
+        "proof_step": _compact_scheduled_proof_step(scheduled),
         "verified_mrms": False,
         "prototype": True,
     }

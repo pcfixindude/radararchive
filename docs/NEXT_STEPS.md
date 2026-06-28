@@ -1,21 +1,20 @@
 # Next Steps
 
-## Phase 29 - Optional Dev Sign-Off Form + Alert Linkage (Draft)
+## Phase 30 - Exportable Proof Bundle + Runbook Deep Links (Draft)
 
-Goal: Optional dev-only sign-off POST behind explicit flag, refresh alerts when sign-off recorded after regression, and scheduled validation compact proof step in summary API — still without `verified_mrms=true`.
+Goal: Package proof/regression/sign-off JSON into a single local export artifact for operator handoff, and add runbook deep-link anchors from the dev validation panel — still without `verified_mrms=true`.
 
 Suggested work:
-1. Dev-only `POST /api/validation/signoffs` behind env flag (validated, no promotion)
-2. Alert refresh hook when sign-off follows regression
-3. Summary `scheduled_validation` includes proof step compact when `--proof` used
-4. Proof review panel deep-link to runbook sections
+1. `make mrms-proof-bundle` — zip/tar of latest proof, regression, sign-off, alert JSON (local only)
+2. Dev panel links to runbook sections (proof, regression, sign-off)
+3. Optional `GET /api/validation/proof-bundle` read-only manifest (no secrets)
 
 Do not start yet:
 - Stripe, real auth, HRRR, WPC, native Android
 - Redis/Celery, cloud deployment
-- Setting `verified_mrms=true` or production promotion via sign-off
+- Setting `verified_mrms=true` or production promotion via sign-off or export
 
-## Phase 28 verification commands
+## Phase 29 verification commands
 
 ```bash
 make test
@@ -24,5 +23,7 @@ make mrms-proof-regression
 make mrms-proof-history
 make validation-alerts
 make scheduled-validation
+make catalog-status
+make render-queue-status
 cd frontend && npm run build
 ```

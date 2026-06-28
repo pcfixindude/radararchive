@@ -1195,3 +1195,37 @@ cd frontend && npm run build
 - Sign-off remains CLI-primary (API read-only)
 - `verified_mrms` always false
 - Production serving gates unchanged; placeholder default unchanged
+
+## Phase 29 - Dev Sign-Off Form + Alert Linkage
+
+Optional dev-only sign-off POST API, alert linkage after sign-off, scheduled proof-step compact in summary.
+
+### Backend
+- `POST /api/validation/signoffs` — dev/local only; shares validation with CLI (`create_signoff_and_refresh_alert`)
+- Sign-off response always: `verified_mrms: false`, `local_signoff_only: true`, `does_not_enable_production: true`
+- Alert refresh after sign-off; regression remains active until evidence improves
+- Summary: `scheduled_validation.proof_step` compact; `mrms_signoff.proof_regression_still_active`
+
+### Frontend
+- Dev sign-off form in **Show proof review** section (honest local-only wording)
+- Scheduled proof-step compact display; regression-still-active indicator
+
+### Run commands
+
+```bash
+make test
+make mrms-proof-report
+make mrms-proof-regression
+make mrms-proof-history
+make validation-alerts
+make scheduled-validation
+make catalog-status
+make render-queue-status
+cd frontend && npm run build
+```
+
+### Known limitations
+- Sign-off is local operator review only — not verified MRMS
+- Sign-off does not clear proof regression automatically
+- `verified_mrms` always false
+- Production serving gates unchanged; placeholder default unchanged

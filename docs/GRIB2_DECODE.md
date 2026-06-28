@@ -333,11 +333,11 @@ Interpretation:
 
 When a new proof report is worse than the previous snapshot, `make mrms-proof-regression` records findings and validation alerts may show `proof_regression`.
 
-Sign-off via `make mrms-signoff` is local audit only — `verified_mrms` stays false.
+Sign-off via `make mrms-signoff` or dev-only `POST /api/validation/signoffs` is local audit only — `verified_mrms` stays false. Sign-off does not clear proof regression until evidence improves.
 
 ## Proof review history (Phase 28)
 
-`make mrms-proof-history` lists bounded proof/regression/sign-off records for operator drill-down. Dev panel **Show proof review** uses the history APIs.
+`make mrms-proof-history` lists bounded proof/regression/sign-off records for operator drill-down. Dev panel **Show proof review** includes history lists and a dev sign-off form.
 
 ## Inspection CLI
 

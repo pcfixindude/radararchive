@@ -22,6 +22,22 @@
 19. Before changing architecture, update docs/ARCHITECTURE.md.
 20. Every phase must end with exact run/test commands.
 
+## Git requirements (all phases)
+
+After all required checks pass for a phase:
+
+1. Run `git status --short` and verify only intended phase files changed.
+2. Stage and commit: `git add .` then `git commit -m "phase XX: short description"`.
+3. Tag: `git tag phase-XX-short-name`.
+4. Push: `git push origin main --tags`.
+
+Do **not** commit or push if:
+
+- Any required test/build command fails.
+- Unexpected unrelated files are in the working tree.
+
+The phase completion response must include: commit hash, tag name, push result, and final `git status --short`.
+
 ## Initial MVP
 Build:
 - FastAPI health endpoint

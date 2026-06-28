@@ -141,6 +141,9 @@ curl http://127.0.0.1:8000/api/validation/proof-regression
 curl http://127.0.0.1:8000/api/validation/proof/history
 curl http://127.0.0.1:8000/api/validation/proof-regression/history
 curl http://127.0.0.1:8000/api/validation/signoffs
+curl -X POST http://127.0.0.1:8000/api/validation/signoffs \
+  -H 'Content-Type: application/json' \
+  -d '{"operator_initials":"OP","operator_notes":"local review only"}'
 curl http://127.0.0.1:8000/api/validation/latest
 ```
 
@@ -182,6 +185,8 @@ Limitations:
 - `make mrms-proof-regression` detects proof evidence regressions vs previous report
 - `make mrms-proof-history` shows bounded proof/regression/sign-off history (read-only)
 - `make mrms-signoff` records local operator sign-off (does not set verified_mrms)
+- `POST /api/validation/signoffs` — dev-only sign-off API (same validation as CLI; does not verify MRMS)
+- Dev Validation **Show proof review** includes sign-off form + scheduled proof-step compact status
 - `make real-mrms-smoke-test` runs intentional real-mode smoke test (count 1, zoom 0)
 - Operator runbook: [docs/RUNBOOK_REAL_MRMS_VALIDATION.md](docs/RUNBOOK_REAL_MRMS_VALIDATION.md)
 - Verified MRMS proof criteria (not met): [docs/VERIFIED_MRMS_CRITERIA.md](docs/VERIFIED_MRMS_CRITERIA.md)

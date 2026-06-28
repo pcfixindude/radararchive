@@ -254,6 +254,20 @@ def build_validation_alert(
                 },
             )
 
+    from backend.app.services.mrms_signoff import load_signoffs
+
+    signoffs = load_signoffs(storage)
+    latest_signoff = signoffs[0] if signoffs else None
+    latest_signoff_at = latest_signoff.get("created_at") if latest_signoff else None
+    latest_signoff_operator = None
+    if latest_signoff:
+        latest_signoff_operator = latest_signoff.get("operator_name") or latest_signoff.get(
+            "operator_initials"
+        )
+    proof_regression_reviewed = bool(
+        latest_signoff and latest_signoff.get("proof_regression_reviewed")
+    )
+
     status = _resolve_alert_status(
         scheduled=scheduled,
         failure_count=log_failure_count,
@@ -285,6 +299,10 @@ def build_validation_alert(
         "proof_regression_detected": proof_regression_detected,
         "proof_regression_status": (regression or {}).get("regression_status"),
         "proof_regression_count": int((regression or {}).get("regression_count", 0)),
+        "proof_regression_still_active": proof_regression_detected,
+        "proof_regression_reviewed": proof_regression_reviewed,
+        "latest_signoff_at": latest_signoff_at,
+        "latest_signoff_operator": latest_signoff_operator,
         "production_rendering_enabled": settings.enable_production_radar_tiles,
         "verified_mrms": False,
         "prototype": True,
@@ -340,6 +358,10 @@ def compact_validation_alert(alert: Optional[dict[str, Any]]) -> Optional[dict[s
         "operator_attention_needed": alert.get("operator_attention_needed", False),
         "proof_regression_detected": alert.get("proof_regression_detected", False),
         "proof_regression_count": alert.get("proof_regression_count", 0),
+        "proof_regression_still_active": alert.get("proof_regression_still_active", False),
+        "proof_regression_reviewed": alert.get("proof_regression_reviewed", False),
+        "latest_signoff_at": alert.get("latest_signoff_at"),
+        "latest_signoff_operator": alert.get("latest_signoff_operator"),
         "suggested_next_action": alert.get("suggested_next_action"),
         "grouped_failure_causes": grouped[:5],
         "verified_mrms": False,

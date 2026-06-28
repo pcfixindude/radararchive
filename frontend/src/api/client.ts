@@ -288,6 +288,17 @@ export type ValidationFailureCompact = {
   prototype: boolean;
 };
 
+export type ScheduledProofStepCompact = {
+  ran: boolean;
+  proof_requested: boolean;
+  status?: string | null;
+  elapsed_seconds?: number | null;
+  proof_regression_status?: string | null;
+  proof_regression_detected: boolean;
+  verified_mrms: boolean;
+  prototype: boolean;
+};
+
 export type ScheduledValidationCompact = {
   ran_at?: string | null;
   source_mode?: string | null;
@@ -305,6 +316,7 @@ export type ScheduledValidationCompact = {
   queue_jobs_failed: number;
   warnings: string[];
   errors: string[];
+  proof_step?: ScheduledProofStepCompact | null;
   verified_mrms: boolean;
   prototype: boolean;
 };
@@ -318,6 +330,12 @@ export type ValidationAlertCompact = {
   operator_attention_needed: boolean;
   suggested_next_action?: string | null;
   grouped_failure_causes?: GroupedFailureCauseCompact[];
+  proof_regression_detected?: boolean;
+  proof_regression_count?: number;
+  proof_regression_still_active?: boolean;
+  proof_regression_reviewed?: boolean;
+  latest_signoff_at?: string | null;
+  latest_signoff_operator?: string | null;
   verified_mrms: boolean;
   prototype: boolean;
 };
@@ -366,10 +384,33 @@ export type MrmsSignoffSummaryCompact = {
   signoff_count: number;
   latest_signoff_at?: string | null;
   latest_operator?: string | null;
+  proof_regression_still_active?: boolean;
+  proof_regression_reviewed?: boolean;
   verified_mrms: boolean;
   local_signoff_only: boolean;
   does_not_set_verified_mrms: boolean;
+  does_not_enable_production?: boolean;
   prototype: boolean;
+};
+
+export type MrmsSignoffCreateRequest = {
+  operator_name?: string | null;
+  operator_initials?: string | null;
+  operator_notes?: string | null;
+  accepted_limitations?: string | null;
+  proof_report_timestamp?: string | null;
+  frame_count_reviewed?: number | null;
+};
+
+export type MrmsSignoffCreateResponse = {
+  prototype: boolean;
+  verified_mrms: boolean;
+  local_signoff_only: boolean;
+  does_not_enable_production: boolean;
+  production_enabled: boolean;
+  proof_regression_still_active: boolean;
+  signoff: Record<string, unknown>;
+  alert: ValidationAlertCompact | null;
 };
 
 export type MrmsProofHistoryEntry = {
@@ -573,6 +614,34 @@ export async function fetchSignoffsList(): Promise<MrmsSignoffsList | null> {
     return response.json() as Promise<MrmsSignoffsList>;
   } catch {
     return null;
+  }
+}
+
+export async function submitSignoff(
+  payload: MrmsSignoffCreateRequest,
+): Promise<{ ok: true; data: MrmsSignoffCreateResponse } | { ok: false; error: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/api/validation/signoffs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      let error = `Sign-off failed (${response.status})`;
+      try {
+        const body = (await response.json()) as { detail?: string };
+        if (body.detail) {
+          error = body.detail;
+        }
+      } catch {
+        // keep default error
+      }
+      return { ok: false, error };
+    }
+    const data = (await response.json()) as MrmsSignoffCreateResponse;
+    return { ok: true, data };
+  } catch {
+    return { ok: false, error: 'Sign-off request failed' };
   }
 }
 

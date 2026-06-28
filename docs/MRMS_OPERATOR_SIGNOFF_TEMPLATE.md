@@ -46,6 +46,20 @@ make mrms-signoff ARGS="--initials JO --accepted-limitations 'Not verified MRMS'
 
 Persisted locally at `data/dev/mrms_signoffs.json`. Read via `GET /api/validation/signoffs` or Dev Validation **Show proof review**.
 
+### Dev API sign-off (Phase 29)
+
+Dev/local only — same validation as CLI:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/validation/signoffs \
+  -H 'Content-Type: application/json' \
+  -d '{"operator_initials":"JO","operator_notes":"Reviewed proof JSON locally"}'
+```
+
+Response always includes `verified_mrms: false`, `local_signoff_only: true`, `does_not_enable_production: true`. Does **not** enable production rendering or clear proof regression automatically.
+
+Dev Validation panel: **Show proof review** → dev sign-off form.
+
 ## Related commands
 
 ```bash

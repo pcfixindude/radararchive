@@ -207,6 +207,10 @@ class ValidationAlertCompact(BaseModel):
     grouped_failure_causes: list[GroupedFailureCauseCompact] = Field(default_factory=list)
     proof_regression_detected: bool = False
     proof_regression_count: int = 0
+    proof_regression_still_active: bool = False
+    proof_regression_reviewed: bool = False
+    latest_signoff_at: Optional[str] = None
+    latest_signoff_operator: Optional[str] = None
     verified_mrms: bool = False
     prototype: bool = True
 
@@ -267,10 +271,33 @@ class MrmsSignoffSummaryCompact(BaseModel):
     signoff_count: int = 0
     latest_signoff_at: Optional[str] = None
     latest_operator: Optional[str] = None
+    proof_regression_still_active: bool = False
+    proof_regression_reviewed: bool = False
     verified_mrms: bool = False
     local_signoff_only: bool = True
     does_not_set_verified_mrms: bool = True
+    does_not_enable_production: bool = True
     prototype: bool = True
+
+
+class MrmsSignoffCreateRequest(BaseModel):
+    operator_name: Optional[str] = None
+    operator_initials: Optional[str] = None
+    operator_notes: Optional[str] = None
+    accepted_limitations: Optional[str] = None
+    proof_report_timestamp: Optional[str] = None
+    frame_count_reviewed: Optional[int] = None
+
+
+class MrmsSignoffCreateResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_signoff_only: bool = True
+    does_not_enable_production: bool = True
+    production_enabled: bool = False
+    proof_regression_still_active: bool = False
+    signoff: dict[str, Any]
+    alert: Optional[ValidationAlertCompact] = None
 
 
 class MrmsProofHistoryEntryCompact(BaseModel):
@@ -339,6 +366,17 @@ class MrmsSignoffsResponse(BaseModel):
     entries: list[MrmsSignoffItemCompact] = Field(default_factory=list)
 
 
+class ScheduledProofStepCompact(BaseModel):
+    ran: bool = False
+    proof_requested: bool = False
+    status: Optional[str] = None
+    elapsed_seconds: Optional[float] = None
+    proof_regression_status: Optional[str] = None
+    proof_regression_detected: bool = False
+    verified_mrms: bool = False
+    prototype: bool = True
+
+
 class ScheduledValidationCompact(BaseModel):
     ran_at: Optional[str] = None
     source_mode: Optional[str] = None
@@ -356,6 +394,7 @@ class ScheduledValidationCompact(BaseModel):
     queue_jobs_failed: int = 0
     warnings: list[str] = Field(default_factory=list)
     errors: list[str] = Field(default_factory=list)
+    proof_step: Optional[ScheduledProofStepCompact] = None
     verified_mrms: bool = False
     prototype: bool = True
 
