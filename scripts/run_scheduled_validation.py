@@ -45,6 +45,18 @@ def _print_report(report) -> None:
             f"  queue benchmark: jobs_succeeded={queue.get('jobs_succeeded', 0)} "
             f"tiles_written={queue.get('total_tiles_written', 0)}"
         )
+    if report.mrms_proof_bundle:
+        bundle = report.mrms_proof_bundle
+        print(
+            f"  proof bundle: {bundle.get('bundle_folder')} "
+            f"files={bundle.get('file_count', 0)}"
+        )
+    if report.mrms_proof_bundle_diff:
+        diff = report.mrms_proof_bundle_diff
+        print(
+            f"  proof bundle diff: {diff.get('overall_diff_status')} "
+            f"changes={diff.get('evidence_changes_count', 0)}"
+        )
     print(f"  verified_mrms: {report.verified_mrms}")
     for warning in report.warnings:
         print(f"  warning: {warning}")
@@ -70,6 +82,18 @@ def main() -> None:
         "--proof",
         action="store_true",
         help="After validation, run proof report + regression check (stub-safe)",
+    )
+    parser.add_argument(
+        "--bundle",
+        "--proof-bundle",
+        dest="bundle",
+        action="store_true",
+        help="Export local MRMS proof bundle after validation (stub-safe)",
+    )
+    parser.add_argument(
+        "--diff-bundle",
+        action="store_true",
+        help="Compare latest proof bundle against previous bundle baseline",
     )
     args = parser.parse_args()
 
@@ -101,6 +125,8 @@ def main() -> None:
             max_zoom=args.max_zoom,
             real_requested=args.real,
             proof_requested=args.proof,
+            bundle_requested=args.bundle,
+            diff_bundle_requested=args.diff_bundle,
             command_context="make scheduled-validation",
         )
     finally:

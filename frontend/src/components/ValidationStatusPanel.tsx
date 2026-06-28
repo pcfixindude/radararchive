@@ -139,6 +139,7 @@ export default function ValidationStatusPanel({
   const proofCounts = mrmsProof?.criteria_counts;
   const proofRegression = summary.mrms_proof_regression ?? null;
   const signoffSummary = summary.mrms_signoff ?? null;
+  const scheduledProofBundle = summary.scheduled_proof_bundle ?? null;
   const proofBundle = summary.mrms_proof_bundle ?? null;
   const proofBundleDiff = summary.mrms_proof_bundle_diff ?? null;
   const operatorHandoff = summary.operator_handoff ?? null;
@@ -264,6 +265,39 @@ export default function ValidationStatusPanel({
         <p className="validation-meta">
           Export does not enable production rendering — verified_mrms: {yesNo(summary.verified_mrms)}
         </p>
+      </section>
+      <section className="validation-scheduled-proof-bundle">
+        <p className="validation-meta">
+          Scheduled proof bundle monitoring (local evidence only — does not verify MRMS)
+        </p>
+        {scheduledProofBundle ? (
+          <>
+            <p className="validation-meta">
+              Bundle exported: {scheduledProofBundle.bundle_exported ? 'yes' : 'no'}
+              {scheduledProofBundle.bundle_created_at
+                ? ` — ${formatTimestamp(scheduledProofBundle.bundle_created_at)}`
+                : ''}
+              {scheduledProofBundle.bundle_id ? ` (id ${scheduledProofBundle.bundle_id.slice(0, 8)}…)` : ''}
+            </p>
+            <p className="validation-meta">
+              Diff ran: {scheduledProofBundle.diff_ran ? 'yes' : 'no'}
+              {scheduledProofBundle.diff_status ? ` — status ${scheduledProofBundle.diff_status}` : ''}
+              {scheduledProofBundle.evidence_changes_count != null
+                ? ` — changes ${scheduledProofBundle.evidence_changes_count}`
+                : ''}
+            </p>
+            {scheduledProofBundle.operator_attention_needed || validationAlert?.proof_bundle_diff_attention ? (
+              <p className="validation-warn">
+                Proof bundle diff requires operator attention — does not enable production rendering
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            No scheduled proof bundle status — run make scheduled-proof-bundle.
+          </p>
+        )}
+        <p className="validation-meta">verified_mrms: {yesNo(summary.verified_mrms)}</p>
       </section>
       <section className="validation-proof-bundle-diff">
         <p className="validation-meta">Proof bundle diff / handoff (local review only — does not verify MRMS)</p>

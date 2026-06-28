@@ -419,6 +419,13 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - CLI: `make mrms-proof-bundle-diff`, `make mrms-operator-handoff`
 - `.gitignore` excludes generated bundle/diff/handoff runtime artifacts
 
+### Scheduled proof bundle monitoring (Phase 32)
+- `make scheduled-proof-bundle` — `--proof --bundle --diff-bundle` in one safe local run
+- Scheduled report fields: `mrms_proof_bundle`, `mrms_proof_bundle_diff`, step names above
+- Validation alerts: `proof_bundle_diff_worsened` cause when diff is `worsened` or `mixed`
+- Summary `scheduled_proof_bundle` compact: export/diff status, operator attention flag
+- Does **not** verify MRMS or enable production rendering
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

@@ -26,6 +26,13 @@ from backend.app.services.render_queue_benchmark import (
 )
 from backend.app.services.mrms_proof_report import generate_mrms_proof_report, save_mrms_proof_report
 from backend.app.services.mrms_proof_regression import run_proof_regression_check
+from backend.app.services.mrms_proof_bundle import export_mrms_proof_bundle
+from backend.app.services.mrms_proof_bundle_diff import (
+    DIFF_MIXED,
+    DIFF_WORSENED,
+    build_proof_bundle_diff_report,
+)
+from backend.app.services.storage import LocalStorage
 from backend.app.services.validation_dashboard import build_validation_summary
 from backend.app.services.validation_failure_log import append_validation_failure
 from backend.app.services.validation_alerts import refresh_validation_alert
@@ -86,7 +93,11 @@ class ScheduledValidationReport:
     validation_summary: Optional[dict[str, Any]] = None
     mrms_proof: Optional[dict[str, Any]] = None
     mrms_proof_regression: Optional[dict[str, Any]] = None
+    mrms_proof_bundle: Optional[dict[str, Any]] = None
+    mrms_proof_bundle_diff: Optional[dict[str, Any]] = None
     proof_requested: bool = False
+    bundle_requested: bool = False
+    diff_bundle_requested: bool = False
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     elapsed_seconds: float = 0.0
@@ -114,7 +125,11 @@ class ScheduledValidationReport:
             "validation_summary": self.validation_summary,
             "mrms_proof": self.mrms_proof,
             "mrms_proof_regression": self.mrms_proof_regression,
+            "mrms_proof_bundle": self.mrms_proof_bundle,
+            "mrms_proof_bundle_diff": self.mrms_proof_bundle_diff,
             "proof_requested": self.proof_requested,
+            "bundle_requested": self.bundle_requested,
+            "diff_bundle_requested": self.diff_bundle_requested,
             "warnings": list(self.warnings),
             "errors": list(self.errors),
             "elapsed_seconds": round(self.elapsed_seconds, 4),
@@ -230,6 +245,8 @@ def run_scheduled_validation(
     max_zoom: int = DEFAULT_SCHEDULED_MAX_ZOOM,
     real_requested: bool = False,
     proof_requested: bool = False,
+    bundle_requested: bool = False,
+    diff_bundle_requested: bool = False,
     persist: bool = True,
     command_context: Optional[str] = None,
     batch_fn: Optional[Callable[..., BatchValidationReport]] = None,
@@ -252,6 +269,8 @@ def run_scheduled_validation(
         command_context=command_context,
     )
     report.proof_requested = proof_requested
+    report.bundle_requested = bundle_requested
+    report.diff_bundle_requested = diff_bundle_requested
     report.warnings.append(
         "Scheduled validation is local dev/prototype tooling — not verified MRMS production"
     )
@@ -418,33 +437,125 @@ def run_scheduled_validation(
     )
 
     if proof_requested:
-        proof_step = ScheduledValidationStep(name="mrms_proof_report", started_at=_utc_now())
+        proof_report_step = ScheduledValidationStep(name="proof_report", started_at=_utc_now())
         proof_start = time.perf_counter()
         try:
-            proof, regression = run_scheduled_proof_pipeline(
-                session, storage, count=count, source_mode=mode
-            )
+            proof = generate_mrms_proof_report(session, storage, count=count, source_mode=mode)
+            save_mrms_proof_report(storage, proof)
             report.mrms_proof = proof
-            report.mrms_proof_regression = regression
-            proof_step.summary = {
+            proof_report_step.summary = {
                 "overall_status": proof.get("overall_status"),
                 "frame_count": proof.get("frame_count"),
+                "verified_mrms": False,
+            }
+            report.warnings.append("Proof report is draft evidence — NOT verified MRMS")
+        except Exception as exc:  # noqa: BLE001 — keep scheduled run resilient
+            proof_report_step.errors.append(str(exc))
+        proof_report_step.elapsed_seconds = time.perf_counter() - proof_start
+        proof_report_step.finished_at = _utc_now()
+        _finalize_step_status(proof_report_step)
+        report.steps.append(proof_report_step)
+        _log_step_failures(
+            storage,
+            phase="scheduled_validation",
+            source_mode=mode,
+            command_context=command_context,
+            step=proof_report_step,
+        )
+
+        proof_regression_step = ScheduledValidationStep(name="proof_regression", started_at=_utc_now())
+        regression_start = time.perf_counter()
+        try:
+            regression = run_proof_regression_check(storage)
+            report.mrms_proof_regression = regression
+            proof_regression_step.summary = {
                 "regression_detected": regression.get("regression_detected"),
+                "regression_status": regression.get("regression_status"),
                 "regression_count": regression.get("regression_count"),
                 "verified_mrms": False,
             }
-            proof_step.warnings.append(
-                "Proof report is draft evidence — NOT verified MRMS; sign-off does not enable production"
-            )
             if regression.get("regression_detected"):
-                proof_step.warnings.append("MRMS proof regression detected")
+                proof_regression_step.warnings.append("MRMS proof regression detected")
                 report.warnings.append("Proof regression detected after scheduled validation")
-        except Exception as exc:  # noqa: BLE001 — keep scheduled run resilient
-            proof_step.errors.append(str(exc))
-        proof_step.elapsed_seconds = time.perf_counter() - proof_start
-        proof_step.finished_at = _utc_now()
-        _finalize_step_status(proof_step)
-        report.steps.append(proof_step)
+        except Exception as exc:  # noqa: BLE001
+            proof_regression_step.errors.append(str(exc))
+        proof_regression_step.elapsed_seconds = time.perf_counter() - regression_start
+        proof_regression_step.finished_at = _utc_now()
+        _finalize_step_status(proof_regression_step)
+        report.steps.append(proof_regression_step)
+        _log_step_failures(
+            storage,
+            phase="scheduled_validation",
+            source_mode=mode,
+            command_context=command_context,
+            step=proof_regression_step,
+        )
+
+    if bundle_requested:
+        bundle_step = ScheduledValidationStep(name="proof_bundle_export", started_at=_utc_now())
+        bundle_start = time.perf_counter()
+        try:
+            manifest = export_mrms_proof_bundle(session, storage, include_history=False)
+            report.mrms_proof_bundle = manifest
+            bundle_step.summary = {
+                "bundle_id": manifest.get("bundle_id"),
+                "created_at": manifest.get("created_at"),
+                "bundle_folder": manifest.get("bundle_folder"),
+                "file_count": manifest.get("file_count"),
+                "verified_mrms": False,
+                "local_evidence_only": True,
+            }
+            report.warnings.append(
+                "Proof bundle export is local evidence only — does NOT verify MRMS"
+            )
+        except Exception as exc:  # noqa: BLE001
+            bundle_step.errors.append(str(exc))
+        bundle_step.elapsed_seconds = time.perf_counter() - bundle_start
+        bundle_step.finished_at = _utc_now()
+        _finalize_step_status(bundle_step)
+        report.steps.append(bundle_step)
+        _log_step_failures(
+            storage,
+            phase="scheduled_validation",
+            source_mode=mode,
+            command_context=command_context,
+            step=bundle_step,
+        )
+
+    if diff_bundle_requested:
+        diff_step = ScheduledValidationStep(name="proof_bundle_diff", started_at=_utc_now())
+        diff_start = time.perf_counter()
+        try:
+            diff_report = build_proof_bundle_diff_report(storage)
+            report.mrms_proof_bundle_diff = diff_report
+            diff_status = diff_report.get("overall_diff_status")
+            diff_step.summary = {
+                "overall_diff_status": diff_status,
+                "evidence_changes_count": diff_report.get("evidence_changes_count"),
+                "verified_mrms": False,
+            }
+            if diff_status in (DIFF_WORSENED, DIFF_MIXED):
+                diff_step.warnings.append(f"Proof bundle diff status: {diff_status}")
+                report.warnings.append(
+                    f"Proof bundle diff requires operator review ({diff_status})"
+                )
+            if diff_status == "no_baseline":
+                diff_step.warnings.append(
+                    "No baseline bundle — run make mrms-proof-bundle twice before diff"
+                )
+        except Exception as exc:  # noqa: BLE001
+            diff_step.errors.append(str(exc))
+        diff_step.elapsed_seconds = time.perf_counter() - diff_start
+        diff_step.finished_at = _utc_now()
+        _finalize_step_status(diff_step)
+        report.steps.append(diff_step)
+        _log_step_failures(
+            storage,
+            phase="scheduled_validation",
+            source_mode=mode,
+            command_context=command_context,
+            step=diff_step,
+        )
 
     report.elapsed_seconds = time.perf_counter() - start
     report.ran_at = _utc_now()

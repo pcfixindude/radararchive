@@ -20,6 +20,7 @@ from backend.app.services.mrms_proof_bundle import (
 )
 from backend.app.services.mrms_proof_bundle_diff import (
     compact_proof_bundle_diff_status,
+    compact_scheduled_proof_bundle,
     load_latest_proof_bundle_diff,
 )
 from backend.app.services.mrms_proof_regression import compact_proof_regression, load_proof_regression_report
@@ -88,6 +89,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "queue_benchmark_history_count": len(queue_benchmark_history),
         "scheduled_validation_available": scheduled is not None,
         "scheduled_validation": _compact_scheduled_validation(scheduled),
+        "scheduled_proof_bundle": compact_scheduled_proof_bundle(scheduled),
         "validation_failures_count": count_validation_failures(storage),
         "validation_failures_recent": [compact_failure(item) for item in recent_failures],
         "validation_alert": compact_validation_alert(alert),
@@ -255,7 +257,10 @@ def _compact_scheduled_proof_step(
     if scheduled is None:
         return None
     steps = scheduled.get("steps") or []
-    proof_step = next((step for step in steps if step.get("name") == "mrms_proof_report"), None)
+    proof_step = next(
+        (step for step in steps if step.get("name") in ("proof_report", "mrms_proof_report")),
+        None,
+    )
     proof_requested = bool(scheduled.get("proof_requested"))
     if proof_step is None and not proof_requested:
         return {

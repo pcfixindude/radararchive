@@ -234,6 +234,10 @@ Summary additions (Phase 30): `mrms_proof_bundle` compact (`bundle_folder`, `zip
 
 Summary additions (Phase 31): `mrms_proof_bundle_diff` compact (`overall_diff_status`, `evidence_changes_count`), `operator_handoff` compact (`markdown_path`, `created_at`).
 
+Summary additions (Phase 32): `scheduled_proof_bundle` compact (`bundle_exported`, `bundle_id`, `diff_status`, `evidence_changes_count`, `operator_attention_needed`). Validation alert adds `proof_bundle_diff_status`, `proof_bundle_diff_attention`, `latest_proof_bundle_id`.
+
+Scheduled validation report additions (Phase 32): `bundle_requested`, `diff_bundle_requested`, `mrms_proof_bundle`, `mrms_proof_bundle_diff`; steps `proof_report`, `proof_regression`, `proof_bundle_export`, `proof_bundle_diff`.
+
 `GET /api/validation/proof-bundle-diff` — latest proof bundle diff report (`?refresh=true` rebuilds). `verified_mrms: false`, `local_diff_only: true`.
 
 `GET /api/validation/operator-handoff` — latest operator handoff checklist metadata (read-only). `verified_mrms: false`, `local_handoff_only: true`.

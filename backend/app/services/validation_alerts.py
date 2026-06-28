@@ -27,6 +27,7 @@ CAUSE_ZERO_TILES_WRITTEN = "zero_tiles_written"
 CAUSE_PRODUCTION_FLAG_OFF = "production_flag_off"
 CAUSE_CATALOG_GATE_MISSING = "catalog_gate_missing"
 CAUSE_PROOF_REGRESSION = "proof_regression"
+CAUSE_PROOF_BUNDLE_DIFF_WORSENED = "proof_bundle_diff_worsened"
 CAUSE_UNKNOWN = "unknown"
 
 SUGGESTED_ACTIONS: dict[str, str] = {
@@ -37,6 +38,10 @@ SUGGESTED_ACTIONS: dict[str, str] = {
     CAUSE_PRODUCTION_FLAG_OFF: "Production serving is off by default; set ENABLE_PRODUCTION_RADAR_TILES only when intentional.",
     CAUSE_CATALOG_GATE_MISSING: "Build production tiles and satisfy catalog gate before expecting production-prototype tiles.",
     CAUSE_PROOF_REGRESSION: "Review make mrms-proof-regression and re-run make mrms-proof-report; compare proof history.",
+    CAUSE_PROOF_BUNDLE_DIFF_WORSENED: (
+        "Review make mrms-proof-bundle-diff and compare bundle evidence; "
+        "re-run make mrms-proof-bundle after fixes — does not verify MRMS."
+    ),
     CAUSE_UNKNOWN: "Review make validation-failures and docs/RUNBOOK_REAL_MRMS_VALIDATION.md.",
 }
 
@@ -107,6 +112,8 @@ def classify_failure_cause(message: Optional[str]) -> str:
         return CAUSE_CATALOG_GATE_MISSING
     if "proof regression" in text or "proof_regression" in text:
         return CAUSE_PROOF_REGRESSION
+    if "proof bundle diff" in text or "bundle diff" in text:
+        return CAUSE_PROOF_BUNDLE_DIFF_WORSENED
     return CAUSE_UNKNOWN
 
 
@@ -189,9 +196,15 @@ def _resolve_alert_status(
     failure_count: int,
     warning_count: int,
     proof_regression_detected: bool = False,
+    proof_bundle_diff_attention: bool = False,
+    proof_bundle_diff_status: Optional[str] = None,
 ) -> str:
     if proof_regression_detected:
         return ALERT_FAILED
+    if proof_bundle_diff_attention and proof_bundle_diff_status == "worsened":
+        return ALERT_FAILED
+    if proof_bundle_diff_attention:
+        return ALERT_WARNING
     if scheduled is not None:
         if not scheduled.get("success", True) or scheduled.get("exit_code", 0) != 0:
             return ALERT_FAILED
@@ -228,6 +241,10 @@ def build_validation_alert(
     scheduled: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
     """Build alert summary from failure log and latest scheduled run."""
+    from backend.app.services.mrms_proof_bundle_diff import (
+        load_latest_proof_bundle_diff,
+        proof_bundle_diff_requires_attention,
+    )
     from backend.app.services.mrms_proof_regression import load_proof_regression_report
 
     all_failures = load_all_validation_failures(storage)
@@ -268,11 +285,37 @@ def build_validation_alert(
         latest_signoff and latest_signoff.get("proof_regression_reviewed")
     )
 
+    bundle_diff = None
+    if scheduled:
+        bundle_diff = scheduled.get("mrms_proof_bundle_diff")
+    if bundle_diff is None:
+        bundle_diff = load_latest_proof_bundle_diff(storage)
+    proof_bundle_diff_status = (bundle_diff or {}).get("overall_diff_status")
+    proof_bundle_diff_attention = proof_bundle_diff_requires_attention(proof_bundle_diff_status)
+    latest_bundle = (scheduled or {}).get("mrms_proof_bundle") if scheduled else None
+    if latest_bundle is None and bundle_diff:
+        latest_bundle = bundle_diff.get("current_bundle")
+
+    if proof_bundle_diff_attention and bundle_diff:
+        grouped.insert(
+            0,
+            {
+                "step": "proof_bundle_diff",
+                "cause": CAUSE_PROOF_BUNDLE_DIFF_WORSENED,
+                "message": f"Proof bundle diff status: {proof_bundle_diff_status}",
+                "normalized_message": f"proof_bundle_diff_{proof_bundle_diff_status}",
+                "count": 1,
+                "latest_logged_at": bundle_diff.get("checked_at"),
+            },
+        )
+
     status = _resolve_alert_status(
         scheduled=scheduled,
         failure_count=log_failure_count,
         warning_count=log_warning_count,
         proof_regression_detected=proof_regression_detected,
+        proof_bundle_diff_attention=proof_bundle_diff_attention,
+        proof_bundle_diff_status=proof_bundle_diff_status,
     )
 
     latest_run_at = None
@@ -292,10 +335,13 @@ def build_validation_alert(
         "suggested_next_action": (
             SUGGESTED_ACTIONS[CAUSE_PROOF_REGRESSION]
             if proof_regression_detected
+            else SUGGESTED_ACTIONS[CAUSE_PROOF_BUNDLE_DIFF_WORSENED]
+            if proof_bundle_diff_attention
             else _suggested_action(grouped, status)
         ),
         "operator_attention_needed": status in (ALERT_WARNING, ALERT_FAILED)
-        or proof_regression_detected,
+        or proof_regression_detected
+        or proof_bundle_diff_attention,
         "proof_regression_detected": proof_regression_detected,
         "proof_regression_status": (regression or {}).get("regression_status"),
         "proof_regression_count": int((regression or {}).get("regression_count", 0)),
@@ -303,6 +349,12 @@ def build_validation_alert(
         "proof_regression_reviewed": proof_regression_reviewed,
         "latest_signoff_at": latest_signoff_at,
         "latest_signoff_operator": latest_signoff_operator,
+        "proof_bundle_diff_status": proof_bundle_diff_status,
+        "proof_bundle_diff_attention": proof_bundle_diff_attention,
+        "latest_proof_bundle_id": (latest_bundle or {}).get("bundle_id") if latest_bundle else None,
+        "latest_proof_bundle_created_at": (latest_bundle or {}).get("created_at")
+        if latest_bundle
+        else None,
         "production_rendering_enabled": settings.enable_production_radar_tiles,
         "verified_mrms": False,
         "prototype": True,
@@ -362,6 +414,10 @@ def compact_validation_alert(alert: Optional[dict[str, Any]]) -> Optional[dict[s
         "proof_regression_reviewed": alert.get("proof_regression_reviewed", False),
         "latest_signoff_at": alert.get("latest_signoff_at"),
         "latest_signoff_operator": alert.get("latest_signoff_operator"),
+        "proof_bundle_diff_status": alert.get("proof_bundle_diff_status"),
+        "proof_bundle_diff_attention": alert.get("proof_bundle_diff_attention", False),
+        "latest_proof_bundle_id": alert.get("latest_proof_bundle_id"),
+        "latest_proof_bundle_created_at": alert.get("latest_proof_bundle_created_at"),
         "suggested_next_action": alert.get("suggested_next_action"),
         "grouped_failure_causes": grouped[:5],
         "verified_mrms": False,

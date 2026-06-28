@@ -25,6 +25,8 @@ DIFF_WORSENED = "worsened"
 DIFF_MIXED = "mixed"
 DIFF_UNKNOWN = "unknown"
 
+DIFF_ATTENTION_STATUSES = frozenset({DIFF_WORSENED, DIFF_MIXED})
+
 ALERT_RANK = {"ok": 0, "warning": 1, "failed": 2}
 PROOF_RANK = {
     "passed": 4,
@@ -441,6 +443,32 @@ def compact_proof_bundle_diff(report: Optional[dict[str, Any]]) -> dict[str, Any
         "local_diff_only": True,
         "proof_only": True,
         "does_not_enable_production": True,
+        "prototype": True,
+    }
+
+
+def proof_bundle_diff_requires_attention(diff_status: Optional[str]) -> bool:
+    return str(diff_status or "") in DIFF_ATTENTION_STATUSES
+
+
+def compact_scheduled_proof_bundle(scheduled: Optional[dict[str, Any]]) -> Optional[dict[str, Any]]:
+    """Compact proof bundle export/diff status from a scheduled validation report."""
+    if scheduled is None:
+        return None
+    bundle = scheduled.get("mrms_proof_bundle")
+    diff = scheduled.get("mrms_proof_bundle_diff")
+    diff_status = (diff or {}).get("overall_diff_status")
+    attention = proof_bundle_diff_requires_attention(diff_status)
+    return {
+        "bundle_exported": bundle is not None,
+        "bundle_id": (bundle or {}).get("bundle_id"),
+        "bundle_created_at": (bundle or {}).get("created_at"),
+        "diff_ran": diff is not None,
+        "diff_status": diff_status,
+        "evidence_changes_count": int((diff or {}).get("evidence_changes_count", 0)),
+        "operator_attention_needed": attention,
+        "verified_mrms": False,
+        "local_evidence_monitoring_only": True,
         "prototype": True,
     }
 

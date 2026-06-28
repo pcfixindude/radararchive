@@ -345,6 +345,8 @@ Sign-off via `make mrms-signoff` or dev-only `POST /api/validation/signoffs` is 
 
 `make mrms-proof-bundle-diff` compares latest vs baseline bundle evidence (`unchanged`, `improved`, `worsened`, `mixed`, `no_baseline`). `make mrms-operator-handoff` generates a local Markdown checklist — review only, not verification.
 
+`make scheduled-proof-bundle` runs scheduled validation with proof bundle export and diff; alerts may flag worsened/mixed diff for operator attention.
+
 ## Inspection CLI
 
 ```bash

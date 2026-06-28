@@ -1,15 +1,14 @@
 # Project State
 
-Current phase: Phase 31 complete
+Current phase: Phase 32 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
 - MRMS discovery → download → decode prototype pipeline
-- **Exportable local MRMS proof bundles** (folder + ZIP + manifest)
-- **Proof bundle diff** comparing latest vs baseline bundle evidence
-- **Operator handoff checklist** (local Markdown + JSON metadata)
-- **Validation alert markers** with proof regression + sign-off linkage
+- **Scheduled validation** with optional `--proof`, `--bundle`, `--diff-bundle`
+- **Proof bundle diff alert hooks** when evidence worsens or is mixed
+- **Exportable local MRMS proof bundles** and operator handoff checklist
 - **Default tile serving: placeholder**
 - Not verified real MRMS — warping prototype only
 
@@ -21,30 +20,28 @@ ENABLE_PRODUCTION_RADAR_TILES=false
 STALE_RUNNING_JOB_SECONDS=3600
 ```
 
-## Operator commands (Phase 31)
+## Operator commands (Phase 32)
 
 ```bash
+make scheduled-validation
+make scheduled-proof-bundle
 make mrms-proof-bundle
 make mrms-proof-bundle-diff
 make mrms-operator-handoff
-make mrms-proof-report
-make mrms-proof-regression
-make mrms-signoff
+make validation-alerts
 ```
 
 ## Dev API
 
 ```bash
 curl http://127.0.0.1:8000/api/validation/summary
-curl http://127.0.0.1:8000/api/validation/proof-bundles
-curl http://127.0.0.1:8000/api/validation/proof-bundle-diff
-curl http://127.0.0.1:8000/api/validation/operator-handoff
+curl http://127.0.0.1:8000/api/validation/proof-bundle-diff?refresh=true
 ```
 
 ## Local test
 
 ```bash
 make test
-make mrms-proof-bundle-diff
+make scheduled-proof-bundle
 cd frontend && npm run build
 ```

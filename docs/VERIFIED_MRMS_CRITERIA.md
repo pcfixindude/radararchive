@@ -138,6 +138,10 @@ Optional dev/local `POST /api/validation/signoffs` shares the same validation as
 
 `make mrms-proof-bundle-diff` compares the latest bundle to the previous bundle baseline. `make mrms-operator-handoff` writes a local Markdown checklist. Both are **supporting review evidence only** — `verified_mrms` stays false.
 
+## Scheduled proof bundle monitoring (Phase 32)
+
+`make scheduled-proof-bundle` runs scheduled validation with `--proof --bundle --diff-bundle`. This is **local evidence monitoring only** — it does not verify MRMS or enable production rendering. Alerts may flag `worsened` or `mixed` diff status for operator review.
+
 ## Proof review history (Phase 28)
 
 Bounded read-only history for dev panel drill-down:

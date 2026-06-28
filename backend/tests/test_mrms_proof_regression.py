@@ -216,7 +216,8 @@ def test_scheduled_validation_proof_flag(db_session, storage, monkeypatch):
         )(),
     )
     step_names = [step.name for step in report.steps]
-    assert "mrms_proof_report" in step_names
+    assert "proof_report" in step_names
+    assert "proof_regression" in step_names
     assert report.mrms_proof is not None
     assert report.mrms_proof_regression is not None
     assert report.mrms_proof["verified_mrms"] is False

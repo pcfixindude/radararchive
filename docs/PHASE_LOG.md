@@ -1299,3 +1299,35 @@ cd frontend && npm run build
 - Handoff/diff are local review only — not verified MRMS
 - `verified_mrms` always false
 - Production serving gates unchanged; placeholder default unchanged
+
+## Phase 32 - Scheduled Proof Bundle Export + Alert Hooks
+
+Optional scheduled proof bundle export/diff with validation alert hooks.
+
+### Backend
+- `run_scheduled_validation` — `--bundle` / `--diff-bundle` flags; steps `proof_report`, `proof_regression`, `proof_bundle_export`, `proof_bundle_diff`
+- Alert cause `proof_bundle_diff_worsened`; operator attention for `worsened`/`mixed` diff
+- Summary: `scheduled_proof_bundle` compact status
+
+### Scripts / Makefile
+- `make scheduled-proof-bundle` — `scheduled-validation --proof --bundle --diff-bundle`
+- `run_scheduled_validation.py` — `--bundle`, `--proof-bundle`, `--diff-bundle`
+
+### Frontend
+- Dev Validation scheduled proof bundle monitoring section
+
+### Run commands
+
+```bash
+make test
+make scheduled-validation
+make scheduled-proof-bundle
+make validation-alerts
+cd frontend && npm run build
+```
+
+### Known limitations
+- Diff alert does not auto-clear when evidence improves (re-run scheduled flow)
+- Scheduled bundle export is local monitoring only — not verified MRMS
+- `verified_mrms` always false
+- Production serving gates unchanged; placeholder default unchanged

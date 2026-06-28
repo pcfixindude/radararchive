@@ -321,6 +321,19 @@ export type ScheduledValidationCompact = {
   prototype: boolean;
 };
 
+export type ScheduledProofBundleCompact = {
+  bundle_exported: boolean;
+  bundle_id?: string | null;
+  bundle_created_at?: string | null;
+  diff_ran: boolean;
+  diff_status?: string | null;
+  evidence_changes_count: number;
+  operator_attention_needed: boolean;
+  verified_mrms: boolean;
+  local_evidence_monitoring_only: boolean;
+  prototype: boolean;
+};
+
 export type ValidationAlertCompact = {
   status: string;
   latest_run_at?: string | null;
@@ -336,6 +349,10 @@ export type ValidationAlertCompact = {
   proof_regression_reviewed?: boolean;
   latest_signoff_at?: string | null;
   latest_signoff_operator?: string | null;
+  proof_bundle_diff_status?: string | null;
+  proof_bundle_diff_attention?: boolean;
+  latest_proof_bundle_id?: string | null;
+  latest_proof_bundle_created_at?: string | null;
   verified_mrms: boolean;
   prototype: boolean;
 };
@@ -556,6 +573,7 @@ export type ValidationSummary = {
   queue_benchmark_history_count?: number;
   scheduled_validation_available?: boolean;
   scheduled_validation?: ScheduledValidationCompact | null;
+  scheduled_proof_bundle?: ScheduledProofBundleCompact | null;
   validation_failures_count?: number;
   validation_failures_recent?: ValidationFailureCompact[];
   validation_alert?: ValidationAlertCompact | null;

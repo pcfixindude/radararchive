@@ -211,6 +211,10 @@ class ValidationAlertCompact(BaseModel):
     proof_regression_reviewed: bool = False
     latest_signoff_at: Optional[str] = None
     latest_signoff_operator: Optional[str] = None
+    proof_bundle_diff_status: Optional[str] = None
+    proof_bundle_diff_attention: bool = False
+    latest_proof_bundle_id: Optional[str] = None
+    latest_proof_bundle_created_at: Optional[str] = None
     verified_mrms: bool = False
     prototype: bool = True
 
@@ -487,6 +491,19 @@ class OperatorHandoffResponse(BaseModel):
     handoff: Optional[dict[str, Any]] = None
 
 
+class ScheduledProofBundleCompact(BaseModel):
+    bundle_exported: bool = False
+    bundle_id: Optional[str] = None
+    bundle_created_at: Optional[str] = None
+    diff_ran: bool = False
+    diff_status: Optional[str] = None
+    evidence_changes_count: int = 0
+    operator_attention_needed: bool = False
+    verified_mrms: bool = False
+    local_evidence_monitoring_only: bool = True
+    prototype: bool = True
+
+
 class ValidationSummaryResponse(BaseModel):
     prototype: bool = True
     verified_mrms: bool = False
@@ -507,6 +524,7 @@ class ValidationSummaryResponse(BaseModel):
     queue_benchmark_history_count: int = 0
     scheduled_validation_available: bool = False
     scheduled_validation: Optional[ScheduledValidationCompact] = None
+    scheduled_proof_bundle: Optional[ScheduledProofBundleCompact] = None
     validation_failures_count: int = 0
     validation_failures_recent: list[ValidationFailureCompact] = Field(default_factory=list)
     validation_alert: Optional[ValidationAlertCompact] = None

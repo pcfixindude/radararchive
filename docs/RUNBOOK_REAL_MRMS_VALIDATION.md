@@ -203,6 +203,24 @@ Handoff output: `data/dev/mrms_operator_handoff_latest.md` (checklist with expli
 
 Generated bundle/diff/handoff artifacts are gitignored under `data/dev/`.
 
+## Scheduled proof bundle monitoring (Phase 32)
+
+Run proof report, bundle export, and diff in one scheduled local flow — **does not verify MRMS**.
+
+```bash
+make scheduled-proof-bundle
+make scheduled-proof-bundle ARGS="--json-report"
+make scheduled-validation ARGS="--proof --bundle --diff-bundle"
+```
+
+When proof bundle diff status is **worsened** or **mixed**:
+- Validation alert sets `operator_attention_needed` and adds `proof_bundle_diff_worsened` cause
+- Review `make mrms-proof-bundle-diff` output and compare bundle `evidence/` JSON
+- Re-run `make mrms-proof-report` after fixes, then `make scheduled-proof-bundle` again
+- Improving diff status does **not** silently clear unrelated validation failures — review `make validation-failures`
+
+Alert fields: `proof_bundle_diff_status`, `latest_proof_bundle_id`, `latest_proof_bundle_created_at`.
+
 ## Check recent failures
 
 ```bash
