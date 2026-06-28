@@ -18,6 +18,8 @@ from backend.app.schemas.validation import (
     ProofBundleDiffEscalationHistoryResponse,
     ProofBundleDiffEscalationMetricsResponse,
     ProofBundleDiffEscalationDigestResponse,
+    ProofBundleDiffEscalationDigestHistoryResponse,
+    ProofBundleDiffEscalationDigestDiffResponse,
     OperatorHandoffResponse,
     MrmsProofRegressionHistoryResponse,
     MrmsProofRegressionResponse,
@@ -63,6 +65,12 @@ from backend.app.services.proof_bundle_diff_escalation_metrics import (
 )
 from backend.app.services.proof_bundle_diff_escalation_digest import (
     build_proof_bundle_diff_escalation_digest_payload,
+)
+from backend.app.services.proof_bundle_diff_escalation_digest_diff import (
+    build_digest_diff_payload,
+)
+from backend.app.services.proof_bundle_diff_escalation_digest_history import (
+    build_digest_export_history_payload,
 )
 from backend.app.services.mrms_proof_history import (
     build_proof_history_payload,
@@ -383,6 +391,31 @@ def validation_proof_bundle_diff_escalation_digest() -> ProofBundleDiffEscalatio
     storage = LocalStorage(settings.local_storage_root)
     payload = build_proof_bundle_diff_escalation_digest_payload(storage)
     return ProofBundleDiffEscalationDigestResponse(**payload)
+
+
+@router.get(
+    "/proof-bundle-diff-escalation-digest-history",
+    response_model=ProofBundleDiffEscalationDigestHistoryResponse,
+)
+def validation_proof_bundle_diff_escalation_digest_history(
+    limit: int = 25,
+) -> ProofBundleDiffEscalationDigestHistoryResponse:
+    """Bounded digest export history (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    bounded = max(1, min(limit, 25))
+    payload = build_digest_export_history_payload(storage, limit=bounded)
+    return ProofBundleDiffEscalationDigestHistoryResponse(**payload)
+
+
+@router.get(
+    "/proof-bundle-diff-escalation-digest-diff",
+    response_model=ProofBundleDiffEscalationDigestDiffResponse,
+)
+def validation_proof_bundle_diff_escalation_digest_diff() -> ProofBundleDiffEscalationDigestDiffResponse:
+    """Latest digest diff metadata and regeneration hint (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_digest_diff_payload(storage)
+    return ProofBundleDiffEscalationDigestDiffResponse(**payload)
 
 
 @router.get(

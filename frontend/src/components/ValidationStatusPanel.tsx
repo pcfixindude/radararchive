@@ -49,6 +49,7 @@ export default function ValidationStatusPanel({
   const [showDiffEscalation, setShowDiffEscalation] = useState(false);
   const [showDiffEscalationHistory, setShowDiffEscalationHistory] = useState(false);
   const [showDiffEscalationMetrics, setShowDiffEscalationMetrics] = useState(false);
+  const [showDigestHistory, setShowDigestHistory] = useState(false);
   const [ackOperator, setAckOperator] = useState('');
   const [ackNote, setAckNote] = useState('');
   const [ackSubmitting, setAckSubmitting] = useState(false);
@@ -190,6 +191,9 @@ export default function ValidationStatusPanel({
   const diffEscalationHistory = summary.proof_bundle_diff_escalation_history ?? null;
   const diffEscalationMetrics = summary.proof_bundle_diff_escalation_metrics ?? null;
   const diffEscalationDigest = summary.proof_bundle_diff_escalation_digest ?? null;
+  const digestHistory = summary.proof_bundle_diff_escalation_digest_history ?? null;
+  const digestDiff = summary.proof_bundle_diff_escalation_digest_diff ?? null;
+  const digestRegenerationHint = summary.digest_regeneration_hint ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
   const queue = summary.render_queue;
@@ -680,6 +684,68 @@ export default function ValidationStatusPanel({
             No digest exported — run make proof-bundle-diff-escalation-digest.
           </p>
         )}
+        {digestHistory?.available || (digestHistory?.count ?? 0) > 0 ? (
+          <p className="validation-meta">
+            Digest history: {digestHistory?.count ?? 0} export(s)
+            {digestHistory?.latest?.created_at
+              ? ` — latest ${formatTimestamp(digestHistory.latest.created_at)}`
+              : ''}
+          </p>
+        ) : (
+          <p className="validation-meta">
+            No digest history — export a digest with make proof-bundle-diff-escalation-digest.
+          </p>
+        )}
+        {digestDiff?.available ? (
+          <p className="validation-meta">
+            Digest diff: {digestDiff.overall_digest_diff_status ?? 'unknown'}
+            {digestDiff.checked_at ? ` (${formatTimestamp(digestDiff.checked_at)})` : ''}
+          </p>
+        ) : (
+          <p className="validation-meta">No digest diff yet — export digest twice to compare.</p>
+        )}
+        {digestRegenerationHint ? (
+          <p
+            className={
+              digestRegenerationHint.digest_regeneration_recommended
+                ? 'validation-warn'
+                : 'validation-meta'
+            }
+          >
+            Digest regeneration recommended:{' '}
+            {digestRegenerationHint.digest_regeneration_recommended ? 'yes' : 'no'}
+            {digestRegenerationHint.reason ? ` — ${digestRegenerationHint.reason}` : ''}
+            {digestRegenerationHint.suggested_command
+              ? ` — run ${digestRegenerationHint.suggested_command}`
+              : ''}
+          </p>
+        ) : null}
+        <p className="validation-meta">
+          Local digest only — does not notify externally — does not verify MRMS — does not enable
+          production rendering — does not clear alerts
+        </p>
+        <div className="validation-header-actions">
+          <button
+            type="button"
+            className="validation-refresh"
+            onClick={() => setShowDigestHistory((value) => !value)}
+          >
+            {showDigestHistory ? 'Hide digest history' : 'Show digest history'}
+          </button>
+        </div>
+        {showDigestHistory && (digestHistory?.recent ?? []).length > 0 ? (
+          <ul className="validation-history-list">
+            {(digestHistory?.recent ?? []).map((entry, index) => (
+              <li key={`${entry.created_at ?? 'digest'}-${index}`} className="validation-meta">
+                {formatTimestamp(entry.created_at)} — {entry.latest_escalation_level ?? '—'}
+                {entry.latest_diff_status ? ` (${entry.latest_diff_status})` : ''}
+                {entry.digest_path ? ` — ${entry.digest_path}` : ''}
+              </li>
+            ))}
+          </ul>
+        ) : showDigestHistory ? (
+          <p className="validation-meta">No recent digest exports in summary.</p>
+        ) : null}
         {showDiffEscalationMetrics && diffEscalationMetrics ? (
           <>
             <p className="validation-meta">

@@ -1,15 +1,15 @@
 # Project State
 
-Current phase: Phase 39 complete
+Current phase: Phase 40 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
 - MRMS discovery → download → decode prototype pipeline
-- **Scheduled proof bundle digest** (`make scheduled-proof-bundle-digest`) — optional local escalation digest + operator review checklist
-- **Proof bundle diff escalation metrics** and **local Markdown digest export**
-- **Proof bundle diff escalation history** (bounded snapshots)
-- **Optional stdout urgent notices** (local terminal only)
+- **Digest export history** (bounded, last 25) and **digest diff metadata**
+- **Digest regeneration hints** in Dev Validation summary
+- **Scheduled proof bundle digest** (`make scheduled-proof-bundle-digest`)
+- **Proof bundle diff escalation metrics** and local Markdown digest export
 - **Default tile serving: placeholder**
 - Not verified real MRMS — warping prototype only
 
@@ -21,14 +21,13 @@ ENABLE_PRODUCTION_RADAR_TILES=false
 STALE_RUNNING_JOB_SECONDS=3600
 ```
 
-## Operator commands (Phase 39)
+## Operator commands (Phase 40)
 
 ```bash
-make scheduled-proof-bundle-digest
+make proof-bundle-diff-escalation-digest-history
+make proof-bundle-diff-escalation-digest-diff
 make proof-bundle-diff-escalation-digest
-make proof-bundle-diff-escalation-metrics
-make scheduled-proof-bundle-handoff
-make scheduled-proof-bundle-notify
+make scheduled-proof-bundle-digest
 make validation-alerts
 ```
 
@@ -36,9 +35,10 @@ make validation-alerts
 
 ```bash
 curl http://127.0.0.1:8000/api/validation/summary
-curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-digest
+curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-digest-history
+curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-digest-diff
 ```
 
 ## Verified MRMS
 
-`verified_mrms` is **false** everywhere. Scheduled digest and operator checklist are local review aids only — no external notifications.
+`verified_mrms` is **false** everywhere. Digest history, diff metadata, and regeneration hints are local review aids only — no external notifications.

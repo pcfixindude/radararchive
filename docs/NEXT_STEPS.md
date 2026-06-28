@@ -1,27 +1,27 @@
 # Next Steps
 
-## Phase 40 - Digest History + Regeneration Hints (Draft)
+## Phase 41 - Operator Digest Review Sessions (Draft)
 
-Goal: Optional bounded digest export history and Dev Validation hints when metrics show urgent streak — still local-only, no external notifications, no `verified_mrms=true`.
+Goal: Lightweight local “review session” records tying digest export, checklist acknowledgment, and escalation snapshot — still no external notifications, no `verified_mrms=true`.
 
 Suggested work:
-1. Bounded digest history (last 5 exports, gitignored)
-2. Digest diff between consecutive exports (metadata only)
-3. Dev panel regeneration hint when `current_urgent_streak` exceeds threshold
-4. Link digest history from operator checklist
+1. Optional local review session JSON (gitignored) linking digest path + operator note
+2. Dev panel link from regeneration hint to runbook section
+3. Bounded review session history (last 10)
+4. Compare review sessions across digest exports
 
 Do not start yet:
 - Stripe, real auth, HRRR, WPC, native Android
 - Redis/Celery, cloud deployment, email/Slack/webhooks
 - Setting `verified_mrms=true` or production promotion
 
-## Phase 39 verification commands
+## Phase 40 verification commands
 
 ```bash
 make test
-make scheduled-proof-bundle-digest
+make proof-bundle-diff-escalation-digest-history
+make proof-bundle-diff-escalation-digest-diff
 make proof-bundle-diff-escalation-digest
-make scheduled-validation
-make validation-alerts
+make scheduled-proof-bundle-digest
 cd frontend && npm run build
 ```

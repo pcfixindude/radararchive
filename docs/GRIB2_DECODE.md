@@ -361,6 +361,8 @@ Sign-off via `make mrms-signoff` or dev-only `POST /api/validation/signoffs` is 
 
 `make scheduled-proof-bundle-digest` runs proof → bundle → diff → handoff → escalation digest in one local sequence and refreshes the operator review checklist with escalation metrics, acknowledgment status, and explicit checklist items. This is local/dev operator tooling only — it does not verify MRMS or enable production rendering.
 
+`make proof-bundle-diff-escalation-digest-history` shows bounded digest export history. `make proof-bundle-diff-escalation-digest-diff` compares consecutive digest exports and surfaces regeneration hints — local review only, not a notification system.
+
 ## Inspection CLI
 
 ```bash

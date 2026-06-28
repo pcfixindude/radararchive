@@ -557,6 +557,67 @@ export type ProofBundleDiffEscalationDigestCompact = {
   prototype: boolean;
 };
 
+export type ProofBundleDiffEscalationDigestHistoryEntry = {
+  created_at?: string | null;
+  digest_path?: string | null;
+  metadata_path?: string | null;
+  latest_escalation_level?: string | null;
+  latest_diff_status?: string | null;
+  current_attention_or_urgent_streak?: number;
+  urgent_count?: number;
+  attention_count?: number;
+  stale_acknowledgment_count?: number;
+  verified_mrms: boolean;
+  local_digest_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  prototype: boolean;
+};
+
+export type ProofBundleDiffEscalationDigestHistoryCompact = {
+  available: boolean;
+  count: number;
+  max_entries: number;
+  latest?: ProofBundleDiffEscalationDigestHistoryEntry | null;
+  recent?: ProofBundleDiffEscalationDigestHistoryEntry[];
+  verified_mrms: boolean;
+  local_digest_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  no_external_notifications?: boolean;
+  prototype: boolean;
+};
+
+export type ProofBundleDiffEscalationDigestDiffCompact = {
+  available: boolean;
+  overall_digest_diff_status?: string | null;
+  checked_at?: string | null;
+  history_count?: number;
+  changes?: Record<string, unknown> | null;
+  verified_mrms: boolean;
+  local_digest_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  prototype: boolean;
+};
+
+export type DigestRegenerationHintCompact = {
+  digest_regeneration_recommended: boolean;
+  reason?: string | null;
+  suggested_command?: string | null;
+  latest_escalation_level?: string | null;
+  current_attention_or_urgent_streak?: number;
+  latest_digest_at?: string | null;
+  latest_escalation_snapshot_at?: string | null;
+  latest_digest_diff_status?: string | null;
+  verified_mrms: boolean;
+  local_digest_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  no_external_notifications?: boolean;
+  prototype: boolean;
+};
+
 export type ProofBundleDiffAcknowledgmentCreateRequest = {
   operator_name?: string;
   operator_initials?: string;
@@ -841,6 +902,9 @@ export type ValidationSummary = {
   proof_bundle_diff_escalation_history?: ProofBundleDiffEscalationHistoryCompact | null;
   proof_bundle_diff_escalation_metrics?: ProofBundleDiffEscalationMetricsCompact | null;
   proof_bundle_diff_escalation_digest?: ProofBundleDiffEscalationDigestCompact | null;
+  proof_bundle_diff_escalation_digest_history?: ProofBundleDiffEscalationDigestHistoryCompact | null;
+  proof_bundle_diff_escalation_digest_diff?: ProofBundleDiffEscalationDigestDiffCompact | null;
+  digest_regeneration_hint?: DigestRegenerationHintCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;

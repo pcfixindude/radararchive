@@ -1546,3 +1546,33 @@ cd frontend && npm run build
 - Checklist/digest do not clear alerts, verify MRMS, or enable production
 - No external notifications
 - `verified_mrms` always false
+
+## Phase 40 - Digest History + Diff + Regeneration Hints
+
+Bounded digest export history, diff metadata between exports, and regeneration hints in summary.
+
+### Backend
+- `proof_bundle_diff_escalation_digest_history.py` — bounded history (max 25)
+- `proof_bundle_diff_escalation_digest_diff.py` — diff classification + regeneration hints
+- Auto-record on digest export; summary compacts + new read-only API endpoints
+
+### Scripts / Makefile
+- `make proof-bundle-diff-escalation-digest-history`
+- `make proof-bundle-diff-escalation-digest-diff`
+
+### Frontend
+- Dev Validation: digest history count, diff status, regeneration hint + suggested command
+
+### Run commands
+
+```bash
+make test
+make proof-bundle-diff-escalation-digest-history
+make proof-bundle-diff-escalation-digest-diff
+cd frontend && npm run build
+```
+
+### Known limitations
+- History/diff derived from local metadata only — not verified MRMS
+- Regeneration hints are suggestions only — no auto-export or notifications
+- `verified_mrms` always false

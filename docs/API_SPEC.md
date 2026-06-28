@@ -272,6 +272,10 @@ Summary additions (Phase 39): `scheduled_digest` compact (`digest_requested`, `d
 
 Scheduled validation report additions (Phase 39): `digest_requested`, `digest_generated`, `digest_path`, `digest_metadata_path`, `digest_reason`, `digest_elapsed_seconds`; step `escalation_digest` when `--digest` / `--escalation-digest` passed.
 
+Summary additions (Phase 40): `proof_bundle_diff_escalation_digest_history`, `proof_bundle_diff_escalation_digest_diff`, `digest_regeneration_hint` compacts.
+
+New read-only endpoints (Phase 40): `GET /api/validation/proof-bundle-diff-escalation-digest-history`, `GET /api/validation/proof-bundle-diff-escalation-digest-diff`.
+
 Scheduled validation report additions (Phase 32): `bundle_requested`, `diff_bundle_requested`, `mrms_proof_bundle`, `mrms_proof_bundle_diff`; steps `proof_report`, `proof_regression`, `proof_bundle_export`, `proof_bundle_diff`.
 
 `GET /api/validation/proof-bundle-diff` — latest proof bundle diff report (`?refresh=true` rebuilds). `verified_mrms: false`, `local_diff_only: true`.

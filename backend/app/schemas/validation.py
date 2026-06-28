@@ -396,6 +396,96 @@ class ProofBundleDiffEscalationDigestResponse(BaseModel):
     compact: ProofBundleDiffEscalationDigestCompact
 
 
+class ProofBundleDiffEscalationDigestHistoryEntryCompact(BaseModel):
+    created_at: Optional[str] = None
+    digest_path: Optional[str] = None
+    metadata_path: Optional[str] = None
+    latest_escalation_level: Optional[str] = None
+    latest_diff_status: Optional[str] = None
+    current_attention_or_urgent_streak: int = 0
+    urgent_count: int = 0
+    attention_count: int = 0
+    stale_acknowledgment_count: int = 0
+    verified_mrms: bool = False
+    local_digest_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class ProofBundleDiffEscalationDigestHistoryCompact(BaseModel):
+    available: bool = False
+    count: int = 0
+    max_entries: int = 25
+    latest: Optional[ProofBundleDiffEscalationDigestHistoryEntryCompact] = None
+    recent: list[ProofBundleDiffEscalationDigestHistoryEntryCompact] = Field(default_factory=list)
+    verified_mrms: bool = False
+    local_digest_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    prototype: bool = True
+
+
+class ProofBundleDiffEscalationDigestHistoryResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_digest_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    count: int = 0
+    max_entries: int = 25
+    latest: Optional[ProofBundleDiffEscalationDigestHistoryEntryCompact] = None
+    entries: list[ProofBundleDiffEscalationDigestHistoryEntryCompact] = Field(default_factory=list)
+    compact: ProofBundleDiffEscalationDigestHistoryCompact
+
+
+class ProofBundleDiffEscalationDigestDiffCompact(BaseModel):
+    available: bool = False
+    overall_digest_diff_status: Optional[str] = None
+    checked_at: Optional[str] = None
+    history_count: int = 0
+    changes: Optional[dict[str, Any]] = None
+    verified_mrms: bool = False
+    local_digest_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class DigestRegenerationHintCompact(BaseModel):
+    digest_regeneration_recommended: bool = False
+    reason: Optional[str] = None
+    suggested_command: Optional[str] = None
+    latest_escalation_level: Optional[str] = None
+    current_attention_or_urgent_streak: int = 0
+    latest_digest_at: Optional[str] = None
+    latest_escalation_snapshot_at: Optional[str] = None
+    latest_digest_diff_status: Optional[str] = None
+    verified_mrms: bool = False
+    local_digest_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    prototype: bool = True
+
+
+class ProofBundleDiffEscalationDigestDiffResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_digest_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    latest: Optional[dict[str, Any]] = None
+    count: int = 0
+    max_entries: int = 25
+    entries: list[dict[str, Any]] = Field(default_factory=list)
+    compact: ProofBundleDiffEscalationDigestDiffCompact
+    regeneration_hint: DigestRegenerationHintCompact
+
+
 class ValidationAlertsResponse(BaseModel):
     prototype: bool = True
     verified_mrms: bool = False
@@ -881,6 +971,13 @@ class ValidationSummaryResponse(BaseModel):
     proof_bundle_diff_escalation_history: Optional[ProofBundleDiffEscalationHistoryCompact] = None
     proof_bundle_diff_escalation_metrics: Optional[ProofBundleDiffEscalationMetricsCompact] = None
     proof_bundle_diff_escalation_digest: Optional[ProofBundleDiffEscalationDigestCompact] = None
+    proof_bundle_diff_escalation_digest_history: Optional[
+        ProofBundleDiffEscalationDigestHistoryCompact
+    ] = None
+    proof_bundle_diff_escalation_digest_diff: Optional[
+        ProofBundleDiffEscalationDigestDiffCompact
+    ] = None
+    digest_regeneration_hint: Optional[DigestRegenerationHintCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse

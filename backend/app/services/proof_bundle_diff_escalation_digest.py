@@ -189,6 +189,9 @@ def export_proof_bundle_diff_escalation_digest(storage: LocalStorage) -> dict[st
         "markdown_path": md_repo,
         "json_path": json_repo,
         "latest_escalation_level": escalation.get("escalation_level"),
+        "latest_diff_status": escalation.get("latest_diff_status"),
+        "current_attention_or_urgent_streak": metrics.get("current_attention_or_urgent_streak", 0),
+        "stale_acknowledgment_count": metrics.get("stale_acknowledgment_count", 0),
         "metrics": metrics,
         "snapshot_count": metrics.get("total_snapshots", 0),
         "urgent_count": metrics.get("urgent_count", 0),
@@ -203,6 +206,23 @@ def export_proof_bundle_diff_escalation_digest(storage: LocalStorage) -> dict[st
     storage.absolute_path(json_repo).write_text(
         json.dumps(metadata, indent=2, sort_keys=True),
         encoding="utf-8",
+    )
+
+    from backend.app.services.proof_bundle_diff_escalation_digest_diff import (
+        record_digest_diff_metadata,
+    )
+    from backend.app.services.proof_bundle_diff_escalation_digest_history import (
+        load_digest_export_history,
+        record_digest_export_history,
+    )
+
+    previous_entries = load_digest_export_history(storage)
+    baseline_entry = previous_entries[0] if previous_entries else None
+    record_digest_export_history(storage, metadata)
+    record_digest_diff_metadata(
+        storage,
+        metadata,
+        baseline_history_entry=baseline_entry,
     )
     return metadata
 

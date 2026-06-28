@@ -35,6 +35,15 @@ from backend.app.services.proof_bundle_diff_escalation_digest import (
     compact_proof_bundle_diff_escalation_digest,
     compact_scheduled_digest,
 )
+from backend.app.services.proof_bundle_diff_escalation_digest_diff import (
+    build_digest_regeneration_hint,
+    compact_digest_diff_summary,
+    load_latest_digest_diff_metadata,
+)
+from backend.app.services.proof_bundle_diff_escalation_digest_history import (
+    compact_digest_history_summary,
+    load_recent_digest_export_history,
+)
 from backend.app.services.proof_bundle_diff_alert_history import (
     compact_latest_proof_bundle_diff_alert,
     load_recent_proof_bundle_diff_alert_history,
@@ -144,6 +153,9 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
             storage
         ),
         "proof_bundle_diff_escalation_digest": compact_proof_bundle_diff_escalation_digest(storage),
+        "proof_bundle_diff_escalation_digest_history": compact_digest_history_summary(storage),
+        "proof_bundle_diff_escalation_digest_diff": compact_digest_diff_summary(storage),
+        "digest_regeneration_hint": build_digest_regeneration_hint(storage),
         "runbook_references": RUNBOOK_LINK_METADATA,
         "catalog": catalog,
     }
@@ -179,6 +191,11 @@ def build_validation_latest(storage: LocalStorage) -> dict[str, Any]:
             storage
         ),
         "proof_bundle_diff_escalation_digest": compact_proof_bundle_diff_escalation_digest(storage),
+        "proof_bundle_diff_escalation_digest_history": load_recent_digest_export_history(
+            storage, limit=25
+        ),
+        "proof_bundle_diff_escalation_digest_diff": load_latest_digest_diff_metadata(storage),
+        "digest_regeneration_hint": build_digest_regeneration_hint(storage),
     }
 
 

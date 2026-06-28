@@ -130,6 +130,8 @@ make proof-bundle-diff-escalation
 make proof-bundle-diff-escalation-history
 make proof-bundle-diff-escalation-metrics
 make proof-bundle-diff-escalation-digest
+make proof-bundle-diff-escalation-digest-history
+make proof-bundle-diff-escalation-digest-diff
 make proof-bundle-diff-acknowledge ARGS="--operator OP --note 'local review only'"
 make validation-failures
 make validation-alerts
@@ -211,6 +213,8 @@ Limitations:
 - `make proof-bundle-diff-escalation-history` shows bounded escalation snapshots over time
 - `make proof-bundle-diff-escalation-metrics` summarizes urgent/attention/watch counts and streaks
 - `make proof-bundle-diff-escalation-digest` exports local Markdown digest (not a notification system)
+- `make proof-bundle-diff-escalation-digest-history` shows bounded digest export history (local review only)
+- `make proof-bundle-diff-escalation-digest-diff` compares consecutive digest exports and shows regeneration hints
 - `make scheduled-proof-bundle-notify` runs proof bundle pipeline with optional local stdout urgent notice
 - `make proof-bundle-diff-acknowledge` records local acknowledgment (does not clear alerts or verify MRMS)
 - `make validation-failures` shows recent local failure log entries

@@ -375,6 +375,37 @@ make scheduled-proof-bundle-digest ARGS="--json-report"
 
 Summary API adds `scheduled_digest` compact (`digest_requested`, `digest_generated`, `digest_path`, `digest_reason`, …). `operator_handoff` compact adds escalation review fields when checklist was regenerated with `--digest`.
 
+## Digest export history + diff + regeneration hints (Phase 40)
+
+Bounded digest export history, diff metadata between consecutive exports, and Dev Validation regeneration hints — **local review only**.
+
+```bash
+make proof-bundle-diff-escalation-digest-history
+make proof-bundle-diff-escalation-digest-history ARGS="--json"
+make proof-bundle-diff-escalation-digest-diff
+make proof-bundle-diff-escalation-digest-diff ARGS="--json"
+curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-digest-history
+curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-digest-diff
+```
+
+**Digest history:**
+- `data/dev/proof_bundle_diff_escalation_digest_history.json` (gitignored, max 25)
+- Recorded automatically on each `make proof-bundle-diff-escalation-digest` or scheduled digest export
+
+**Digest diff:**
+- Compares latest export vs previous export metadata
+- `overall_digest_diff_status`: `no_baseline`, `unchanged`, `improved`, `worsened`, `mixed`, `unknown`
+- Persisted to `proof_bundle_diff_escalation_digest_diff_latest.json` + bounded diff history
+
+**When to regenerate digest/checklist:**
+- Urgent escalation and no digest exported yet
+- Latest digest older than latest escalation snapshot
+- Attention/urgent streak ≥ 2 with stale digest
+- Digest diff status `worsened` or `mixed`
+- Suggested command: `make scheduled-proof-bundle-digest`
+
+**Warnings:** Digest history/diff/hints do **not** verify MRMS, clear alerts, or enable production rendering.
+
 ## Proof bundle diff alert escalation (Phase 36)
 
 Escalation hints combine trend summary, diff alert history, and acknowledgment state — **local operator guidance only**. Escalation does **not** verify MRMS, clear alerts, enable production rendering, or mutate catalog gates.

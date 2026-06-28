@@ -477,6 +477,13 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Default `make scheduled-validation` unchanged; digest opt-in only
 - Does not verify MRMS, clear alerts, enable production, or send external notifications
 
+### Digest export history + diff + regeneration hints (Phase 40)
+- `proof_bundle_diff_escalation_digest_history.py` — bounded export history (max 25)
+- `proof_bundle_diff_escalation_digest_diff.py` — diff metadata + `build_digest_regeneration_hint()`
+- Recorded automatically on digest export; gitignored history/diff JSON files
+- `GET /api/validation/proof-bundle-diff-escalation-digest-history`, `GET .../digest-diff`
+- Summary: `proof_bundle_diff_escalation_digest_history`, `proof_bundle_diff_escalation_digest_diff`, `digest_regeneration_hint`
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4
