@@ -126,6 +126,20 @@ make mrms-signoff ARGS="--initials OP --notes 'reviewed' --accepted-limitations 
 
 Sign-off records `verified_mrms: false` and `does_not_set_verified_mrms: true` always.
 
+## Proof review history (Phase 28)
+
+Bounded read-only history for dev panel drill-down:
+
+```bash
+make mrms-proof-history
+make mrms-proof-history ARGS="--json"
+curl http://127.0.0.1:8000/api/validation/proof/history
+curl http://127.0.0.1:8000/api/validation/proof-regression/history
+curl http://127.0.0.1:8000/api/validation/signoffs
+```
+
+Dev Validation panel: **Show proof review** toggles proof history, regression history, and sign-off lists.
+
 ## Related docs
 
 - [RUNBOOK_REAL_MRMS_VALIDATION.md](RUNBOOK_REAL_MRMS_VALIDATION.md) — how to run and troubleshoot

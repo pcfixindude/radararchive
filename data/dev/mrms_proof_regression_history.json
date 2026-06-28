@@ -1,5 +1,13 @@
 [
   {
+    "checked_at": "2026-06-28T13:54:27Z",
+    "prototype": true,
+    "regression_count": 0,
+    "regression_detected": false,
+    "regression_status": "none",
+    "verified_mrms": false
+  },
+  {
     "checked_at": "2026-06-28T13:49:33Z",
     "prototype": true,
     "regression_count": 0,

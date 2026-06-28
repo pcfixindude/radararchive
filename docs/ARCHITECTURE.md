@@ -386,6 +386,17 @@ Scheduled validation: optional `--proof` runs proof report + regression after pi
 
 Dev API: `GET /api/validation/proof-regression`, `GET /api/validation/signoffs`; summary adds `mrms_proof_regression`, `mrms_signoff`.
 
+### Proof history drill-down + sign-off review UI (Phase 28)
+Read-only bounded history for dev panel:
+
+- `GET /api/validation/proof/history` — last 10 proof summaries + latest compact
+- `GET /api/validation/proof-regression/history` — last 10 regression checks
+- `GET /api/validation/signoffs` — compact local sign-off records
+
+CLI: `make mrms-proof-history` (`--regression`, `--signoffs`, `--json`).
+
+Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

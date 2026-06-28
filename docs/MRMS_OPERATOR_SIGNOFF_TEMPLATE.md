@@ -44,12 +44,13 @@ make mrms-signoff ARGS="--operator-name 'Jane Operator' --notes 'Reviewed proof 
 make mrms-signoff ARGS="--initials JO --accepted-limitations 'Not verified MRMS'"
 ```
 
-Persisted locally at `data/dev/mrms_signoffs.json`. Read via `GET /api/validation/signoffs`.
+Persisted locally at `data/dev/mrms_signoffs.json`. Read via `GET /api/validation/signoffs` or Dev Validation **Show proof review**.
 
 ## Related commands
 
 ```bash
 make mrms-proof-report
 make mrms-proof-regression
+make mrms-proof-history
 make validation-alerts
 ```

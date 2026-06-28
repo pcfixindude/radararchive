@@ -250,6 +250,7 @@ class MrmsProofRegressionCompact(BaseModel):
     regression_status: str = "inconclusive"
     regression_detected: bool = False
     regression_count: int = 0
+    summary: Optional[str] = None
     current_overall_status: Optional[str] = None
     previous_overall_status: Optional[str] = None
     verified_mrms: bool = False
@@ -272,11 +273,70 @@ class MrmsSignoffSummaryCompact(BaseModel):
     prototype: bool = True
 
 
-class MrmsSignoffsResponse(BaseModel):
+class MrmsProofHistoryEntryCompact(BaseModel):
+    generated_at: Optional[str] = None
+    overall_status: str = "not_started"
+    source_mode: Optional[str] = None
+    frame_count: int = 0
+    criteria_counts: MrmsProofCriteriaCounts = Field(default_factory=MrmsProofCriteriaCounts)
+    operator_review_required: bool = True
+    proof_only: bool = True
+    verified_mrms: bool = False
+    prototype: bool = True
+
+
+class MrmsProofHistoryResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    proof_only: bool = True
+    operator_review_required: bool = True
+    count: int = 0
+    max_entries: int = 10
+    latest: Optional[MrmsProofCompact] = None
+    entries: list[MrmsProofHistoryEntryCompact] = Field(default_factory=list)
+
+
+class MrmsProofRegressionHistoryEntryCompact(BaseModel):
+    checked_at: Optional[str] = None
+    regression_status: str = "inconclusive"
+    regression_detected: bool = False
+    regression_count: int = 0
+    summary: str = ""
+    verified_mrms: bool = False
+    prototype: bool = True
+
+
+class MrmsProofRegressionHistoryResponse(BaseModel):
     prototype: bool = True
     verified_mrms: bool = False
     count: int = 0
-    entries: list[dict[str, Any]] = Field(default_factory=list)
+    max_entries: int = 10
+    latest: Optional[MrmsProofRegressionCompact] = None
+    entries: list[MrmsProofRegressionHistoryEntryCompact] = Field(default_factory=list)
+
+
+class MrmsSignoffItemCompact(BaseModel):
+    signoff_id: Optional[str] = None
+    created_at: Optional[str] = None
+    operator_name: Optional[str] = None
+    operator_initials: Optional[str] = None
+    operator: Optional[str] = None
+    proof_report_timestamp: Optional[str] = None
+    frame_count_reviewed: int = 0
+    accepted_limitations: Optional[str] = None
+    verified_mrms: bool = False
+    does_not_set_verified_mrms: bool = True
+    local_signoff_only: bool = True
+    prototype: bool = True
+
+
+class MrmsSignoffsResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_signoff_only: bool = True
+    does_not_set_verified_mrms: bool = True
+    count: int = 0
+    entries: list[MrmsSignoffItemCompact] = Field(default_factory=list)
 
 
 class ScheduledValidationCompact(BaseModel):

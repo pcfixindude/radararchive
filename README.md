@@ -125,6 +125,7 @@ make validation-failures
 make validation-alerts
 make mrms-proof-report
 make mrms-proof-regression
+make mrms-proof-history
 make mrms-signoff
 make real-mrms-smoke-test
 make scheduled-validation ARGS="--proof"
@@ -137,6 +138,8 @@ curl http://127.0.0.1:8000/api/validation/failures
 curl http://127.0.0.1:8000/api/validation/alerts
 curl http://127.0.0.1:8000/api/validation/proof
 curl http://127.0.0.1:8000/api/validation/proof-regression
+curl http://127.0.0.1:8000/api/validation/proof/history
+curl http://127.0.0.1:8000/api/validation/proof-regression/history
 curl http://127.0.0.1:8000/api/validation/signoffs
 curl http://127.0.0.1:8000/api/validation/latest
 ```
@@ -177,6 +180,7 @@ Limitations:
 - `make validation-alerts` shows local validation alert marker and grouped failure causes
 - `make mrms-proof-report` generates draft verified-MRMS proof evidence report (not verified MRMS)
 - `make mrms-proof-regression` detects proof evidence regressions vs previous report
+- `make mrms-proof-history` shows bounded proof/regression/sign-off history (read-only)
 - `make mrms-signoff` records local operator sign-off (does not set verified_mrms)
 - `make real-mrms-smoke-test` runs intentional real-mode smoke test (count 1, zoom 0)
 - Operator runbook: [docs/RUNBOOK_REAL_MRMS_VALIDATION.md](docs/RUNBOOK_REAL_MRMS_VALIDATION.md)

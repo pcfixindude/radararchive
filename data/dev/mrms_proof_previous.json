@@ -78,7 +78,7 @@
     {
       "criterion_id": "failure_alert_hygiene",
       "details": {
-        "failure_count": 6,
+        "failure_count": 8,
         "warning_count": 0
       },
       "message": "validation alert status failed",
@@ -209,7 +209,7 @@
         "radar_file_id": 15,
         "raw_kind": "mrms_real_grib2",
         "raw_path": "data/raw/mrms/reflectivity/20260628T132638Z_MRMS_ReflectivityAtLowestAltitude_00.50_20260628-132638.grib2.gz",
-        "render_job_id": 15,
+        "render_job_id": 18,
         "render_status": "placeholder",
         "sha256": "c74c24e612f39934acb8cbf43f81da00ee64945d789f090b7a7c1be508e30066",
         "source": "mrms_discovered",
@@ -329,7 +329,7 @@
         "radar_file_id": 11,
         "raw_kind": "collector_stub",
         "raw_path": "data/raw/mrms/reflectivity/20260627T205000Z.grib2.stub",
-        "render_job_id": 16,
+        "render_job_id": 19,
         "render_status": "placeholder",
         "sha256": "ff7a8130104bd15ba147f3e4e9b72b4f52b6165983f2eb060a2fd11ce5cdabe8",
         "source": "collector_stub",
@@ -451,7 +451,7 @@
         "radar_file_id": 10,
         "raw_kind": "collector_stub",
         "raw_path": "data/raw/mrms/reflectivity/20260627T204500Z.grib2.stub",
-        "render_job_id": 17,
+        "render_job_id": 20,
         "render_status": "placeholder",
         "sha256": "72daf1edb8a40499cb28cfd9550aa864823384534e48450458216a22e31249d2",
         "source": "collector_stub",
@@ -471,7 +471,7 @@
       "timestamp": "2026-06-27T20:45:00Z"
     }
   ],
-  "generated_at": "2026-06-28T13:42:14Z",
+  "generated_at": "2026-06-28T13:49:33Z",
   "operator_review_required": true,
   "overall_status": "failed",
   "production_rendering_enabled": false,

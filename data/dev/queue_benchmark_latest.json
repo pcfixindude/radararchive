@@ -1,5 +1,5 @@
 {
-  "benchmarked_at": "2026-06-28T13:49:34Z",
+  "benchmarked_at": "2026-06-28T13:54:28Z",
   "dry_run": false,
   "effective_count": 3,
   "errors": [],
@@ -7,9 +7,9 @@
   "job_summaries": [
     {
       "decode_status": "not_decoded",
-      "elapsed_seconds": 0.0029,
+      "elapsed_seconds": 0.0041,
       "errors": [],
-      "job_id": 21,
+      "job_id": 24,
       "max_zoom": 1,
       "min_zoom": 0,
       "output_bytes": 0,
@@ -24,9 +24,9 @@
     },
     {
       "decode_status": "not_decoded",
-      "elapsed_seconds": 0.0018,
+      "elapsed_seconds": 0.0019,
       "errors": [],
-      "job_id": 22,
+      "job_id": 25,
       "max_zoom": 1,
       "min_zoom": 0,
       "output_bytes": 0,
@@ -41,9 +41,9 @@
     },
     {
       "decode_status": "not_decoded",
-      "elapsed_seconds": 0.0022,
+      "elapsed_seconds": 0.0025,
       "errors": [],
-      "job_id": 23,
+      "job_id": 26,
       "max_zoom": 1,
       "min_zoom": 0,
       "output_bytes": 0,
@@ -68,7 +68,7 @@
   "requested_count": 3,
   "source_mode": "stub",
   "stale_jobs_recovered": 0,
-  "total_elapsed_seconds": 0.0137,
+  "total_elapsed_seconds": 0.0156,
   "total_output_bytes": 0,
   "total_tiles_skipped": 0,
   "total_tiles_written": 0,

@@ -118,6 +118,8 @@ def create_signoff_record(
 
 
 def compact_signoff_summary(storage: LocalStorage) -> dict[str, Any]:
+    from backend.app.services.mrms_proof_history import compact_signoff_item
+
     entries = load_signoffs(storage)
     latest = entries[0] if entries else None
     return {
@@ -131,3 +133,10 @@ def compact_signoff_summary(storage: LocalStorage) -> dict[str, Any]:
         "does_not_set_verified_mrms": True,
         "prototype": True,
     }
+
+
+def list_compact_signoffs(storage: LocalStorage, *, limit: int = MAX_SIGNOFFS) -> list[dict[str, Any]]:
+    from backend.app.services.mrms_proof_history import compact_signoff_item
+
+    bounded = max(1, min(limit, MAX_SIGNOFFS))
+    return [compact_signoff_item(item) for item in load_signoffs(storage)[:bounded]]

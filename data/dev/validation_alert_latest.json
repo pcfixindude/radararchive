@@ -1,58 +1,58 @@
 {
-  "failure_count": 10,
+  "failure_count": 12,
   "grouped_failure_causes": [
     {
       "cause": "unknown",
-      "count": 15,
-      "latest_logged_at": "2026-06-28T13:49:34Z",
+      "count": 18,
+      "latest_logged_at": "2026-06-28T13:54:28Z",
       "message": "Queue benchmark is experimental prototype tooling \u2014 not verified MRMS production output",
       "normalized_message": "queue benchmark is experimental prototype tooling \u2014 not verified mrms production output",
       "step": "queue_benchmark"
     },
     {
       "cause": "no_grib2_artifact",
-      "count": 12,
-      "latest_logged_at": "2026-06-28T13:49:34Z",
+      "count": 15,
+      "latest_logged_at": "2026-06-28T13:54:28Z",
       "message": "Stub/offline mode: stub downloads are not real GRIB2; inspect/decode need real .grib2.gz",
       "normalized_message": "stub/offline mode: stub downloads are not real gribN; inspect/decode need real .gribN.gz",
       "step": "batch_validation"
     },
     {
       "cause": "decoder_unavailable",
-      "count": 6,
-      "latest_logged_at": "2026-06-28T13:49:34Z",
+      "count": 7,
+      "latest_logged_at": "2026-06-28T13:54:28Z",
       "message": "No optional GRIB2 decoder; decode skipped for all frames.",
       "normalized_message": "no optional gribN decoder; decode skipped for all frames.",
       "step": "batch_validation"
     },
     {
       "cause": "production_flag_off",
-      "count": 5,
-      "latest_logged_at": "2026-06-28T13:49:34Z",
+      "count": 6,
+      "latest_logged_at": "2026-06-28T13:54:28Z",
       "message": "Production tile serving remains disabled (ENABLE_PRODUCTION_RADAR_TILES=false)",
       "normalized_message": "production tile serving remains disabled (enable_production_radar_tiles=false)",
       "step": "queue_benchmark"
     },
     {
       "cause": "unknown",
-      "count": 4,
-      "latest_logged_at": "2026-06-28T13:49:34Z",
+      "count": 5,
+      "latest_logged_at": "2026-06-28T13:54:28Z",
       "message": "Real mode: MRMS_SOURCE_MODE=real make validate-real-mrms-batch ARGS='--real'",
       "normalized_message": "real mode: mrms_source_mode=real make validate-real-mrms-batch args='--real'",
       "step": "batch_validation"
     },
     {
       "cause": "no_network",
-      "count": 4,
-      "latest_logged_at": "2026-06-28T13:49:34Z",
+      "count": 5,
+      "latest_logged_at": "2026-06-28T13:54:28Z",
       "message": "Stub/offline mode: using local catalog only; no network discovery/download",
       "normalized_message": "stub/offline mode: using local catalog only; no network discovery/download",
       "step": "queue_benchmark"
     },
     {
       "cause": "no_grib2_artifact",
-      "count": 4,
-      "latest_logged_at": "2026-06-28T13:49:34Z",
+      "count": 5,
+      "latest_logged_at": "2026-06-28T13:54:28Z",
       "message": "No decode artifacts produced across batch.",
       "normalized_message": "no decode artifacts produced across batch.",
       "step": "batch_validation"
@@ -74,7 +74,7 @@
       "step": "batch_validation"
     }
   ],
-  "latest_run_at": "2026-06-28T13:49:34Z",
+  "latest_run_at": "2026-06-28T13:54:28Z",
   "operator_attention_needed": true,
   "production_rendering_enabled": false,
   "proof_regression_count": 0,
@@ -83,8 +83,8 @@
   "prototype": true,
   "status": "failed",
   "suggested_next_action": "Review make validation-failures and docs/RUNBOOK_REAL_MRMS_VALIDATION.md.",
-  "total_logged": 10,
-  "updated_at": "2026-06-28T13:49:34Z",
+  "total_logged": 12,
+  "updated_at": "2026-06-28T13:54:28Z",
   "verified_mrms": false,
   "warning_count": 0
 }

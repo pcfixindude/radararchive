@@ -1165,3 +1165,33 @@ cd frontend && npm run build
 - Sign-off is CLI/local JSON only (no verified_mrms promotion)
 - `verified_mrms` always false
 - Production serving gates unchanged; placeholder default unchanged
+
+## Phase 28 - Proof History Drill-Down + Sign-Off Review UI
+
+Bounded read-only proof/regression/sign-off history APIs and dev panel proof review section.
+
+### Backend
+- `mrms_proof_history.py` — compact history builders
+- `GET /api/validation/proof/history`
+- `GET /api/validation/proof-regression/history`
+- `GET /api/validation/signoffs` — compact sign-off items
+
+### Scripts / Makefile
+- `scripts/mrms_proof_history.py` — `make mrms-proof-history`
+
+### Frontend
+- Dev Validation: **Show proof review** toggle with history lists
+
+### Run commands
+
+```bash
+make test
+make mrms-proof-history
+cd frontend && npm run build
+```
+
+### Known limitations
+- History is local JSON only; no delete/reset endpoints
+- Sign-off remains CLI-primary (API read-only)
+- `verified_mrms` always false
+- Production serving gates unchanged; placeholder default unchanged

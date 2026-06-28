@@ -372,6 +372,65 @@ export type MrmsSignoffSummaryCompact = {
   prototype: boolean;
 };
 
+export type MrmsProofHistoryEntry = {
+  generated_at?: string | null;
+  overall_status: string;
+  source_mode?: string | null;
+  frame_count: number;
+  criteria_counts?: MrmsProofCriteriaCounts;
+  operator_review_required: boolean;
+  verified_mrms: boolean;
+};
+
+export type MrmsProofHistory = {
+  prototype: boolean;
+  verified_mrms: boolean;
+  count: number;
+  max_entries: number;
+  latest: MrmsProofCompact | null;
+  entries: MrmsProofHistoryEntry[];
+};
+
+export type MrmsProofRegressionHistoryEntry = {
+  checked_at?: string | null;
+  regression_status: string;
+  regression_detected: boolean;
+  regression_count: number;
+  summary: string;
+  verified_mrms: boolean;
+};
+
+export type MrmsProofRegressionHistory = {
+  prototype: boolean;
+  verified_mrms: boolean;
+  count: number;
+  max_entries: number;
+  latest: MrmsProofRegressionCompact | null;
+  entries: MrmsProofRegressionHistoryEntry[];
+};
+
+export type MrmsSignoffItem = {
+  signoff_id?: string | null;
+  created_at?: string | null;
+  operator?: string | null;
+  operator_name?: string | null;
+  operator_initials?: string | null;
+  proof_report_timestamp?: string | null;
+  accepted_limitations?: string | null;
+  verified_mrms: boolean;
+  does_not_set_verified_mrms: boolean;
+  local_signoff_only: boolean;
+};
+
+export type MrmsSignoffsList = {
+  prototype: boolean;
+  verified_mrms: boolean;
+  local_signoff_only: boolean;
+  does_not_set_verified_mrms: boolean;
+  count: number;
+  entries: MrmsSignoffItem[];
+};
+
 export type ValidationLatest = {
   prototype: boolean;
   verified_mrms: boolean;
@@ -479,6 +538,55 @@ export async function fetchValidationLatest(): Promise<ValidationLatest | null> 
   } catch {
     return null;
   }
+}
+
+export async function fetchProofHistory(): Promise<MrmsProofHistory | null> {
+  try {
+    const response = await fetch(`${API_BASE}/api/validation/proof/history`);
+    if (!response.ok) {
+      return null;
+    }
+    return response.json() as Promise<MrmsProofHistory>;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchProofRegressionHistory(): Promise<MrmsProofRegressionHistory | null> {
+  try {
+    const response = await fetch(`${API_BASE}/api/validation/proof-regression/history`);
+    if (!response.ok) {
+      return null;
+    }
+    return response.json() as Promise<MrmsProofRegressionHistory>;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchSignoffsList(): Promise<MrmsSignoffsList | null> {
+  try {
+    const response = await fetch(`${API_BASE}/api/validation/signoffs`);
+    if (!response.ok) {
+      return null;
+    }
+    return response.json() as Promise<MrmsSignoffsList>;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchProofReviewData(): Promise<{
+  proofHistory: MrmsProofHistory | null;
+  regressionHistory: MrmsProofRegressionHistory | null;
+  signoffs: MrmsSignoffsList | null;
+}> {
+  const [proofHistory, regressionHistory, signoffs] = await Promise.all([
+    fetchProofHistory(),
+    fetchProofRegressionHistory(),
+    fetchSignoffsList(),
+  ]);
+  return { proofHistory, regressionHistory, signoffs };
 }
 
 export function tileUrl(layer: string, timestamp: string, plan: DemoPlan, z = 0, x = 0, y = 0): string {

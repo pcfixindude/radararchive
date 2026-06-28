@@ -1,4 +1,4 @@
-.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once discover-mrms download-mrms inspect-grib2 decode-grib2 build-tile-cache build-production-tiles render-status render-queue-status enqueue-render-job render-worker-once render-worker validate-real-mrms validate-real-mrms-batch benchmark-real-mrms benchmark-render-queue scheduled-validation validation-failures validation-alerts mrms-proof-report mrms-proof-regression mrms-signoff real-mrms-smoke-test catalog-status
+.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once discover-mrms download-mrms inspect-grib2 decode-grib2 build-tile-cache build-production-tiles render-status render-queue-status enqueue-render-job render-worker-once render-worker validate-real-mrms validate-real-mrms-batch benchmark-real-mrms benchmark-render-queue scheduled-validation validation-failures validation-alerts mrms-proof-report mrms-proof-regression mrms-signoff mrms-proof-history real-mrms-smoke-test catalog-status
 
 ARGS ?=
 
@@ -94,6 +94,9 @@ mrms-proof-regression:
 
 mrms-signoff:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_signoff.py $(ARGS)
+
+mrms-proof-history:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_proof_history.py $(ARGS)
 
 real-mrms-smoke-test:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/real_mrms_smoke_test.py $(ARGS)

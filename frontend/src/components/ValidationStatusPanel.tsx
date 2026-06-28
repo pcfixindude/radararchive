@@ -1,5 +1,12 @@
-import { useState } from 'react';
-import { fetchValidationLatest, type ValidationSummary } from '../api/client';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  fetchProofReviewData,
+  fetchValidationLatest,
+  type MrmsProofHistory,
+  type MrmsProofRegressionHistory,
+  type MrmsSignoffsList,
+  type ValidationSummary,
+} from '../api/client';
 
 function yesNo(value: boolean): string {
   return value ? 'yes' : 'no';
@@ -22,8 +29,36 @@ export default function ValidationStatusPanel({
   refreshing?: boolean;
 }) {
   const [showDetails, setShowDetails] = useState(false);
+  const [showProofReview, setShowProofReview] = useState(false);
   const [detailsJson, setDetailsJson] = useState<string | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [proofHistory, setProofHistory] = useState<MrmsProofHistory | null>(null);
+  const [regressionHistory, setRegressionHistory] = useState<MrmsProofRegressionHistory | null>(null);
+  const [signoffsList, setSignoffsList] = useState<MrmsSignoffsList | null>(null);
+  const [proofReviewLoading, setProofReviewLoading] = useState(false);
+
+  const loadProofReview = useCallback(async () => {
+    setProofReviewLoading(true);
+    try {
+      const data = await fetchProofReviewData();
+      setProofHistory(data.proofHistory);
+      setRegressionHistory(data.regressionHistory);
+      setSignoffsList(data.signoffs);
+    } finally {
+      setProofReviewLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadProofReview();
+  }, [loadProofReview]);
+
+  async function handleRefresh() {
+    if (onRefresh) {
+      await onRefresh();
+    }
+    await loadProofReview();
+  }
 
   async function toggleDetails() {
     if (showDetails) {
@@ -80,8 +115,8 @@ export default function ValidationStatusPanel({
             {detailsLoading ? 'Loading…' : showDetails ? 'Hide details' : 'Show details'}
           </button>
           {onRefresh ? (
-            <button type="button" className="validation-refresh" onClick={onRefresh} disabled={refreshing}>
-              {refreshing ? 'Refreshing…' : 'Refresh'}
+            <button type="button" className="validation-refresh" onClick={() => void handleRefresh()} disabled={refreshing || proofReviewLoading}>
+              {refreshing || proofReviewLoading ? 'Refreshing…' : 'Refresh'}
             </button>
           ) : null}
         </div>
@@ -164,6 +199,71 @@ export default function ValidationStatusPanel({
           {formatTimestamp(signoffSummary.latest_signoff_at)} — does not enable production rendering — not verified
           MRMS
         </p>
+      ) : null}
+      <div className="validation-header-actions" style={{ marginTop: '0.5rem' }}>
+        <button
+          type="button"
+          className="validation-refresh"
+          onClick={() => setShowProofReview((value) => !value)}
+        >
+          {showProofReview ? 'Hide proof review' : 'Show proof review'}
+        </button>
+      </div>
+      {showProofReview ? (
+        <section className="validation-proof-review">
+          <p className="validation-warn">Proof review draft — not verified MRMS; local sign-off only.</p>
+          <p className="validation-meta">
+            Proof history ({proofHistory?.count ?? 0} saved) — latest{' '}
+            {formatTimestamp(proofHistory?.latest?.generated_at)}
+          </p>
+          {(proofHistory?.entries ?? []).length > 0 ? (
+            <ul className="validation-history-list">
+              {proofHistory?.entries.map((entry, index) => (
+                <li key={`${entry.generated_at ?? 'proof'}-${index}`} className="validation-meta">
+                  {formatTimestamp(entry.generated_at)} — {entry.overall_status} — frames {entry.frame_count}
+                  {entry.criteria_counts
+                    ? ` (p${entry.criteria_counts.passed}/f${entry.criteria_counts.failed}/w${entry.criteria_counts.warning})`
+                    : ''}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="validation-meta">No proof history — run make mrms-proof-report.</p>
+          )}
+          <p className="validation-meta">
+            Regression history ({regressionHistory?.count ?? 0} saved)
+          </p>
+          {(regressionHistory?.entries ?? []).length > 0 ? (
+            <ul className="validation-history-list">
+              {regressionHistory?.entries.map((entry, index) => (
+                <li key={`${entry.checked_at ?? 'reg'}-${index}`} className="validation-meta">
+                  {formatTimestamp(entry.checked_at)} — {entry.summary}
+                  {entry.regression_detected ? ' (attention)' : ''}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="validation-meta">No regression history — run make mrms-proof-regression.</p>
+          )}
+          <p className="validation-meta">
+            Local sign-offs ({signoffsList?.count ?? 0}) — does not enable production rendering
+          </p>
+          {(signoffsList?.entries ?? []).length > 0 ? (
+            <ul className="validation-history-list">
+              {signoffsList?.entries.map((entry, index) => (
+                <li key={`${entry.signoff_id ?? 'signoff'}-${index}`} className="validation-meta">
+                  {formatTimestamp(entry.created_at)} — {entry.operator ?? '—'}
+                  {entry.proof_report_timestamp
+                    ? ` (proof ${formatTimestamp(entry.proof_report_timestamp)})`
+                    : ''}
+                  {entry.accepted_limitations ? `: ${entry.accepted_limitations}` : ''}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="validation-meta">No sign-offs — run make mrms-signoff (local only).</p>
+          )}
+        </section>
       ) : null}
       <p className="validation-meta">Placeholder default: {yesNo(summary.placeholder_default)}</p>
       <p className="validation-meta">

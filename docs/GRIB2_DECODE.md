@@ -335,6 +335,10 @@ When a new proof report is worse than the previous snapshot, `make mrms-proof-re
 
 Sign-off via `make mrms-signoff` is local audit only — `verified_mrms` stays false.
 
+## Proof review history (Phase 28)
+
+`make mrms-proof-history` lists bounded proof/regression/sign-off records for operator drill-down. Dev panel **Show proof review** uses the history APIs.
+
 ## Inspection CLI
 
 ```bash

@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 from backend.app.config import settings
 from backend.app.database import get_db
 from backend.app.schemas.validation import (
+    MrmsProofHistoryResponse,
+    MrmsProofRegressionHistoryResponse,
     MrmsProofRegressionResponse,
     MrmsProofResponse,
     MrmsSignoffsResponse,
@@ -18,9 +20,13 @@ from backend.app.schemas.validation import (
     ValidationSummaryResponse,
 )
 from backend.app.services.storage import LocalStorage
+from backend.app.services.mrms_proof_history import (
+    build_proof_history_payload,
+    build_regression_history_payload,
+    build_signoffs_list_payload,
+)
 from backend.app.services.mrms_proof_regression import load_proof_regression_report, run_proof_regression_check
 from backend.app.services.mrms_proof_report import load_mrms_proof_report
-from backend.app.services.mrms_signoff import load_signoffs
 from backend.app.services.validation_alerts import load_validation_alert, refresh_validation_alert
 from backend.app.services.validation_dashboard import build_validation_latest, build_validation_summary
 from backend.app.services.validation_failure_log import (
@@ -134,6 +140,14 @@ def validation_alerts(refresh: bool = False) -> ValidationAlertsResponse:
     )
 
 
+@router.get("/proof/history", response_model=MrmsProofHistoryResponse)
+def validation_proof_history() -> MrmsProofHistoryResponse:
+    """Bounded MRMS proof report history (dev/prototype, read-only)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_proof_history_payload(storage)
+    return MrmsProofHistoryResponse(**payload)
+
+
 @router.get("/proof", response_model=MrmsProofResponse)
 def validation_proof() -> MrmsProofResponse:
     """Latest draft MRMS proof report (evidence only — not verified MRMS)."""
@@ -146,6 +160,14 @@ def validation_proof() -> MrmsProofResponse:
         operator_review_required=True,
         report=report,
     )
+
+
+@router.get("/proof-regression/history", response_model=MrmsProofRegressionHistoryResponse)
+def validation_proof_regression_history() -> MrmsProofRegressionHistoryResponse:
+    """Bounded MRMS proof regression history (dev/prototype, read-only)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_regression_history_payload(storage)
+    return MrmsProofRegressionHistoryResponse(**payload)
 
 
 @router.get("/proof-regression", response_model=MrmsProofRegressionResponse)
@@ -165,13 +187,8 @@ def validation_proof_regression(refresh: bool = False) -> MrmsProofRegressionRes
 
 
 @router.get("/signoffs", response_model=MrmsSignoffsResponse)
-def validation_signoffs() -> MrmsSignoffsResponse:
+def validation_signoffs(limit: int = 25) -> MrmsSignoffsResponse:
     """Local operator sign-off records (read-only; does not set verified_mrms)."""
     storage = LocalStorage(settings.local_storage_root)
-    entries = load_signoffs(storage)
-    return MrmsSignoffsResponse(
-        prototype=True,
-        verified_mrms=False,
-        count=len(entries),
-        entries=entries[:25],
-    )
+    payload = build_signoffs_list_payload(storage, limit=limit)
+    return MrmsSignoffsResponse(**payload)

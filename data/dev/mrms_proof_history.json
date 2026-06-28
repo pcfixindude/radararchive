@@ -8,6 +8,23 @@
       "warning": 0
     },
     "frame_count": 3,
+    "generated_at": "2026-06-28T13:54:27Z",
+    "operator_review_required": true,
+    "overall_status": "failed",
+    "proof_only": true,
+    "prototype": true,
+    "source_mode": "stub",
+    "verified_mrms": false
+  },
+  {
+    "criteria_counts": {
+      "failed": 5,
+      "passed": 0,
+      "skipped": 5,
+      "unknown": 0,
+      "warning": 0
+    },
+    "frame_count": 3,
     "generated_at": "2026-06-28T13:49:33Z",
     "operator_review_required": true,
     "overall_status": "failed",

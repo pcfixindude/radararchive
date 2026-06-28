@@ -218,7 +218,11 @@ Summary additions (Phase 27): `mrms_proof_regression` compact status, `mrms_sign
 
 `GET /api/validation/proof-regression` — latest regression report (`?refresh=true` re-runs check). `verified_mrms: false`.
 
-`GET /api/validation/signoffs` — local operator sign-off records (read-only). `verified_mrms: false`.
+`GET /api/validation/signoffs` — local operator sign-off records (read-only, compact). `verified_mrms: false`.
+
+`GET /api/validation/proof/history` — bounded proof report history (last 10) + latest compact. `verified_mrms: false`.
+
+`GET /api/validation/proof-regression/history` — bounded regression history (last 10) + latest compact. `verified_mrms: false`.
 
 `GET /api/catalog/status` — MRMS catalog frame counts by download/process/render status, latest timestamps.
 
