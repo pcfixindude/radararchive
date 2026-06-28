@@ -1,0 +1,490 @@
+{
+  "aggregate_criteria": [
+    {
+      "criterion_id": "real_noaa_source",
+      "details": {
+        "source_url": "https://noaa-mrms-pds.s3.amazonaws.com/CONUS/ReflectivityAtLowestAltitude_00.50/20260628/MRMS_ReflectivityAtLowestAltitude_00.50_20260628-132638.grib2.gz"
+      },
+      "frame_messages": [
+        "stub/placeholder raw \u2014 not real NOAA MRMS"
+      ],
+      "message": "real .grib2.gz with checksum recorded",
+      "status": "failed"
+    },
+    {
+      "criterion_id": "decoder_and_artifacts",
+      "details": {},
+      "frame_messages": [
+        "no decode artifacts; decoder may be unavailable"
+      ],
+      "message": "no decode artifacts; decoder may be unavailable",
+      "status": "failed"
+    },
+    {
+      "criterion_id": "product_time_metadata",
+      "details": {},
+      "frame_messages": [
+        "no geo_metadata for time confirmation"
+      ],
+      "message": "no geo_metadata for time confirmation",
+      "status": "skipped"
+    },
+    {
+      "criterion_id": "geospatial_correctness",
+      "details": {},
+      "frame_messages": [
+        "no geo_metadata to evaluate"
+      ],
+      "message": "no geo_metadata to evaluate",
+      "status": "skipped"
+    },
+    {
+      "criterion_id": "visual_sanity_checks",
+      "details": {},
+      "frame_messages": [
+        "requires operator visual spot-check (not automated)"
+      ],
+      "message": "requires operator visual spot-check (not automated)",
+      "status": "skipped"
+    },
+    {
+      "criterion_id": "tile_output_from_decoded",
+      "details": {},
+      "frame_messages": [
+        "no tiles from decoded data"
+      ],
+      "message": "no tiles from decoded data",
+      "status": "failed"
+    },
+    {
+      "criterion_id": "production_path_intentional",
+      "details": {},
+      "frame_messages": [
+        "ENABLE_PRODUCTION_RADAR_TILES=false (default) \u2014 intentional"
+      ],
+      "message": "ENABLE_PRODUCTION_RADAR_TILES=false (default) \u2014 intentional",
+      "status": "skipped"
+    },
+    {
+      "criterion_id": "repeatable_multi_frame",
+      "details": {
+        "decoded_frames": 0,
+        "frame_count": 3,
+        "real_frames": 1
+      },
+      "message": "insufficient real/decoded frames across batch",
+      "status": "failed"
+    },
+    {
+      "criterion_id": "failure_alert_hygiene",
+      "details": {
+        "failure_count": 6,
+        "warning_count": 0
+      },
+      "message": "validation alert status failed",
+      "status": "failed"
+    },
+    {
+      "criterion_id": "operator_review",
+      "details": {
+        "signing_does_not_set_verified_mrms": true
+      },
+      "message": "operator sign-off required \u2014 use docs/MRMS_OPERATOR_SIGNOFF_TEMPLATE.md",
+      "status": "skipped"
+    }
+  ],
+  "criteria_counts": {
+    "failed": 5,
+    "passed": 0,
+    "skipped": 5,
+    "unknown": 0,
+    "warning": 0
+  },
+  "decoder_available": false,
+  "errors": [],
+  "frame_count": 3,
+  "frames": [
+    {
+      "criteria": [
+        {
+          "criterion_id": "real_noaa_source",
+          "details": {
+            "source_url": "https://noaa-mrms-pds.s3.amazonaws.com/CONUS/ReflectivityAtLowestAltitude_00.50/20260628/MRMS_ReflectivityAtLowestAltitude_00.50_20260628-132638.grib2.gz"
+          },
+          "message": "real .grib2.gz with checksum recorded",
+          "status": "passed"
+        },
+        {
+          "criterion_id": "decoder_and_artifacts",
+          "details": {},
+          "message": "no decode artifacts; decoder may be unavailable",
+          "status": "failed"
+        },
+        {
+          "criterion_id": "product_time_metadata",
+          "details": {},
+          "message": "no geo_metadata for time confirmation",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "geospatial_correctness",
+          "details": {},
+          "message": "no geo_metadata to evaluate",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "visual_sanity_checks",
+          "details": {},
+          "message": "requires operator visual spot-check (not automated)",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "tile_output_from_decoded",
+          "details": {},
+          "message": "no tiles from decoded data",
+          "status": "failed"
+        },
+        {
+          "criterion_id": "production_path_intentional",
+          "details": {},
+          "message": "ENABLE_PRODUCTION_RADAR_TILES=false (default) \u2014 intentional",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "repeatable_multi_frame",
+          "details": {},
+          "message": "evaluated at report level",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "failure_alert_hygiene",
+          "details": {},
+          "message": "evaluated at report level",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "operator_review",
+          "details": {},
+          "message": "evaluated at report level",
+          "status": "skipped"
+        }
+      ],
+      "evidence": {
+        "decode_artifact_path": null,
+        "decoder_available": false,
+        "decoder_summary": "No GRIB2 decoder tools detected. Install wgrib2 for CLI inspection, or optional Python packages (rasterio/GDAL, pygrib, cfgrib) for future phases.",
+        "decoder_used": null,
+        "download_status": "downloaded",
+        "errors": [],
+        "file_size_bytes": 939659,
+        "geo_metadata": null,
+        "geo_metadata_path": null,
+        "geo_sanity": {
+          "bounds_in_conus_mrms_range": false,
+          "bounds_valid": false,
+          "crs_present": false,
+          "errors": [
+            "geo_metadata missing"
+          ],
+          "grid_positive": false,
+          "tile_output_nonempty": false,
+          "transform_present_or_fallback": false,
+          "warnings": []
+        },
+        "grib2_inspection": {
+          "compressed_size_bytes": 939659,
+          "decoder_used": null,
+          "error": null,
+          "has_grib_magic": true,
+          "inspectable": true,
+          "notes": [
+            "No GRIB2 decoder tools detected. Install wgrib2 for CLI inspection, or optional Python packages (rasterio/GDAL, pygrib, cfgrib) for future phases.",
+            "No decoder installed \u2014 reported gzip/GRIB magic checks only. Install wgrib2 or optional Python geospatial packages for richer metadata."
+          ],
+          "raw_kind": "mrms_real_grib2"
+        },
+        "layer": "mrms_reflectivity",
+        "processed_status": "pending",
+        "production_rendering": false,
+        "radar_file_id": 15,
+        "raw_kind": "mrms_real_grib2",
+        "raw_path": "data/raw/mrms/reflectivity/20260628T132638Z_MRMS_ReflectivityAtLowestAltitude_00.50_20260628-132638.grib2.gz",
+        "render_job_id": 15,
+        "render_status": "placeholder",
+        "sha256": "c74c24e612f39934acb8cbf43f81da00ee64945d789f090b7a7c1be508e30066",
+        "source": "mrms_discovered",
+        "source_provider": "noaa_aws",
+        "source_url": "https://noaa-mrms-pds.s3.amazonaws.com/CONUS/ReflectivityAtLowestAltitude_00.50/20260628/MRMS_ReflectivityAtLowestAltitude_00.50_20260628-132638.grib2.gz",
+        "tile_cache_path": null,
+        "tiles_planned": 1,
+        "tiles_skipped": 0,
+        "tiles_written": 0,
+        "timestamp": "2026-06-28T13:26:38Z",
+        "warnings": []
+      },
+      "layer": "mrms_reflectivity",
+      "radar_file_id": 15,
+      "timestamp": "2026-06-28T13:26:38Z"
+    },
+    {
+      "criteria": [
+        {
+          "criterion_id": "real_noaa_source",
+          "details": {},
+          "message": "stub/placeholder raw \u2014 not real NOAA MRMS",
+          "status": "failed"
+        },
+        {
+          "criterion_id": "decoder_and_artifacts",
+          "details": {},
+          "message": "no decode artifacts; decoder may be unavailable",
+          "status": "failed"
+        },
+        {
+          "criterion_id": "product_time_metadata",
+          "details": {},
+          "message": "no geo_metadata for time confirmation",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "geospatial_correctness",
+          "details": {},
+          "message": "no geo_metadata to evaluate",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "visual_sanity_checks",
+          "details": {},
+          "message": "requires operator visual spot-check (not automated)",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "tile_output_from_decoded",
+          "details": {},
+          "message": "no tiles from decoded data",
+          "status": "failed"
+        },
+        {
+          "criterion_id": "production_path_intentional",
+          "details": {},
+          "message": "ENABLE_PRODUCTION_RADAR_TILES=false (default) \u2014 intentional",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "repeatable_multi_frame",
+          "details": {},
+          "message": "evaluated at report level",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "failure_alert_hygiene",
+          "details": {},
+          "message": "evaluated at report level",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "operator_review",
+          "details": {},
+          "message": "evaluated at report level",
+          "status": "skipped"
+        }
+      ],
+      "evidence": {
+        "decode_artifact_path": null,
+        "decoder_available": false,
+        "decoder_summary": "No GRIB2 decoder tools detected. Install wgrib2 for CLI inspection, or optional Python packages (rasterio/GDAL, pygrib, cfgrib) for future phases.",
+        "decoder_used": null,
+        "download_status": "pending",
+        "errors": [],
+        "file_size_bytes": 138,
+        "geo_metadata": null,
+        "geo_metadata_path": null,
+        "geo_sanity": {
+          "bounds_in_conus_mrms_range": false,
+          "bounds_valid": false,
+          "crs_present": false,
+          "errors": [
+            "geo_metadata missing"
+          ],
+          "grid_positive": false,
+          "tile_output_nonempty": false,
+          "transform_present_or_fallback": false,
+          "warnings": []
+        },
+        "grib2_inspection": {
+          "compressed_size_bytes": null,
+          "decoder_used": null,
+          "error": null,
+          "has_grib_magic": null,
+          "inspectable": false,
+          "notes": [
+            "File is a stub/demo placeholder \u2014 not a real GRIB2.gz candidate.",
+            "GRIB2 inspection applies to downloaded .grib2.gz files only."
+          ],
+          "raw_kind": "mrms_download_stub"
+        },
+        "layer": "mrms_reflectivity",
+        "processed_status": "placeholder_processed",
+        "production_rendering": false,
+        "radar_file_id": 11,
+        "raw_kind": "collector_stub",
+        "raw_path": "data/raw/mrms/reflectivity/20260627T205000Z.grib2.stub",
+        "render_job_id": 16,
+        "render_status": "placeholder",
+        "sha256": "ff7a8130104bd15ba147f3e4e9b72b4f52b6165983f2eb060a2fd11ce5cdabe8",
+        "source": "collector_stub",
+        "source_provider": null,
+        "source_url": null,
+        "tile_cache_path": null,
+        "tiles_planned": 1,
+        "tiles_skipped": 0,
+        "tiles_written": 0,
+        "timestamp": "2026-06-27T20:50:00Z",
+        "warnings": [
+          "stub/placeholder raw file \u2014 not real NOAA MRMS proof"
+        ]
+      },
+      "layer": "mrms_reflectivity",
+      "radar_file_id": 11,
+      "timestamp": "2026-06-27T20:50:00Z"
+    },
+    {
+      "criteria": [
+        {
+          "criterion_id": "real_noaa_source",
+          "details": {},
+          "message": "stub/placeholder raw \u2014 not real NOAA MRMS",
+          "status": "failed"
+        },
+        {
+          "criterion_id": "decoder_and_artifacts",
+          "details": {},
+          "message": "no decode artifacts; decoder may be unavailable",
+          "status": "failed"
+        },
+        {
+          "criterion_id": "product_time_metadata",
+          "details": {},
+          "message": "no geo_metadata for time confirmation",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "geospatial_correctness",
+          "details": {},
+          "message": "no geo_metadata to evaluate",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "visual_sanity_checks",
+          "details": {},
+          "message": "requires operator visual spot-check (not automated)",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "tile_output_from_decoded",
+          "details": {},
+          "message": "no tiles from decoded data",
+          "status": "failed"
+        },
+        {
+          "criterion_id": "production_path_intentional",
+          "details": {},
+          "message": "ENABLE_PRODUCTION_RADAR_TILES=false (default) \u2014 intentional",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "repeatable_multi_frame",
+          "details": {},
+          "message": "evaluated at report level",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "failure_alert_hygiene",
+          "details": {},
+          "message": "evaluated at report level",
+          "status": "skipped"
+        },
+        {
+          "criterion_id": "operator_review",
+          "details": {},
+          "message": "evaluated at report level",
+          "status": "skipped"
+        }
+      ],
+      "evidence": {
+        "decode_artifact_path": null,
+        "decoder_available": false,
+        "decoder_summary": "No GRIB2 decoder tools detected. Install wgrib2 for CLI inspection, or optional Python packages (rasterio/GDAL, pygrib, cfgrib) for future phases.",
+        "decoder_used": null,
+        "download_status": "pending",
+        "errors": [],
+        "file_size_bytes": 138,
+        "geo_metadata": null,
+        "geo_metadata_path": null,
+        "geo_sanity": {
+          "bounds_in_conus_mrms_range": false,
+          "bounds_valid": false,
+          "crs_present": false,
+          "errors": [
+            "geo_metadata missing"
+          ],
+          "grid_positive": false,
+          "tile_output_nonempty": false,
+          "transform_present_or_fallback": false,
+          "warnings": []
+        },
+        "grib2_inspection": {
+          "compressed_size_bytes": null,
+          "decoder_used": null,
+          "error": null,
+          "has_grib_magic": null,
+          "inspectable": false,
+          "notes": [
+            "File is a stub/demo placeholder \u2014 not a real GRIB2.gz candidate.",
+            "GRIB2 inspection applies to downloaded .grib2.gz files only."
+          ],
+          "raw_kind": "mrms_download_stub"
+        },
+        "layer": "mrms_reflectivity",
+        "processed_status": "placeholder_processed",
+        "production_rendering": false,
+        "radar_file_id": 10,
+        "raw_kind": "collector_stub",
+        "raw_path": "data/raw/mrms/reflectivity/20260627T204500Z.grib2.stub",
+        "render_job_id": 17,
+        "render_status": "placeholder",
+        "sha256": "72daf1edb8a40499cb28cfd9550aa864823384534e48450458216a22e31249d2",
+        "source": "collector_stub",
+        "source_provider": null,
+        "source_url": null,
+        "tile_cache_path": null,
+        "tiles_planned": 1,
+        "tiles_skipped": 0,
+        "tiles_written": 0,
+        "timestamp": "2026-06-27T20:45:00Z",
+        "warnings": [
+          "stub/placeholder raw file \u2014 not real NOAA MRMS proof"
+        ]
+      },
+      "layer": "mrms_reflectivity",
+      "radar_file_id": 10,
+      "timestamp": "2026-06-27T20:45:00Z"
+    }
+  ],
+  "generated_at": "2026-06-28T13:42:14Z",
+  "operator_review_required": true,
+  "overall_status": "failed",
+  "production_rendering_enabled": false,
+  "proof_only": true,
+  "prototype": true,
+  "requested_frame_count": 3,
+  "signoff_template_path": "docs/MRMS_OPERATOR_SIGNOFF_TEMPLATE.md",
+  "source_mode": "stub",
+  "verified_mrms": false,
+  "warnings": [
+    "Proof report is draft evidence gathering \u2014 NOT verified MRMS.",
+    "verified_mrms remains false; operator_review_required is always true.",
+    "Stub mode: evaluating local catalog only; real NOAA proof requires --real.",
+    "Production rendering disabled by default (expected)."
+  ]
+}

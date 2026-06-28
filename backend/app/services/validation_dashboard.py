@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from backend.app.config import settings
 from backend.app.services.catalog_status import build_catalog_status
 from backend.app.services.grib2_inspector import detect_decoder_availability
+from backend.app.services.mrms_proof_report import compact_mrms_proof_report, load_mrms_proof_report
 from backend.app.services.render_queue import get_queue_summary
 from backend.app.services.storage import LocalStorage
 from backend.app.services.validation_alerts import (
@@ -45,6 +46,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
     alert = load_validation_alert(storage)
     if alert is None:
         alert = refresh_validation_alert(storage, scheduled=scheduled)
+    proof = load_mrms_proof_report(storage)
     catalog = build_catalog_status(session)
 
     return {
@@ -73,6 +75,8 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "validation_failures_recent": [compact_failure(item) for item in recent_failures],
         "validation_alert": compact_validation_alert(alert),
         "grouped_failure_causes": (alert or {}).get("grouped_failure_causes", [])[:5],
+        "mrms_proof": compact_mrms_proof_report(proof),
+        "mrms_proof_available": proof is not None,
         "catalog": catalog,
     }
 
@@ -88,6 +92,7 @@ def build_validation_latest(storage: LocalStorage) -> dict[str, Any]:
         "queue_benchmark": load_latest_queue_benchmark_report(storage),
         "scheduled_validation": load_latest_scheduled_validation_report(storage),
         "validation_alert": load_validation_alert(storage),
+        "mrms_proof": load_mrms_proof_report(storage),
     }
 
 

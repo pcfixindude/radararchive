@@ -63,6 +63,8 @@ export default function ValidationStatusPanel({
   const frameSummaries = summary.frame_summaries ?? [];
   const validationAlert = summary.validation_alert ?? null;
   const groupedCauses = summary.grouped_failure_causes ?? validationAlert?.grouped_failure_causes ?? [];
+  const mrmsProof = summary.mrms_proof ?? null;
+  const proofCounts = mrmsProof?.criteria_counts;
   const queue = summary.render_queue;
   const catalog = summary.catalog;
   const history = summary.validation_history ?? [];
@@ -121,6 +123,27 @@ export default function ValidationStatusPanel({
           </ul>
         </>
       ) : null}
+      {mrmsProof ? (
+        <>
+          <p className="validation-warn">
+            Proof report draft — not verified MRMS; operator review required.
+          </p>
+          <p className="validation-meta">
+            Proof status: {mrmsProof.overall_status ?? 'not_started'} — frames evaluated{' '}
+            {mrmsProof.frame_count ?? 0}
+            {mrmsProof.generated_at ? ` (${formatTimestamp(mrmsProof.generated_at)})` : ''}
+          </p>
+          {proofCounts ? (
+            <p className="validation-meta">
+              Criteria — passed {proofCounts.passed ?? 0}, failed {proofCounts.failed ?? 0}, warning{' '}
+              {proofCounts.warning ?? 0}, skipped {proofCounts.skipped ?? 0}
+            </p>
+          ) : null}
+          <p className="validation-meta">verified_mrms: {yesNo(mrmsProof.verified_mrms ?? false)}</p>
+        </>
+      ) : (
+        <p className="validation-meta">No proof report yet — run make mrms-proof-report.</p>
+      )}
       <p className="validation-meta">Placeholder default: {yesNo(summary.placeholder_default)}</p>
       <p className="validation-meta">
         Production rendering: {summary.production_rendering_enabled ? 'enabled (flag on)' : 'disabled (default)'}

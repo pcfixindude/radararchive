@@ -1,0 +1,47 @@
+# MRMS Operator Sign-Off Template (Draft)
+
+Use this template when reviewing a **draft proof report** from `make mrms-proof-report`.
+
+**Important:** Completing this sign-off does **NOT** set `verified_mrms=true` anywhere in code, APIs, or reports. It records human review of prototype evidence only.
+
+## Report reference
+
+| Field | Value |
+|-------|-------|
+| Proof report generated at | _(from `data/dev/mrms_proof_latest.json` → `generated_at`)_ |
+| Overall proof status | _(e.g. `insufficient_evidence`, `ready_for_operator_review`)_ |
+| Source mode | _(stub / real)_ |
+| Frames evaluated | _(count)_ |
+| Proof report path | `data/dev/mrms_proof_latest.json` |
+| Criteria doc | [VERIFIED_MRMS_CRITERIA.md](VERIFIED_MRMS_CRITERIA.md) |
+
+## Operator attestation
+
+- [ ] I reviewed the latest proof report JSON and per-frame evidence.
+- [ ] I understand output is **prototype** tooling, not verified production MRMS.
+- [ ] I confirm `verified_mrms` must remain **false** until a future explicit launch review phase.
+- [ ] Failures/warnings in the proof report are acknowledged or tracked.
+- [ ] Visual sanity checks (if any) were performed manually where required.
+- [ ] Production rendering flag state was intentional for this review window.
+
+## Reviewer
+
+| Field | Value |
+|-------|-------|
+| Reviewer name | |
+| Review date (UTC) | |
+| Git commit or report ID | |
+| Notes | |
+
+## Explicit statement
+
+> This sign-off documents operator review of draft MRMS proof evidence. It does **not** certify verified MRMS production output and does **not** enable `verified_mrms=true`.
+
+## Related commands
+
+```bash
+make mrms-proof-report
+make mrms-proof-report ARGS="--json-report"
+make validation-alerts
+make validation-failures
+```

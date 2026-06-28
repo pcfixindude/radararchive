@@ -210,6 +210,10 @@ Summary additions (Phase 25): `validation_alert` compact marker (`status`, count
 
 `GET /api/validation/alerts` — latest persisted validation alert marker (`data/dev/validation_alert_latest.json`). Query `?refresh=true` rebuilds from failure log + scheduled report. `verified_mrms: false`.
 
+Summary additions (Phase 26): `mrms_proof` compact proof status (`overall_status`, `frame_count`, `criteria_counts`, `operator_review_required`), `mrms_proof_available`.
+
+`GET /api/validation/proof` — latest draft MRMS proof report JSON (`data/dev/mrms_proof_latest.json`). `verified_mrms: false`, `proof_only: true`.
+
 `GET /api/catalog/status` — MRMS catalog frame counts by download/process/render status, latest timestamps.
 
 ## MRMS source discovery (Phase 8 — dev/metadata)

@@ -84,7 +84,7 @@ This document defines what must be true before RadarArchive could ever set `veri
 - Automatic pass because real download occurred
 - Setting `verified_mrms=true` in tests or demo data
 
-## Current status (Phase 25)
+## Current status (Phase 26)
 
 | Criterion area | Status |
 |----------------|--------|
@@ -92,14 +92,29 @@ This document defines what must be true before RadarArchive could ever set `veri
 | Decoder + decode | Optional — often skipped |
 | Geo verification | Prototype only |
 | Visual sanity | Not formalized |
-| Multi-frame proof | Not completed |
-| Operator sign-off | Not completed |
+| Multi-frame proof | Automated draft report (`make mrms-proof-report`) |
+| Operator sign-off | Template only — [MRMS_OPERATOR_SIGNOFF_TEMPLATE.md](MRMS_OPERATOR_SIGNOFF_TEMPLATE.md) |
 | **verified_mrms** | **false** |
+
+## Automated proof report fields (Phase 26)
+
+`make mrms-proof-report` writes `data/dev/mrms_proof_latest.json` with:
+
+- `overall_status`: `not_started` | `insufficient_evidence` | `failed` | `ready_for_operator_review`
+- `criteria_counts`: passed / failed / warning / skipped / unknown
+- `aggregate_criteria`: per-criterion status from this checklist
+- `frames[]`: per-frame evidence (checksum, paths, geo sanity, tiles, warnings)
+- Always: `verified_mrms: false`, `proof_only: true`, `operator_review_required: true`
+
+Criterion IDs evaluated: `real_noaa_source`, `decoder_and_artifacts`, `product_time_metadata`, `geospatial_correctness`, `visual_sanity_checks` (manual/skipped), `tile_output_from_decoded`, `production_path_intentional`, `repeatable_multi_frame`, `failure_alert_hygiene`, `operator_review` (manual/skipped).
+
+**Signing the operator template does NOT set `verified_mrms=true`.**
 
 ## Related docs
 
 - [RUNBOOK_REAL_MRMS_VALIDATION.md](RUNBOOK_REAL_MRMS_VALIDATION.md) — how to run and troubleshoot
+- [MRMS_OPERATOR_SIGNOFF_TEMPLATE.md](MRMS_OPERATOR_SIGNOFF_TEMPLATE.md) — operator review template
 - [GRIB2_DECODE.md](GRIB2_DECODE.md) — decode prototype limitations
 - [ARCHITECTURE.md](ARCHITECTURE.md) — pipeline architecture
 
-A future phase must implement automated checks where possible, document results, and only then consider a guarded `verified_mrms` flag — never by default.
+A future phase may gate `verified_mrms` behind documented operator approval — never by default.

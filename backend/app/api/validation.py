@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from backend.app.config import settings
 from backend.app.database import get_db
 from backend.app.schemas.validation import (
+    MrmsProofResponse,
     QueueBenchmarkHistoryResponse,
     ScheduledValidationHistoryResponse,
     ValidationAlertsResponse,
@@ -15,6 +16,7 @@ from backend.app.schemas.validation import (
     ValidationSummaryResponse,
 )
 from backend.app.services.storage import LocalStorage
+from backend.app.services.mrms_proof_report import load_mrms_proof_report
 from backend.app.services.validation_alerts import load_validation_alert, refresh_validation_alert
 from backend.app.services.validation_dashboard import build_validation_latest, build_validation_summary
 from backend.app.services.validation_failure_log import (
@@ -125,4 +127,18 @@ def validation_alerts(refresh: bool = False) -> ValidationAlertsResponse:
         prototype=True,
         verified_mrms=False,
         alert=alert,
+    )
+
+
+@router.get("/proof", response_model=MrmsProofResponse)
+def validation_proof() -> MrmsProofResponse:
+    """Latest draft MRMS proof report (evidence only — not verified MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    report = load_mrms_proof_report(storage)
+    return MrmsProofResponse(
+        prototype=True,
+        verified_mrms=False,
+        proof_only=True,
+        operator_review_required=True,
+        report=report,
     )

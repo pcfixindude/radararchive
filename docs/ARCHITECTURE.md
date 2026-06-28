@@ -356,6 +356,19 @@ Dev API: `GET /api/validation/alerts`; summary adds `validation_alert`, `grouped
 
 Future verified MRMS proof criteria (not met today): `docs/VERIFIED_MRMS_CRITERIA.md`. `verified_mrms` remains **false**.
 
+### Draft MRMS proof report automation (Phase 26)
+Evidence-gathering service evaluates criteria from `VERIFIED_MRMS_CRITERIA.md` without setting `verified_mrms`.
+
+- Service: `mrms_proof_report.py` — per-frame evidence, geo sanity helpers, aggregate criterion statuses
+- Persisted: `data/dev/mrms_proof_latest.json` + bounded `mrms_proof_history.json` (last 10)
+- Overall status: `not_started` | `insufficient_evidence` | `failed` | `ready_for_operator_review`
+- Always: `verified_mrms: false`, `proof_only: true`, `operator_review_required: true`
+- Operator template: `docs/MRMS_OPERATOR_SIGNOFF_TEMPLATE.md` (signing does not enable verified MRMS)
+
+CLI: `make mrms-proof-report` (`--count`, `--json-report`, explicit `--real`).
+
+Dev API: `GET /api/validation/proof`; summary field `mrms_proof` compact status.
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

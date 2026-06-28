@@ -1097,3 +1097,37 @@ cd frontend && npm run build
 - Cause classification is heuristic (normalized message buckets)
 - `verified_mrms` always false — criteria doc is forward-looking only
 - Production serving gates unchanged; placeholder default unchanged
+
+## Phase 26 - Draft MRMS Proof Report Automation
+
+Automated evidence gathering against `VERIFIED_MRMS_CRITERIA.md` with geo sanity helpers and operator sign-off template.
+
+### Backend
+- `mrms_proof_report.py` — multi-frame proof, criterion evaluation, geo sanity, persistence
+- `GET /api/validation/proof` — latest proof report
+- Summary/latest: `mrms_proof` compact status
+
+### Scripts / Makefile
+- `scripts/generate_mrms_proof_report.py` — `make mrms-proof-report`
+
+### Docs
+- `docs/MRMS_OPERATOR_SIGNOFF_TEMPLATE.md` — sign-off does not set verified_mrms
+- Updated criteria, runbook, architecture, API spec
+
+### Frontend
+- Dev panel: proof status, frame count, criteria counts, operator review required
+
+### Run commands
+
+```bash
+make test
+make mrms-proof-report
+make validation-alerts
+cd frontend && npm run build
+```
+
+### Known limitations
+- Proof automation is heuristic; visual/operator criteria remain manual
+- Stub mode produces `insufficient_evidence` by design
+- `verified_mrms` always false
+- Production serving gates unchanged; placeholder default unchanged

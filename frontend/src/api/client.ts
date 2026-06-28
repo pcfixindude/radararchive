@@ -331,6 +331,26 @@ export type GroupedFailureCauseCompact = {
   latest_logged_at?: string | null;
 };
 
+export type MrmsProofCriteriaCounts = {
+  passed: number;
+  failed: number;
+  warning: number;
+  skipped: number;
+  unknown: number;
+};
+
+export type MrmsProofCompact = {
+  generated_at?: string | null;
+  overall_status: string;
+  source_mode?: string | null;
+  frame_count: number;
+  criteria_counts?: MrmsProofCriteriaCounts;
+  operator_review_required: boolean;
+  proof_only: boolean;
+  verified_mrms: boolean;
+  prototype: boolean;
+};
+
 export type ValidationLatest = {
   prototype: boolean;
   verified_mrms: boolean;
@@ -340,6 +360,7 @@ export type ValidationLatest = {
   queue_benchmark: Record<string, unknown> | null;
   scheduled_validation: Record<string, unknown> | null;
   validation_alert: Record<string, unknown> | null;
+  mrms_proof: Record<string, unknown> | null;
 };
 
 export type ValidationSummary = {
@@ -366,6 +387,8 @@ export type ValidationSummary = {
   validation_failures_recent?: ValidationFailureCompact[];
   validation_alert?: ValidationAlertCompact | null;
   grouped_failure_causes?: GroupedFailureCauseCompact[];
+  mrms_proof?: MrmsProofCompact | null;
+  mrms_proof_available?: boolean;
   frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;
 };

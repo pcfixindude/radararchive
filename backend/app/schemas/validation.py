@@ -215,6 +215,34 @@ class ValidationAlertsResponse(BaseModel):
     alert: Optional[dict[str, Any]] = None
 
 
+class MrmsProofCriteriaCounts(BaseModel):
+    passed: int = 0
+    failed: int = 0
+    warning: int = 0
+    skipped: int = 0
+    unknown: int = 0
+
+
+class MrmsProofCompact(BaseModel):
+    generated_at: Optional[str] = None
+    overall_status: str = "not_started"
+    source_mode: Optional[str] = None
+    frame_count: int = 0
+    criteria_counts: MrmsProofCriteriaCounts = Field(default_factory=MrmsProofCriteriaCounts)
+    operator_review_required: bool = True
+    proof_only: bool = True
+    verified_mrms: bool = False
+    prototype: bool = True
+
+
+class MrmsProofResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    proof_only: bool = True
+    operator_review_required: bool = True
+    report: Optional[dict[str, Any]] = None
+
+
 class ScheduledValidationCompact(BaseModel):
     ran_at: Optional[str] = None
     source_mode: Optional[str] = None
@@ -269,6 +297,8 @@ class ValidationSummaryResponse(BaseModel):
     validation_failures_recent: list[ValidationFailureCompact] = Field(default_factory=list)
     validation_alert: Optional[ValidationAlertCompact] = None
     grouped_failure_causes: list[GroupedFailureCauseCompact] = Field(default_factory=list)
+    mrms_proof: Optional[MrmsProofCompact] = None
+    mrms_proof_available: bool = False
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse
 
@@ -291,6 +321,7 @@ class ValidationLatestResponse(BaseModel):
     queue_benchmark: Optional[dict[str, Any]] = None
     scheduled_validation: Optional[dict[str, Any]] = None
     validation_alert: Optional[dict[str, Any]] = None
+    mrms_proof: Optional[dict[str, Any]] = None
 
 
 class ValidationFailuresResponse(BaseModel):

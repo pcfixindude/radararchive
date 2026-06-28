@@ -95,6 +95,22 @@ make validation-alerts ARGS="--json"
 
 Alert file: `data/dev/validation_alert_latest.json` (local dev only; rebuilt after scheduled validation).
 
+## Generate draft proof report
+
+```bash
+make mrms-proof-report
+make mrms-proof-report ARGS="--json-report"
+make mrms-proof-report ARGS="--real --count 3"
+```
+
+Proof file: `data/dev/mrms_proof_latest.json` — draft evidence only, **not verified MRMS**.
+
+Operator sign-off template: [MRMS_OPERATOR_SIGNOFF_TEMPLATE.md](MRMS_OPERATOR_SIGNOFF_TEMPLATE.md) — completing sign-off does **not** set `verified_mrms=true`.
+
+```bash
+curl http://127.0.0.1:8000/api/validation/proof
+```
+
 ## Check recent failures
 
 ```bash
@@ -138,6 +154,7 @@ See **[VERIFIED_MRMS_CRITERIA.md](VERIFIED_MRMS_CRITERIA.md)** for the full chec
 
 ```bash
 make test
+make mrms-proof-report
 make validation-alerts
 make scheduled-validation
 make validation-failures

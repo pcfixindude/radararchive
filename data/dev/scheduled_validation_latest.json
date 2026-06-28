@@ -7,14 +7,14 @@
     "download_skipped": 4,
     "downloaded_count": 0,
     "effective_frame_count": 3,
-    "elapsed_seconds": 0.0137,
+    "elapsed_seconds": 0.0106,
     "errors": [],
     "frame_summaries": [
       {
         "decode_status": "inspected",
         "decoded": false,
         "downloaded": false,
-        "elapsed_seconds": 0.0075,
+        "elapsed_seconds": 0.0036,
         "errors": [],
         "inspected": true,
         "max_zoom": 0,
@@ -50,7 +50,7 @@
     "tiles_planned": 0,
     "tiles_skipped": 0,
     "tiles_written": 0,
-    "validated_at": "2026-06-28T13:33:09Z",
+    "validated_at": "2026-06-28T13:42:14Z",
     "verified_mrms": false,
     "warnings": [
       "Stub/offline mode: stub downloads are not real GRIB2; inspect/decode need real .grib2.gz",
@@ -83,7 +83,7 @@
   },
   "command_context": "make scheduled-validation",
   "effective_count": 3,
-  "elapsed_seconds": 0.0484,
+  "elapsed_seconds": 0.0441,
   "errors": [],
   "exit_code": 0,
   "max_zoom": 1,
@@ -91,7 +91,7 @@
   "production_rendering_enabled": false,
   "prototype": true,
   "queue_benchmark": {
-    "benchmarked_at": "2026-06-28T13:33:09Z",
+    "benchmarked_at": "2026-06-28T13:42:14Z",
     "dry_run": false,
     "effective_count": 3,
     "errors": [],
@@ -99,9 +99,9 @@
     "job_summaries": [
       {
         "decode_status": "not_decoded",
-        "elapsed_seconds": 0.0036,
+        "elapsed_seconds": 0.0039,
         "errors": [],
-        "job_id": 15,
+        "job_id": 18,
         "max_zoom": 1,
         "min_zoom": 0,
         "output_bytes": 0,
@@ -116,9 +116,9 @@
       },
       {
         "decode_status": "not_decoded",
-        "elapsed_seconds": 0.0025,
+        "elapsed_seconds": 0.0021,
         "errors": [],
-        "job_id": 16,
+        "job_id": 19,
         "max_zoom": 1,
         "min_zoom": 0,
         "output_bytes": 0,
@@ -133,9 +133,9 @@
       },
       {
         "decode_status": "not_decoded",
-        "elapsed_seconds": 0.0036,
+        "elapsed_seconds": 0.0026,
         "errors": [],
-        "job_id": 17,
+        "job_id": 20,
         "max_zoom": 1,
         "min_zoom": 0,
         "output_bytes": 0,
@@ -160,7 +160,7 @@
     "requested_count": 3,
     "source_mode": "stub",
     "stale_jobs_recovered": 0,
-    "total_elapsed_seconds": 0.0169,
+    "total_elapsed_seconds": 0.0153,
     "total_output_bytes": 0,
     "total_tiles_skipped": 0,
     "total_tiles_written": 0,
@@ -171,7 +171,7 @@
       "Stub/offline mode: using local catalog only; no network discovery/download"
     ]
   },
-  "ran_at": "2026-06-28T13:33:09Z",
+  "ran_at": "2026-06-28T13:42:14Z",
   "real_requested": false,
   "render_queue": {
     "canceled": 0,
@@ -179,7 +179,7 @@
     "prototype": true,
     "queued": 0,
     "running": 0,
-    "succeeded": 17,
+    "succeeded": 20,
     "total_output_bytes": 0,
     "total_tiles_written": 0,
     "verified_mrms": false
@@ -188,11 +188,11 @@
   "source_mode": "stub",
   "steps": [
     {
-      "elapsed_seconds": 0.0118,
+      "elapsed_seconds": 0.0117,
       "errors": [],
-      "finished_at": "2026-06-28T13:33:09Z",
+      "finished_at": "2026-06-28T13:42:14Z",
       "name": "catalog_status",
-      "started_at": "2026-06-28T13:33:09Z",
+      "started_at": "2026-06-28T13:42:14Z",
       "status": "succeeded",
       "summary": {
         "mrms_discovered_frames": 4,
@@ -201,11 +201,11 @@
       "warnings": []
     },
     {
-      "elapsed_seconds": 0.0143,
+      "elapsed_seconds": 0.0112,
       "errors": [],
-      "finished_at": "2026-06-28T13:33:09Z",
+      "finished_at": "2026-06-28T13:42:14Z",
       "name": "batch_validation",
-      "started_at": "2026-06-28T13:33:09Z",
+      "started_at": "2026-06-28T13:42:14Z",
       "status": "warning",
       "summary": {
         "decoded_count": 0,
@@ -222,11 +222,11 @@
       ]
     },
     {
-      "elapsed_seconds": 0.0176,
+      "elapsed_seconds": 0.0158,
       "errors": [],
-      "finished_at": "2026-06-28T13:33:09Z",
+      "finished_at": "2026-06-28T13:42:14Z",
       "name": "queue_benchmark",
-      "started_at": "2026-06-28T13:33:09Z",
+      "started_at": "2026-06-28T13:42:14Z",
       "status": "warning",
       "summary": {
         "jobs_enqueued": 3,
@@ -242,11 +242,11 @@
       ]
     },
     {
-      "elapsed_seconds": 0.0014,
+      "elapsed_seconds": 0.0015,
       "errors": [],
-      "finished_at": "2026-06-28T13:33:09Z",
+      "finished_at": "2026-06-28T13:42:14Z",
       "name": "render_queue_status",
-      "started_at": "2026-06-28T13:33:09Z",
+      "started_at": "2026-06-28T13:42:14Z",
       "status": "succeeded",
       "summary": {
         "canceled": 0,
@@ -254,7 +254,7 @@
         "prototype": true,
         "queued": 0,
         "running": 0,
-        "succeeded": 17,
+        "succeeded": 20,
         "total_output_bytes": 0,
         "total_tiles_written": 0,
         "verified_mrms": false
@@ -262,11 +262,11 @@
       "warnings": []
     },
     {
-      "elapsed_seconds": 0.0027,
+      "elapsed_seconds": 0.0031,
       "errors": [],
-      "finished_at": "2026-06-28T13:33:09Z",
+      "finished_at": "2026-06-28T13:42:14Z",
       "name": "validation_summary",
-      "started_at": "2026-06-28T13:33:09Z",
+      "started_at": "2026-06-28T13:42:14Z",
       "status": "succeeded",
       "summary": {
         "placeholder_default": true,
@@ -332,7 +332,7 @@
     "frame_summaries": [
       {
         "decode_status": "inspected",
-        "elapsed_seconds": 0.0075,
+        "elapsed_seconds": 0.0036,
         "errors": [],
         "max_zoom": 0,
         "min_zoom": 0,
@@ -351,59 +351,77 @@
     "grouped_failure_causes": [
       {
         "cause": "unknown",
-        "count": 6,
-        "latest_logged_at": "2026-06-28T13:28:02Z",
+        "count": 9,
+        "latest_logged_at": "2026-06-28T13:33:09Z",
         "message": "Queue benchmark is experimental prototype tooling \u2014 not verified MRMS production output",
         "normalized_message": "queue benchmark is experimental prototype tooling \u2014 not verified mrms production output",
         "step": "queue_benchmark"
       },
       {
+        "cause": "no_grib2_artifact",
+        "count": 6,
+        "latest_logged_at": "2026-06-28T13:33:09Z",
+        "message": "Stub/offline mode: stub downloads are not real GRIB2; inspect/decode need real .grib2.gz",
+        "normalized_message": "stub/offline mode: stub downloads are not real gribN; inspect/decode need real .gribN.gz",
+        "step": "batch_validation"
+      },
+      {
         "cause": "decoder_unavailable",
-        "count": 3,
-        "latest_logged_at": "2026-06-28T13:28:02Z",
+        "count": 4,
+        "latest_logged_at": "2026-06-28T13:33:09Z",
         "message": "No optional GRIB2 decoder; decode skipped for all frames.",
         "normalized_message": "no optional gribN decoder; decode skipped for all frames.",
         "step": "batch_validation"
       },
       {
         "cause": "production_flag_off",
-        "count": 2,
-        "latest_logged_at": "2026-06-28T13:28:02Z",
+        "count": 3,
+        "latest_logged_at": "2026-06-28T13:33:09Z",
         "message": "Production tile serving remains disabled (ENABLE_PRODUCTION_RADAR_TILES=false)",
         "normalized_message": "production tile serving remains disabled (enable_production_radar_tiles=false)",
         "step": "queue_benchmark"
       },
       {
-        "cause": "no_grib2_artifact",
-        "count": 1,
-        "latest_logged_at": "2026-06-28T13:28:02Z",
-        "message": "No decode artifacts produced across batch.",
-        "normalized_message": "no decode artifacts produced across batch.",
-        "step": "batch_validation"
-      },
-      {
         "cause": "unknown",
-        "count": 1,
-        "latest_logged_at": "2026-06-28T13:28:02Z",
-        "message": "Real mode selected: ensure local MRMS files exist (run batch validation first)",
-        "normalized_message": "real mode selected: ensure local mrms files exist (run batch validation first)",
-        "step": "queue_benchmark"
+        "count": 2,
+        "latest_logged_at": "2026-06-28T13:33:09Z",
+        "message": "Real mode: MRMS_SOURCE_MODE=real make validate-real-mrms-batch ARGS='--real'",
+        "normalized_message": "real mode: mrms_source_mode=real make validate-real-mrms-batch args='--real'",
+        "step": "batch_validation"
       }
     ],
+    "mrms_proof": {
+      "criteria_counts": {
+        "failed": 5,
+        "passed": 0,
+        "skipped": 5,
+        "unknown": 0,
+        "warning": 0
+      },
+      "frame_count": 3,
+      "generated_at": "2026-06-28T13:42:14Z",
+      "operator_review_required": true,
+      "overall_status": "failed",
+      "proof_only": true,
+      "prototype": true,
+      "source_mode": "stub",
+      "verified_mrms": false
+    },
+    "mrms_proof_available": true,
     "placeholder_default": true,
     "production_rendering_enabled": false,
     "prototype": true,
     "queue_benchmark": {
-      "benchmarked_at": "2026-06-28T13:33:09Z",
+      "benchmarked_at": "2026-06-28T13:42:14Z",
       "dry_run": false,
       "effective_count": 3,
       "errors": [],
       "job_summaries": [
         {
           "decode_status": "not_decoded",
-          "elapsed_seconds": 0.0036,
+          "elapsed_seconds": 0.0039,
           "errors": [],
-          "job_id": 15,
+          "job_id": 18,
           "max_zoom": 1,
           "min_zoom": 0,
           "output_bytes": 0,
@@ -417,9 +435,9 @@
         },
         {
           "decode_status": "not_decoded",
-          "elapsed_seconds": 0.0025,
+          "elapsed_seconds": 0.0021,
           "errors": [],
-          "job_id": 16,
+          "job_id": 19,
           "max_zoom": 1,
           "min_zoom": 0,
           "output_bytes": 0,
@@ -433,9 +451,9 @@
         },
         {
           "decode_status": "not_decoded",
-          "elapsed_seconds": 0.0036,
+          "elapsed_seconds": 0.0026,
           "errors": [],
-          "job_id": 17,
+          "job_id": 20,
           "max_zoom": 1,
           "min_zoom": 0,
           "output_bytes": 0,
@@ -456,7 +474,7 @@
       "min_zoom": 0,
       "prototype": true,
       "source_mode": "stub",
-      "total_elapsed_seconds": 0.0169,
+      "total_elapsed_seconds": 0.0153,
       "total_output_bytes": 0,
       "total_tiles_skipped": 0,
       "total_tiles_written": 0,
@@ -468,76 +486,76 @@
       ]
     },
     "queue_benchmark_available": true,
-    "queue_benchmark_history_count": 6,
+    "queue_benchmark_history_count": 7,
     "render_queue": {
       "canceled": 0,
       "failed": 0,
       "prototype": true,
       "queued": 0,
       "running": 0,
-      "succeeded": 17,
+      "succeeded": 20,
       "total_output_bytes": 0,
       "total_tiles_written": 0,
       "verified_mrms": false
     },
     "scheduled_validation": {
       "batch_decoded_count": 0,
-      "effective_count": 1,
-      "elapsed_seconds": 1.9407,
+      "effective_count": 3,
+      "elapsed_seconds": 0.0484,
       "errors": [],
       "exit_code": 0,
-      "max_zoom": 0,
+      "max_zoom": 1,
       "min_zoom": 0,
       "prototype": true,
       "queue_jobs_failed": 0,
-      "queue_jobs_succeeded": 1,
-      "ran_at": "2026-06-28T13:28:02Z",
-      "source_mode": "real",
+      "queue_jobs_succeeded": 3,
+      "ran_at": "2026-06-28T13:33:09Z",
+      "source_mode": "stub",
       "steps": [
         {
-          "elapsed_seconds": 0.0121,
+          "elapsed_seconds": 0.0118,
           "errors": [],
-          "finished_at": "2026-06-28T13:28:00Z",
+          "finished_at": "2026-06-28T13:33:09Z",
           "name": "catalog_status",
-          "started_at": "2026-06-28T13:28:00Z",
+          "started_at": "2026-06-28T13:33:09Z",
           "status": "succeeded",
           "summary": {
-            "mrms_discovered_frames": 3,
-            "total_frames": 14
+            "mrms_discovered_frames": 4,
+            "total_frames": 15
           },
           "warnings": []
         },
         {
-          "elapsed_seconds": 1.9162,
+          "elapsed_seconds": 0.0143,
           "errors": [],
-          "finished_at": "2026-06-28T13:28:02Z",
+          "finished_at": "2026-06-28T13:33:09Z",
           "name": "batch_validation",
-          "started_at": "2026-06-28T13:28:00Z",
+          "started_at": "2026-06-28T13:33:09Z",
           "status": "warning",
           "summary": {
             "decoded_count": 0,
-            "discovered_count": 1,
-            "downloaded_count": 1,
+            "discovered_count": 3,
+            "downloaded_count": 0,
             "frame_summaries": 1,
             "tiles_written": 0
           },
           "warnings": [
-            "No optional GRIB2 decoder; decode skipped for all frames.",
-            "No decode artifacts produced across batch."
+            "Stub/offline mode: stub downloads are not real GRIB2; inspect/decode need real .grib2.gz",
+            "Real mode: MRMS_SOURCE_MODE=real make validate-real-mrms-batch ARGS='--real'"
           ]
         },
         {
-          "elapsed_seconds": 0.0066,
+          "elapsed_seconds": 0.0176,
           "errors": [],
-          "finished_at": "2026-06-28T13:28:02Z",
+          "finished_at": "2026-06-28T13:33:09Z",
           "name": "queue_benchmark",
-          "started_at": "2026-06-28T13:28:02Z",
+          "started_at": "2026-06-28T13:33:09Z",
           "status": "warning",
           "summary": {
-            "jobs_enqueued": 1,
+            "jobs_enqueued": 3,
             "jobs_failed": 0,
-            "jobs_processed": 1,
-            "jobs_succeeded": 1,
+            "jobs_processed": 3,
+            "jobs_succeeded": 3,
             "total_tiles_written": 0
           },
           "warnings": [
@@ -546,11 +564,11 @@
           ]
         },
         {
-          "elapsed_seconds": 0.0015,
+          "elapsed_seconds": 0.0014,
           "errors": [],
-          "finished_at": "2026-06-28T13:28:02Z",
+          "finished_at": "2026-06-28T13:33:09Z",
           "name": "render_queue_status",
-          "started_at": "2026-06-28T13:28:02Z",
+          "started_at": "2026-06-28T13:33:09Z",
           "status": "succeeded",
           "summary": {
             "canceled": 0,
@@ -558,7 +576,7 @@
             "prototype": true,
             "queued": 0,
             "running": 0,
-            "succeeded": 14,
+            "succeeded": 17,
             "total_output_bytes": 0,
             "total_tiles_written": 0,
             "verified_mrms": false
@@ -566,11 +584,11 @@
           "warnings": []
         },
         {
-          "elapsed_seconds": 0.0037,
+          "elapsed_seconds": 0.0027,
           "errors": [],
-          "finished_at": "2026-06-28T13:28:02Z",
+          "finished_at": "2026-06-28T13:33:09Z",
           "name": "validation_summary",
-          "started_at": "2026-06-28T13:28:02Z",
+          "started_at": "2026-06-28T13:33:09Z",
           "status": "succeeded",
           "summary": {
             "placeholder_default": true,
@@ -587,9 +605,9 @@
       "warnings": [
         "Scheduled validation is local dev/prototype tooling \u2014 not verified MRMS production",
         "Production tile serving remains disabled (ENABLE_PRODUCTION_RADAR_TILES=false)",
-        "Real mode: may download NOAA MRMS data; optional decoder required for full success",
-        "No optional GRIB2 decoder; decode skipped for all frames.",
-        "No decode artifacts produced across batch."
+        "Stub/offline mode (default): no network discovery unless --real is passed",
+        "Stub/offline mode: stub downloads are not real GRIB2; inspect/decode need real .grib2.gz",
+        "Real mode: MRMS_SOURCE_MODE=real make validate-real-mrms-batch ARGS='--real'"
       ]
     },
     "scheduled_validation_available": true,
@@ -601,7 +619,7 @@
       "discovered_count": 3,
       "downloaded_count": 0,
       "effective_frame_count": 3,
-      "elapsed_seconds": 0.0137,
+      "elapsed_seconds": 0.0106,
       "errors": [],
       "inspected_count": 1,
       "output_bytes": 0,
@@ -617,7 +635,7 @@
       "tiles_planned": 0,
       "tiles_skipped": 0,
       "tiles_written": 0,
-      "validated_at": "2026-06-28T13:33:09Z",
+      "validated_at": "2026-06-28T13:42:14Z",
       "verified_mrms": false,
       "warnings": [
         "Stub/offline mode: stub downloads are not real GRIB2; inspect/decode need real .grib2.gz",
@@ -628,61 +646,91 @@
       "worker_jobs_processed": 0
     },
     "validation_alert": {
-      "failure_count": 4,
+      "failure_count": 6,
       "grouped_failure_causes": [
         {
           "cause": "unknown",
-          "count": 6,
-          "latest_logged_at": "2026-06-28T13:28:02Z",
+          "count": 9,
+          "latest_logged_at": "2026-06-28T13:33:09Z",
           "message": "Queue benchmark is experimental prototype tooling \u2014 not verified MRMS production output",
           "normalized_message": "queue benchmark is experimental prototype tooling \u2014 not verified mrms production output",
           "step": "queue_benchmark"
         },
         {
+          "cause": "no_grib2_artifact",
+          "count": 6,
+          "latest_logged_at": "2026-06-28T13:33:09Z",
+          "message": "Stub/offline mode: stub downloads are not real GRIB2; inspect/decode need real .grib2.gz",
+          "normalized_message": "stub/offline mode: stub downloads are not real gribN; inspect/decode need real .gribN.gz",
+          "step": "batch_validation"
+        },
+        {
           "cause": "decoder_unavailable",
-          "count": 3,
-          "latest_logged_at": "2026-06-28T13:28:02Z",
+          "count": 4,
+          "latest_logged_at": "2026-06-28T13:33:09Z",
           "message": "No optional GRIB2 decoder; decode skipped for all frames.",
           "normalized_message": "no optional gribN decoder; decode skipped for all frames.",
           "step": "batch_validation"
         },
         {
           "cause": "production_flag_off",
-          "count": 2,
-          "latest_logged_at": "2026-06-28T13:28:02Z",
+          "count": 3,
+          "latest_logged_at": "2026-06-28T13:33:09Z",
           "message": "Production tile serving remains disabled (ENABLE_PRODUCTION_RADAR_TILES=false)",
           "normalized_message": "production tile serving remains disabled (enable_production_radar_tiles=false)",
           "step": "queue_benchmark"
         },
         {
-          "cause": "no_grib2_artifact",
-          "count": 1,
-          "latest_logged_at": "2026-06-28T13:28:02Z",
-          "message": "No decode artifacts produced across batch.",
-          "normalized_message": "no decode artifacts produced across batch.",
-          "step": "batch_validation"
-        },
-        {
           "cause": "unknown",
-          "count": 1,
-          "latest_logged_at": "2026-06-28T13:28:02Z",
-          "message": "Real mode selected: ensure local MRMS files exist (run batch validation first)",
-          "normalized_message": "real mode selected: ensure local mrms files exist (run batch validation first)",
-          "step": "queue_benchmark"
+          "count": 2,
+          "latest_logged_at": "2026-06-28T13:33:09Z",
+          "message": "Real mode: MRMS_SOURCE_MODE=real make validate-real-mrms-batch ARGS='--real'",
+          "normalized_message": "real mode: mrms_source_mode=real make validate-real-mrms-batch args='--real'",
+          "step": "batch_validation"
         }
       ],
-      "latest_run_at": "2026-06-28T13:28:02Z",
+      "latest_run_at": "2026-06-28T13:33:09Z",
       "operator_attention_needed": true,
       "prototype": true,
       "status": "failed",
       "suggested_next_action": "Review make validation-failures and docs/RUNBOOK_REAL_MRMS_VALIDATION.md.",
-      "updated_at": "2026-06-28T13:32:56Z",
+      "updated_at": "2026-06-28T13:33:09Z",
       "verified_mrms": false,
       "warning_count": 0
     },
     "validation_available": true,
-    "validation_failures_count": 6,
+    "validation_failures_count": 8,
     "validation_failures_recent": [
+      {
+        "command_context": "make scheduled-validation",
+        "error_message": "Queue benchmark is experimental prototype tooling \u2014 not verified MRMS production output",
+        "logged_at": "2026-06-28T13:42:14Z",
+        "phase": "scheduled_validation",
+        "prototype": true,
+        "source_mode": "stub",
+        "step": "queue_benchmark",
+        "verified_mrms": false,
+        "warnings": [
+          "Queue benchmark is experimental prototype tooling \u2014 not verified MRMS production output",
+          "Production tile serving remains disabled (ENABLE_PRODUCTION_RADAR_TILES=false)",
+          "Stub/offline mode: using local catalog only; no network discovery/download"
+        ]
+      },
+      {
+        "command_context": "make scheduled-validation",
+        "error_message": "Stub/offline mode: stub downloads are not real GRIB2; inspect/decode need real .grib2.gz",
+        "logged_at": "2026-06-28T13:42:14Z",
+        "phase": "scheduled_validation",
+        "prototype": true,
+        "source_mode": "stub",
+        "step": "batch_validation",
+        "verified_mrms": false,
+        "warnings": [
+          "Stub/offline mode: stub downloads are not real GRIB2; inspect/decode need real .grib2.gz",
+          "Real mode: MRMS_SOURCE_MODE=real make validate-real-mrms-batch ARGS='--real'",
+          "No optional GRIB2 decoder; decode skipped for all frames."
+        ]
+      },
       {
         "command_context": "make scheduled-validation",
         "error_message": "Queue benchmark is experimental prototype tooling \u2014 not verified MRMS production output",
@@ -727,38 +775,22 @@
           "Production tile serving remains disabled (ENABLE_PRODUCTION_RADAR_TILES=false)",
           "Real mode selected: ensure local MRMS files exist (run batch validation first)"
         ]
-      },
-      {
-        "command_context": "make real-mrms-smoke-test",
-        "error_message": "No optional GRIB2 decoder; decode skipped for all frames.",
-        "logged_at": "2026-06-28T13:28:02Z",
-        "phase": "scheduled_validation",
-        "prototype": true,
-        "source_mode": "real",
-        "step": "batch_validation",
-        "verified_mrms": false,
-        "warnings": [
-          "No optional GRIB2 decoder; decode skipped for all frames.",
-          "No decode artifacts produced across batch."
-        ]
-      },
-      {
-        "command_context": "make scheduled-validation",
-        "error_message": "Queue benchmark is experimental prototype tooling \u2014 not verified MRMS production output",
-        "logged_at": "2026-06-28T13:27:46Z",
-        "phase": "scheduled_validation",
-        "prototype": true,
-        "source_mode": "stub",
-        "step": "queue_benchmark",
-        "verified_mrms": false,
-        "warnings": [
-          "Queue benchmark is experimental prototype tooling \u2014 not verified MRMS production output",
-          "Production tile serving remains disabled (ENABLE_PRODUCTION_RADAR_TILES=false)",
-          "Stub/offline mode: using local catalog only; no network discovery/download"
-        ]
       }
     ],
     "validation_history": [
+      {
+        "batch": true,
+        "decoded_count": 0,
+        "discovered_count": 3,
+        "downloaded_count": 0,
+        "effective_frame_count": 3,
+        "elapsed_seconds": 0.0106,
+        "prototype": true,
+        "requested_frame_count": 3,
+        "source_mode": "stub",
+        "validated_at": "2026-06-28T13:42:14Z",
+        "verified_mrms": false
+      },
       {
         "batch": true,
         "decoded_count": 0,
@@ -810,22 +842,9 @@
         "source_mode": "stub",
         "validated_at": "2026-06-28T06:37:59Z",
         "verified_mrms": false
-      },
-      {
-        "batch": true,
-        "decoded_count": 0,
-        "discovered_count": 3,
-        "downloaded_count": 0,
-        "effective_frame_count": 3,
-        "elapsed_seconds": 0.0052,
-        "prototype": true,
-        "requested_frame_count": 3,
-        "source_mode": "stub",
-        "validated_at": "2026-06-28T06:37:58Z",
-        "verified_mrms": false
       }
     ],
-    "validation_history_count": 8,
+    "validation_history_count": 9,
     "verified_mrms": false
   },
   "verified_mrms": false,

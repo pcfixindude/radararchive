@@ -6,14 +6,14 @@
   "download_skipped": 4,
   "downloaded_count": 0,
   "effective_frame_count": 3,
-  "elapsed_seconds": 0.0137,
+  "elapsed_seconds": 0.0106,
   "errors": [],
   "frame_summaries": [
     {
       "decode_status": "inspected",
       "decoded": false,
       "downloaded": false,
-      "elapsed_seconds": 0.0075,
+      "elapsed_seconds": 0.0036,
       "errors": [],
       "inspected": true,
       "max_zoom": 0,
@@ -49,7 +49,7 @@
   "tiles_planned": 0,
   "tiles_skipped": 0,
   "tiles_written": 0,
-  "validated_at": "2026-06-28T13:33:09Z",
+  "validated_at": "2026-06-28T13:42:14Z",
   "verified_mrms": false,
   "warnings": [
     "Stub/offline mode: stub downloads are not real GRIB2; inspect/decode need real .grib2.gz",

@@ -313,6 +313,21 @@ Current project status: criteria **not met**. Decode artifacts alone are insuffi
 
 Local alert marker (`make validation-alerts`) summarizes validation health from failure log + scheduled runs — still prototype diagnostics only.
 
+## Proof report automation (Phase 26)
+
+```bash
+make mrms-proof-report
+make mrms-proof-report ARGS="--json-report"
+make mrms-proof-report ARGS="--real --count 3"
+```
+
+Report: `data/dev/mrms_proof_latest.json` — per-criterion statuses, per-frame checksum/geo/tile evidence.
+
+Interpretation:
+- `insufficient_evidence` / `failed` in stub mode is **expected** — not verified MRMS
+- `ready_for_operator_review` means automated checks passed enough for human review — still `verified_mrms: false`
+- Visual sanity and operator review criteria remain manual (see [MRMS_OPERATOR_SIGNOFF_TEMPLATE.md](MRMS_OPERATOR_SIGNOFF_TEMPLATE.md))
+
 ## Inspection CLI
 
 ```bash
