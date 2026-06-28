@@ -16,6 +16,7 @@ from backend.app.services.mrms_review_session_export_diff import (
     compact_review_session_export_diff_history_summary,
     compact_review_session_export_diff_summary,
 )
+from backend.app.services.mrms_visual_review import compact_mrms_visual_review
 from backend.app.services.mrms_review_session_export_diff_trend_hint import (
     SUGGESTED_SCHEDULED_REVIEW_EXPORT_COMMAND,
     build_review_session_export_diff_trend_hint,
@@ -434,6 +435,7 @@ def build_operator_review_status(storage: LocalStorage) -> dict[str, Any]:
     trend_hint = build_review_session_export_diff_trend_hint(storage)
     export_diff_history = compact_review_session_export_diff_history_summary(storage)
     review_export_hint = build_review_export_regeneration_hint(storage)
+    visual_review = compact_mrms_visual_review(storage)
 
     operator_guidance = compact_operator_guidance(alert)
     session_guidance = session_summary.get("open_attention_guidance") or []
@@ -519,6 +521,11 @@ def build_operator_review_status(storage: LocalStorage) -> dict[str, Any]:
             "latest_review_session_at": session_summary.get("created_at"),
             "latest_review_export_at": export_summary.get("created_at"),
             "latest_digest_at": digest_hint.get("latest_digest_at"),
+            "latest_visual_review_at": visual_review.get("created_at") if visual_review.get("available") else None,
+            "latest_visual_review_json_path": visual_review.get("json_path") if visual_review.get("available") else None,
+            "latest_visual_review_markdown_path": visual_review.get("markdown_path")
+            if visual_review.get("available")
+            else None,
             "latest_export_diff_status": latest_export_diff_status,
             "latest_export_diff_trend": latest_export_diff_trend,
             "open_attention_count": open_attention_count if session_available else None,

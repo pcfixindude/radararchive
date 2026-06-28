@@ -775,6 +775,71 @@ class OperatorReviewStatusCompact(BaseModel):
     does_not_enable_production: bool = True
     no_external_notifications: bool = True
     prototype: bool = True
+    latest_visual_review_at: Optional[str] = None
+    latest_visual_review_json_path: Optional[str] = None
+    latest_visual_review_markdown_path: Optional[str] = None
+
+
+class MrmsVisualReviewCompact(BaseModel):
+    available: bool = False
+    created_at: Optional[str] = None
+    json_path: Optional[str] = None
+    markdown_path: Optional[str] = None
+    layers_inspected: list[str] = Field(default_factory=list)
+    timestamp_count: int = 0
+    frame_count: int = 0
+    artifact_count: int = 0
+    missing_artifact_count: int = 0
+    tile_modes_found: list[str] = Field(default_factory=list)
+    suggested_next_command: Optional[str] = None
+    runbook_path: Optional[str] = None
+    history_count: int = 0
+    verified_mrms: bool = False
+    local_visual_review_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class MrmsVisualReviewHistoryEntryCompact(BaseModel):
+    created_at: Optional[str] = None
+    layers_inspected: list[str] = Field(default_factory=list)
+    timestamp_count: int = 0
+    frame_count: int = 0
+    artifact_count: int = 0
+    missing_artifact_count: int = 0
+    tile_modes_found: list[str] = Field(default_factory=list)
+    json_path: Optional[str] = None
+    markdown_path: Optional[str] = None
+    verified_mrms: bool = False
+    local_visual_review_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class MrmsVisualReviewResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_visual_review_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    latest: Optional[dict[str, Any]] = None
+    compact: MrmsVisualReviewCompact
+
+
+class MrmsVisualReviewHistoryResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_visual_review_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    count: int = 0
+    max_entries: int = 25
+    entries: list[MrmsVisualReviewHistoryEntryCompact] = Field(default_factory=list)
+    compact: MrmsVisualReviewCompact
 
 
 class ScheduledOperatorStatusCompact(BaseModel):
@@ -1500,6 +1565,7 @@ class ValidationSummaryResponse(BaseModel):
     review_export_regeneration_hint: Optional[ReviewExportRegenerationHintCompact] = None
     operator_review_status: Optional[OperatorReviewStatusCompact] = None
     operator_workflow_presets: Optional[OperatorWorkflowPresetsCompact] = None
+    mrms_visual_review: Optional[MrmsVisualReviewCompact] = None
     scheduled_operator_status: Optional[ScheduledOperatorStatusCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)

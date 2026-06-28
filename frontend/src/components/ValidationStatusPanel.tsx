@@ -258,6 +258,7 @@ export default function ValidationStatusPanel({
   const reviewExportRegenerationHint = summary.review_export_regeneration_hint ?? null;
   const operatorReviewStatus = summary.operator_review_status ?? null;
   const operatorWorkflowPresets = summary.operator_workflow_presets ?? null;
+  const mrmsVisualReview = summary.mrms_visual_review ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -341,7 +342,16 @@ export default function ValidationStatusPanel({
             Latest review session: {formatTimestamp(operatorReviewStatus.latest_review_session_at)} —
             latest export: {formatTimestamp(operatorReviewStatus.latest_review_export_at)} —
             latest digest: {formatTimestamp(operatorReviewStatus.latest_digest_at)}
+            {operatorReviewStatus.latest_visual_review_at
+              ? ` — latest visual review: ${formatTimestamp(operatorReviewStatus.latest_visual_review_at)}`
+              : ''}
           </p>
+          {operatorReviewStatus.latest_visual_review_markdown_path ? (
+            <p className="validation-meta">
+              Visual review Markdown:{' '}
+              <code>{operatorReviewStatus.latest_visual_review_markdown_path}</code>
+            </p>
+          ) : null}
           <SafetyNote />
         </section>
       ) : null}
@@ -466,6 +476,62 @@ export default function ValidationStatusPanel({
           <SafetyNote />
         </CollapsibleSection>
       ) : null}
+      <CollapsibleSection
+        title="MRMS Visual Review"
+        className="validation-visual-review"
+        summary={
+          <p className="validation-meta">
+            {mrmsVisualReview?.available
+              ? `Latest ${formatTimestamp(mrmsVisualReview.created_at)} — ${mrmsVisualReview.artifact_count ?? 0} artifacts, ${mrmsVisualReview.missing_artifact_count ?? 0} missing`
+              : 'No visual review yet — run make mrms-visual-review'}
+          </p>
+        }
+      >
+        <p className="validation-meta">
+          Local visual review only — inspects existing tile/render artifacts on disk. Does not verify
+          MRMS, clear alerts, or enable production rendering.
+        </p>
+        {mrmsVisualReview?.available ? (
+          <>
+            <p className="validation-meta">
+              Latest review: {formatTimestamp(mrmsVisualReview.created_at)}
+            </p>
+            <p className="validation-meta">
+              JSON: <code>{mrmsVisualReview.json_path}</code>
+            </p>
+            <p className="validation-meta">
+              Markdown: <code>{mrmsVisualReview.markdown_path}</code>
+            </p>
+            <p className="validation-meta">
+              Layers inspected: {(mrmsVisualReview.layers_inspected ?? []).join(', ') || '—'} —{' '}
+              timestamps: {mrmsVisualReview.timestamp_count ?? 0}
+            </p>
+            <p className="validation-meta">
+              Artifacts found: {mrmsVisualReview.artifact_count ?? 0} — missing warnings:{' '}
+              {mrmsVisualReview.missing_artifact_count ?? 0}
+            </p>
+            <p className="validation-meta">
+              Tile modes: {(mrmsVisualReview.tile_modes_found ?? []).join(', ') || '—'}
+            </p>
+            {mrmsVisualReview.history_count != null && mrmsVisualReview.history_count > 0 ? (
+              <p className="validation-meta">
+                History entries: {mrmsVisualReview.history_count} (max 25)
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            Generate a local manifest with <code>make mrms-visual-review</code> to inspect placeholder,
+            decoded prototype, and production-gated tile evidence.
+          </p>
+        )}
+        <CommandLine
+          command={mrmsVisualReview?.suggested_next_command ?? 'make mrms-visual-review'}
+          label="Suggested command"
+          manualCopy
+        />
+        <SafetyNote />
+      </CollapsibleSection>
       <CollapsibleSection
         title="Scheduled validation & operator status"
         className="validation-scheduled-summary"

@@ -38,6 +38,8 @@ from backend.app.schemas.validation import (
     MrmsReviewSessionExportDiffHistoryResponse,
     MrmsReviewSessionExportDiffTrendResponse,
     MrmsReviewSessionExportDiffTrendHintResponse,
+    MrmsVisualReviewHistoryResponse,
+    MrmsVisualReviewResponse,
     OperatorReviewStatusResponse,
     OperatorWorkflowPresetsResponse,
     QueueBenchmarkHistoryResponse,
@@ -113,6 +115,10 @@ from backend.app.services.mrms_review_session_export_diff_trends import (
 )
 from backend.app.services.mrms_review_session_export_diff_trend_hint import (
     build_review_session_export_diff_trend_hint_payload,
+)
+from backend.app.services.mrms_visual_review import (
+    build_mrms_visual_review_history_payload,
+    build_mrms_visual_review_payload,
 )
 from backend.app.services.operator_review_status import build_operator_review_status_payload
 from backend.app.services.operator_workflow_presets import build_operator_workflow_presets_payload
@@ -330,6 +336,25 @@ def validation_operator_workflow_presets() -> OperatorWorkflowPresetsResponse:
     storage = LocalStorage(settings.local_storage_root)
     payload = build_operator_workflow_presets_payload(storage)
     return OperatorWorkflowPresetsResponse(**payload)
+
+
+@router.get("/mrms-visual-review", response_model=MrmsVisualReviewResponse)
+def validation_mrms_visual_review() -> MrmsVisualReviewResponse:
+    """Latest MRMS visual review manifest (read-only; local visual evidence only)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_mrms_visual_review_payload(storage)
+    return MrmsVisualReviewResponse(**payload)
+
+
+@router.get("/mrms-visual-review/history", response_model=MrmsVisualReviewHistoryResponse)
+def validation_mrms_visual_review_history(
+    limit: int = 25,
+) -> MrmsVisualReviewHistoryResponse:
+    """Bounded MRMS visual review history (read-only; local visual evidence only)."""
+    storage = LocalStorage(settings.local_storage_root)
+    bounded = max(1, min(limit, 25))
+    payload = build_mrms_visual_review_history_payload(storage, limit=bounded)
+    return MrmsVisualReviewHistoryResponse(**payload)
 
 
 @router.get(

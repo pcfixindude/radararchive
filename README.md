@@ -251,6 +251,7 @@ Limitations:
 - `make mrms-review-session-export-diff-trend-hint` shows when a new review session/export is recommended (`--json`)
 - `make operator-review-status` prints consolidated local operator review status with runbook guidance (`--json`); Dev Validation **Operator Review Status** block stays fixed near the top (not collapsible)
 - `make operator-workflow-presets` lists grouped local workflow presets with runbook guidance, short reasons, and copy-ready commands (`--json`); Dev Validation groups presets by category with recommended-only/group filters and Copy buttons (Phase 55)
+- `make mrms-visual-review` generates a local visual review manifest (JSON + Markdown) of existing tile/render artifacts (`--json-report`, `--history`); Dev Validation **MRMS Visual Review** collapsible section (Phase 56)
 - `make mrms-review-session ARGS="... --export-after-create"` creates a session and immediately exports Markdown (session is kept if export fails)
 - `make mrms-signoff` records local operator sign-off (does not set verified_mrms)
 - `POST /api/validation/signoffs` — dev-only sign-off API (same validation as CLI; does not verify MRMS)

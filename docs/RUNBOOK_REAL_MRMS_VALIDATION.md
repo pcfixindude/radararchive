@@ -695,6 +695,37 @@ Dev Validation **Operator Workflow Presets** (collapsible, below Operator Review
 
 Presets remain **advisory and local-only** — no backend changes, no command execution, no new evidence.
 
+## MRMS visual review artifacts (Phase 56)
+
+Local visual review inspects **existing** catalog rows and on-disk tile/render paths — **does not download MRMS, decode GRIB2, or render new tiles**.
+
+```bash
+make mrms-visual-review
+make mrms-visual-review ARGS="--json-report"
+make mrms-visual-review-history
+make mrms-visual-review-history ARGS="--json-report --limit 10"
+```
+
+**Outputs (gitignored under `data/dev/`):**
+- `mrms_visual_review_latest.json` — manifest with per-frame artifact table
+- `mrms_visual_review_latest.md` — operator-readable report with safety warnings
+- `mrms_visual_review_history.json` — bounded history (max 25)
+
+**Tile mode interpretation:**
+
+| mode | Meaning |
+|---|---|
+| `placeholder` | Default placeholder processed/render state |
+| `placeholder_for_real_raw` | Placeholder preview for a real raw file |
+| `decoded_prototype` | Decode output and/or `data/tiles/decoded_prototype/` cache |
+| `production_gated` | Production flag/pending without served production cache |
+| `production_rendered_cache` | `data/tiles/production/...` cache file exists locally |
+| `unknown` | Could not classify from existing paths |
+
+**Dev Validation UI:** Collapsible **MRMS Visual Review** section shows latest timestamp, JSON/Markdown paths, artifact counts, tile modes, and `make mrms-visual-review` suggested command.
+
+Visual review is **supporting local operator evidence only** — it does **not** verify MRMS, clear alerts, notify externally, or enable production rendering.
+
 ### Operator review status guidance anchors (Phase 50)
 
 Runbook deep-links from consolidated status (`guidance_items`, `top_guidance_item`):

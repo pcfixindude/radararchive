@@ -226,6 +226,10 @@ Grouped presets (`operator_workflow_preset_groups`, `group_id`, `group_title`, `
 
 Dev Validation adds client-side preset filters (recommended-only, optional group) and Copy-to-clipboard on command blocks. **Copy does not execute commands** — operators paste into a terminal manually. This is **local UI polish only** — it does **not** verify MRMS, clear alerts, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
 
+## MRMS visual review artifacts (Phase 56)
+
+`make mrms-visual-review` inspects existing local catalog/tile artifacts and writes JSON + Markdown manifests under `data/dev/`. Tile modes distinguish placeholder, decoded prototype, and production-gated/cache paths. This is **local visual evidence only** — it does **not** verify MRMS, clear alerts, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
+
 ## Scheduled proof bundle monitoring (Phase 32)
 
 `make scheduled-proof-bundle` runs scheduled validation with `--proof --bundle --diff-bundle`. This is **local evidence monitoring only** — it does not verify MRMS or enable production rendering. Alerts may flag `worsened` or `mixed` diff status for operator review.

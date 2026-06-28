@@ -14,6 +14,7 @@ from backend.app.services.mrms_operator_handoff import (
     load_latest_operator_handoff,
 )
 from backend.app.services.operator_guidance import compact_operator_guidance
+from backend.app.services.mrms_visual_review import compact_mrms_visual_review
 from backend.app.services.operator_review_status import (
     compact_operator_review_status,
     compact_scheduled_operator_status,
@@ -195,6 +196,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "review_export_regeneration_hint": build_review_export_regeneration_hint(storage),
         "operator_review_status": compact_operator_review_status(storage),
         "operator_workflow_presets": compact_operator_workflow_presets(storage),
+        "mrms_visual_review": compact_mrms_visual_review(storage),
         "scheduled_operator_status": compact_scheduled_operator_status(scheduled),
         "runbook_references": RUNBOOK_LINK_METADATA,
         "catalog": catalog,

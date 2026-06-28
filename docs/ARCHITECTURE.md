@@ -578,6 +578,13 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Client-side filtering only — no API changes
 - Frontend vitest: `CommandLine.test.tsx`, `presetFilters.test.ts`, `copyText.test.ts`
 
+### MRMS visual review artifacts (Phase 56)
+- `mrms_visual_review.py` — inspect catalog/tile artifacts; JSON + Markdown + bounded history
+- `make mrms-visual-review`, `make mrms-visual-review-history`
+- `GET /api/validation/mrms-visual-review` (+ `/history`); summary `mrms_visual_review` compact
+- Dev Validation **MRMS Visual Review** collapsible section
+- Tile modes: placeholder, placeholder_for_real_raw, decoded_prototype, production_gated, production_rendered_cache, unknown
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

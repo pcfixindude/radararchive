@@ -2017,3 +2017,32 @@ cd frontend && npm run build
 - Filtering is UI-only — API payload unchanged
 - Copy uses browser clipboard API with manual-select fallback; does not run commands
 - Presets remain advisory local-only — does not verify MRMS, clear alerts, or mutate gates
+
+## Phase 56 - MRMS Visual Review Artifacts
+
+Local visual review manifest and Markdown report for existing tile/render artifacts.
+
+### Backend
+- `backend/app/services/mrms_visual_review.py` — inspect catalog frames and on-disk tile paths
+- Outputs: `data/dev/mrms_visual_review_latest.json`, `.md`, bounded `history.json` (max 25)
+- Tile modes: `placeholder`, `placeholder_for_real_raw`, `decoded_prototype`, `production_gated`, `production_rendered_cache`, `unknown`
+- `GET /api/validation/mrms-visual-review`, `/mrms-visual-review/history`
+- Summary field: `mrms_visual_review` compact
+- Operator review status optional context: `latest_visual_review_at`, paths
+
+### Frontend
+- Dev Validation collapsible **MRMS Visual Review** section with artifact counts, tile modes, suggested command
+
+### Run commands
+
+```bash
+make test
+make mrms-visual-review
+make mrms-visual-review-history
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Read-only inspection — does not download, decode GRIB2, or render new tiles
+- Does not verify MRMS, clear alerts, or enable production rendering

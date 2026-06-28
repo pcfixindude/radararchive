@@ -746,6 +746,26 @@ export type OperatorWorkflowPresetCompact = {
   does_not_enable_production: boolean;
 };
 
+export type MrmsVisualReviewCompact = {
+  available?: boolean;
+  created_at?: string | null;
+  json_path?: string | null;
+  markdown_path?: string | null;
+  layers_inspected?: string[];
+  timestamp_count?: number;
+  frame_count?: number;
+  artifact_count?: number;
+  missing_artifact_count?: number;
+  tile_modes_found?: string[];
+  suggested_next_command?: string | null;
+  runbook_path?: string | null;
+  history_count?: number;
+  verified_mrms: boolean;
+  local_visual_review_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+};
+
 export type OperatorWorkflowPresetsCompact = {
   available?: boolean;
   recommended_count?: number;
@@ -771,6 +791,9 @@ export type OperatorReviewStatusCompact = {
   latest_review_session_at?: string | null;
   latest_review_export_at?: string | null;
   latest_digest_at?: string | null;
+  latest_visual_review_at?: string | null;
+  latest_visual_review_json_path?: string | null;
+  latest_visual_review_markdown_path?: string | null;
   latest_export_diff_status?: string | null;
   latest_export_diff_trend?: string | null;
   open_attention_count?: number | null;
@@ -1251,6 +1274,7 @@ export type ValidationSummary = {
   review_export_regeneration_hint?: ReviewExportRegenerationHintCompact | null;
   operator_review_status?: OperatorReviewStatusCompact | null;
   operator_workflow_presets?: OperatorWorkflowPresetsCompact | null;
+  mrms_visual_review?: MrmsVisualReviewCompact | null;
   scheduled_operator_status?: ScheduledOperatorStatusCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
