@@ -413,6 +413,29 @@ export type MrmsSignoffCreateResponse = {
   alert: ValidationAlertCompact | null;
 };
 
+export type MrmsProofBundleCompact = {
+  available: boolean;
+  bundle_id?: string | null;
+  created_at?: string | null;
+  bundle_folder?: string | null;
+  zip_path?: string | null;
+  file_count: number;
+  files_missing_count?: number;
+  bundle_count?: number;
+  include_history?: boolean;
+  verified_mrms: boolean;
+  local_bundle_only: boolean;
+  proof_only: boolean;
+  does_not_enable_production: boolean;
+  prototype: boolean;
+};
+
+export type RunbookReference = {
+  title: string;
+  path: string;
+  anchor?: string;
+};
+
 export type MrmsProofHistoryEntry = {
   generated_at?: string | null;
   overall_status: string;
@@ -515,6 +538,8 @@ export type ValidationSummary = {
   mrms_proof_regression?: MrmsProofRegressionCompact | null;
   mrms_proof_regression_available?: boolean;
   mrms_signoff?: MrmsSignoffSummaryCompact | null;
+  mrms_proof_bundle?: MrmsProofBundleCompact | null;
+  runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;
 };

@@ -60,6 +60,15 @@ Response always includes `verified_mrms: false`, `local_signoff_only: true`, `do
 
 Dev Validation panel: **Show proof review** → dev sign-off form.
 
+## Proof bundle export (Phase 30)
+
+```bash
+make mrms-proof-bundle
+make mrms-proof-bundle ARGS="--include-history --json-report"
+```
+
+Bundle includes copies of this template when repo docs are available. Export is local evidence packaging only — `verified_mrms` stays false.
+
 ## Related commands
 
 ```bash

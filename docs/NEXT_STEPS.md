@@ -1,23 +1,24 @@
 # Next Steps
 
-## Phase 30 - Exportable Proof Bundle + Runbook Deep Links (Draft)
+## Phase 31 - Proof Bundle Diff + Operator Handoff Checklist (Draft)
 
-Goal: Package proof/regression/sign-off JSON into a single local export artifact for operator handoff, and add runbook deep-link anchors from the dev validation panel — still without `verified_mrms=true`.
+Goal: Compare two local proof bundles for operator handoff and add a printable checklist tied to `VERIFIED_MRMS_CRITERIA.md` — still without `verified_mrms=true`.
 
 Suggested work:
-1. `make mrms-proof-bundle` — zip/tar of latest proof, regression, sign-off, alert JSON (local only)
-2. Dev panel links to runbook sections (proof, regression, sign-off)
-3. Optional `GET /api/validation/proof-bundle` read-only manifest (no secrets)
+1. `make mrms-proof-bundle-diff` — compare manifests and key evidence between two bundle folders
+2. Operator handoff checklist markdown generated inside bundle export
+3. Dev panel link to latest bundle README path
 
 Do not start yet:
 - Stripe, real auth, HRRR, WPC, native Android
 - Redis/Celery, cloud deployment
-- Setting `verified_mrms=true` or production promotion via sign-off or export
+- Setting `verified_mrms=true` or production promotion via bundle export
 
-## Phase 29 verification commands
+## Phase 30 verification commands
 
 ```bash
 make test
+make mrms-proof-bundle
 make mrms-proof-report
 make mrms-proof-regression
 make mrms-proof-history

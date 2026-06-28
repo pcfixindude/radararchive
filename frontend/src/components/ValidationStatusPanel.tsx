@@ -139,6 +139,8 @@ export default function ValidationStatusPanel({
   const proofCounts = mrmsProof?.criteria_counts;
   const proofRegression = summary.mrms_proof_regression ?? null;
   const signoffSummary = summary.mrms_signoff ?? null;
+  const proofBundle = summary.mrms_proof_bundle ?? null;
+  const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
   const queue = summary.render_queue;
   const catalog = summary.catalog;
@@ -245,6 +247,34 @@ export default function ValidationStatusPanel({
         <p className="validation-warn">
           Proof regression remains active after sign-off — evidence must improve before alert clears.
         </p>
+      ) : null}
+      <section className="validation-proof-bundle">
+        <p className="validation-meta">Proof bundle (local evidence only — does not verify MRMS)</p>
+        {proofBundle?.available ? (
+          <p className="validation-meta">
+            Latest bundle {formatTimestamp(proofBundle.created_at)} — {proofBundle.file_count ?? 0} files
+            {proofBundle.zip_path ? ` — ${proofBundle.zip_path}` : ''}
+            {proofBundle.bundle_folder ? ` (folder: ${proofBundle.bundle_folder})` : ''}
+          </p>
+        ) : (
+          <p className="validation-meta">No proof bundle yet — run make mrms-proof-bundle.</p>
+        )}
+        <p className="validation-meta">
+          Export does not enable production rendering — verified_mrms: {yesNo(summary.verified_mrms)}
+        </p>
+      </section>
+      {runbookReferences.length > 0 ? (
+        <section className="validation-runbook-links">
+          <p className="validation-meta">Operator runbook references (repo docs):</p>
+          <ul className="validation-history-list">
+            {runbookReferences.map((ref) => (
+              <li key={ref.path} className="validation-meta">
+                {ref.title} — <code>{ref.path}</code>
+                {ref.anchor ? `#${ref.anchor}` : ''}
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
       <div className="validation-header-actions" style={{ marginTop: '0.5rem' }}>
         <button

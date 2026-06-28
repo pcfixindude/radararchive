@@ -339,6 +339,10 @@ Sign-off via `make mrms-signoff` or dev-only `POST /api/validation/signoffs` is 
 
 `make mrms-proof-history` lists bounded proof/regression/sign-off records for operator drill-down. Dev panel **Show proof review** includes history lists and a dev sign-off form.
 
+## Proof bundle export (Phase 30)
+
+`make mrms-proof-bundle` writes `data/dev/proof_bundles/mrms_proof_bundle_{timestamp}/` plus a ZIP. Includes proof/regression/sign-off/alert JSON, catalog/queue snapshots, runbook markdown copies, and `manifest.json` with `verified_mrms: false`. Bundles are supporting evidence only — not verified MRMS certification.
+
 ## Inspection CLI
 
 ```bash

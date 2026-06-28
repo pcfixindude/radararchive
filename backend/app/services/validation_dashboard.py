@@ -9,6 +9,11 @@ from sqlalchemy.orm import Session
 from backend.app.config import settings
 from backend.app.services.catalog_status import build_catalog_status
 from backend.app.services.grib2_inspector import detect_decoder_availability
+from backend.app.services.mrms_proof_bundle import (
+    compact_proof_bundle_status,
+    load_latest_proof_bundle_manifest,
+    RUNBOOK_LINK_METADATA,
+)
 from backend.app.services.mrms_proof_regression import compact_proof_regression, load_proof_regression_report
 from backend.app.services.mrms_proof_report import compact_mrms_proof_report, load_mrms_proof_report
 from backend.app.services.mrms_signoff import compact_signoff_summary, load_signoffs
@@ -84,6 +89,8 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "mrms_proof_regression": compact_proof_regression(regression),
         "mrms_proof_regression_available": regression is not None,
         "mrms_signoff": signoff_summary,
+        "mrms_proof_bundle": compact_proof_bundle_status(storage),
+        "runbook_references": RUNBOOK_LINK_METADATA,
         "catalog": catalog,
     }
 
@@ -102,6 +109,7 @@ def build_validation_latest(storage: LocalStorage) -> dict[str, Any]:
         "mrms_proof": load_mrms_proof_report(storage),
         "mrms_proof_regression": load_proof_regression_report(storage),
         "mrms_signoffs": load_signoffs(storage)[:10],
+        "mrms_proof_bundle": load_latest_proof_bundle_manifest(storage),
     }
 
 

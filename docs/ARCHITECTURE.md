@@ -404,6 +404,13 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Summary: `scheduled_validation.proof_step` compact when `--proof` used
 - Frontend: dev sign-off form in proof review section (local sign-off only wording)
 
+### Exportable proof bundle (Phase 30)
+- `mrms_proof_bundle.py` → `data/dev/proof_bundles/mrms_proof_bundle_{timestamp}/` + `.zip`
+- Manifest: `verified_mrms: false`, `local_bundle_only: true`, `files_included` / `files_missing`
+- Copies runbook markdown into bundle `docs/` when present
+- `GET /api/validation/proof-bundles`; summary adds `mrms_proof_bundle`, `runbook_references`
+- CLI: `make mrms-proof-bundle` (`--include-history`, `--json-report`)
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

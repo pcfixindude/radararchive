@@ -1229,3 +1229,40 @@ cd frontend && npm run build
 - Sign-off does not clear proof regression automatically
 - `verified_mrms` always false
 - Production serving gates unchanged; placeholder default unchanged
+
+## Phase 30 - Exportable MRMS Proof Bundle + Runbook Deep Links
+
+Local proof evidence packaging into timestamped folder + ZIP with manifest and runbook references.
+
+### Backend
+- `mrms_proof_bundle.py` — gather evidence, write manifest/README, ZIP export
+- `GET /api/validation/proof-bundles` — bounded bundle history (read-only)
+- Summary/latest: `mrms_proof_bundle` compact + `runbook_references`
+
+### Scripts / Makefile
+- `scripts/export_mrms_proof_bundle.py` — `make mrms-proof-bundle` (`--json-report`, `--include-history`)
+
+### Frontend
+- Dev Validation proof bundle section + runbook doc path references
+
+### Run commands
+
+```bash
+make test
+make mrms-proof-bundle
+make mrms-proof-report
+make mrms-proof-regression
+make mrms-proof-history
+make validation-alerts
+make scheduled-validation
+make catalog-status
+make render-queue-status
+cd frontend && npm run build
+```
+
+### Known limitations
+- Bundles are local dev artifacts only — not verified MRMS
+- Export does not mutate catalog, sign-offs, or production flags
+- No browser download endpoint (local paths only)
+- `verified_mrms` always false
+- Production serving gates unchanged; placeholder default unchanged

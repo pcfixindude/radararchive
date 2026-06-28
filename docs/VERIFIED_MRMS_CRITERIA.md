@@ -130,6 +130,10 @@ Sign-off records `verified_mrms: false`, `does_not_set_verified_mrms: true`, and
 
 Optional dev/local `POST /api/validation/signoffs` shares the same validation as `make mrms-signoff`. Response always includes `verified_mrms: false` and `local_signoff_only: true`. Sign-off refreshes the validation alert but does **not** clear proof regression automatically.
 
+## Proof bundle export (Phase 30)
+
+`make mrms-proof-bundle` packages local proof/regression/sign-off/alert JSON into a timestamped folder + ZIP. Bundles are **supporting evidence only** — they do **not** verify MRMS or enable production rendering. Manifest always includes `verified_mrms: false`.
+
 ## Proof review history (Phase 28)
 
 Bounded read-only history for dev panel drill-down:

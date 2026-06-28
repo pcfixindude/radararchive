@@ -408,6 +408,40 @@ class ScheduledValidationHistoryResponse(BaseModel):
     entries: list[dict[str, Any]] = Field(default_factory=list)
 
 
+class MrmsProofBundleCompact(BaseModel):
+    available: bool = False
+    bundle_id: Optional[str] = None
+    created_at: Optional[str] = None
+    bundle_folder: Optional[str] = None
+    zip_path: Optional[str] = None
+    file_count: int = 0
+    files_missing_count: int = 0
+    bundle_count: int = 0
+    include_history: bool = False
+    verified_mrms: bool = False
+    local_bundle_only: bool = True
+    proof_only: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class RunbookReferenceCompact(BaseModel):
+    title: str
+    path: str
+    anchor: str = ""
+
+
+class MrmsProofBundlesResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_bundle_only: bool = True
+    proof_only: bool = True
+    count: int = 0
+    latest: Optional[MrmsProofBundleCompact] = None
+    entries: list[dict[str, Any]] = Field(default_factory=list)
+    runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
+
+
 class ValidationSummaryResponse(BaseModel):
     prototype: bool = True
     verified_mrms: bool = False
@@ -437,6 +471,8 @@ class ValidationSummaryResponse(BaseModel):
     mrms_proof_regression: Optional[MrmsProofRegressionCompact] = None
     mrms_proof_regression_available: bool = False
     mrms_signoff: Optional[MrmsSignoffSummaryCompact] = None
+    mrms_proof_bundle: Optional[MrmsProofBundleCompact] = None
+    runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse
 
@@ -462,6 +498,7 @@ class ValidationLatestResponse(BaseModel):
     mrms_proof: Optional[dict[str, Any]] = None
     mrms_proof_regression: Optional[dict[str, Any]] = None
     mrms_signoffs: list[dict[str, Any]] = Field(default_factory=list)
+    mrms_proof_bundle: Optional[dict[str, Any]] = None
 
 
 class ValidationFailuresResponse(BaseModel):

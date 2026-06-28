@@ -228,6 +228,10 @@ Summary additions (Phase 29): `scheduled_validation.proof_step` compact (`ran`, 
 
 `GET /api/validation/proof-regression/history` — bounded regression history (last 10) + latest compact. `verified_mrms: false`.
 
+Summary additions (Phase 30): `mrms_proof_bundle` compact (`bundle_folder`, `zip_path`, `file_count`, `created_at`), `runbook_references` (repo doc paths + anchors).
+
+`GET /api/validation/proof-bundles` — bounded local proof bundle export history (read-only). `verified_mrms: false`, `local_bundle_only: true`. Does not create bundles (use `make mrms-proof-bundle`).
+
 `GET /api/catalog/status` — MRMS catalog frame counts by download/process/render status, latest timestamps.
 
 ## MRMS source discovery (Phase 8 — dev/metadata)

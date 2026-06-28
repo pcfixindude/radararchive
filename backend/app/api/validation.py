@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from backend.app.config import settings
 from backend.app.database import get_db
 from backend.app.schemas.validation import (
+    MrmsProofBundlesResponse,
     MrmsProofHistoryResponse,
     MrmsProofRegressionHistoryResponse,
     MrmsProofRegressionResponse,
@@ -22,6 +23,7 @@ from backend.app.schemas.validation import (
     ValidationSummaryResponse,
 )
 from backend.app.services.storage import LocalStorage
+from backend.app.services.mrms_proof_bundle import build_proof_bundles_list_payload
 from backend.app.services.mrms_proof_history import (
     build_proof_history_payload,
     build_regression_history_payload,
@@ -227,3 +229,11 @@ def validation_signoffs_create(body: MrmsSignoffCreateRequest) -> MrmsSignoffCre
         signoff=record,
         alert=compact_validation_alert(alert),
     )
+
+
+@router.get("/proof-bundles", response_model=MrmsProofBundlesResponse)
+def validation_proof_bundles(limit: int = 10) -> MrmsProofBundlesResponse:
+    """Bounded local MRMS proof bundle export history (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_proof_bundles_list_payload(storage, limit=limit)
+    return MrmsProofBundlesResponse(**payload)

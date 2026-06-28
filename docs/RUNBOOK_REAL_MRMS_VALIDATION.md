@@ -159,6 +159,26 @@ After sign-off:
 - If proof regression was active, it **remains active** until evidence improves (sign-off records review only)
 - Summary shows `scheduled_validation.proof_step` when scheduled validation ran with `--proof`
 
+## Proof bundle export (Phase 30)
+
+Package local proof evidence for operator handoff — **does not verify MRMS** and **does not enable production rendering**.
+
+```bash
+make mrms-proof-bundle
+make mrms-proof-bundle ARGS="--json-report"
+make mrms-proof-bundle ARGS="--include-history"
+curl http://127.0.0.1:8000/api/validation/proof-bundles
+```
+
+Output:
+- Folder: `data/dev/proof_bundles/mrms_proof_bundle_{timestamp}/`
+- ZIP: `data/dev/proof_bundles/mrms_proof_bundle_{timestamp}.zip`
+- Manifest: `manifest.json` inside bundle (`verified_mrms: false`, `files_included`, `files_missing`)
+- README inside bundle explains non-verification warnings
+- Runbook copies: `docs/RUNBOOK_REAL_MRMS_VALIDATION.md`, `docs/VERIFIED_MRMS_CRITERIA.md`, etc. (when present in repo)
+
+Dev Validation panel shows latest bundle path and runbook doc references.
+
 ## Check recent failures
 
 ```bash
