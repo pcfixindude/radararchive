@@ -5,6 +5,8 @@ import {
   submitSignoff,
   submitReviewSession,
   submitVisualReviewSampleSet,
+  submitVisualReviewSampleAnnotation,
+  refreshVisualReviewSampleReadiness,
   submitDiffAcknowledgment,
   type MrmsProofHistory,
   type MrmsProofRegressionHistory,
@@ -62,6 +64,14 @@ export default function ValidationStatusPanel({
   const [sampleSetSubmitting, setSampleSetSubmitting] = useState(false);
   const [sampleSetMessage, setSampleSetMessage] = useState<string | null>(null);
   const [sampleSetError, setSampleSetError] = useState<string | null>(null);
+  const [annotationDrafts, setAnnotationDrafts] = useState<
+    Record<string, { status: string; notes: string; reviewer: string }>
+  >({});
+  const [annotationSavingKey, setAnnotationSavingKey] = useState<string | null>(null);
+  const [annotationMessage, setAnnotationMessage] = useState<string | null>(null);
+  const [annotationError, setAnnotationError] = useState<string | null>(null);
+  const [readinessRefreshing, setReadinessRefreshing] = useState(false);
+  const [readinessMessage, setReadinessMessage] = useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -78,6 +88,28 @@ export default function ValidationStatusPanel({
   useEffect(() => {
     void loadProofReview();
   }, [loadProofReview]);
+
+  useEffect(() => {
+    const summaries = summary?.mrms_visual_review_sample_readiness?.entry_summaries ?? [];
+    if (summaries.length === 0) {
+      return;
+    }
+    setAnnotationDrafts((previous) => {
+      const next = { ...previous };
+      for (const entry of summaries) {
+        const key = entry.sample_key ?? '';
+        if (!key || next[key]) {
+          continue;
+        }
+        next[key] = {
+          status: entry.status ?? 'unreviewed',
+          notes: entry.operator_notes ?? '',
+          reviewer: entry.reviewer_label ?? '',
+        };
+      }
+      return next;
+    });
+  }, [summary?.mrms_visual_review_sample_readiness?.entry_summaries]);
 
   async function handleRefresh() {
     if (onRefresh) {
@@ -223,6 +255,48 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleSampleAnnotationSave(sampleKey: string) {
+    const draft = annotationDrafts[sampleKey];
+    if (!draft) {
+      return;
+    }
+    setAnnotationMessage(null);
+    setAnnotationError(null);
+    setAnnotationSavingKey(sampleKey);
+    const result = await submitVisualReviewSampleAnnotation({
+      sample_key: sampleKey,
+      status: draft.status,
+      operator_notes: draft.notes.trim() || null,
+      reviewer_label: draft.reviewer.trim() || null,
+    });
+    setAnnotationSavingKey(null);
+    if (!result.ok) {
+      setAnnotationError(result.error);
+      return;
+    }
+    setAnnotationMessage(
+      `Annotation saved for ${sampleKey} — local advisory only; does not verify MRMS.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
+  async function handleReadinessRefresh() {
+    setReadinessMessage(null);
+    setReadinessRefreshing(true);
+    const result = await refreshVisualReviewSampleReadiness();
+    setReadinessRefreshing(false);
+    if (!result.ok) {
+      setAnnotationError(result.error);
+      return;
+    }
+    setReadinessMessage('Readiness summary refreshed — candidate_ready is not production authorization.');
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   if (!summary) {
     return (
       <section className="panel validation-panel">
@@ -288,6 +362,7 @@ export default function ValidationStatusPanel({
   const mrmsVisualReviewComparison = summary.mrms_visual_review_comparison ?? null;
   const mrmsVisualReviewHint = summary.mrms_visual_review_hint ?? null;
   const mrmsVisualReviewSampleSet = summary.mrms_visual_review_sample_set ?? null;
+  const mrmsVisualReviewSampleReadiness = summary.mrms_visual_review_sample_readiness ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -694,6 +769,139 @@ export default function ValidationStatusPanel({
           </button>
           {sampleSetMessage ? <p className="validation-meta">{sampleSetMessage}</p> : null}
           {sampleSetError ? <p className="validation-warn">{sampleSetError}</p> : null}
+          {mrmsVisualReviewSampleSet?.available ? (
+            <>
+              <p className="validation-warn">
+                Local-only advisory review. Does not verify MRMS, enable production rendering, create
+                production tiles, or clear alerts. Candidate readiness is not production authorization.
+              </p>
+              {mrmsVisualReviewSampleReadiness ? (
+                <>
+                  <p className="validation-meta">
+                    Advisory readiness: {mrmsVisualReviewSampleReadiness.readiness_level ?? '—'} —{' '}
+                    {mrmsVisualReviewSampleReadiness.readiness_reason ?? '—'}
+                  </p>
+                  <p className="validation-meta">
+                    Reviewed {mrmsVisualReviewSampleReadiness.reviewed_samples ?? 0} /{' '}
+                    {mrmsVisualReviewSampleReadiness.total_selected_samples ?? 0} — acceptable:{' '}
+                    {mrmsVisualReviewSampleReadiness.acceptable_count ?? 0}, questionable:{' '}
+                    {mrmsVisualReviewSampleReadiness.questionable_count ?? 0}, rejected:{' '}
+                    {mrmsVisualReviewSampleReadiness.rejected_count ?? 0}
+                  </p>
+                  <p className="validation-meta">
+                    Missing artifact samples:{' '}
+                    {mrmsVisualReviewSampleReadiness.missing_artifact_samples ?? 0} — stale:{' '}
+                    {mrmsVisualReviewSampleReadiness.stale_samples ?? 0} — needs follow-up:{' '}
+                    {mrmsVisualReviewSampleReadiness.needs_followup_samples ?? 0}
+                  </p>
+                  {mrmsVisualReviewSampleReadiness.markdown_path ? (
+                    <p className="validation-meta">
+                      Readiness Markdown:{' '}
+                      <code>{mrmsVisualReviewSampleReadiness.markdown_path}</code>
+                    </p>
+                  ) : null}
+                  {mrmsVisualReviewSampleReadiness.annotations_path ? (
+                    <p className="validation-meta">
+                      Annotations JSON:{' '}
+                      <code>{mrmsVisualReviewSampleReadiness.annotations_path}</code>
+                    </p>
+                  ) : null}
+                </>
+              ) : null}
+              {(mrmsVisualReviewSampleReadiness?.entry_summaries ?? []).map((entry) => {
+                const sampleKey = entry.sample_key ?? '';
+                const draft = annotationDrafts[sampleKey] ?? {
+                  status: entry.status ?? 'unreviewed',
+                  notes: entry.operator_notes ?? '',
+                  reviewer: entry.reviewer_label ?? '',
+                };
+                return (
+                  <div key={sampleKey} className="validation-meta validation-sample-entry">
+                    <p>
+                      <strong>{formatTimestamp(entry.timestamp)}</strong> — {entry.tile_mode ?? '—'} —{' '}
+                      <code>{entry.primary_artifact_path ?? '—'}</code>
+                    </p>
+                    <p>
+                      Sample key: <code>{sampleKey}</code>
+                      {(entry.issue_tags ?? []).length > 0
+                        ? ` — tags: ${(entry.issue_tags ?? []).join(', ')}`
+                        : ''}
+                    </p>
+                    <label className="validation-meta">
+                      Status
+                      <select
+                        value={draft.status}
+                        onChange={(event) =>
+                          setAnnotationDrafts((previous) => ({
+                            ...previous,
+                            [sampleKey]: { ...draft, status: event.target.value },
+                          }))
+                        }
+                      >
+                        <option value="unreviewed">unreviewed</option>
+                        <option value="acceptable">acceptable</option>
+                        <option value="questionable">questionable</option>
+                        <option value="rejected">rejected</option>
+                      </select>
+                    </label>
+                    <label className="validation-meta">
+                      Operator notes
+                      <textarea
+                        value={draft.notes}
+                        onChange={(event) =>
+                          setAnnotationDrafts((previous) => ({
+                            ...previous,
+                            [sampleKey]: { ...draft, notes: event.target.value },
+                          }))
+                        }
+                        rows={2}
+                      />
+                    </label>
+                    <label className="validation-meta">
+                      Reviewer label
+                      <input
+                        type="text"
+                        value={draft.reviewer}
+                        onChange={(event) =>
+                          setAnnotationDrafts((previous) => ({
+                            ...previous,
+                            [sampleKey]: { ...draft, reviewer: event.target.value },
+                          }))
+                        }
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="validation-refresh"
+                      onClick={() => void handleSampleAnnotationSave(sampleKey)}
+                      disabled={annotationSavingKey === sampleKey}
+                    >
+                      {annotationSavingKey === sampleKey ? 'Saving…' : 'Save local annotation'}
+                    </button>
+                  </div>
+                );
+              })}
+              <button
+                type="button"
+                className="validation-refresh"
+                onClick={() => void handleReadinessRefresh()}
+                disabled={readinessRefreshing}
+              >
+                {readinessRefreshing ? 'Refreshing…' : 'Refresh readiness summary (local only)'}
+              </button>
+              {annotationMessage ? <p className="validation-meta">{annotationMessage}</p> : null}
+              {readinessMessage ? <p className="validation-meta">{readinessMessage}</p> : null}
+              {annotationError ? <p className="validation-warn">{annotationError}</p> : null}
+              <CommandLine
+                command={
+                  mrmsVisualReviewSampleReadiness?.suggested_command ??
+                  'make mrms-visual-review-readiness --refresh'
+                }
+                label="Suggested readiness command"
+                manualCopy
+              />
+            </>
+          ) : null}
           <CommandLine
             command={
               mrmsVisualReviewSampleSet?.suggested_command ?? 'make mrms-visual-review-sample-set'

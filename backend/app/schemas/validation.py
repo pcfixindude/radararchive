@@ -1001,6 +1001,86 @@ class MrmsVisualReviewSampleSetCreateResponse(BaseModel):
     compact: MrmsVisualReviewSampleSetCompact
 
 
+class MrmsVisualReviewSampleEntrySummaryCompact(BaseModel):
+    sample_key: Optional[str] = None
+    timestamp: Optional[str] = None
+    layer: Optional[str] = None
+    tile_mode: Optional[str] = None
+    primary_artifact_path: Optional[str] = None
+    status: Optional[str] = None
+    operator_notes: Optional[str] = None
+    reviewed_at: Optional[str] = None
+    reviewer_label: Optional[str] = None
+    issue_tags: list[str] = Field(default_factory=list)
+    missing_artifacts: list[str] = Field(default_factory=list)
+    stale_visual_review: bool = False
+
+
+class MrmsVisualReviewSampleReadinessCompact(BaseModel):
+    available: bool = False
+    readiness_level: Optional[str] = None
+    readiness_reason: Optional[str] = None
+    total_selected_samples: int = 0
+    reviewed_samples: int = 0
+    unreviewed_samples: int = 0
+    acceptable_count: int = 0
+    questionable_count: int = 0
+    rejected_count: int = 0
+    missing_artifact_samples: int = 0
+    stale_samples: int = 0
+    needs_followup_samples: int = 0
+    suspicious_visual_samples: int = 0
+    computed_at: Optional[str] = None
+    annotations_path: Optional[str] = None
+    markdown_path: Optional[str] = None
+    suggested_command: Optional[str] = None
+    entry_summaries: list[MrmsVisualReviewSampleEntrySummaryCompact] = Field(default_factory=list)
+    verified_mrms: bool = False
+    local_advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    no_external_notifications: bool = True
+    candidate_ready_is_not_production_authorization: bool = True
+    prototype: bool = True
+
+
+class MrmsVisualReviewSampleReadinessResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    no_external_notifications: bool = True
+    candidate_ready_is_not_production_authorization: bool = True
+    readiness: dict[str, Any] = Field(default_factory=dict)
+    annotations: dict[str, Any] = Field(default_factory=dict)
+    compact: MrmsVisualReviewSampleReadinessCompact
+
+
+class MrmsVisualReviewSampleAnnotationUpsertRequest(BaseModel):
+    sample_key: str
+    status: str = "unreviewed"
+    operator_notes: Optional[str] = None
+    reviewer_label: Optional[str] = None
+    issue_tags: list[str] = Field(default_factory=list)
+
+
+class MrmsVisualReviewSampleAnnotationUpsertResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    no_external_notifications: bool = True
+    candidate_ready_is_not_production_authorization: bool = True
+    production_enabled: bool = False
+    annotation: dict[str, Any] = Field(default_factory=dict)
+    compact: MrmsVisualReviewSampleReadinessCompact
+
+
 class ScheduledOperatorStatusCompact(BaseModel):
     operator_status_requested: bool = False
     operator_status_generated: bool = False
@@ -1729,6 +1809,7 @@ class ValidationSummaryResponse(BaseModel):
     mrms_visual_review_comparison: Optional[MrmsVisualReviewComparisonCompact] = None
     mrms_visual_review_hint: Optional[MrmsVisualReviewHintCompact] = None
     mrms_visual_review_sample_set: Optional[MrmsVisualReviewSampleSetCompact] = None
+    mrms_visual_review_sample_readiness: Optional[MrmsVisualReviewSampleReadinessCompact] = None
     scheduled_operator_status: Optional[ScheduledOperatorStatusCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)

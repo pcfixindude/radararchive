@@ -51,3 +51,5 @@ data/dev/mrms_visual_review_comparison_latest.json
 data/dev/mrms_visual_review_comparison_history.json
 data/dev/mrms_visual_review_sample_set.json
 data/dev/mrms_visual_review_sample_set.md
+data/dev/mrms_visual_review_sample_annotations.json
+data/dev/mrms_visual_review_sample_readiness.md

@@ -45,6 +45,9 @@ from backend.app.schemas.validation import (
     MrmsVisualReviewSampleSetCreateRequest,
     MrmsVisualReviewSampleSetCreateResponse,
     MrmsVisualReviewSampleSetResponse,
+    MrmsVisualReviewSampleReadinessResponse,
+    MrmsVisualReviewSampleAnnotationUpsertRequest,
+    MrmsVisualReviewSampleAnnotationUpsertResponse,
     MrmsVisualReviewResponse,
     OperatorReviewStatusResponse,
     OperatorWorkflowPresetsResponse,
@@ -134,6 +137,13 @@ from backend.app.services.mrms_visual_review_hint import build_visual_review_hin
 from backend.app.services.mrms_visual_review_sample_set import (
     build_visual_review_sample_set,
     build_visual_review_sample_set_payload,
+)
+from backend.app.services.mrms_visual_review_sample_readiness import (
+    SampleAnnotationValidationError,
+    build_visual_review_sample_readiness_payload,
+    compact_visual_review_sample_readiness,
+    refresh_visual_review_sample_readiness,
+    upsert_sample_annotation,
 )
 from backend.app.services.operator_review_status import build_operator_review_status_payload
 from backend.app.services.operator_workflow_presets import build_operator_workflow_presets_payload
@@ -351,6 +361,65 @@ def validation_operator_workflow_presets() -> OperatorWorkflowPresetsResponse:
     storage = LocalStorage(settings.local_storage_root)
     payload = build_operator_workflow_presets_payload(storage)
     return OperatorWorkflowPresetsResponse(**payload)
+
+
+@router.get(
+    "/mrms-visual-review/sample-set/readiness",
+    response_model=MrmsVisualReviewSampleReadinessResponse,
+)
+def validation_mrms_visual_review_sample_readiness() -> MrmsVisualReviewSampleReadinessResponse:
+    """Local sample-set readiness summary (read-only advisory; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_visual_review_sample_readiness_payload(storage)
+    return MrmsVisualReviewSampleReadinessResponse(**payload)
+
+
+@router.post(
+    "/mrms-visual-review/sample-set/readiness",
+    response_model=MrmsVisualReviewSampleReadinessResponse,
+)
+def validation_mrms_visual_review_sample_readiness_refresh() -> MrmsVisualReviewSampleReadinessResponse:
+    """Dev/local only — refresh sample-set readiness Markdown; does NOT verify MRMS."""
+    storage = LocalStorage(settings.local_storage_root)
+    refresh_visual_review_sample_readiness(storage)
+    payload = build_visual_review_sample_readiness_payload(storage)
+    return MrmsVisualReviewSampleReadinessResponse(**payload)
+
+
+@router.post(
+    "/mrms-visual-review/sample-set/annotations",
+    response_model=MrmsVisualReviewSampleAnnotationUpsertResponse,
+)
+def validation_mrms_visual_review_sample_annotation_upsert(
+    body: MrmsVisualReviewSampleAnnotationUpsertRequest,
+) -> MrmsVisualReviewSampleAnnotationUpsertResponse:
+    """Dev/local only — record sample annotation; does NOT verify MRMS or clear alerts."""
+    storage = LocalStorage(settings.local_storage_root)
+    try:
+        annotation = upsert_sample_annotation(
+            storage,
+            sample_key=body.sample_key,
+            status=body.status,
+            operator_notes=body.operator_notes,
+            reviewer_label=body.reviewer_label,
+            issue_tags=body.issue_tags,
+        )
+    except SampleAnnotationValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    compact = compact_visual_review_sample_readiness(storage)
+    return MrmsVisualReviewSampleAnnotationUpsertResponse(
+        verified_mrms=False,
+        local_advisory_only=True,
+        does_not_clear_alerts=True,
+        does_not_enable_production=True,
+        does_not_download_or_decode=True,
+        no_external_notifications=True,
+        candidate_ready_is_not_production_authorization=True,
+        production_enabled=settings.enable_production_radar_tiles,
+        annotation=annotation,
+        compact=compact,
+    )
 
 
 @router.get("/mrms-visual-review/sample-set", response_model=MrmsVisualReviewSampleSetResponse)

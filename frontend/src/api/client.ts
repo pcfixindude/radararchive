@@ -855,6 +855,70 @@ export type MrmsVisualReviewSampleSetCreateResponse = {
   compact: MrmsVisualReviewSampleSetCompact;
 };
 
+export type MrmsVisualReviewSampleEntrySummaryCompact = {
+  sample_key?: string | null;
+  timestamp?: string | null;
+  layer?: string | null;
+  tile_mode?: string | null;
+  primary_artifact_path?: string | null;
+  status?: string | null;
+  operator_notes?: string | null;
+  reviewed_at?: string | null;
+  reviewer_label?: string | null;
+  issue_tags?: string[];
+  missing_artifacts?: string[];
+  stale_visual_review?: boolean;
+};
+
+export type MrmsVisualReviewSampleReadinessCompact = {
+  available?: boolean;
+  readiness_level?: string | null;
+  readiness_reason?: string | null;
+  total_selected_samples?: number;
+  reviewed_samples?: number;
+  unreviewed_samples?: number;
+  acceptable_count?: number;
+  questionable_count?: number;
+  rejected_count?: number;
+  missing_artifact_samples?: number;
+  stale_samples?: number;
+  needs_followup_samples?: number;
+  suspicious_visual_samples?: number;
+  computed_at?: string | null;
+  annotations_path?: string | null;
+  markdown_path?: string | null;
+  suggested_command?: string | null;
+  entry_summaries?: MrmsVisualReviewSampleEntrySummaryCompact[];
+  verified_mrms: boolean;
+  local_advisory_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  no_external_notifications: boolean;
+  candidate_ready_is_not_production_authorization: boolean;
+};
+
+export type MrmsVisualReviewSampleAnnotationUpsertRequest = {
+  sample_key: string;
+  status?: string;
+  operator_notes?: string | null;
+  reviewer_label?: string | null;
+  issue_tags?: string[];
+};
+
+export type MrmsVisualReviewSampleAnnotationUpsertResponse = {
+  verified_mrms: boolean;
+  local_advisory_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  annotation: {
+    sample_key?: string;
+    status?: string;
+    operator_notes?: string | null;
+  };
+  compact: MrmsVisualReviewSampleReadinessCompact;
+};
+
 export type OperatorWorkflowPresetsCompact = {
   available?: boolean;
   recommended_count?: number;
@@ -1392,6 +1456,7 @@ export type ValidationSummary = {
   mrms_visual_review_comparison?: MrmsVisualReviewComparisonCompact | null;
   mrms_visual_review_hint?: MrmsVisualReviewHintCompact | null;
   mrms_visual_review_sample_set?: MrmsVisualReviewSampleSetCompact | null;
+  mrms_visual_review_sample_readiness?: MrmsVisualReviewSampleReadinessCompact | null;
   scheduled_operator_status?: ScheduledOperatorStatusCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
@@ -1550,6 +1615,54 @@ export async function submitVisualReviewSampleSet(
       return { ok: false, error };
     }
     const data = (await response.json()) as MrmsVisualReviewSampleSetCreateResponse;
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function submitVisualReviewSampleAnnotation(
+  payload: MrmsVisualReviewSampleAnnotationUpsertRequest,
+): Promise<
+  | { ok: true; data: MrmsVisualReviewSampleAnnotationUpsertResponse }
+  | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(`${API_BASE}/api/validation/mrms-visual-review/sample-set/annotations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      let error = `Sample annotation failed (${response.status})`;
+      try {
+        const body = (await response.json()) as { detail?: string };
+        if (body.detail) {
+          error = body.detail;
+        }
+      } catch {
+        // ignore parse errors
+      }
+      return { ok: false, error };
+    }
+    const data = (await response.json()) as MrmsVisualReviewSampleAnnotationUpsertResponse;
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function refreshVisualReviewSampleReadiness(): Promise<
+  { ok: true; data: { compact: MrmsVisualReviewSampleReadinessCompact } } | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(`${API_BASE}/api/validation/mrms-visual-review/sample-set/readiness`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      return { ok: false, error: `Sample readiness refresh failed (${response.status})` };
+    }
+    const data = (await response.json()) as { compact: MrmsVisualReviewSampleReadinessCompact };
     return { ok: true, data };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };

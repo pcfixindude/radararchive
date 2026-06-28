@@ -21,6 +21,9 @@ from backend.app.services.mrms_visual_review import (
 from backend.app.services.mrms_visual_review_compare import compact_visual_review_comparison_summary
 from backend.app.services.mrms_visual_review_hint import compact_visual_review_hint
 from backend.app.services.mrms_visual_review_sample_set import compact_visual_review_sample_set
+from backend.app.services.mrms_visual_review_sample_readiness import (
+    compact_visual_review_sample_readiness,
+)
 from backend.app.services.operator_review_status import (
     compact_operator_review_status,
     compact_scheduled_operator_status,
@@ -207,6 +210,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "mrms_visual_review_comparison": compact_visual_review_comparison_summary(storage),
         "mrms_visual_review_hint": compact_visual_review_hint(storage),
         "mrms_visual_review_sample_set": compact_visual_review_sample_set(storage),
+        "mrms_visual_review_sample_readiness": compact_visual_review_sample_readiness(storage),
         "scheduled_operator_status": compact_scheduled_operator_status(scheduled),
         "runbook_references": RUNBOOK_LINK_METADATA,
         "catalog": catalog,

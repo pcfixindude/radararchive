@@ -2161,3 +2161,31 @@ cd frontend && npm run build
 ### Known limitations
 - Sample set is local drilldown evidence only — does not verify MRMS, clear alerts, download/decode, or enable production rendering
 - Empty selection when no visual review manifest exists — run `make mrms-visual-review` first
+
+## Phase 61 - Visual Sample-Set Annotations and Candidate Readiness
+
+Local operator annotations and conservative advisory readiness scoring for Phase 60 sample sets.
+
+### Backend
+- `mrms_visual_review_sample_readiness.py` — annotation upsert, readiness scoring, Markdown summary
+- Paths: `mrms_visual_review_sample_annotations.json`, `mrms_visual_review_sample_readiness.md`
+- `compact_visual_review_sample_readiness()` on validation summary
+- API: `GET/POST /api/validation/mrms-visual-review/sample-set/readiness`, `POST /api/validation/mrms-visual-review/sample-set/annotations`
+- CLI: `scripts/mrms_visual_review_sample_readiness.py`; `make mrms-visual-review-readiness`
+
+### Frontend
+- Dev Validation sample-set section extended with per-sample annotation forms and readiness summary
+- Advisory safety wording: `candidate_ready` is not production authorization
+
+### Run commands
+
+```bash
+make test
+make mrms-visual-review-readiness --refresh
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Readiness scoring is advisory only — conservative blocks on rejected, missing, stale, unreviewed, questionable, or follow-up-tagged samples
+- Does not verify MRMS, clear alerts, enable production rendering, or mutate catalog/render gates
