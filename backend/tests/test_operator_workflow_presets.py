@@ -18,6 +18,7 @@ from backend.app.services.operator_workflow_presets import (
     PRESET_QUICK_STATUS_CHECK,
     PRESET_REGENERATE_DIGEST_CHECKLIST_EXPORT,
     PRESET_REGENERATE_VISUAL_REVIEW,
+    PRESET_FULL_SCHEDULED_PROOF_REVIEW_WITH_VISUAL_REVIEW,
     build_operator_workflow_presets,
     build_operator_workflow_presets_payload,
     compact_operator_workflow_preset_groups,
@@ -93,6 +94,16 @@ def test_create_review_session_and_export_preset(storage, monkeypatch):
     )
     assert "make mrms-review-session" in preset["command"]
     assert "--export-after-create" in preset["command"]
+
+
+def test_full_scheduled_proof_review_with_visual_review_preset(storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", storage.storage_root)
+    preset = _preset_by_id(
+        build_operator_workflow_presets(storage),
+        PRESET_FULL_SCHEDULED_PROOF_REVIEW_WITH_VISUAL_REVIEW,
+    )
+    assert preset["command"] == "make scheduled-proof-bundle-visual-review"
+    assert "visual review" in preset["title"].lower()
 
 
 def test_regenerate_visual_review_preset(storage, monkeypatch):

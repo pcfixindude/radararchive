@@ -14,7 +14,10 @@ from backend.app.services.mrms_operator_handoff import (
     load_latest_operator_handoff,
 )
 from backend.app.services.operator_guidance import compact_operator_guidance
-from backend.app.services.mrms_visual_review import compact_mrms_visual_review
+from backend.app.services.mrms_visual_review import (
+    compact_mrms_visual_review,
+    compact_scheduled_visual_review,
+)
 from backend.app.services.mrms_visual_review_compare import compact_visual_review_comparison_summary
 from backend.app.services.mrms_visual_review_hint import compact_visual_review_hint
 from backend.app.services.operator_review_status import (
@@ -155,6 +158,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "scheduled_proof_bundle": compact_scheduled_proof_bundle(scheduled),
         "scheduled_digest": compact_scheduled_digest(scheduled),
         "scheduled_review_export": compact_scheduled_review_export(scheduled),
+        "scheduled_visual_review": compact_scheduled_visual_review(scheduled),
         "validation_failures_count": count_validation_failures(storage),
         "validation_failures_recent": [compact_failure(item) for item in recent_failures],
         "validation_alert": compact_validation_alert(alert),

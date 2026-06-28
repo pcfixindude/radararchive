@@ -746,6 +746,23 @@ class ReviewExportRegenerationHintCompact(BaseModel):
     prototype: bool = True
 
 
+class ScheduledVisualReviewCompact(BaseModel):
+    visual_review_requested: bool = False
+    visual_review_generated: bool = False
+    visual_review_path: Optional[str] = None
+    visual_review_markdown_path: Optional[str] = None
+    visual_review_history_count: Optional[int] = None
+    visual_review_reason: Optional[str] = None
+    visual_review_elapsed_seconds: Optional[float] = None
+    visual_review_error: Optional[str] = None
+    verified_mrms: bool = False
+    local_visual_review_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    prototype: bool = True
+
+
 class OperatorReviewStatusCompact(BaseModel):
     available: bool = True
     created_at: Optional[str] = None
@@ -784,6 +801,7 @@ class OperatorReviewStatusCompact(BaseModel):
     latest_visual_review_comparison_status: Optional[str] = None
     visual_review_artifact_count: Optional[int] = None
     visual_review_missing_artifact_count: Optional[int] = None
+    scheduled_visual_review: Optional[ScheduledVisualReviewCompact] = None
 
 
 class MrmsVisualReviewCompact(BaseModel):
@@ -1603,6 +1621,7 @@ class ValidationSummaryResponse(BaseModel):
     scheduled_proof_bundle: Optional[ScheduledProofBundleCompact] = None
     scheduled_digest: Optional[ScheduledDigestCompact] = None
     scheduled_review_export: Optional[ScheduledReviewExportCompact] = None
+    scheduled_visual_review: Optional[ScheduledVisualReviewCompact] = None
     validation_failures_count: int = 0
     validation_failures_recent: list[ValidationFailureCompact] = Field(default_factory=list)
     validation_alert: Optional[ValidationAlertCompact] = None

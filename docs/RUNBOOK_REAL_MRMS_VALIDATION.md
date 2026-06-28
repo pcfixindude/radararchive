@@ -665,6 +665,9 @@ Each preset includes `runbook_path`, `runbook_section`, `runbook_anchor`, and `s
 <a id="operator-workflow-preset-review-proof-bundle-diff"></a>
 **`review-proof-bundle-diff`** — [Proof bundle diff + operator handoff](#proof-bundle-diff--operator-handoff-phase-31): run `make mrms-proof-bundle-diff` after bundle exports.
 
+<a id="operator-workflow-preset-full-scheduled-proof-review-with-visual-review"></a>
+**`full-scheduled-proof-review-with-visual-review`** — [Scheduled visual review workflow](#scheduled-visual-review-workflow-phase-59): run `make scheduled-proof-bundle-visual-review` for full scheduled proof review with visual review generation.
+
 <a id="operator-workflow-preset-scheduled-proof-bundle-operator-status"></a>
 **`run-scheduled-proof-bundle-operator-status`** — [Scheduled operator review status](#scheduled-operator-review-status-phase-50): run `make scheduled-proof-bundle-operator-status` for end-to-end scheduled review with operator status.
 
@@ -680,7 +683,7 @@ Presets are grouped for quicker scanning:
 | `full-review` | Full proof review | full-local-proof-review |
 | `review-session-export` | Review session & export | create-review-session-and-export, regenerate-digest-checklist-export |
 | `troubleshooting` | Troubleshooting | inspect-worsening-export-trend, regenerate-visual-review, review-proof-bundle-diff |
-| `scheduled-workflows` | Scheduled workflows | run-scheduled-proof-bundle-operator-status |
+| `scheduled-workflows` | Scheduled workflows | run-scheduled-proof-bundle-operator-status, full-scheduled-proof-review-with-visual-review |
 
 **Recommended priority** (lower = act first when multiple presets are recommended): `no_review_session` (1) → `export_diff_trend_worsening_or_mixed` (2) → `digest_or_checklist_stale` / `visual_review_stale` (3) → `review_session_recommended` (4) → `operator_review_status_ok_or_watch` (5).
 
@@ -774,6 +777,28 @@ make operator-workflow-presets
 **Workflow preset:** `regenerate-visual-review` (`make mrms-visual-review`) in the troubleshooting group — recommended when `visual_review_regeneration_recommended` is true. Runbook anchor: `operator-workflow-preset-regenerate-visual-review`.
 
 Visual review recommendations are **local review guidance only** — they do **not** verify MRMS, clear alerts, download/decode MRMS, or enable production rendering.
+
+## Scheduled visual review workflow (Phase 59)
+
+Optional scheduled validation step generates MRMS visual review artifacts after proof/bundle/diff/handoff/digest/review export/operator status when explicitly requested:
+
+```bash
+make scheduled-proof-bundle-visual-review
+make scheduled-proof-bundle-visual-review ARGS="--json-report"
+make scheduled-validation ARGS="--proof --bundle --diff-bundle --handoff --digest --review-export --operator-status --visual-review"
+```
+
+**When to use standalone vs scheduled:**
+- `make mrms-visual-review` — quick refresh of visual review manifest from existing local artifacts only
+- `make scheduled-proof-bundle-visual-review` — full scheduled local proof review ending with visual review generation in one report
+
+**Explicit opt-in:** default `make scheduled-validation` does **not** run visual review generation. Pass `--visual-review` or use the Makefile target above.
+
+**Report fields:** `visual_review_requested`, `visual_review_generated`, `visual_review_path`, `visual_review_markdown_path`, `visual_review_history_count`, `visual_review_reason`, `visual_review_elapsed_seconds`, `visual_review_error` (generation failure does not fail the whole scheduled run).
+
+**Summary API:** `scheduled_visual_review` compact on validation summary; operator review status may include the same compact from the latest scheduled report.
+
+Scheduled visual review is **local workflow tooling only** — it does **not** verify MRMS, clear alerts, download/decode MRMS, notify externally, or enable production rendering.
 
 ### Operator review status guidance anchors (Phase 50)
 

@@ -598,6 +598,12 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - `operator_workflow_presets.py` adds `regenerate-visual-review` preset in troubleshooting group
 - Dev Validation **Operator Review Status** shows visual review recommendation fields; presets recommend visual review regeneration when stale
 
+### Scheduled visual review workflow (Phase 59)
+- `scheduled_validation.py` optional `--visual-review` step after operator status; `make scheduled-proof-bundle-visual-review`
+- Report fields: `visual_review_requested`, `visual_review_generated`, paths, reason, elapsed, error
+- `compact_scheduled_visual_review()` on validation summary; operator review status embeds latest scheduled visual review compact
+- Workflow preset `full-scheduled-proof-review-with-visual-review`; standalone `regenerate-visual-review` preset clarified
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

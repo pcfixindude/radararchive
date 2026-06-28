@@ -129,6 +129,14 @@ class ScheduledValidationReport:
     operator_status_evidence_trend: Optional[str] = None
     operator_status_elapsed_seconds: Optional[float] = None
     operator_status_error: Optional[str] = None
+    visual_review_requested: bool = False
+    visual_review_generated: bool = False
+    visual_review_path: Optional[str] = None
+    visual_review_markdown_path: Optional[str] = None
+    visual_review_history_count: Optional[int] = None
+    visual_review_reason: Optional[str] = None
+    visual_review_elapsed_seconds: Optional[float] = None
+    visual_review_error: Optional[str] = None
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     elapsed_seconds: float = 0.0
@@ -191,6 +199,14 @@ class ScheduledValidationReport:
             "operator_status_evidence_trend": self.operator_status_evidence_trend,
             "operator_status_elapsed_seconds": self.operator_status_elapsed_seconds,
             "operator_status_error": self.operator_status_error,
+            "visual_review_requested": self.visual_review_requested,
+            "visual_review_generated": self.visual_review_generated,
+            "visual_review_path": self.visual_review_path,
+            "visual_review_markdown_path": self.visual_review_markdown_path,
+            "visual_review_history_count": self.visual_review_history_count,
+            "visual_review_reason": self.visual_review_reason,
+            "visual_review_elapsed_seconds": self.visual_review_elapsed_seconds,
+            "visual_review_error": self.visual_review_error,
             "warnings": list(self.warnings),
             "errors": list(self.errors),
             "elapsed_seconds": round(self.elapsed_seconds, 4),
@@ -313,6 +329,7 @@ def run_scheduled_validation(
     digest_requested: bool = False,
     review_export_requested: bool = False,
     operator_status_requested: bool = False,
+    visual_review_requested: bool = False,
     persist: bool = True,
     command_context: Optional[str] = None,
     batch_fn: Optional[Callable[..., BatchValidationReport]] = None,
@@ -341,8 +358,11 @@ def run_scheduled_validation(
     report.notify_stdout_requested = notify_stdout
     report.digest_requested = digest_requested
     report.review_export_requested = review_export_requested
-    effective_operator_status = operator_status_requested or review_export_requested
+    effective_operator_status = (
+        operator_status_requested or review_export_requested or visual_review_requested
+    )
     report.operator_status_requested = effective_operator_status
+    report.visual_review_requested = visual_review_requested
     report.warnings.append(
         "Scheduled validation is local dev/prototype tooling — not verified MRMS production"
     )
@@ -912,6 +932,71 @@ def run_scheduled_validation(
             source_mode=mode,
             command_context=command_context,
             step=operator_status_step,
+        )
+
+    if visual_review_requested:
+        visual_review_step = ScheduledValidationStep(
+            name="mrms_visual_review",
+            started_at=_utc_now(),
+        )
+        visual_start = time.perf_counter()
+        try:
+            from backend.app.services.mrms_visual_review import (
+                VISUAL_REVIEW_LATEST_JSON,
+                VISUAL_REVIEW_LATEST_MD,
+                compact_mrms_visual_review,
+                generate_mrms_visual_review,
+            )
+
+            report_data = generate_mrms_visual_review(session, storage)
+            report.visual_review_generated = True
+            report.visual_review_path = report_data.get("json_path") or storage.normalize_path(
+                VISUAL_REVIEW_LATEST_JSON
+            )
+            report.visual_review_markdown_path = report_data.get(
+                "markdown_path"
+            ) or storage.normalize_path(VISUAL_REVIEW_LATEST_MD)
+            report.visual_review_history_count = compact_mrms_visual_review(storage).get(
+                "history_count"
+            )
+            report.visual_review_reason = "generated"
+            visual_review_step.summary = {
+                "visual_review_generated": True,
+                "visual_review_path": report.visual_review_path,
+                "visual_review_markdown_path": report.visual_review_markdown_path,
+                "visual_review_history_count": report.visual_review_history_count,
+                "visual_review_reason": report.visual_review_reason,
+                "artifact_count": report_data.get("artifact_count"),
+                "missing_artifact_count": report_data.get("missing_artifact_count"),
+                "verified_mrms": False,
+                "local_visual_review_only": True,
+            }
+            report.warnings.append(
+                "MRMS visual review generated (local visual review only — does NOT verify MRMS)"
+            )
+        except Exception as exc:  # noqa: BLE001
+            report.visual_review_generated = False
+            report.visual_review_reason = "generation_failed"
+            report.visual_review_error = str(exc)
+            visual_review_step.warnings.append(str(exc))
+            visual_review_step.summary = {
+                "visual_review_generated": False,
+                "visual_review_reason": report.visual_review_reason,
+                "visual_review_error": report.visual_review_error,
+                "verified_mrms": False,
+                "local_visual_review_only": True,
+            }
+        visual_review_step.elapsed_seconds = time.perf_counter() - visual_start
+        report.visual_review_elapsed_seconds = round(visual_review_step.elapsed_seconds, 4)
+        visual_review_step.finished_at = _utc_now()
+        _finalize_step_status(visual_review_step)
+        report.steps.append(visual_review_step)
+        _log_step_failures(
+            storage,
+            phase="scheduled_validation",
+            source_mode=mode,
+            command_context=command_context,
+            step=visual_review_step,
         )
 
     report.success = not report.errors and all(

@@ -2105,3 +2105,31 @@ cd frontend && npm run build
 ### Known limitations
 - Visual review recommendations are local guidance only — do not verify MRMS, clear alerts, download/decode, or enable production rendering
 - Empty dev environments may show visual review attention before other review evidence exists
+
+## Phase 59 - Scheduled Visual Review Workflow
+
+Optional scheduled validation step generates MRMS visual review artifacts when explicitly requested.
+
+### Backend
+- `scheduled_validation.py` — `--visual-review` flag; step after operator status
+- Report fields: `visual_review_requested`, `visual_review_generated`, paths, reason, elapsed, error
+- `compact_scheduled_visual_review()` on validation summary; operator review status embeds latest compact
+- `make scheduled-proof-bundle-visual-review` Makefile target
+- Workflow preset `full-scheduled-proof-review-with-visual-review`; updated standalone visual review preset wording
+
+### Frontend
+- Dev Validation scheduled section shows visual review requested/generated, paths, reason, elapsed, error
+
+### Run commands
+
+```bash
+make test
+make scheduled-proof-bundle-visual-review
+make operator-workflow-presets
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Explicit opt-in only — default `make scheduled-validation` unchanged
+- Scheduled visual review inspects existing artifacts — does not download/decode MRMS or enable production rendering

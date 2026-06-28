@@ -24,6 +24,9 @@ PRESET_REGENERATE_VISUAL_REVIEW = "regenerate-visual-review"
 PRESET_INSPECT_WORSENING_EXPORT_TREND = "inspect-worsening-export-trend"
 PRESET_REVIEW_PROOF_BUNDLE_DIFF = "review-proof-bundle-diff"
 PRESET_RUN_SCHEDULED_PROOF_BUNDLE_OPERATOR_STATUS = "run-scheduled-proof-bundle-operator-status"
+PRESET_FULL_SCHEDULED_PROOF_REVIEW_WITH_VISUAL_REVIEW = (
+    "full-scheduled-proof-review-with-visual-review"
+)
 
 GROUP_STATUS_CHECKS = "status-checks"
 GROUP_FULL_REVIEW = "full-review"
@@ -67,6 +70,9 @@ SHORT_REASON_BY_PRESET: dict[str, str] = {
     PRESET_RUN_SCHEDULED_PROOF_BUNDLE_OPERATOR_STATUS: (
         "End-to-end scheduled proof/digest/export with operator status."
     ),
+    PRESET_FULL_SCHEDULED_PROOF_REVIEW_WITH_VISUAL_REVIEW: (
+        "Full scheduled proof review ending with visual review generation."
+    ),
 }
 
 EXPECTED_PRESET_IDS = (
@@ -78,6 +84,7 @@ EXPECTED_PRESET_IDS = (
     PRESET_INSPECT_WORSENING_EXPORT_TREND,
     PRESET_REVIEW_PROOF_BUNDLE_DIFF,
     PRESET_RUN_SCHEDULED_PROOF_BUNDLE_OPERATOR_STATUS,
+    PRESET_FULL_SCHEDULED_PROOF_REVIEW_WITH_VISUAL_REVIEW,
 )
 
 COMMON_SAFETY_NOTES = [
@@ -130,8 +137,9 @@ _PRESET_RUNBOOK_GUIDANCE: dict[str, dict[str, str]] = {
         "runbook_section": "MRMS visual review comparison and hints",
         "runbook_anchor": "operator-workflow-preset-regenerate-visual-review",
         "suggested_action": (
-            "Run make mrms-visual-review when operator status or visual review hint recommends "
-            "regeneration (local visual review only — does not download or decode MRMS)."
+            "Run make mrms-visual-review for standalone regeneration from existing local "
+            "tile/render artifacts when operator status recommends visual review refresh "
+            "(does not download or decode MRMS)."
         ),
     },
     PRESET_INSPECT_WORSENING_EXPORT_TREND: {
@@ -158,7 +166,19 @@ _PRESET_RUNBOOK_GUIDANCE: dict[str, dict[str, str]] = {
         "runbook_anchor": "operator-workflow-preset-scheduled-proof-bundle-operator-status",
         "suggested_action": (
             "Run make scheduled-proof-bundle-operator-status for an end-to-end scheduled "
-            "proof/digest/export run with consolidated operator review status."
+            "proof/digest/export run with consolidated operator review status. Add "
+            "make scheduled-proof-bundle-visual-review when you also want scheduled visual "
+            "review generation."
+        ),
+    },
+    PRESET_FULL_SCHEDULED_PROOF_REVIEW_WITH_VISUAL_REVIEW: {
+        "runbook_path": RUNBOOK_PATH,
+        "runbook_section": "Scheduled visual review workflow",
+        "runbook_anchor": "operator-workflow-preset-full-scheduled-proof-review-with-visual-review",
+        "suggested_action": (
+            "Run make scheduled-proof-bundle-visual-review for proof, bundle, diff, handoff, "
+            "digest, review export, operator status, and visual review in one explicit "
+            "opt-in scheduled pass (local visual review only)."
         ),
     },
 }
@@ -231,8 +251,8 @@ _PRESET_DEFINITIONS: list[dict[str, Any]] = [
         "group_title": GROUP_TITLES[GROUP_TROUBLESHOOTING],
         "priority": 15,
         "title": "Regenerate MRMS visual review",
-        "description": "Rebuild the local visual review manifest and Markdown from existing tile/render paths.",
-        "when_to_use": "When visual review is stale, missing, or operator status recommends visual review regeneration.",
+        "description": "Rebuild the local visual review manifest and Markdown from existing tile/render paths (standalone).",
+        "when_to_use": "When visual review is stale or missing and you only need to refresh visual review artifacts — use make mrms-visual-review without a full scheduled proof run.",
         "command": "make mrms-visual-review",
         "expected_outputs": [
             "mrms_visual_review_latest.json manifest under data/dev/",
@@ -277,12 +297,27 @@ _PRESET_DEFINITIONS: list[dict[str, Any]] = [
         "priority": 10,
         "title": "Run scheduled proof bundle with operator status",
         "description": "Full scheduled proof bundle review export plus consolidated operator review status step.",
-        "when_to_use": "End-to-end local review run when you want digest, export, and operator status in one report.",
+        "when_to_use": "End-to-end local review run when you want digest, export, and operator status without scheduled visual review generation.",
         "command": "make scheduled-proof-bundle-operator-status",
         "expected_outputs": [
             "scheduled validation report with proof/digest/export steps",
             "operator_review_status step with status_level and top_suggested_command",
             "scheduled_operator_status compact in validation summary",
+        ],
+    },
+    {
+        "preset_id": PRESET_FULL_SCHEDULED_PROOF_REVIEW_WITH_VISUAL_REVIEW,
+        "group_id": GROUP_SCHEDULED_WORKFLOWS,
+        "group_title": GROUP_TITLES[GROUP_SCHEDULED_WORKFLOWS],
+        "priority": 20,
+        "title": "Full scheduled proof review with visual review",
+        "description": "Run the full scheduled proof/digest/export/operator-status sequence and generate visual review artifacts.",
+        "when_to_use": "After proof/bundle/digest/export steps when you want scheduled visual review generation in the same report — explicit opt-in via make scheduled-proof-bundle-visual-review.",
+        "command": "make scheduled-proof-bundle-visual-review",
+        "expected_outputs": [
+            "scheduled validation report with proof/digest/export/operator status steps",
+            "mrms_visual_review step with JSON/Markdown paths when generation succeeds",
+            "scheduled_visual_review compact in validation summary",
         ],
     },
 ]
@@ -324,6 +359,11 @@ def _recommendation_for_preset(
         return False, None
 
     if preset_id == PRESET_REGENERATE_VISUAL_REVIEW:
+        if visual_review_regeneration_recommended:
+            return True, "visual_review_stale"
+        return False, None
+
+    if preset_id == PRESET_FULL_SCHEDULED_PROOF_REVIEW_WITH_VISUAL_REVIEW:
         if visual_review_regeneration_recommended:
             return True, "visual_review_stale"
         return False, None

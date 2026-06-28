@@ -253,6 +253,7 @@ Limitations:
 - `make operator-workflow-presets` lists grouped local workflow presets with runbook guidance, short reasons, and copy-ready commands (`--json`); includes `regenerate-visual-review` when visual review is stale (Phase 58)
 - `make mrms-visual-review` generates a local visual review manifest (JSON + Markdown) of existing tile/render artifacts (`--json-report`, `--history`); Dev Validation **MRMS Visual Review** collapsible section (Phase 56)
 - `make mrms-visual-review-compare` compares latest vs previous visual review manifests; `make mrms-visual-review-hint` suggests when to regenerate (Phase 57)
+- `make scheduled-proof-bundle-visual-review` runs full scheduled proof/digest/export/operator-status with explicit visual review generation (Phase 59; `--visual-review` opt-in)
 - `make mrms-review-session ARGS="... --export-after-create"` creates a session and immediately exports Markdown (session is kept if export fails)
 - `make mrms-signoff` records local operator sign-off (does not set verified_mrms)
 - `POST /api/validation/signoffs` — dev-only sign-off API (same validation as CLI; does not verify MRMS)

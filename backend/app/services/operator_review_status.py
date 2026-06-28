@@ -19,6 +19,7 @@ from backend.app.services.mrms_review_session_export_diff import (
 from backend.app.services.mrms_visual_review import (
     SUGGESTED_VISUAL_REVIEW_COMMAND,
     compact_mrms_visual_review,
+    compact_scheduled_visual_review,
 )
 from backend.app.services.mrms_visual_review_compare import compact_visual_review_comparison_summary
 from backend.app.services.mrms_visual_review_hint import compact_visual_review_hint
@@ -47,6 +48,7 @@ from backend.app.services.proof_bundle_diff_escalation_digest_diff import (
     build_digest_regeneration_hint,
 )
 from backend.app.services.storage import LocalStorage
+from backend.app.services.validation_report_store import load_latest_scheduled_validation_report
 from backend.app.services.validation_alerts import (
     ALERT_FAILED,
     ALERT_WARNING,
@@ -659,9 +661,11 @@ def compact_scheduled_operator_status(
 
 def compact_operator_review_status(storage: LocalStorage) -> dict[str, Any]:
     status = build_operator_review_status(storage)
+    scheduled = load_latest_scheduled_validation_report(storage)
     return {
         "available": True,
         **status,
+        "scheduled_visual_review": compact_scheduled_visual_review(scheduled),
     }
 
 

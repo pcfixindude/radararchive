@@ -470,6 +470,30 @@ def compact_mrms_visual_review(storage: LocalStorage) -> dict[str, Any]:
     }
 
 
+def compact_scheduled_visual_review(
+    scheduled: Optional[dict[str, Any]],
+) -> Optional[dict[str, Any]]:
+    """Compact visual review step status from the latest scheduled validation report."""
+    if scheduled is None:
+        return None
+    return {
+        "visual_review_requested": bool(scheduled.get("visual_review_requested")),
+        "visual_review_generated": bool(scheduled.get("visual_review_generated")),
+        "visual_review_path": scheduled.get("visual_review_path"),
+        "visual_review_markdown_path": scheduled.get("visual_review_markdown_path"),
+        "visual_review_history_count": scheduled.get("visual_review_history_count"),
+        "visual_review_reason": scheduled.get("visual_review_reason"),
+        "visual_review_elapsed_seconds": scheduled.get("visual_review_elapsed_seconds"),
+        "visual_review_error": scheduled.get("visual_review_error"),
+        "verified_mrms": False,
+        "local_visual_review_only": True,
+        "does_not_clear_alerts": True,
+        "does_not_enable_production": True,
+        "no_external_notifications": True,
+        "prototype": True,
+    }
+
+
 def build_mrms_visual_review_payload(storage: LocalStorage) -> dict[str, Any]:
     latest = load_latest_visual_review(storage)
     return {

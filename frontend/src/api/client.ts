@@ -831,6 +831,7 @@ export type OperatorReviewStatusCompact = {
   latest_visual_review_comparison_status?: string | null;
   visual_review_artifact_count?: number | null;
   visual_review_missing_artifact_count?: number | null;
+  scheduled_visual_review?: ScheduledVisualReviewCompact | null;
   latest_export_diff_status?: string | null;
   latest_export_diff_trend?: string | null;
   open_attention_count?: number | null;
@@ -1149,6 +1150,23 @@ export type ScheduledReviewExportCompact = {
   prototype: boolean;
 };
 
+export type ScheduledVisualReviewCompact = {
+  visual_review_requested: boolean;
+  visual_review_generated: boolean;
+  visual_review_path?: string | null;
+  visual_review_markdown_path?: string | null;
+  visual_review_history_count?: number | null;
+  visual_review_reason?: string | null;
+  visual_review_elapsed_seconds?: number | null;
+  visual_review_error?: string | null;
+  verified_mrms: boolean;
+  local_visual_review_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  no_external_notifications: boolean;
+  prototype: boolean;
+};
+
 export type OperatorHandoffCompact = {
   available: boolean;
   created_at?: string | null;
@@ -1278,6 +1296,7 @@ export type ValidationSummary = {
   scheduled_proof_bundle?: ScheduledProofBundleCompact | null;
   scheduled_digest?: ScheduledDigestCompact | null;
   scheduled_review_export?: ScheduledReviewExportCompact | null;
+  scheduled_visual_review?: ScheduledVisualReviewCompact | null;
   validation_failures_count?: number;
   validation_failures_recent?: ValidationFailureCompact[];
   validation_alert?: ValidationAlertCompact | null;

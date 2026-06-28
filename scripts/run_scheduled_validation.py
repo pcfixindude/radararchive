@@ -105,6 +105,21 @@ def _print_report(report) -> None:
             print(f"  operator status elapsed_seconds: {report.operator_status_elapsed_seconds:.4f}")
         if report.operator_status_error:
             print(f"  operator status error: {report.operator_status_error}")
+    if report.visual_review_requested:
+        print(
+            f"  visual review: requested=yes generated={report.visual_review_generated} "
+            f"reason={report.visual_review_reason}"
+        )
+        if report.visual_review_path:
+            print(f"  visual review path: {report.visual_review_path}")
+        if report.visual_review_markdown_path:
+            print(f"  visual review markdown path: {report.visual_review_markdown_path}")
+        if report.visual_review_history_count is not None:
+            print(f"  visual review history_count: {report.visual_review_history_count}")
+        if report.visual_review_elapsed_seconds is not None:
+            print(f"  visual review elapsed_seconds: {report.visual_review_elapsed_seconds:.4f}")
+        if report.visual_review_error:
+            print(f"  visual review error: {report.visual_review_error}")
     print(f"  verified_mrms: {report.verified_mrms}")
     for warning in report.warnings:
         print(f"  warning: {warning}")
@@ -173,7 +188,13 @@ def main() -> None:
         "--operator-status",
         dest="operator_status",
         action="store_true",
-        help="Include consolidated operator review status in scheduled report (also runs with --review-export)",
+        help="Include consolidated operator review status in scheduled report (also runs with --review-export or --visual-review)",
+    )
+    parser.add_argument(
+        "--visual-review",
+        dest="visual_review",
+        action="store_true",
+        help="After proof/review steps, generate MRMS visual review manifest (local only; explicit opt-in)",
     )
     args = parser.parse_args()
 
@@ -212,6 +233,7 @@ def main() -> None:
             digest_requested=args.digest,
             review_export_requested=args.review_export,
             operator_status_requested=args.operator_status,
+            visual_review_requested=args.visual_review,
             command_context="make scheduled-validation",
         )
     finally:

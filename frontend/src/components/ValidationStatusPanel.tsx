@@ -231,6 +231,7 @@ export default function ValidationStatusPanel({
   const scheduledProofBundle = summary.scheduled_proof_bundle ?? null;
   const scheduledDigest = summary.scheduled_digest ?? null;
   const scheduledReviewExport = summary.scheduled_review_export ?? null;
+  const scheduledVisualReview = summary.scheduled_visual_review ?? null;
   const proofBundle = summary.mrms_proof_bundle ?? null;
   const proofBundleDiff = summary.mrms_proof_bundle_diff ?? null;
   const operatorHandoff = summary.operator_handoff ?? null;
@@ -373,6 +374,17 @@ export default function ValidationStatusPanel({
             <p className="validation-meta">
               Visual review Markdown:{' '}
               <code>{operatorReviewStatus.latest_visual_review_markdown_path}</code>
+            </p>
+          ) : null}
+          {operatorReviewStatus.scheduled_visual_review?.visual_review_requested ? (
+            <p className="validation-meta">
+              Scheduled visual review:{' '}
+              {operatorReviewStatus.scheduled_visual_review.visual_review_generated
+                ? 'generated'
+                : 'skipped'}
+              {operatorReviewStatus.scheduled_visual_review.visual_review_reason
+                ? ` — ${operatorReviewStatus.scheduled_visual_review.visual_review_reason}`
+                : ''}
             </p>
           ) : null}
           <SafetyNote />
@@ -673,6 +685,36 @@ export default function ValidationStatusPanel({
               ? ` — ${scheduledReviewExport.review_export_reason}`
               : ''}
           </p>
+        ) : null}
+        {scheduledVisualReview?.visual_review_requested ? (
+          <>
+            <p className="validation-meta">
+              Visual review:{' '}
+              {scheduledVisualReview.visual_review_generated ? 'generated' : 'skipped'}
+              {scheduledVisualReview.visual_review_reason
+                ? ` — ${scheduledVisualReview.visual_review_reason}`
+                : ''}
+              {scheduledVisualReview.visual_review_elapsed_seconds != null
+                ? ` (${scheduledVisualReview.visual_review_elapsed_seconds.toFixed(2)}s)`
+                : ''}
+            </p>
+            {scheduledVisualReview.visual_review_path ? (
+              <p className="validation-meta">
+                Visual review JSON: <code>{scheduledVisualReview.visual_review_path}</code>
+              </p>
+            ) : null}
+            {scheduledVisualReview.visual_review_markdown_path ? (
+              <p className="validation-meta">
+                Visual review Markdown:{' '}
+                <code>{scheduledVisualReview.visual_review_markdown_path}</code>
+              </p>
+            ) : null}
+            {scheduledVisualReview.visual_review_error ? (
+              <p className="validation-meta">
+                Visual review error: {scheduledVisualReview.visual_review_error}
+              </p>
+            ) : null}
+          </>
         ) : null}
         {scheduledSteps.length > 0 ? (
           <ul className="validation-history-list">
