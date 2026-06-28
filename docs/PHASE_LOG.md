@@ -1801,3 +1801,29 @@ cd frontend && npm run build
 - Local/dev review tooling only — not verified MRMS
 - Does not clear alerts or mutate production/catalog/render gates
 - `verified_mrms` always false
+
+## Phase 48 - Review Export Diff History UI
+
+Recent export diff history in Dev Validation summary and panel (max 5 entries).
+
+### Backend
+- `compact_review_session_export_diff_history_summary()` on export diff service
+- Summary: `mrms_review_session_export_diff_history`
+- Existing `GET .../export/diff/history` unchanged
+
+### Frontend
+- Dev Validation: count, latest status/timestamp, show/hide recent history list
+
+### Run commands
+
+```bash
+make test
+make mrms-review-session-export-diff-history
+cd frontend && npm run build
+```
+
+### Known limitations
+- Summary shows max 5 recent entries; full history via API/CLI (max 25)
+- Local/dev review tooling only — not verified MRMS
+- Does not clear alerts or mutate production/catalog/render gates
+- `verified_mrms` always false

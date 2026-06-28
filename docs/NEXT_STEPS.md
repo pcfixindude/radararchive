@@ -1,25 +1,23 @@
 # Next Steps
 
-## Phase 48 - Export Diff Trend History UI (Draft)
+## Phase 49 - Review Export History Consolidation (Draft)
 
-Goal: Optional Dev Validation table for export diff history entries — still local-only.
+Goal: Optional consolidation of export diff history with trend hint regeneration — still local-only.
 
 Suggested work:
-1. Expandable export diff history in Dev Validation panel
-2. Tie trend hint to review_export_regeneration_hint consolidation
-3. Optional scheduled validation flag to surface hint without running export
+1. Tie trend hint to review_export_regeneration_hint consolidation
+2. Optional scheduled validation flag to surface hint without running export
+3. Link export diff history entries to runbook sections
 
 Do not start yet:
 - Stripe, real auth, HRRR, WPC, native Android
 - Redis/Celery, cloud deployment, email/Slack/webhooks
 - Setting `verified_mrms=true` or production promotion
 
-## Phase 47 verification commands
+## Phase 48 verification commands
 
 ```bash
 make test
-make mrms-review-session-export-diff-trend-hint
-make mrms-review-session-export-diff-trend-hint ARGS="--json"
-make scheduled-proof-bundle-review-export
+make mrms-review-session-export-diff-history
 cd frontend && npm run build
 ```

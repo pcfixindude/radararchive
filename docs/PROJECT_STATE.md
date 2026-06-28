@@ -1,13 +1,13 @@
 # Project State
 
-Current phase: Phase 47 complete
+Current phase: Phase 48 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
-- **Review export diff trend regeneration hints** with optional scheduled validation tie-in
+- **Dev Validation export diff history** — recent entries (max 5) in summary API and UI
+- **Review export diff trend regeneration hints** with scheduled validation tie-in
 - **Review session export diff trends** from bounded export diff history
-- **Review session export diff** between consecutive Markdown exports
 - **Default tile serving: placeholder**
 - Not verified real MRMS — warping prototype only
 
@@ -19,21 +19,17 @@ ENABLE_PRODUCTION_RADAR_TILES=false
 STALE_RUNNING_JOB_SECONDS=3600
 ```
 
-## Operator commands (Phase 47)
+## Operator commands (Phase 48)
 
 ```bash
-make mrms-review-session-export-diff-trend-hint
-make mrms-review-session-export-diff-trend
-make scheduled-proof-bundle-review-export
+make mrms-review-session-export-diff-history
+curl http://127.0.0.1:8000/api/validation/summary
 ```
 
 ## Dev API
 
-```bash
-curl http://127.0.0.1:8000/api/validation/summary
-curl http://127.0.0.1:8000/api/validation/review-sessions/export/diff/trend-hint
-```
+Summary includes `mrms_review_session_export_diff_history` compact (count, latest status/timestamp, recent entries max 5).
 
 ## Verified MRMS
 
-`verified_mrms` is **false** everywhere. Export diff trend hints are local operator evidence only — no external notifications.
+`verified_mrms` is **false** everywhere. Export diff history is local operator evidence only.

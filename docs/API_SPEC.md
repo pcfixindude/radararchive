@@ -312,6 +312,10 @@ Endpoints (Phase 47): `GET /api/validation/review-sessions/export/diff/trend-hin
 
 Scheduled validation report additions (Phase 47): when `review_export_requested`, `review_export_trend_hint` compact on report and in `scheduled_review_export` summary (does not auto-create sessions or export unless `--review-export` requested).
 
+Summary additions (Phase 48): `mrms_review_session_export_diff_history` compact (`count`, `latest_status`, `latest_created_at`, `recent` max 5 entries with status, session change, attention/comparison changes, improvement/regression counts).
+
+Existing endpoint unchanged: `GET /api/validation/review-sessions/export/diff/history` (full bounded history up to 25).
+
 Scheduled validation report additions (Phase 32): `bundle_requested`, `diff_bundle_requested`, `mrms_proof_bundle`, `mrms_proof_bundle_diff`; steps `proof_report`, `proof_regression`, `proof_bundle_export`, `proof_bundle_diff`.
 
 `GET /api/validation/proof-bundle-diff` — latest proof bundle diff report (`?refresh=true` rebuilds). `verified_mrms: false`, `local_diff_only: true`.

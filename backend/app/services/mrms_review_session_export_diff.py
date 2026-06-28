@@ -405,6 +405,64 @@ def load_latest_export_diff_metadata(storage: LocalStorage) -> Optional[dict[str
     return None
 
 
+def compact_export_diff_history_entry(entry: Optional[dict[str, Any]]) -> Optional[dict[str, Any]]:
+    if entry is None:
+        return None
+    improvements = entry.get("improvements") or []
+    regressions = entry.get("regressions") or []
+    return {
+        "created_at": entry.get("compared_at") or entry.get("latest_export_created_at"),
+        "overall_export_diff_status": entry.get("overall_export_diff_status"),
+        "latest_session_id": entry.get("latest_session_id"),
+        "baseline_session_id": entry.get("baseline_session_id"),
+        "session_changed": bool(entry.get("session_changed")),
+        "open_attention_count_change": entry.get("open_attention_count_change"),
+        "comparison_status_change": entry.get("comparison_status_change"),
+        "escalation_level_change": entry.get("escalation_level_change"),
+        "digest_regeneration_recommended_change": entry.get("digest_regeneration_recommended_change"),
+        "improvements_count": len(improvements),
+        "regressions_count": len(regressions),
+        "verified_mrms": False,
+        "local_export_diff_history_only": True,
+        "does_not_clear_alerts": True,
+        "does_not_enable_production": True,
+        "prototype": True,
+    }
+
+
+def compact_review_session_export_diff_history_summary(
+    storage: LocalStorage,
+    *,
+    recent_limit: int = 5,
+) -> dict[str, Any]:
+    entries = load_export_diff_history(storage)
+    latest = entries[0] if entries else None
+    latest_entry = compact_export_diff_history_entry(latest)
+    bounded_recent = max(1, min(recent_limit, 5))
+    return {
+        "available": bool(entries),
+        "count": len(entries),
+        "max_entries": MAX_EXPORT_DIFF_HISTORY,
+        "latest_status": (latest or {}).get("overall_export_diff_status"),
+        "latest_created_at": (latest or {}).get("compared_at")
+        or (latest or {}).get("latest_export_created_at"),
+        "latest": latest_entry,
+        "recent": [
+            item
+            for item in (
+                compact_export_diff_history_entry(entry) for entry in entries[:bounded_recent]
+            )
+            if item
+        ],
+        "verified_mrms": False,
+        "local_export_diff_history_only": True,
+        "does_not_clear_alerts": True,
+        "does_not_enable_production": True,
+        "no_external_notifications": True,
+        "prototype": True,
+    }
+
+
 def compact_review_session_export_diff_summary(storage: LocalStorage) -> dict[str, Any]:
     latest = load_latest_export_diff_metadata(storage)
     history = _load_diff_history(storage)

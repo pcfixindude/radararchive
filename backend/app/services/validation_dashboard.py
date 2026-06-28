@@ -72,6 +72,7 @@ from backend.app.services.mrms_review_session_export import (
 )
 from backend.app.services.mrms_review_session_export_diff import (
     compact_review_session_export_diff_summary,
+    compact_review_session_export_diff_history_summary,
 )
 from backend.app.services.mrms_review_session_export_diff_trends import (
     compact_review_session_export_diff_trend,
@@ -179,6 +180,9 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "mrms_review_session": compact_latest_review_session_summary(storage),
         "mrms_review_session_export": compact_review_session_export_summary(storage),
         "mrms_review_session_export_diff": compact_review_session_export_diff_summary(storage),
+        "mrms_review_session_export_diff_history": compact_review_session_export_diff_history_summary(
+            storage
+        ),
         "mrms_review_session_export_diff_trend": compact_review_session_export_diff_trend(storage),
         "mrms_review_session_export_diff_trend_hint": compact_review_session_export_diff_trend_hint(
             storage

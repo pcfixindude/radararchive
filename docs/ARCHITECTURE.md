@@ -530,6 +530,11 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Summary: `mrms_review_session_export_diff_trend_hint` compact
 - Scheduled validation: `review_export_trend_hint` when `review_export_requested` (no auto session/export)
 
+### Review session export diff history UI (Phase 48)
+- `compact_review_session_export_diff_history_summary()` — recent export diff entries (max 5) for Dev Validation
+- Summary: `mrms_review_session_export_diff_history`
+- Read-only — does not change export diff recording
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

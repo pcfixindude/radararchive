@@ -801,6 +801,41 @@ export type MrmsReviewSessionExportDiffTrendHintCompact = {
   prototype: boolean;
 };
 
+export type MrmsReviewSessionExportDiffHistoryEntry = {
+  created_at?: string | null;
+  overall_export_diff_status?: string | null;
+  latest_session_id?: string | null;
+  baseline_session_id?: string | null;
+  session_changed: boolean;
+  open_attention_count_change?: { baseline?: number; latest?: number } | null;
+  comparison_status_change?: { baseline?: string | null; latest?: string | null } | null;
+  escalation_level_change?: { baseline?: string | null; latest?: string | null } | null;
+  digest_regeneration_recommended_change?: { baseline?: boolean; latest?: boolean } | null;
+  improvements_count?: number;
+  regressions_count?: number;
+  verified_mrms: boolean;
+  local_export_diff_history_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  prototype: boolean;
+};
+
+export type MrmsReviewSessionExportDiffHistoryCompact = {
+  available: boolean;
+  count: number;
+  max_entries?: number;
+  latest_status?: string | null;
+  latest_created_at?: string | null;
+  latest?: MrmsReviewSessionExportDiffHistoryEntry | null;
+  recent?: MrmsReviewSessionExportDiffHistoryEntry[];
+  verified_mrms: boolean;
+  local_export_diff_history_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  no_external_notifications?: boolean;
+  prototype: boolean;
+};
+
 export type ProofBundleDiffAcknowledgmentCreateRequest = {
   operator_name?: string;
   operator_initials?: string;
@@ -1110,6 +1145,7 @@ export type ValidationSummary = {
   mrms_review_session_export_diff?: MrmsReviewSessionExportDiffCompact | null;
   mrms_review_session_export_diff_trend?: MrmsReviewSessionExportDiffTrendCompact | null;
   mrms_review_session_export_diff_trend_hint?: MrmsReviewSessionExportDiffTrendHintCompact | null;
+  mrms_review_session_export_diff_history?: MrmsReviewSessionExportDiffHistoryCompact | null;
   review_export_regeneration_hint?: ReviewExportRegenerationHintCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];

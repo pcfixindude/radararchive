@@ -575,6 +575,23 @@ curl http://127.0.0.1:8000/api/validation/review-sessions/export/diff/trend-hint
 
 **Warnings:** Hint is local-only — does not verify MRMS, clear alerts, notify externally, or enable production rendering.
 
+## Review session export diff history in Dev Validation (Phase 48)
+
+Recent export diff history appears in the Dev Validation summary and UI (max 5 entries, newest first).
+
+```bash
+make mrms-review-session-export-diff-history
+make mrms-review-session-export-diff-history ARGS="--json"
+curl http://127.0.0.1:8000/api/validation/summary
+curl http://127.0.0.1:8000/api/validation/review-sessions/export/diff/history
+```
+
+**Each recent entry shows:** timestamp, `overall_export_diff_status` (`improved`/`worsened`/`mixed`/`unchanged`/`no_baseline`), session changed, open attention count change, comparison status change, improvement/regression counts.
+
+**Dev Validation UI:** Toggle “Show export diff history” — count, latest status/timestamp, expandable list.
+
+**Warnings:** History is local-only — does not verify MRMS, clear alerts, notify externally, or enable production rendering.
+
 ## Scheduled review session export (Phase 44)
 
 Optional scheduled validation step exports the latest review session Markdown after digest/handoff — **local scheduled review only**.

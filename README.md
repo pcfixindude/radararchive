@@ -242,7 +242,7 @@ Limitations:
 - `make mrms-review-session-export` exports latest review session to local Markdown + JSON metadata (does not verify MRMS)
 - `make mrms-review-session-exports` lists bounded review session export history (read-only)
 - `make mrms-review-session-export-diff` shows latest export diff vs previous export (local review only; `improved`/`worsened`/`mixed`/`unchanged`/`no_baseline`)
-- `make mrms-review-session-export-diff-history` lists bounded export diff history (`--json`, `--limit`)
+- `make mrms-review-session-export-diff-history` lists bounded export diff history (`--json`, `--limit`); Dev Validation summary shows recent 5 entries with show/hide toggle
 - `make mrms-review-session-export-diff-trend` summarizes export diff trend (`improving`/`worsening`/`mixed`/`stable`/`no_data`; `--json`, `--limit`)
 - `make mrms-review-session-export-diff-trend-hint` shows when a new review session/export is recommended (`--json`)
 - `make mrms-review-session ARGS="... --export-after-create"` creates a session and immediately exports Markdown (session is kept if export fails)

@@ -896,6 +896,41 @@ class MrmsReviewSessionExportDiffTrendHintResponse(BaseModel):
     hint: MrmsReviewSessionExportDiffTrendHintCompact
 
 
+class MrmsReviewSessionExportDiffHistoryEntryCompact(BaseModel):
+    created_at: Optional[str] = None
+    overall_export_diff_status: Optional[str] = None
+    latest_session_id: Optional[str] = None
+    baseline_session_id: Optional[str] = None
+    session_changed: bool = False
+    open_attention_count_change: Optional[dict[str, Any]] = None
+    comparison_status_change: Optional[dict[str, Any]] = None
+    escalation_level_change: Optional[dict[str, Any]] = None
+    digest_regeneration_recommended_change: Optional[dict[str, Any]] = None
+    improvements_count: int = 0
+    regressions_count: int = 0
+    verified_mrms: bool = False
+    local_export_diff_history_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class MrmsReviewSessionExportDiffHistorySummaryCompact(BaseModel):
+    available: bool = False
+    count: int = 0
+    max_entries: int = 25
+    latest_status: Optional[str] = None
+    latest_created_at: Optional[str] = None
+    latest: Optional[MrmsReviewSessionExportDiffHistoryEntryCompact] = None
+    recent: list[MrmsReviewSessionExportDiffHistoryEntryCompact] = Field(default_factory=list)
+    verified_mrms: bool = False
+    local_export_diff_history_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    prototype: bool = True
+
+
 class MrmsProofHistoryEntryCompact(BaseModel):
     generated_at: Optional[str] = None
     overall_status: str = "not_started"
@@ -1325,6 +1360,7 @@ class ValidationSummaryResponse(BaseModel):
     mrms_review_session_export_diff: Optional[MrmsReviewSessionExportDiffCompact] = None
     mrms_review_session_export_diff_trend: Optional[MrmsReviewSessionExportDiffTrendCompact] = None
     mrms_review_session_export_diff_trend_hint: Optional[MrmsReviewSessionExportDiffTrendHintCompact] = None
+    mrms_review_session_export_diff_history: Optional[MrmsReviewSessionExportDiffHistorySummaryCompact] = None
     review_export_regeneration_hint: Optional[ReviewExportRegenerationHintCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)

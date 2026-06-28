@@ -51,6 +51,7 @@ export default function ValidationStatusPanel({
   const [showDiffEscalationHistory, setShowDiffEscalationHistory] = useState(false);
   const [showDiffEscalationMetrics, setShowDiffEscalationMetrics] = useState(false);
   const [showDigestHistory, setShowDigestHistory] = useState(false);
+  const [showExportDiffHistory, setShowExportDiffHistory] = useState(false);
   const [ackOperator, setAckOperator] = useState('');
   const [ackNote, setAckNote] = useState('');
   const [ackSubmitting, setAckSubmitting] = useState(false);
@@ -249,6 +250,7 @@ export default function ValidationStatusPanel({
   const reviewSessionExportDiff = summary.mrms_review_session_export_diff ?? null;
   const reviewSessionExportDiffTrend = summary.mrms_review_session_export_diff_trend ?? null;
   const reviewSessionExportDiffTrendHint = summary.mrms_review_session_export_diff_trend_hint ?? null;
+  const reviewSessionExportDiffHistory = summary.mrms_review_session_export_diff_history ?? null;
   const reviewExportRegenerationHint = summary.review_export_regeneration_hint ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
@@ -1011,6 +1013,54 @@ export default function ValidationStatusPanel({
         <p className="validation-meta">
           Export diff is local-only review evidence — does not verify MRMS, clear alerts, notify
           externally, or enable production rendering
+        </p>
+        {reviewSessionExportDiffHistory?.available ? (
+          <p className="validation-meta">
+            Export diff history: {reviewSessionExportDiffHistory.count ?? 0} entries — latest{' '}
+            {reviewSessionExportDiffHistory.latest_status ?? '—'}
+            {reviewSessionExportDiffHistory.latest_created_at
+              ? ` (${formatTimestamp(reviewSessionExportDiffHistory.latest_created_at)})`
+              : ''}
+          </p>
+        ) : (
+          <p className="validation-meta">
+            No export diff history — run make mrms-review-session-export-diff-history (local only).
+          </p>
+        )}
+        <div className="validation-header-actions">
+          <button
+            type="button"
+            className="validation-refresh"
+            onClick={() => setShowExportDiffHistory((value) => !value)}
+          >
+            {showExportDiffHistory ? 'Hide export diff history' : 'Show export diff history'}
+          </button>
+        </div>
+        {showExportDiffHistory && (reviewSessionExportDiffHistory?.recent ?? []).length > 0 ? (
+          <ul className="validation-history-list">
+            {(reviewSessionExportDiffHistory?.recent ?? []).map((entry, index) => (
+              <li
+                key={`${entry.created_at ?? 'export-diff'}-${index}`}
+                className="validation-meta"
+              >
+                {formatTimestamp(entry.created_at)} — {entry.overall_export_diff_status ?? '—'} —
+                session changed {entry.session_changed ? 'yes' : 'no'}
+                {entry.open_attention_count_change
+                  ? ` — attention ${entry.open_attention_count_change.baseline ?? '—'} → ${entry.open_attention_count_change.latest ?? '—'}`
+                  : ''}
+                {entry.comparison_status_change
+                  ? ` — comparison ${entry.comparison_status_change.baseline ?? '—'} → ${entry.comparison_status_change.latest ?? '—'}`
+                  : ''}
+                {` — improvements ${entry.improvements_count ?? 0}, regressions ${entry.regressions_count ?? 0}`}
+              </li>
+            ))}
+          </ul>
+        ) : showExportDiffHistory ? (
+          <p className="validation-meta">No recent export diff entries in summary.</p>
+        ) : null}
+        <p className="validation-meta">
+          Export diff history is local-only — does not verify MRMS, clear alerts, notify externally,
+          or enable production rendering
         </p>
         {reviewSessionExportDiffTrend?.available ? (
           <>
