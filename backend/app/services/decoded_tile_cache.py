@@ -21,6 +21,13 @@ from backend.app.services.grib2_decoder import (
     build_decode_output_dir,
 )
 from backend.app.services.storage import LocalStorage
+from backend.app.services.tile_pyramid import (
+    TILE_SIZE,
+    build_production_tile_repo_path,
+    load_production_tile_bytes,
+    validate_geo_metadata,
+    warp_grid_to_tile_values,
+)
 from backend.app.services.tile_service import (
     generate_decoded_prototype_tile_png,
     generate_placeholder_tile_png,
@@ -30,6 +37,7 @@ TILE_CACHE_ROOT = "data/tiles/decoded_prototype"
 TILE_MODE_PLACEHOLDER = "placeholder"
 TILE_MODE_PLACEHOLDER_FOR_REAL_RAW = "placeholder_for_real_raw"
 TILE_MODE_DECODED_PROTOTYPE = "decoded-prototype"
+TILE_MODE_PRODUCTION_PROTOTYPE = "production-prototype"
 
 
 @dataclass
@@ -231,23 +239,39 @@ def try_serve_production_tile(
     frame: RadarFile,
     timestamp: str,
     *,
+    layer: str,
     enable_production_radar_tiles: bool,
     z: int,
     x: int,
     y: int,
 ) -> Optional[TileServeResult]:
-    """Serve geo-accurate production tiles when fully enabled (not implemented in Phase 14)."""
+    """Serve geo-warped production prototype tiles when fully enabled and cached."""
     if not enable_production_radar_tiles:
         return None
     if not frame.production_rendering:
         return None
     if frame.render_status != RENDER_STATUS_PRODUCTION_RENDERED:
         return None
-    if not frame.render_artifact_path or not storage.path_exists(frame.render_artifact_path):
+
+    png_bytes = load_production_tile_bytes(
+        storage,
+        layer=layer,
+        timestamp=timestamp,
+        z=z,
+        x=x,
+        y=y,
+    )
+    if png_bytes is None:
         return None
 
-    # Production tile pyramid rendering is future work — gate only, no renderer yet.
-    return None
+    return TileServeResult(
+        png_bytes=png_bytes,
+        tile_mode=TILE_MODE_PRODUCTION_PROTOTYPE,
+        render_status=RENDER_STATUS_PRODUCTION_RENDERED,
+        production_rendering=True,
+        from_cache=True,
+        notes=["Production warping prototype — not verified real MRMS imagery."],
+    )
 
 
 def try_serve_decoded_prototype_tile(
@@ -295,6 +319,7 @@ def serve_tile_with_optional_decode(
         storage,
         frame,
         timestamp,
+        layer=frame.product_id,
         enable_production_radar_tiles=enable_production_radar_tiles,
         z=z,
         x=x,

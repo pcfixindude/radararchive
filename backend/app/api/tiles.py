@@ -31,12 +31,14 @@ def tiles_config() -> dict:
         "enable_production_radar_tiles": settings.enable_production_radar_tiles,
         "default_mode": "placeholder",
         "decoded_mode": "decoded-prototype",
+        "production_mode": "production-prototype",
         "production_rendering": False,
         "production_rendering_enabled": settings.enable_production_radar_tiles,
         "note": (
             "Placeholder tiles are the default. Decoded prototype tiles require "
-            "ENABLE_DECODED_TILES=true plus decode artifacts. Production geo-accurate "
-            "rendering is disabled (ENABLE_PRODUCTION_RADAR_TILES=false)."
+            "ENABLE_DECODED_TILES=true plus decode artifacts. Production warping "
+            "prototype requires ENABLE_PRODUCTION_RADAR_TILES=true, catalog "
+            "production_rendered status, and built tiles — not verified real MRMS."
         ),
     }
 

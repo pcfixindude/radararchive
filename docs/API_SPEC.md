@@ -94,7 +94,7 @@ Behavior:
 - Returns `image/png` when layer/timestamp is processed **and** within plan window
 - **Default (`ENABLE_DECODED_TILES=false`, `ENABLE_PRODUCTION_RADAR_TILES=false`):** placeholder PNG tiles
 - **Optional (`ENABLE_DECODED_TILES=true`):** decoded-prototype PNG when Phase 12 artifacts exist; otherwise placeholder fallback
-- **Production (`ENABLE_PRODUCTION_RADAR_TILES=true`):** blocked until catalog `production_rendering=true` and `render_status=production_rendered` with valid artifact (no renderer in Phase 14)
+- **Production (`ENABLE_PRODUCTION_RADAR_TILES=true`):** serves `production-prototype` when catalog `production_rendering=true`, `render_status=production_rendered`, and cached tile exists; otherwise honest placeholder fallback
 - Returns `404` when layer/timestamp is unavailable or unprocessed
 - Returns `403` JSON when timestamp exists but is outside the demo plan window:
 
@@ -121,8 +121,8 @@ curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:20:00Z/0/0/
 Note: URL-encode the timestamp if needed.
 
 Response headers:
-- `X-RadarArchive-Tile`: `placeholder` | `placeholder_for_real_raw` | `decoded-prototype`
-- `X-RadarArchive-Production-Rendering`: `true` | `false` (always `false` in Phase 14 — no production renderer)
+- `X-RadarArchive-Tile`: `placeholder` | `placeholder_for_real_raw` | `decoded-prototype` | `production-prototype`
+- `X-RadarArchive-Production-Rendering`: `true` when serving `production-prototype`; otherwise `false`
 - `X-RadarArchive-Render-Status`: `placeholder` | `decoded_prototype` | `production_pending` | `production_rendered` | `production_failed`
 - `X-RadarArchive-Tile-Fallback`: `true` when decode/production enabled but artifact missing or gate blocked
 - `X-RadarArchive-Tile-Cache`: `hit` when served from pre-built cache
@@ -137,9 +137,10 @@ Returns tile serving configuration (dev):
   "enable_production_radar_tiles": false,
   "default_mode": "placeholder",
   "decoded_mode": "decoded-prototype",
+  "production_mode": "production-prototype",
   "production_rendering": false,
   "production_rendering_enabled": false,
-  "note": "Placeholder default; decoded prototype requires ENABLE_DECODED_TILES; production geo-accurate rendering disabled."
+  "note": "Placeholder default; production warping prototype requires ENABLE_PRODUCTION_RADAR_TILES plus catalog gate and built tiles."
 }
 ```
 

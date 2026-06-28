@@ -105,6 +105,7 @@ export type TilesConfigInfo = {
   enable_production_radar_tiles: boolean;
   default_mode: string;
   decoded_mode: string;
+  production_mode: string;
   production_rendering: boolean;
   production_rendering_enabled: boolean;
   note: string;

@@ -72,24 +72,18 @@ def _sample_grid_to_tile(
     return tile
 
 
-def generate_decoded_prototype_tile_png(
+def encode_normalized_grid_png(
     grid: list[list[float]],
     *,
-    z: int = 0,
-    x: int = 0,
-    y: int = 0,
     width: int = 256,
     height: int = 256,
 ) -> bytes:
-    """Render a prototype PNG from a normalized 0..1 grid (not geo-accurate)."""
-    sampled = _sample_grid_to_tile(grid, z=z, x=x, y=y, width=width, height=height)
-
+    """Encode a normalized 0..1 grid directly to PNG (no tile re-sampling)."""
     raw = b""
-    for row in sampled:
+    for row in grid[:height]:
         raw += b"\x00"
-        for value in row:
-            # Simple reflectivity-like blue→green→yellow→red prototype ramp.
-            v = max(0.0, min(1.0, value))
+        for value in row[:width]:
+            v = max(0.0, min(1.0, float(value)))
             r = int(min(255, v * 510))
             g = int(min(255, max(0.0, (v - 0.25) * 340)))
             b = int(min(255, max(0.0, (0.6 - v) * 420)))
@@ -104,3 +98,17 @@ def generate_decoded_prototype_tile_png(
         + _png_chunk(b"IDAT", compressed)
         + _png_chunk(b"IEND", b"")
     )
+
+
+def generate_decoded_prototype_tile_png(
+    grid: list[list[float]],
+    *,
+    z: int = 0,
+    x: int = 0,
+    y: int = 0,
+    width: int = 256,
+    height: int = 256,
+) -> bytes:
+    """Render a prototype PNG from a normalized 0..1 grid (not geo-accurate)."""
+    sampled = _sample_grid_to_tile(grid, z=z, x=x, y=y, width=width, height=height)
+    return encode_normalized_grid_png(sampled, width=width, height=height)
