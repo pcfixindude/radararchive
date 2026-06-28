@@ -107,8 +107,92 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
   margin-bottom: 0.25rem;
 }
 
+.validation-command-label {
+  margin-bottom: 0.25rem;
+}
+
 .validation-command-block {
   margin: 0.25rem 0;
+}
+
+.validation-command-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.validation-command-row .validation-command-line {
+  flex: 1 1 12rem;
+  display: block;
+  padding: 0.35rem 0.5rem;
+  background: #0f172a;
+  border-radius: 4px;
+}
+
+.validation-copy-button {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid #475569;
+  border-radius: 4px;
+  background: #1e293b;
+  color: #e2e8f0;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.validation-copy-button:hover {
+  background: #334155;
+}
+
+.validation-command-copy-fallback {
+  margin-top: 0.35rem;
+  color: #fca5a5;
+}
+
+.validation-workflow-preset-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.validation-workflow-preset-filter-fieldset {
+  border: 1px solid #334155;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+}
+
+.validation-workflow-preset-filter-fieldset legend {
+  padding: 0 0.25rem;
+}
+
+.validation-workflow-preset-filter-option {
+  display: block;
+  margin: 0.25rem 0;
+  cursor: pointer;
+}
+
+.validation-workflow-preset-group-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.validation-workflow-preset-group-filter select {
+  flex: 1 1 10rem;
+  max-width: 100%;
+  padding: 0.25rem 0.5rem;
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid #475569;
+  border-radius: 4px;
+}
+
+.validation-workflow-preset-visible-count {
+  margin: 0;
 }
 
 .validation-collapsible {

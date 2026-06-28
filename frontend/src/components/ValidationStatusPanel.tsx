@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import {
   fetchProofReviewData,
   fetchValidationLatest,
@@ -12,6 +12,11 @@ import {
 } from '../api/client';
 import CollapsibleSection from './validation/CollapsibleSection';
 import CommandLine from './validation/CommandLine';
+import {
+  countVisiblePresets,
+  filterVisiblePresetGroups,
+  type PresetFilterMode,
+} from './validation/presetFilters';
 import SafetyNote from './validation/SafetyNote';
 import StatusBadge from './validation/StatusBadge';
 import { formatTimestamp, yesNo } from './validation/format';
@@ -48,6 +53,8 @@ export default function ValidationStatusPanel({
   const [reviewSessionNotes, setReviewSessionNotes] = useState('');
   const [reviewSessionAcceptedLimitations, setReviewSessionAcceptedLimitations] = useState(false);
   const [reviewSessionExportAfterCreate, setReviewSessionExportAfterCreate] = useState(false);
+  const [presetFilterMode, setPresetFilterMode] = useState<PresetFilterMode>('all');
+  const [presetGroupFilter, setPresetGroupFilter] = useState('all');
   const [reviewSessionSubmitting, setReviewSessionSubmitting] = useState(false);
   const [reviewSessionMessage, setReviewSessionMessage] = useState<string | null>(null);
   const [reviewSessionError, setReviewSessionError] = useState<string | null>(null);
@@ -254,6 +261,15 @@ export default function ValidationStatusPanel({
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
+  const workflowPresetGroups = operatorWorkflowPresets?.operator_workflow_preset_groups ?? [];
+  const visibleWorkflowPresetGroups = useMemo(
+    () => filterVisiblePresetGroups(workflowPresetGroups, workflowPresetById, presetFilterMode, presetGroupFilter),
+    [workflowPresetGroups, workflowPresetById, presetFilterMode, presetGroupFilter],
+  );
+  const visibleWorkflowPresetCount = useMemo(
+    () => countVisiblePresets(visibleWorkflowPresetGroups),
+    [visibleWorkflowPresetGroups],
+  );
   const scheduledOperatorStatus = summary.scheduled_operator_status ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
@@ -340,10 +356,57 @@ export default function ValidationStatusPanel({
           }
         >
           <p className="validation-meta">
-            Presets are grouped by workflow category — advisory only. Copy commands manually from the
-            terminal; the UI does not execute them.
+            Presets are grouped by workflow category — advisory only. Use Copy to paste commands into
+            your terminal; the UI does not execute them.
           </p>
-          {(operatorWorkflowPresets.operator_workflow_preset_groups ?? []).map((group) => (
+          <div className="validation-workflow-preset-filters">
+            <fieldset className="validation-workflow-preset-filter-fieldset">
+              <legend className="validation-meta">Show presets</legend>
+              <label className="validation-workflow-preset-filter-option">
+                <input
+                  type="radio"
+                  name="workflow-preset-filter"
+                  checked={presetFilterMode === 'all'}
+                  onChange={() => setPresetFilterMode('all')}
+                />
+                Show all presets
+              </label>
+              <label className="validation-workflow-preset-filter-option">
+                <input
+                  type="radio"
+                  name="workflow-preset-filter"
+                  checked={presetFilterMode === 'recommended'}
+                  onChange={() => setPresetFilterMode('recommended')}
+                />
+                Show recommended only
+              </label>
+            </fieldset>
+            {workflowPresetGroups.length > 1 ? (
+              <label className="validation-workflow-preset-group-filter">
+                <span className="validation-meta">Group</span>
+                <select
+                  value={presetGroupFilter}
+                  onChange={(event) => setPresetGroupFilter(event.target.value)}
+                  aria-label="Filter presets by group"
+                >
+                  <option value="all">All groups</option>
+                  {workflowPresetGroups.map((group) => (
+                    <option key={group.group_id} value={group.group_id}>
+                      {group.group_title ?? group.group_id}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+            <p className="validation-meta validation-workflow-preset-visible-count">
+              Showing {visibleWorkflowPresetCount} of {operatorWorkflowPresets.preset_count ?? 0}{' '}
+              preset{operatorWorkflowPresets.preset_count === 1 ? '' : 's'}
+            </p>
+          </div>
+          {visibleWorkflowPresetCount === 0 ? (
+            <p className="validation-meta">No presets match the current filters.</p>
+          ) : null}
+          {visibleWorkflowPresetGroups.map((group) => (
             <section key={group.group_id} className="validation-workflow-preset-group">
               <h4 className="validation-workflow-preset-group-title">
                 {group.group_title ?? group.group_id}

@@ -1993,3 +1993,27 @@ cd frontend && npm run build
 
 ### Known limitations
 - Grouping is presentation only — does not change commands or verification behavior
+
+## Phase 55 - Workflow Preset Command UX Polish
+
+Preset filtering and copy-to-clipboard for local operator workflow guidance.
+
+### Frontend
+- `CommandLine`: Copy button with Copied/error states; manual-copy note clarifies copy does not execute commands
+- `presetFilters.ts`: client-side recommended-only and optional group filter; empty groups hidden when filtered
+- Dev Validation: visible preset count, filter controls, recommended styling preserved
+- `npm test` (vitest): CommandLine copy button, clipboard helper, recommended-only filter logic
+
+### Run commands
+
+```bash
+make test
+make operator-workflow-presets
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Filtering is UI-only — API payload unchanged
+- Copy uses browser clipboard API with manual-select fallback; does not run commands
+- Presets remain advisory local-only — does not verify MRMS, clear alerts, or mutate gates

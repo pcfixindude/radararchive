@@ -572,6 +572,12 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - `operator_workflow_preset_groups` compact; recommended_priority sorting
 - Dev Validation renders presets under group headings
 
+### Workflow preset command UX (Phase 55)
+- `CommandLine` Copy button (Copied / error fallback); copy does not execute commands
+- Dev Validation preset filters: show all vs recommended-only, optional group dropdown, visible count
+- Client-side filtering only — no API changes
+- Frontend vitest: `CommandLine.test.tsx`, `presetFilters.test.ts`, `copyText.test.ts`
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

@@ -683,6 +683,18 @@ Presets are grouped for quicker scanning:
 
 **Dev Validation UI:** Presets render under group headings with `short_reason`, recommended flag, runbook link, and copy-ready command. The UI does not execute commands.
 
+## Operator workflow preset filtering and copy (Phase 55)
+
+Dev Validation **Operator Workflow Presets** (collapsible, below Operator Review Status) adds local UI filters only:
+
+- **Show all presets** vs **Show recommended only** — client-side; hides non-recommended cards and empty group headings
+- **Group filter** (dropdown when multiple groups exist) — limits visible groups
+- **Visible preset count** — e.g. “Showing 3 of 7 presets”
+- **Copy button** on each command (`CommandLine`) — copies exact `make …` text to clipboard; **Copy does not run commands**; paste into terminal manually
+- Clipboard unavailable: fallback message to select and copy manually
+
+Presets remain **advisory and local-only** — no backend changes, no command execution, no new evidence.
+
 ### Operator review status guidance anchors (Phase 50)
 
 Runbook deep-links from consolidated status (`guidance_items`, `top_guidance_item`):
