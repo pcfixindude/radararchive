@@ -1,5 +1,9 @@
 # Cursor Rules
 
+## Phase workflow
+
+All phase implementation work must follow [PHASE_WORKFLOW_RULES.md](PHASE_WORKFLOW_RULES.md) in addition to the rules below.
+
 ## Development Rules
 1. Work in small phases.
 2. Do not rewrite the whole project unless explicitly asked.
@@ -9,7 +13,7 @@
 6. Keep raw source data immutable.
 7. Processed data may be regenerated.
 8. Add or update tests for every backend change.
-9. Update docs/PHASE_LOG.md, docs/NEXT_STEPS.md, and docs/PROJECT_STATE.md after each phase.
+9. Update docs/PHASE_LOG.md, docs/NEXT_STEPS.md, and docs/PROJECT_STATE.md after each phase (see [PHASE_WORKFLOW_RULES.md](PHASE_WORKFLOW_RULES.md)).
 10. Keep secrets out of git.
 11. Do not scrape commercial weather sites.
 12. Add NOAA/NWS attribution/disclaimer where public data is displayed.
@@ -24,7 +28,7 @@
 
 ## Git requirements (all phases)
 
-After all required checks pass for a phase:
+See [PHASE_WORKFLOW_RULES.md](PHASE_WORKFLOW_RULES.md) for the full Git, testing, and completion-report checklist. Summary:
 
 1. Run `git status --short` and verify only intended phase files changed.
 2. Stage and commit: `git add .` then `git commit -m "phase XX: short description"`.
