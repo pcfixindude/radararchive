@@ -343,6 +343,8 @@ Sign-off via `make mrms-signoff` or dev-only `POST /api/validation/signoffs` is 
 
 `make mrms-proof-bundle` writes `data/dev/proof_bundles/mrms_proof_bundle_{timestamp}/` plus a ZIP. Includes proof/regression/sign-off/alert JSON, catalog/queue snapshots, runbook markdown copies, and `manifest.json` with `verified_mrms: false`. Bundles are supporting evidence only — not verified MRMS certification.
 
+`make mrms-proof-bundle-diff` compares latest vs baseline bundle evidence (`unchanged`, `improved`, `worsened`, `mixed`, `no_baseline`). `make mrms-operator-handoff` generates a local Markdown checklist — review only, not verification.
+
 ## Inspection CLI
 
 ```bash

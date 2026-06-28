@@ -127,6 +127,8 @@ make mrms-proof-report
 make mrms-proof-regression
 make mrms-proof-history
 make mrms-proof-bundle
+make mrms-proof-bundle-diff
+make mrms-operator-handoff
 make mrms-signoff
 make real-mrms-smoke-test
 make scheduled-validation ARGS="--proof"
@@ -142,6 +144,8 @@ curl http://127.0.0.1:8000/api/validation/proof-regression
 curl http://127.0.0.1:8000/api/validation/proof/history
 curl http://127.0.0.1:8000/api/validation/proof-regression/history
 curl http://127.0.0.1:8000/api/validation/proof-bundles
+curl http://127.0.0.1:8000/api/validation/proof-bundle-diff
+curl http://127.0.0.1:8000/api/validation/operator-handoff
 curl http://127.0.0.1:8000/api/validation/signoffs
 curl -X POST http://127.0.0.1:8000/api/validation/signoffs \
   -H 'Content-Type: application/json' \
@@ -187,6 +191,8 @@ Limitations:
 - `make mrms-proof-regression` detects proof evidence regressions vs previous report
 - `make mrms-proof-history` shows bounded proof/regression/sign-off history (read-only)
 - `make mrms-proof-bundle` exports local proof evidence folder + ZIP (does not verify MRMS)
+- `make mrms-proof-bundle-diff` compares latest vs baseline bundle evidence (local review only)
+- `make mrms-operator-handoff` generates local operator handoff Markdown checklist
 - `make mrms-signoff` records local operator sign-off (does not set verified_mrms)
 - `POST /api/validation/signoffs` — dev-only sign-off API (same validation as CLI; does not verify MRMS)
 - Dev Validation **Show proof review** includes sign-off form + scheduled proof-step compact status

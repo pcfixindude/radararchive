@@ -430,6 +430,33 @@ export type MrmsProofBundleCompact = {
   prototype: boolean;
 };
 
+export type MrmsProofBundleDiffCompact = {
+  available: boolean;
+  diff_id?: string | null;
+  checked_at?: string | null;
+  overall_diff_status: string;
+  evidence_changes_count: number;
+  has_baseline?: boolean;
+  verified_mrms: boolean;
+  local_diff_only: boolean;
+  proof_only: boolean;
+  does_not_enable_production: boolean;
+  prototype: boolean;
+};
+
+export type OperatorHandoffCompact = {
+  available: boolean;
+  created_at?: string | null;
+  markdown_path?: string | null;
+  json_path?: string | null;
+  question_count: number;
+  diff_status?: string | null;
+  verified_mrms: boolean;
+  local_handoff_only: boolean;
+  does_not_enable_production: boolean;
+  prototype: boolean;
+};
+
 export type RunbookReference = {
   title: string;
   path: string;
@@ -539,6 +566,8 @@ export type ValidationSummary = {
   mrms_proof_regression_available?: boolean;
   mrms_signoff?: MrmsSignoffSummaryCompact | null;
   mrms_proof_bundle?: MrmsProofBundleCompact | null;
+  mrms_proof_bundle_diff?: MrmsProofBundleDiffCompact | null;
+  operator_handoff?: OperatorHandoffCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;

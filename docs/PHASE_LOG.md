@@ -1266,3 +1266,36 @@ cd frontend && npm run build
 - No browser download endpoint (local paths only)
 - `verified_mrms` always false
 - Production serving gates unchanged; placeholder default unchanged
+
+## Phase 31 - Proof Bundle Diff + Operator Handoff Checklist
+
+Compare local proof bundles and generate operator handoff review checklist.
+
+### Backend
+- `mrms_proof_bundle_diff.py` — compare manifests/evidence; overall status (`unchanged`, `improved`, `worsened`, `mixed`, `no_baseline`, `unknown`)
+- `mrms_operator_handoff.py` — generate `mrms_operator_handoff_latest.md` + JSON metadata
+- `GET /api/validation/proof-bundle-diff`, `GET /api/validation/operator-handoff`
+- Summary: `mrms_proof_bundle_diff`, `operator_handoff` compact status
+- `.gitignore` covers `data/dev/proof_bundles/` and related runtime JSON/Markdown
+
+### Scripts / Makefile
+- `make mrms-proof-bundle-diff`, `make mrms-operator-handoff`
+
+### Frontend
+- Dev Validation proof bundle diff / handoff section
+
+### Run commands
+
+```bash
+make test
+make mrms-proof-bundle
+make mrms-proof-bundle-diff
+make mrms-operator-handoff
+cd frontend && npm run build
+```
+
+### Known limitations
+- Diff requires at least two exported bundles for baseline comparison
+- Handoff/diff are local review only — not verified MRMS
+- `verified_mrms` always false
+- Production serving gates unchanged; placeholder default unchanged

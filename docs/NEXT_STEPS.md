@@ -1,24 +1,26 @@
 # Next Steps
 
-## Phase 31 - Proof Bundle Diff + Operator Handoff Checklist (Draft)
+## Phase 32 - Scheduled Proof Bundle Export + Alert Hooks (Draft)
 
-Goal: Compare two local proof bundles for operator handoff and add a printable checklist tied to `VERIFIED_MRMS_CRITERIA.md` — still without `verified_mrms=true`.
+Goal: Optional scheduled/cron-friendly proof bundle export after validation runs, with alert marker hooks when bundle diff status worsens — still without `verified_mrms=true`.
 
 Suggested work:
-1. `make mrms-proof-bundle-diff` — compare manifests and key evidence between two bundle folders
-2. Operator handoff checklist markdown generated inside bundle export
-3. Dev panel link to latest bundle README path
+1. `scheduled-validation --export-bundle` optional step
+2. Alert cause bucket when diff status is `worsened`
+3. Handoff checklist auto-regenerate hook after bundle export (local only)
 
 Do not start yet:
 - Stripe, real auth, HRRR, WPC, native Android
 - Redis/Celery, cloud deployment
-- Setting `verified_mrms=true` or production promotion via bundle export
+- Setting `verified_mrms=true` or production promotion
 
-## Phase 30 verification commands
+## Phase 31 verification commands
 
 ```bash
 make test
 make mrms-proof-bundle
+make mrms-proof-bundle-diff
+make mrms-operator-handoff
 make mrms-proof-report
 make mrms-proof-regression
 make mrms-proof-history

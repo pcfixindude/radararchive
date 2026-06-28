@@ -140,6 +140,8 @@ export default function ValidationStatusPanel({
   const proofRegression = summary.mrms_proof_regression ?? null;
   const signoffSummary = summary.mrms_signoff ?? null;
   const proofBundle = summary.mrms_proof_bundle ?? null;
+  const proofBundleDiff = summary.mrms_proof_bundle_diff ?? null;
+  const operatorHandoff = summary.operator_handoff ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
   const queue = summary.render_queue;
@@ -261,6 +263,31 @@ export default function ValidationStatusPanel({
         )}
         <p className="validation-meta">
           Export does not enable production rendering — verified_mrms: {yesNo(summary.verified_mrms)}
+        </p>
+      </section>
+      <section className="validation-proof-bundle-diff">
+        <p className="validation-meta">Proof bundle diff / handoff (local review only — does not verify MRMS)</p>
+        {proofBundleDiff?.available ? (
+          <p className="validation-meta">
+            Diff status: {proofBundleDiff.overall_diff_status ?? 'unknown'} — evidence changes{' '}
+            {proofBundleDiff.evidence_changes_count ?? 0}
+            {proofBundleDiff.checked_at ? ` (${formatTimestamp(proofBundleDiff.checked_at)})` : ''}
+          </p>
+        ) : (
+          <p className="validation-meta">
+            No diff report yet — run make mrms-proof-bundle twice, then make mrms-proof-bundle-diff.
+          </p>
+        )}
+        {operatorHandoff?.available ? (
+          <p className="validation-meta">
+            Handoff checklist {formatTimestamp(operatorHandoff.created_at)}
+            {operatorHandoff.markdown_path ? ` — ${operatorHandoff.markdown_path}` : ''}
+          </p>
+        ) : (
+          <p className="validation-meta">No handoff checklist yet — run make mrms-operator-handoff.</p>
+        )}
+        <p className="validation-meta">
+          Diff/handoff does not enable production rendering — verified_mrms: {yesNo(summary.verified_mrms)}
         </p>
       </section>
       {runbookReferences.length > 0 ? (

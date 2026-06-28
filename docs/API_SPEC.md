@@ -232,6 +232,12 @@ Summary additions (Phase 30): `mrms_proof_bundle` compact (`bundle_folder`, `zip
 
 `GET /api/validation/proof-bundles` — bounded local proof bundle export history (read-only). `verified_mrms: false`, `local_bundle_only: true`. Does not create bundles (use `make mrms-proof-bundle`).
 
+Summary additions (Phase 31): `mrms_proof_bundle_diff` compact (`overall_diff_status`, `evidence_changes_count`), `operator_handoff` compact (`markdown_path`, `created_at`).
+
+`GET /api/validation/proof-bundle-diff` — latest proof bundle diff report (`?refresh=true` rebuilds). `verified_mrms: false`, `local_diff_only: true`.
+
+`GET /api/validation/operator-handoff` — latest operator handoff checklist metadata (read-only). `verified_mrms: false`, `local_handoff_only: true`.
+
 `GET /api/catalog/status` — MRMS catalog frame counts by download/process/render status, latest timestamps.
 
 ## MRMS source discovery (Phase 8 — dev/metadata)

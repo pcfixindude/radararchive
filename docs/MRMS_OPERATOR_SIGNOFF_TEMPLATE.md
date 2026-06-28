@@ -69,6 +69,14 @@ make mrms-proof-bundle ARGS="--include-history --json-report"
 
 Bundle includes copies of this template when repo docs are available. Export is local evidence packaging only — `verified_mrms` stays false.
 
+## Operator handoff checklist (Phase 31)
+
+```bash
+make mrms-operator-handoff
+```
+
+Writes `data/dev/mrms_operator_handoff_latest.md` — local review checklist only; does not verify MRMS.
+
 ## Related commands
 
 ```bash

@@ -411,6 +411,14 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - `GET /api/validation/proof-bundles`; summary adds `mrms_proof_bundle`, `runbook_references`
 - CLI: `make mrms-proof-bundle` (`--include-history`, `--json-report`)
 
+### Proof bundle diff + operator handoff (Phase 31)
+- `mrms_proof_bundle_diff.py` — compare latest vs baseline bundle; persist `mrms_proof_bundle_diff_latest.json`
+- `mrms_operator_handoff.py` — `mrms_operator_handoff_latest.md` checklist
+- Overall diff status: `no_baseline`, `unchanged`, `improved`, `worsened`, `mixed`, `unknown`
+- `GET /api/validation/proof-bundle-diff`, `GET /api/validation/operator-handoff`
+- CLI: `make mrms-proof-bundle-diff`, `make mrms-operator-handoff`
+- `.gitignore` excludes generated bundle/diff/handoff runtime artifacts
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

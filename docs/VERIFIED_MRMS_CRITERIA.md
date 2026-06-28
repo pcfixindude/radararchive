@@ -134,6 +134,10 @@ Optional dev/local `POST /api/validation/signoffs` shares the same validation as
 
 `make mrms-proof-bundle` packages local proof/regression/sign-off/alert JSON into a timestamped folder + ZIP. Bundles are **supporting evidence only** — they do **not** verify MRMS or enable production rendering. Manifest always includes `verified_mrms: false`.
 
+## Proof bundle diff + operator handoff (Phase 31)
+
+`make mrms-proof-bundle-diff` compares the latest bundle to the previous bundle baseline. `make mrms-operator-handoff` writes a local Markdown checklist. Both are **supporting review evidence only** — `verified_mrms` stays false.
+
 ## Proof review history (Phase 28)
 
 Bounded read-only history for dev panel drill-down:

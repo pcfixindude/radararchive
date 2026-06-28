@@ -179,6 +179,30 @@ Output:
 
 Dev Validation panel shows latest bundle path and runbook doc references.
 
+## Proof bundle diff + operator handoff (Phase 31)
+
+Compare bundles and generate a local review checklist — **does not verify MRMS**.
+
+```bash
+make mrms-proof-bundle-diff
+make mrms-proof-bundle-diff ARGS="--json-report"
+make mrms-operator-handoff
+curl http://127.0.0.1:8000/api/validation/proof-bundle-diff?refresh=true
+curl http://127.0.0.1:8000/api/validation/operator-handoff
+```
+
+**Diff overall status meanings (local review only):**
+- `no_baseline` — fewer than two bundles exported; run `make mrms-proof-bundle` twice first
+- `unchanged` — key proof/regression/alert metrics match between bundles
+- `improved` — evidence signals moved in a positive direction (e.g. fewer failed criteria, regression cleared)
+- `worsened` — evidence signals degraded (e.g. regression detected, alert status worse)
+- `mixed` — some signals improved and others worsened
+- `unknown` — insufficient evidence files to classify
+
+Handoff output: `data/dev/mrms_operator_handoff_latest.md` (checklist with explicit non-verification statements).
+
+Generated bundle/diff/handoff artifacts are gitignored under `data/dev/`.
+
 ## Check recent failures
 
 ```bash

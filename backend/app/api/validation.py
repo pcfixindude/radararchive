@@ -6,8 +6,10 @@ from sqlalchemy.orm import Session
 from backend.app.config import settings
 from backend.app.database import get_db
 from backend.app.schemas.validation import (
+    MrmsProofBundleDiffResponse,
     MrmsProofBundlesResponse,
     MrmsProofHistoryResponse,
+    OperatorHandoffResponse,
     MrmsProofRegressionHistoryResponse,
     MrmsProofRegressionResponse,
     MrmsProofResponse,
@@ -24,6 +26,11 @@ from backend.app.schemas.validation import (
 )
 from backend.app.services.storage import LocalStorage
 from backend.app.services.mrms_proof_bundle import build_proof_bundles_list_payload
+from backend.app.services.mrms_proof_bundle_diff import (
+    build_proof_bundle_diff_report,
+    load_latest_proof_bundle_diff,
+)
+from backend.app.services.mrms_operator_handoff import load_latest_operator_handoff
 from backend.app.services.mrms_proof_history import (
     build_proof_history_payload,
     build_regression_history_payload,
@@ -237,3 +244,34 @@ def validation_proof_bundles(limit: int = 10) -> MrmsProofBundlesResponse:
     storage = LocalStorage(settings.local_storage_root)
     payload = build_proof_bundles_list_payload(storage, limit=limit)
     return MrmsProofBundlesResponse(**payload)
+
+
+@router.get("/proof-bundle-diff", response_model=MrmsProofBundleDiffResponse)
+def validation_proof_bundle_diff(refresh: bool = False) -> MrmsProofBundleDiffResponse:
+    """Latest local proof bundle diff report (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    if refresh:
+        report = build_proof_bundle_diff_report(storage)
+    else:
+        report = load_latest_proof_bundle_diff(storage)
+        if report is None:
+            report = build_proof_bundle_diff_report(storage)
+    return MrmsProofBundleDiffResponse(
+        verified_mrms=False,
+        local_diff_only=True,
+        proof_only=True,
+        report=report,
+    )
+
+
+@router.get("/operator-handoff", response_model=OperatorHandoffResponse)
+def validation_operator_handoff() -> OperatorHandoffResponse:
+    """Latest local operator handoff checklist metadata (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    handoff = load_latest_operator_handoff(storage)
+    return OperatorHandoffResponse(
+        verified_mrms=False,
+        local_handoff_only=True,
+        does_not_enable_production=True,
+        handoff=handoff,
+    )

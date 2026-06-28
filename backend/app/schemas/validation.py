@@ -442,6 +442,51 @@ class MrmsProofBundlesResponse(BaseModel):
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
 
 
+class MrmsProofBundleDiffCompact(BaseModel):
+    available: bool = False
+    diff_id: Optional[str] = None
+    checked_at: Optional[str] = None
+    overall_diff_status: str = "unknown"
+    evidence_changes_count: int = 0
+    has_baseline: bool = False
+    current_bundle_id: Optional[str] = None
+    baseline_bundle_id: Optional[str] = None
+    verified_mrms: bool = False
+    local_diff_only: bool = True
+    proof_only: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class MrmsProofBundleDiffResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_diff_only: bool = True
+    proof_only: bool = True
+    report: Optional[dict[str, Any]] = None
+
+
+class OperatorHandoffCompact(BaseModel):
+    available: bool = False
+    created_at: Optional[str] = None
+    markdown_path: Optional[str] = None
+    json_path: Optional[str] = None
+    question_count: int = 0
+    diff_status: Optional[str] = None
+    verified_mrms: bool = False
+    local_handoff_only: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class OperatorHandoffResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_handoff_only: bool = True
+    does_not_enable_production: bool = True
+    handoff: Optional[dict[str, Any]] = None
+
+
 class ValidationSummaryResponse(BaseModel):
     prototype: bool = True
     verified_mrms: bool = False
@@ -472,6 +517,8 @@ class ValidationSummaryResponse(BaseModel):
     mrms_proof_regression_available: bool = False
     mrms_signoff: Optional[MrmsSignoffSummaryCompact] = None
     mrms_proof_bundle: Optional[MrmsProofBundleCompact] = None
+    mrms_proof_bundle_diff: Optional[MrmsProofBundleDiffCompact] = None
+    operator_handoff: Optional[OperatorHandoffCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse
@@ -499,6 +546,8 @@ class ValidationLatestResponse(BaseModel):
     mrms_proof_regression: Optional[dict[str, Any]] = None
     mrms_signoffs: list[dict[str, Any]] = Field(default_factory=list)
     mrms_proof_bundle: Optional[dict[str, Any]] = None
+    mrms_proof_bundle_diff: Optional[dict[str, Any]] = None
+    operator_handoff: Optional[dict[str, Any]] = None
 
 
 class ValidationFailuresResponse(BaseModel):
