@@ -125,14 +125,31 @@ Each successful Phase 12 decode writes `geo_metadata.json` alongside `decode_man
 
 Optional rasterio may enrich CRS/bounds when installed (not required for tests or `make setup`).
 
-Catalog render fields (`render_status`, `render_mode`, `production_rendering`, paths) track placeholder vs decoded vs future production states. **Prototype artifacts are never marked `production_rendered`.**
+Catalog render fields (`render_status`, `render_mode`, `production_rendering`, paths) track placeholder vs decoded vs production states. **Real MRMS rows are not auto-marked `production_rendered`** unless `make build-production-tiles -- --mark-catalog` is used explicitly (fixture/test).
 
 Production tile serving requires:
 - `ENABLE_PRODUCTION_RADAR_TILES=true`
 - Catalog `production_rendering=true` and `render_status=production_rendered`
-- Valid `render_artifact_path`
+- Cached tile at `data/tiles/production/{layer}/{timestamp}/{z}/{x}/{y}.png`
 
-Phase 14 implements the gate only — no production tile renderer yet. `/tiles` headers include `X-RadarArchive-Render-Status`.
+## Production warping prototype (Phase 15)
+
+`make build-production-tiles` reads decode artifacts with valid `geo_metadata.json` and warps normalized `.raw` grids to EPSG:3857 XYZ tiles using stdlib math (no GDAL/rasterio).
+
+Supported in prototype:
+- `output_crs`: EPSG:3857
+- `source_crs`: EPSG:4326 or missing (bounds treated as WGS84)
+- `bounds`: [west, south, east, north] for geographic→grid mapping
+- Bilinear sampling from small test fixtures
+
+Not supported yet:
+- Native projected source grids (e.g. EPSG:5070) without reprojection library
+- Full multi-zoom CONUS pyramids
+- Verified geo-accurate MRMS output
+
+Output cache: `data/tiles/production/{layer}/{timestamp}/{z}/{x}/{y}.png`
+
+Serving tile mode: `production-prototype` (not verified real radar).
 
 Report: `make render-status` (optional `--sync` to update catalog from artifacts).
 
@@ -163,7 +180,9 @@ When no decoder is installed, the script still reports gzip size and GRIB magic 
 - `scripts/decode_grib2.py` — decode prototype CLI
 - `backend/app/services/render_metadata.py` — geo metadata structures
 - `backend/app/services/render_status.py` — render status report/sync
-- `scripts/render_status.py` — render status CLI
+- `backend/app/services/tile_pyramid.py` — geo warping math (Phase 15)
+- `backend/app/services/production_tile_builder.py` — production tile builder
+- `scripts/build_production_tiles.py` — production tile CLI
 
 ## Non-goals (Phases 11–12)
 

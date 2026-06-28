@@ -39,6 +39,9 @@ export default function App() {
     if (!config) {
       return 'Placeholder';
     }
+    if (config.enable_production_radar_tiles) {
+      return 'Production prototype (when built + catalog gate open)';
+    }
     if (config.enable_decoded_tiles) {
       return 'Decoded prototype (when artifacts exist)';
     }
@@ -188,8 +191,8 @@ export default function App() {
       <header className="app-header">
         <h1>RadarArchive</h1>
         <p className="demo-banner">
-          Tile mode: {tileModeLabel} — not production geo-accurate radar unless explicitly enabled and rendered.
-          Decoded prototype tiles are experimental grid samples, not verified MRMS imagery.
+          Tile mode: {tileModeLabel} — not verified real MRMS. Production prototype uses geo warping
+          experiments only; default map tiles remain placeholders.
         </p>
       </header>
       <main className="app-main">

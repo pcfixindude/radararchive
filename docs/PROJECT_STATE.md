@@ -1,17 +1,16 @@
 # Project State
 
-Current phase: Phase 14 complete
+Current phase: Phase 15 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
 - MRMS discovery → download → decode prototype pipeline
-- **Default tile serving: placeholder** (`ENABLE_DECODED_TILES=false`)
-- Optional decoded prototype tiles when flag enabled + decode artifacts exist
-- **Production geo-accurate rendering: disabled** (`ENABLE_PRODUCTION_RADAR_TILES=false`)
-- Render status catalog fields + `geo_metadata.json` for future production tiles
-- `make render-status` reports placeholder vs decoded vs production frames
-- No production-rendered frames expected yet
+- **Default tile serving: placeholder** (`ENABLE_DECODED_TILES=false`, `ENABLE_PRODUCTION_RADAR_TILES=false`)
+- Optional decoded prototype tiles when `ENABLE_DECODED_TILES=true` + decode artifacts
+- **Production warping prototype** builds geo-warped tiles via `make build-production-tiles`
+- Production tiles served only when flag + catalog gate + cached tile all true
+- Not verified real MRMS — warping prototype only
 
 ## Feature flags
 
@@ -20,20 +19,20 @@ Current status:
 ENABLE_DECODED_TILES=false
 ENABLE_PRODUCTION_RADAR_TILES=false
 
-# Enable decoded prototype tiles (requires decode artifacts)
+# Decoded prototype tiles (requires decode artifacts)
 ENABLE_DECODED_TILES=true make backend
 
-# Production gate (no renderer yet — still falls back to placeholder)
+# Production warping prototype (requires built tiles + catalog gate)
 ENABLE_PRODUCTION_RADAR_TILES=true make backend
+make build-production-tiles -- --mark-catalog  # fixture/test only
 ```
 
 ## Local test
 
 ```bash
 make test
+make build-production-tiles
 make render-status
-make build-tile-cache
-make inspect-grib2
 cd frontend && npm run build
 ```
 
@@ -42,12 +41,13 @@ cd frontend && npm run build
 ```bash
 make download-mrms -- --register-discovered --limit 1
 make decode-grib2
+make build-production-tiles
 make build-tile-cache
 make render-status
-ENABLE_DECODED_TILES=true make backend
+ENABLE_PRODUCTION_RADAR_TILES=true make backend
 ```
 
-See `docs/GRIB2_DECODE.md` for decode/tile-cache/geo-metadata notes.
+See `docs/GRIB2_DECODE.md` for decode/warping notes.
 
 ## Demo plans
 

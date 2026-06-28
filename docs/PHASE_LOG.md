@@ -694,3 +694,44 @@ cd frontend && npm run build
 - Decoded prototype remains behind `ENABLE_DECODED_TILES=false`
 - Placeholder tiles remain default API behavior
 - GDAL/rasterio/wgrib2 still optional
+
+## Phase 15 - Geo-Accurate Tile Warping Prototype
+
+Added stdlib Web Mercator warping prototype to build and serve production tile cache when explicitly enabled.
+
+### Backend
+- `backend/app/services/tile_pyramid.py` — geo metadata validation, EPSG:3857 tile bounds, WGS84→grid bilinear warping
+- `backend/app/services/production_tile_builder.py` — build warped tiles from decode artifacts + `geo_metadata.json`
+- Production cache: `data/tiles/production/{layer}/{timestamp}/{z}/{x}/{y}.png`
+- Tile mode: `production-prototype` when all gates pass and cached tile exists
+- Serving order unchanged: production → decoded prototype → placeholder
+- `encode_normalized_grid_png` in `tile_service.py` for direct grid→PNG (no Pillow/GDAL)
+
+### Scripts / Makefile
+- `scripts/build_production_tiles.py`, `make build-production-tiles` (optional `--mark-catalog` for fixture/test frames)
+
+### Frontend
+- Banner shows Production prototype mode when `ENABLE_PRODUCTION_RADAR_TILES=true`; never labeled verified MRMS
+
+### Run commands
+
+```bash
+make test
+make build-production-tiles
+cd frontend && npm run build
+```
+
+### Test commands
+
+```bash
+make test
+make build-production-tiles
+cd frontend && npm run build
+```
+
+### Known limitations
+- Warping prototype only — not verified real MRMS output
+- Supports EPSG:4326 bounds → EPSG:3857 tiles; other CRS rejected
+- `.raw` normalized grids only (no rasterio required)
+- Default remains placeholder tiles; production flag off by default
+- Catalog not auto-marked unless `--mark-catalog` on build script

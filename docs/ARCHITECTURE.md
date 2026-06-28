@@ -204,12 +204,23 @@ Catalog render fields on `radar_files`:
 
 Feature flags:
 - `ENABLE_DECODED_TILES=false` — decoded prototype tiles (Phase 13)
-- `ENABLE_PRODUCTION_RADAR_TILES=false` — production geo-accurate tiles (Phase 14 gate only; no renderer yet)
+- `ENABLE_PRODUCTION_RADAR_TILES=false` — production warping prototype tiles (Phase 15)
 
 Tile serving order in `decoded_tile_cache.serve_tile_with_optional_decode`:
-1. Production (requires both flags + `production_rendering=true` + `render_status=production_rendered` + artifact) — not implemented
+1. Production prototype when `ENABLE_PRODUCTION_RADAR_TILES=true` + catalog `production_rendering=true` + `render_status=production_rendered` + cached tile at `data/tiles/production/{layer}/{timestamp}/{z}/{x}/{y}.png`
 2. Decoded prototype when `ENABLE_DECODED_TILES=true`
 3. Placeholder (default)
+
+### Production tile warping prototype (Phase 15)
+`backend/app/services/tile_pyramid.py` — validate geo metadata, Web Mercator tile bounds, WGS84 bounds → grid bilinear sampling (stdlib math).
+
+`backend/app/services/production_tile_builder.py` — read decode artifact + `geo_metadata.json`, warp to EPSG:3857 tiles, write production cache.
+
+CLI: `make build-production-tiles` (`scripts/build_production_tiles.py`); optional `--mark-catalog` for test/fixture frames only.
+
+Production cache: `data/tiles/production/{layer}/{timestamp}/{z}/{x}/{y}.png`
+
+Tile mode when served: `production-prototype` with `X-RadarArchive-Production-Rendering: true`.
 
 CLI: `make render-status` (`scripts/render_status.py`) — reports frame/artifact counts; `--sync` updates catalog without marking production.
 
@@ -240,4 +251,4 @@ Raw source files are immutable. Processed files can be regenerated. Database rec
 - `data/staging/grib2_inspect/` — decompressed GRIB2 staging for inspection spike (Phase 11)
 - `data/staging/grib2_decode/` — prototype normalized raster artifacts + `geo_metadata.json` (Phase 12–14, not production tiles)
 - `data/tiles/decoded_prototype/` — optional prototype tile cache (Phase 13, feature-flagged)
-- `data/tiles/` — rendered map tiles directory (reserved for later phases)
+- `data/tiles/production/` — geo-warped production prototype cache (Phase 15, gated)

@@ -91,6 +91,14 @@ make render-status
 make render-status -- --sync --dry-run
 ```
 
+Build production warped tiles (Phase 15 — prototype, default off):
+
+```bash
+make build-production-tiles
+make build-production-tiles -- --mark-catalog   # fixture/test catalog only
+ENABLE_PRODUCTION_RADAR_TILES=true make backend
+```
+
 Feature flags:
 
 ```bash
@@ -102,17 +110,18 @@ Behavior:
 - Demo/collector/MRMS stub raw files → `placeholder_processed` (map tiles work)
 - Real downloaded `.grib2.gz` → `placeholder_for_real_raw` preview by default
 - With `ENABLE_DECODED_TILES=true` + decode artifacts → optional `decoded-prototype` tiles
-- Production geo-accurate tiles require `ENABLE_PRODUCTION_RADAR_TILES=true` + catalog gate (not implemented in Phase 14)
+- Production warping prototype: `make build-production-tiles` + `ENABLE_PRODUCTION_RADAR_TILES=true` + catalog gate → optional `production-prototype` tiles
 - Headers: `X-RadarArchive-Tile`, `X-RadarArchive-Production-Rendering`, `X-RadarArchive-Render-Status`
 
 Limitations:
 - Default `MRMS_SOURCE_MODE=stub` uses offline sample listings and stub downloads
-- Real mode downloads public NOAA AWS GRIB2.gz but does not parse or render production radar
+- Real mode downloads public NOAA AWS GRIB2.gz but does not render verified production radar
 - `make inspect-grib2` reports metadata when wgrib2/optional decoders are installed
 - `make decode-grib2` writes prototype artifacts + `geo_metadata.json` to `data/staging/grib2_decode/` when decoders exist
+- `make build-production-tiles` warps small/normalized grids to EPSG:3857 tiles (stdlib math, no GDAL)
 - `ENABLE_DECODED_TILES=false` by default — map `/tiles` serves placeholders only
-- `ENABLE_PRODUCTION_RADAR_TILES=false` by default — no geo-accurate production tiles
-- Decoded prototype tiles are experimental grid samples, not verified MRMS imagery
+- `ENABLE_PRODUCTION_RADAR_TILES=false` by default — production prototype tiles blocked
+- Production prototype is not verified real MRMS; decoded prototype uses simple grid sampling
 
 In another terminal:
 
