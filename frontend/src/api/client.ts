@@ -704,6 +704,32 @@ export type ReviewExportRegenerationHintCompact = {
   prototype: boolean;
 };
 
+export type OperatorWorkflowPresetCompact = {
+  preset_id: string;
+  title: string;
+  description?: string;
+  when_to_use: string;
+  command: string;
+  expected_outputs?: string[];
+  safety_notes?: string[];
+  recommended?: boolean;
+  recommendation_reason?: string | null;
+  verified_mrms: boolean;
+  local_workflow_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+};
+
+export type OperatorWorkflowPresetsCompact = {
+  available?: boolean;
+  recommended_count?: number;
+  presets?: OperatorWorkflowPresetCompact[];
+  verified_mrms: boolean;
+  local_workflow_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+};
+
 export type OperatorReviewStatusCompact = {
   available?: boolean;
   created_at?: string | null;
@@ -1197,6 +1223,7 @@ export type ValidationSummary = {
   mrms_review_session_export_diff_history?: MrmsReviewSessionExportDiffHistoryCompact | null;
   review_export_regeneration_hint?: ReviewExportRegenerationHintCompact | null;
   operator_review_status?: OperatorReviewStatusCompact | null;
+  operator_workflow_presets?: OperatorWorkflowPresetsCompact | null;
   scheduled_operator_status?: ScheduledOperatorStatusCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];

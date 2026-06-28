@@ -210,6 +210,10 @@ Consolidated operator review status (`operator_review_status`, `make operator-re
 
 Scheduled operator review status (`make scheduled-proof-bundle-operator-status`, `--operator-status` on scheduled validation; also runs automatically with `--review-export`) adds consolidated status fields to the scheduled report and runbook deep-links (`guidance_items`, `top_guidance_item`, `runbook_path`, `runbook_section`). Operator status guidance maps urgent/attention/watch levels, regeneration recommendations, and evidence trends to runbook sections. This is **local review guidance only** — it does **not** verify MRMS, clear alerts, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
 
+## Operator workflow presets (Phase 52)
+
+Operator workflow presets (`operator_workflow_presets`, `make operator-workflow-presets`, `GET /api/validation/operator-workflow-presets`) organize existing local commands into guided presets with `recommended` flags derived from operator review status. Presets include quick status check, full local proof review, create review session and export, regenerate digest/checklist/export, inspect worsening export trend, review proof bundle diff, and scheduled proof bundle with operator status. This is **local workflow guidance only** — it does **not** verify MRMS, clear alerts, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
+
 ## Scheduled proof bundle monitoring (Phase 32)
 
 `make scheduled-proof-bundle` runs scheduled validation with `--proof --bundle --diff-bundle`. This is **local evidence monitoring only** — it does not verify MRMS or enable production rendering. Alerts may flag `worsened` or `mixed` diff status for operator review.

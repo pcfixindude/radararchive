@@ -555,6 +555,13 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Summary visible when collapsed; expand for forms, history lists, JSON drilldown
 - Frontend-only — no API or backend changes; does not affect verification or production gates
 
+### Operator workflow presets (Phase 52)
+- `operator_workflow_presets.py` — read-only presets from `operator_review_status` (quick status, full proof review, session+export, digest regen, export trend, bundle diff, scheduled operator status)
+- `GET /api/validation/operator-workflow-presets`; summary `operator_workflow_presets` compact
+- `make operator-workflow-presets`
+- Dev Validation: collapsible **Operator Workflow Presets** below Operator Review Status
+- Read-only — does not verify MRMS, clear alerts, or mutate gates
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

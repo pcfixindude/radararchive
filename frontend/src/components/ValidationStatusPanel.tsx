@@ -250,6 +250,7 @@ export default function ValidationStatusPanel({
   const reviewSessionExportDiffHistory = summary.mrms_review_session_export_diff_history ?? null;
   const reviewExportRegenerationHint = summary.review_export_regeneration_hint ?? null;
   const operatorReviewStatus = summary.operator_review_status ?? null;
+  const operatorWorkflowPresets = summary.operator_workflow_presets ?? null;
   const scheduledOperatorStatus = summary.scheduled_operator_status ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
@@ -324,6 +325,52 @@ export default function ValidationStatusPanel({
           </p>
           <SafetyNote />
         </section>
+      ) : null}
+      {operatorWorkflowPresets?.presets && operatorWorkflowPresets.presets.length > 0 ? (
+        <CollapsibleSection
+          title="Operator Workflow Presets"
+          className="validation-operator-workflow-presets"
+          summary={
+            <p className="validation-meta">
+              {operatorWorkflowPresets.recommended_count ?? 0} recommended — local workflow guidance only
+            </p>
+          }
+        >
+          <p className="validation-meta">
+            Presets organize existing local commands — expand a preset for when to use it and expected outputs.
+          </p>
+          <ul className="validation-history-list validation-workflow-preset-list">
+            {[...(operatorWorkflowPresets.presets ?? [])]
+              .sort((a, b) => Number(b.recommended ?? false) - Number(a.recommended ?? false))
+              .map((preset) => (
+                <li
+                  key={preset.preset_id}
+                  className={
+                    preset.recommended ? 'validation-workflow-preset-recommended' : 'validation-meta'
+                  }
+                >
+                  <p className="validation-meta">
+                    {preset.recommended ? (
+                      <strong>Recommended: </strong>
+                    ) : null}
+                    {preset.title}
+                    {preset.recommendation_reason ? ` — ${preset.recommendation_reason}` : ''}
+                  </p>
+                  <p className="validation-meta">{preset.when_to_use}</p>
+                  <CommandLine command={preset.command} label="Command" />
+                  {(preset.expected_outputs?.length ?? 0) > 0 ? (
+                    <p className="validation-meta">
+                      Expected: {preset.expected_outputs?.join('; ')}
+                    </p>
+                  ) : null}
+                  {(preset.safety_notes?.length ?? 0) > 0 ? (
+                    <p className="validation-meta">{preset.safety_notes?.[0]}</p>
+                  ) : null}
+                </li>
+              ))}
+          </ul>
+          <SafetyNote />
+        </CollapsibleSection>
       ) : null}
       <CollapsibleSection
         title="Scheduled validation & operator status"

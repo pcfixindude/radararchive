@@ -805,6 +805,48 @@ class OperatorReviewStatusResponse(BaseModel):
     status: OperatorReviewStatusCompact
 
 
+class OperatorWorkflowPresetCompact(BaseModel):
+    preset_id: str
+    title: str
+    description: str
+    when_to_use: str
+    command: str
+    expected_outputs: list[str] = Field(default_factory=list)
+    safety_notes: list[str] = Field(default_factory=list)
+    recommended: bool = False
+    recommendation_reason: Optional[str] = None
+    verified_mrms: bool = False
+    local_workflow_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    prototype: bool = True
+
+
+class OperatorWorkflowPresetsCompact(BaseModel):
+    available: bool = True
+    recommended_count: int = 0
+    presets: list[OperatorWorkflowPresetCompact] = Field(default_factory=list)
+    verified_mrms: bool = False
+    local_workflow_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    prototype: bool = True
+
+
+class OperatorWorkflowPresetsResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_workflow_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    recommended_count: int = 0
+    presets: list[OperatorWorkflowPresetCompact] = Field(default_factory=list)
+    recommended_presets: list[OperatorWorkflowPresetCompact] = Field(default_factory=list)
+
+
 class MrmsReviewSessionExportResponse(BaseModel):
     prototype: bool = True
     verified_mrms: bool = False
@@ -1422,6 +1464,7 @@ class ValidationSummaryResponse(BaseModel):
     mrms_review_session_export_diff_history: Optional[MrmsReviewSessionExportDiffHistorySummaryCompact] = None
     review_export_regeneration_hint: Optional[ReviewExportRegenerationHintCompact] = None
     operator_review_status: Optional[OperatorReviewStatusCompact] = None
+    operator_workflow_presets: Optional[OperatorWorkflowPresetsCompact] = None
     scheduled_operator_status: Optional[ScheduledOperatorStatusCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)

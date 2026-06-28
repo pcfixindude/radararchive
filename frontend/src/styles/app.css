@@ -81,6 +81,17 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
   margin: 0 0 0.35rem;
   font-size: 0.95rem;
 }
+
+.validation-workflow-preset-list {
+  margin-top: 0.5rem;
+}
+
+.validation-workflow-preset-recommended {
+  border-left: 3px solid #c9a227;
+  padding-left: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
 .validation-collapsible {
   margin: 0.5rem 0 0;
   padding: 0.45rem 0.55rem;

@@ -39,6 +39,7 @@ from backend.app.schemas.validation import (
     MrmsReviewSessionExportDiffTrendResponse,
     MrmsReviewSessionExportDiffTrendHintResponse,
     OperatorReviewStatusResponse,
+    OperatorWorkflowPresetsResponse,
     QueueBenchmarkHistoryResponse,
     ScheduledValidationHistoryResponse,
     ValidationAlertsResponse,
@@ -114,6 +115,7 @@ from backend.app.services.mrms_review_session_export_diff_trend_hint import (
     build_review_session_export_diff_trend_hint_payload,
 )
 from backend.app.services.operator_review_status import build_operator_review_status_payload
+from backend.app.services.operator_workflow_presets import build_operator_workflow_presets_payload
 from backend.app.services.mrms_proof_report import load_mrms_proof_report
 from backend.app.services.validation_alerts import (
     compact_validation_alert,
@@ -320,6 +322,14 @@ def validation_operator_review_status() -> OperatorReviewStatusResponse:
     storage = LocalStorage(settings.local_storage_root)
     payload = build_operator_review_status_payload(storage)
     return OperatorReviewStatusResponse(**payload)
+
+
+@router.get("/operator-workflow-presets", response_model=OperatorWorkflowPresetsResponse)
+def validation_operator_workflow_presets() -> OperatorWorkflowPresetsResponse:
+    """Local operator workflow presets (read-only guidance; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_operator_workflow_presets_payload(storage)
+    return OperatorWorkflowPresetsResponse(**payload)
 
 
 @router.get(

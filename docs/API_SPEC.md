@@ -322,6 +322,14 @@ Summary additions (Phase 50): `operator_review_status` adds `guidance_items`, `t
 
 Scheduled validation report additions (Phase 50): when `operator_status_requested` (explicit `--operator-status` or implicit with `--review-export`), report includes operator status fields and `operator_review_status` step. Generation failure sets `operator_status_generated: false` and `operator_status_error` without failing the whole run.
 
+Summary additions (Phase 52): `operator_workflow_presets` compact (`recommended_count`, `presets[]` with `preset_id`, `title`, `when_to_use`, `command`, `expected_outputs`, `safety_notes`, `recommended`, `recommendation_reason`, safety flags). Presets are read-only workflow guidance derived from `operator_review_status` — do not verify MRMS, clear alerts, or enable production rendering.
+
+Endpoints (Phase 52): `GET /api/validation/operator-workflow-presets` (read-only preset list; `verified_mrms: false`, `local_workflow_only: true`, `does_not_clear_alerts: true`, `does_not_enable_production: true`).
+
+**Preset IDs:** `quick-status-check`, `full-local-proof-review`, `create-review-session-and-export`, `regenerate-digest-checklist-export`, `inspect-worsening-export-trend`, `review-proof-bundle-diff`, `run-scheduled-proof-bundle-operator-status`.
+
+**Recommendation rules:** digest stale → `regenerate-digest-checklist-export`; no session or worsening/mixed export trend → `create-review-session-and-export`; ok/watch status → `quick-status-check`.
+
 **`status_level` interpretation:** `urgent` — failed validation alert, urgent escalation, or worsening export-diff streak ≥2; `attention` — regeneration hints, worsened/mixed latest export diff, or open attention items; `watch` — stable/mixed export trend with history or escalation/alert watch; `ok` — improving/stable evidence without recommendations; `unknown` — insufficient local review data.
 
 **Runbook guidance mapping:** urgent/attention/watch status levels; digest/review-export/review-session recommendations; evidence trend worsening/mixed/stable/improving — each maps to a runbook anchor under `docs/RUNBOOK_REAL_MRMS_VALIDATION.md`.

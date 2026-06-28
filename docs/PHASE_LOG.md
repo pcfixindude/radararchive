@@ -1917,3 +1917,30 @@ cd frontend && npm run build
 - UI polish only — does not change verification, alerts, proof state, review sessions, exports, or production gates
 - `verified_mrms` always false
 - Collapsed sections hide detail bodies; expand to use forms and full history lists
+
+## Phase 52 - Operator Workflow Presets
+
+Read-only local workflow presets derived from operator review status — organizes existing commands into guided presets.
+
+### Backend
+- `operator_workflow_presets.py` — seven presets with recommendation logic from `operator_review_status`
+- Summary: `operator_workflow_presets` compact
+- `GET /api/validation/operator-workflow-presets`
+- `make operator-workflow-presets` (`--json`)
+
+### Frontend
+- Dev Validation **Operator Workflow Presets** collapsible below Operator Review Status
+- Recommended presets listed first with command, when-to-use, expected outputs, safety notes
+
+### Run commands
+
+```bash
+make test
+make operator-workflow-presets
+cd frontend && npm run build
+```
+
+### Known limitations
+- Workflow guidance only — does not add new evidence or verify MRMS
+- Does not clear alerts or mutate production/catalog/render gates
+- `verified_mrms` always false

@@ -611,6 +611,35 @@ curl http://127.0.0.1:8000/api/validation/summary
 
 **Warnings:** Consolidation is local-only — does not verify MRMS, clear alerts, notify externally, or enable production rendering.
 
+## Operator workflow presets (Phase 52)
+
+Read-only local workflow presets organize existing commands into guided tasks — **does not add new evidence**.
+
+```bash
+make operator-workflow-presets
+make operator-workflow-presets ARGS="--json"
+curl http://127.0.0.1:8000/api/validation/operator-workflow-presets
+curl http://127.0.0.1:8000/api/validation/summary
+```
+
+**Presets:**
+
+| preset_id | When to use | Command |
+|---|---|---|
+| `quick-status-check` | Start of shift or after scheduled run when status is ok/watch | `make operator-review-status` |
+| `full-local-proof-review` | Refresh proof report, bundle, and diff evidence | `make scheduled-proof-bundle` |
+| `create-review-session-and-export` | No session, worsening/mixed export trend, or session recommended | `make mrms-review-session` with `--export-after-create` |
+| `regenerate-digest-checklist-export` | Digest/checklist stale per operator status | `make scheduled-proof-bundle-review-export` |
+| `inspect-worsening-export-trend` | Export diff trend mixed/worsening — inspect before acting | `make mrms-review-session-export-diff-trend-hint` |
+| `review-proof-bundle-diff` | After bundle exports or when diff alerts need review | `make mrms-proof-bundle-diff` |
+| `run-scheduled-proof-bundle-operator-status` | End-to-end scheduled run with operator status step | `make scheduled-proof-bundle-operator-status` |
+
+**Recommendation rules (from operator review status):** digest stale → regenerate preset; no session or worsening/mixed trend → create session preset; ok/watch → quick status preset.
+
+**Dev Validation UI:** Collapsible **Operator Workflow Presets** below Operator Review Status — recommended presets first, with when-to-use, command, expected outputs, and safety notes.
+
+**Warnings:** Presets are local workflow guidance only — do not verify MRMS, clear alerts, notify externally, or enable production rendering.
+
 ### Operator review status guidance anchors (Phase 50)
 
 Runbook deep-links from consolidated status (`guidance_items`, `top_guidance_item`):
