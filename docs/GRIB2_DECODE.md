@@ -349,6 +349,8 @@ Sign-off via `make mrms-signoff` or dev-only `POST /api/validation/signoffs` is 
 
 `make scheduled-proof-bundle-handoff` adds `--handoff` to auto-regenerate the operator handoff checklist when diff is worsened/mixed. Validation summary exposes `operator_guidance` runbook references when `decoder_unavailable` or other causes need attention — review aids only, not verification.
 
+`make proof-bundle-diff-alert-history` prints the bounded diff alert timeline recorded on each diff evaluation — local evidence monitoring only; does not verify MRMS.
+
 ## Inspection CLI
 
 ```bash

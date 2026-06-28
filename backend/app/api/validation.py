@@ -9,6 +9,7 @@ from backend.app.schemas.validation import (
     MrmsProofBundleDiffResponse,
     MrmsProofBundlesResponse,
     MrmsProofHistoryResponse,
+    ProofBundleDiffAlertHistoryResponse,
     OperatorHandoffResponse,
     MrmsProofRegressionHistoryResponse,
     MrmsProofRegressionResponse,
@@ -31,6 +32,9 @@ from backend.app.services.mrms_proof_bundle_diff import (
     load_latest_proof_bundle_diff,
 )
 from backend.app.services.mrms_operator_handoff import load_latest_operator_handoff
+from backend.app.services.proof_bundle_diff_alert_history import (
+    build_proof_bundle_diff_alert_history_payload,
+)
 from backend.app.services.mrms_proof_history import (
     build_proof_history_payload,
     build_regression_history_payload,
@@ -275,3 +279,17 @@ def validation_operator_handoff() -> OperatorHandoffResponse:
         does_not_enable_production=True,
         handoff=handoff,
     )
+
+
+@router.get(
+    "/proof-bundle-diff-alert-history",
+    response_model=ProofBundleDiffAlertHistoryResponse,
+)
+def validation_proof_bundle_diff_alert_history(
+    limit: int = 25,
+) -> ProofBundleDiffAlertHistoryResponse:
+    """Bounded proof bundle diff alert timeline (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    bounded = max(1, min(limit, 25))
+    payload = build_proof_bundle_diff_alert_history_payload(storage, limit=bounded)
+    return ProofBundleDiffAlertHistoryResponse(**payload)

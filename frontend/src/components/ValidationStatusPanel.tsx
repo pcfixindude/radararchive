@@ -43,6 +43,7 @@ export default function ValidationStatusPanel({
   const [signoffAcceptedLimitations, setSignoffAcceptedLimitations] = useState(false);
   const [signoffSubmitting, setSignoffSubmitting] = useState(false);
   const [signoffMessage, setSignoffMessage] = useState<string | null>(null);
+  const [showDiffAlertTimeline, setShowDiffAlertTimeline] = useState(false);
   const [signoffError, setSignoffError] = useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
@@ -145,6 +146,8 @@ export default function ValidationStatusPanel({
   const operatorHandoff = summary.operator_handoff ?? null;
   const operatorGuidance =
     summary.operator_guidance ?? validationAlert?.operator_guidance ?? [];
+  const diffAlertTimeline = summary.proof_bundle_diff_alert_history ?? [];
+  const diffAlertLatest = summary.proof_bundle_diff_alert ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
   const queue = summary.render_queue;
@@ -368,6 +371,65 @@ export default function ValidationStatusPanel({
         <p className="validation-meta">
           Diff/handoff does not enable production rendering — verified_mrms: {yesNo(summary.verified_mrms)}
         </p>
+      </section>
+      <section className="validation-diff-alert-history">
+        <div className="validation-header-actions">
+          <p className="validation-meta">
+            Proof bundle diff alert timeline (local evidence monitoring only — does not verify MRMS)
+          </p>
+          <button
+            type="button"
+            className="validation-refresh"
+            onClick={() => setShowDiffAlertTimeline((value) => !value)}
+          >
+            {showDiffAlertTimeline ? 'Hide timeline' : 'Show timeline'}
+          </button>
+        </div>
+        {diffAlertLatest?.available || validationAlert?.latest_proof_bundle_diff_alert_at ? (
+          <p className="validation-meta">
+            Latest alert status:{' '}
+            {diffAlertLatest?.diff_status ??
+              validationAlert?.latest_proof_bundle_diff_alert_status ??
+              '—'}
+            {diffAlertLatest?.created_at || validationAlert?.latest_proof_bundle_diff_alert_at
+              ? ` (${formatTimestamp(
+                  diffAlertLatest?.created_at ?? validationAlert?.latest_proof_bundle_diff_alert_at,
+                )})`
+              : ''}
+            {diffAlertLatest?.operator_attention_needed ? ' — attention needed' : ''}
+          </p>
+        ) : (
+          <p className="validation-meta">
+            No diff alert history yet — run make mrms-proof-bundle-diff or make scheduled-proof-bundle.
+          </p>
+        )}
+        {validationAlert?.proof_bundle_diff_alert_history_count != null ? (
+          <p className="validation-meta">
+            Timeline entries: {validationAlert.proof_bundle_diff_alert_history_count}
+          </p>
+        ) : null}
+        <p className="validation-meta">
+          Does not enable production rendering — verified_mrms: {yesNo(summary.verified_mrms)}
+        </p>
+        {showDiffAlertTimeline && diffAlertTimeline.length > 0 ? (
+          <ul className="validation-history-list">
+            {diffAlertTimeline.map((entry, index) => (
+              <li
+                key={`${entry.created_at ?? 'diff-alert'}-${entry.diff_status}-${index}`}
+                className={entry.operator_attention_needed ? 'validation-warn' : 'validation-meta'}
+              >
+                {formatTimestamp(entry.created_at)} — {entry.diff_status ?? 'unknown'}
+                {entry.evidence_changes_count != null
+                  ? ` — changes ${entry.evidence_changes_count}`
+                  : ''}
+                {entry.operator_attention_needed ? ' — attention needed' : ''}
+                {entry.suggested_next_action ? ` — ${entry.suggested_next_action}` : ''}
+              </li>
+            ))}
+          </ul>
+        ) : showDiffAlertTimeline ? (
+          <p className="validation-meta">No timeline entries in summary — run make proof-bundle-diff-alert-history.</p>
+        ) : null}
       </section>
       {runbookReferences.length > 0 ? (
         <section className="validation-runbook-links">

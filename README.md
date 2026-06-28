@@ -123,6 +123,7 @@ make benchmark-render-queue
 make scheduled-validation
 make scheduled-proof-bundle
 make scheduled-proof-bundle-handoff
+make proof-bundle-diff-alert-history
 make validation-failures
 make validation-alerts
 make mrms-proof-report
@@ -147,6 +148,7 @@ curl http://127.0.0.1:8000/api/validation/proof/history
 curl http://127.0.0.1:8000/api/validation/proof-regression/history
 curl http://127.0.0.1:8000/api/validation/proof-bundles
 curl http://127.0.0.1:8000/api/validation/proof-bundle-diff
+curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-alert-history
 curl http://127.0.0.1:8000/api/validation/operator-handoff
 curl http://127.0.0.1:8000/api/validation/signoffs
 curl -X POST http://127.0.0.1:8000/api/validation/signoffs \
@@ -189,6 +191,7 @@ Limitations:
 - `make scheduled-validation` runs catalog + batch + queue benchmark pipeline (cron-friendly; `--real` intentional; `--proof`, `--bundle`, `--diff-bundle` optional)
 - `make scheduled-proof-bundle` runs scheduled validation with proof report, bundle export, and diff (local monitoring only)
 - `make scheduled-proof-bundle-handoff` adds optional operator handoff auto-regeneration when diff is worsened/mixed (does not verify MRMS)
+- `make proof-bundle-diff-alert-history` shows bounded diff alert timeline (local evidence monitoring only)
 - `make validation-failures` shows recent local failure log entries
 - `make validation-alerts` shows local validation alert marker and grouped failure causes
 - `make mrms-proof-report` generates draft verified-MRMS proof evidence report (not verified MRMS)

@@ -227,6 +227,9 @@ class ValidationAlertCompact(BaseModel):
     proof_bundle_diff_attention: bool = False
     latest_proof_bundle_id: Optional[str] = None
     latest_proof_bundle_created_at: Optional[str] = None
+    proof_bundle_diff_alert_history_count: int = 0
+    latest_proof_bundle_diff_alert_at: Optional[str] = None
+    latest_proof_bundle_diff_alert_status: Optional[str] = None
     operator_guidance: list[OperatorGuidanceItemCompact] = Field(default_factory=list)
     verified_mrms: bool = False
     prototype: bool = True
@@ -483,6 +486,46 @@ class MrmsProofBundleDiffResponse(BaseModel):
     report: Optional[dict[str, Any]] = None
 
 
+class ProofBundleDiffAlertEntryCompact(BaseModel):
+    created_at: Optional[str] = None
+    diff_status: Optional[str] = None
+    operator_attention_needed: bool = False
+    evidence_changes_count: int = 0
+    bundle_id: Optional[str] = None
+    baseline_bundle_id: Optional[str] = None
+    suggested_next_action: Optional[str] = None
+    guidance_cause: Optional[str] = None
+    verified_mrms: bool = False
+    local_history_only: bool = True
+    prototype: bool = True
+
+
+class ProofBundleDiffAlertCompact(BaseModel):
+    available: bool = False
+    count: int = 0
+    created_at: Optional[str] = None
+    diff_status: Optional[str] = None
+    operator_attention_needed: bool = False
+    evidence_changes_count: int = 0
+    bundle_id: Optional[str] = None
+    baseline_bundle_id: Optional[str] = None
+    suggested_next_action: Optional[str] = None
+    guidance_cause: Optional[str] = None
+    verified_mrms: bool = False
+    local_history_only: bool = True
+    prototype: bool = True
+
+
+class ProofBundleDiffAlertHistoryResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_history_only: bool = True
+    count: int = 0
+    max_entries: int = 25
+    latest: Optional[ProofBundleDiffAlertEntryCompact] = None
+    entries: list[ProofBundleDiffAlertEntryCompact] = Field(default_factory=list)
+
+
 class OperatorHandoffCompact(BaseModel):
     available: bool = False
     created_at: Optional[str] = None
@@ -563,6 +606,10 @@ class ValidationSummaryResponse(BaseModel):
     mrms_proof_bundle_diff: Optional[MrmsProofBundleDiffCompact] = None
     operator_handoff: Optional[OperatorHandoffCompact] = None
     operator_guidance: list[OperatorGuidanceItemCompact] = Field(default_factory=list)
+    proof_bundle_diff_alert: Optional[ProofBundleDiffAlertCompact] = None
+    proof_bundle_diff_alert_history: list[ProofBundleDiffAlertEntryCompact] = Field(
+        default_factory=list
+    )
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse
@@ -592,6 +639,7 @@ class ValidationLatestResponse(BaseModel):
     mrms_proof_bundle: Optional[dict[str, Any]] = None
     mrms_proof_bundle_diff: Optional[dict[str, Any]] = None
     operator_handoff: Optional[dict[str, Any]] = None
+    proof_bundle_diff_alert_history: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ValidationFailuresResponse(BaseModel):

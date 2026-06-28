@@ -405,6 +405,12 @@ def _persist_diff_report(storage: LocalStorage, report: dict[str, Any]) -> dict[
         json.dumps(entries[:MAX_DIFF_HISTORY], indent=2, sort_keys=True),
         encoding="utf-8",
     )
+
+    from backend.app.services.proof_bundle_diff_alert_history import (
+        record_proof_bundle_diff_alert_history,
+    )
+
+    record_proof_bundle_diff_alert_history(storage, report)
     return report
 
 

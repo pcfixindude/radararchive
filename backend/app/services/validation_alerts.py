@@ -324,6 +324,14 @@ def build_validation_alert(
     elif recent:
         latest_run_at = recent[0].get("logged_at")
 
+    from backend.app.services.proof_bundle_diff_alert_history import (
+        count_proof_bundle_diff_alert_history,
+        load_latest_proof_bundle_diff_alert_history,
+    )
+
+    latest_diff_alert_history = load_latest_proof_bundle_diff_alert_history(storage)
+    diff_alert_history_count = count_proof_bundle_diff_alert_history(storage)
+
     alert_body: dict[str, Any] = {
         "status": status,
         "latest_run_at": latest_run_at,
@@ -355,6 +363,10 @@ def build_validation_alert(
         "latest_proof_bundle_created_at": (latest_bundle or {}).get("created_at")
         if latest_bundle
         else None,
+        "proof_bundle_diff_alert_history_count": diff_alert_history_count,
+        "latest_proof_bundle_diff_alert_at": (latest_diff_alert_history or {}).get("created_at"),
+        "latest_proof_bundle_diff_alert_status": (latest_diff_alert_history or {}).get("diff_status")
+        or proof_bundle_diff_status,
         "production_rendering_enabled": settings.enable_production_radar_tiles,
         "verified_mrms": False,
         "prototype": True,
@@ -425,6 +437,11 @@ def compact_validation_alert(alert: Optional[dict[str, Any]]) -> Optional[dict[s
         "proof_bundle_diff_attention": alert.get("proof_bundle_diff_attention", False),
         "latest_proof_bundle_id": alert.get("latest_proof_bundle_id"),
         "latest_proof_bundle_created_at": alert.get("latest_proof_bundle_created_at"),
+        "proof_bundle_diff_alert_history_count": int(
+            alert.get("proof_bundle_diff_alert_history_count", 0)
+        ),
+        "latest_proof_bundle_diff_alert_at": alert.get("latest_proof_bundle_diff_alert_at"),
+        "latest_proof_bundle_diff_alert_status": alert.get("latest_proof_bundle_diff_alert_status"),
         "suggested_next_action": alert.get("suggested_next_action"),
         "grouped_failure_causes": grouped[:5],
         "operator_guidance": (alert.get("operator_guidance") or [])[:8],

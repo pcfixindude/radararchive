@@ -1,30 +1,30 @@
 # Next Steps
 
-## Phase 34 - Proof Bundle Diff Alert History (Draft)
+## Phase 35 - Diff Alert Trend Summary + Operator Ack (Draft)
 
-Goal: Persist compact proof bundle diff status history over scheduled runs and surface trend in Dev Validation — still without `verified_mrms=true`.
+Goal: Add compact trend summary over diff alert history (worsened→improved transitions, attention streaks) and optional explicit operator acknowledgment notes — still without `verified_mrms=true`.
 
 Suggested work:
-1. Append diff status snapshots to bounded local history JSON on each scheduled diff step
-2. Summary API: `proof_bundle_diff_history` compact (last N statuses, attention flags)
-3. Dev panel timeline for worsened → improved transitions (local review only)
-4. Optional alert auto-clear documentation when diff improves (explicit operator ack, not silent)
+1. Trend compact on summary API (`attention_streak`, `last_improved_at`, `status_changes_count`)
+2. Optional local ack record when operator reviews worsened/mixed timeline (does not clear alerts automatically)
+3. Dev panel trend chips alongside timeline list
+4. Runbook note: improving diff status requires evidence review, not silent alert clear
 
 Do not start yet:
 - Stripe, real auth, HRRR, WPC, native Android
 - Redis/Celery, cloud deployment
 - Setting `verified_mrms=true` or production promotion
 
-## Phase 33 verification commands
+## Phase 34 verification commands
 
 ```bash
 make test
+make proof-bundle-diff-alert-history
 make scheduled-validation
 make scheduled-proof-bundle
 make scheduled-proof-bundle-handoff
 make mrms-proof-bundle
 make mrms-proof-bundle-diff
-make mrms-operator-handoff
 make validation-alerts
 cd frontend && npm run build
 ```

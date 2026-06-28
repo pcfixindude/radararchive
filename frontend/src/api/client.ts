@@ -358,6 +358,9 @@ export type ValidationAlertCompact = {
   proof_bundle_diff_attention?: boolean;
   latest_proof_bundle_id?: string | null;
   latest_proof_bundle_created_at?: string | null;
+  proof_bundle_diff_alert_history_count?: number;
+  latest_proof_bundle_diff_alert_at?: string | null;
+  latest_proof_bundle_diff_alert_status?: string | null;
   operator_guidance?: OperatorGuidanceItem[];
   verified_mrms: boolean;
   prototype: boolean;
@@ -372,6 +375,36 @@ export type OperatorGuidanceItem = {
   suggested_action?: string;
   verified_mrms: boolean;
   local_guidance_only: boolean;
+  prototype: boolean;
+};
+
+export type ProofBundleDiffAlertEntry = {
+  created_at?: string | null;
+  diff_status?: string | null;
+  operator_attention_needed: boolean;
+  evidence_changes_count: number;
+  bundle_id?: string | null;
+  baseline_bundle_id?: string | null;
+  suggested_next_action?: string | null;
+  guidance_cause?: string | null;
+  verified_mrms: boolean;
+  local_history_only: boolean;
+  prototype: boolean;
+};
+
+export type ProofBundleDiffAlertCompact = {
+  available: boolean;
+  count: number;
+  created_at?: string | null;
+  diff_status?: string | null;
+  operator_attention_needed?: boolean;
+  evidence_changes_count?: number;
+  bundle_id?: string | null;
+  baseline_bundle_id?: string | null;
+  suggested_next_action?: string | null;
+  guidance_cause?: string | null;
+  verified_mrms: boolean;
+  local_history_only: boolean;
   prototype: boolean;
 };
 
@@ -612,6 +645,8 @@ export type ValidationSummary = {
   mrms_proof_bundle_diff?: MrmsProofBundleDiffCompact | null;
   operator_handoff?: OperatorHandoffCompact | null;
   operator_guidance?: OperatorGuidanceItem[];
+  proof_bundle_diff_alert?: ProofBundleDiffAlertCompact | null;
+  proof_bundle_diff_alert_history?: ProofBundleDiffAlertEntry[];
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;

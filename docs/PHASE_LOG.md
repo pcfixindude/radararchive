@@ -1364,3 +1364,35 @@ cd frontend && npm run build
 - Handoff auto-gen requires `--handoff` explicitly (default scheduled flows unchanged)
 - Guidance links are doc path + section label (not live deep links in UI)
 - `verified_mrms` always false; production gates unchanged
+
+## Phase 34 - Proof Bundle Diff Alert History
+
+Bounded timeline of proof bundle diff alert states for local operator monitoring.
+
+### Backend
+- `proof_bundle_diff_alert_history.py` — record/load bounded timeline (25 entries)
+- Hooked into `build_proof_bundle_diff_report` / scheduled diff step
+- Validation alert: `proof_bundle_diff_alert_history_count`, `latest_proof_bundle_diff_alert_at/status`
+- Summary: `proof_bundle_diff_alert`, `proof_bundle_diff_alert_history` (last 5)
+- `GET /api/validation/proof-bundle-diff-alert-history`
+
+### Scripts / Makefile
+- `make proof-bundle-diff-alert-history` — read-only CLI (`--json`, `--limit`)
+
+### Frontend
+- Dev Validation diff alert timeline section with show/hide toggle
+
+### Run commands
+
+```bash
+make test
+make proof-bundle-diff-alert-history
+make scheduled-proof-bundle
+make validation-alerts
+cd frontend && npm run build
+```
+
+### Known limitations
+- Duplicate exact diff results in the same run are skipped (not re-appended)
+- Timeline does not auto-clear validation alerts when status improves
+- `verified_mrms` always false; production gates unchanged

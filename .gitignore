@@ -24,5 +24,6 @@ data/dev/proof_bundles_latest.json
 data/dev/proof_bundles_index.json
 data/dev/mrms_proof_bundle_diff_latest.json
 data/dev/mrms_proof_bundle_diff_history.json
+data/dev/proof_bundle_diff_alert_history.json
 data/dev/mrms_operator_handoff_latest.md
 data/dev/mrms_operator_handoff_latest.json

@@ -240,6 +240,10 @@ Summary additions (Phase 33): `operator_guidance` list (`title`, `path`, `anchor
 
 Scheduled validation report additions (Phase 33): `handoff_requested`, `handoff_generated`, `handoff_path`, `handoff_reason`, `diff_status_that_triggered_handoff`; step `operator_handoff` when `--handoff` passed.
 
+Summary additions (Phase 34): `proof_bundle_diff_alert` compact (latest timeline entry + count), `proof_bundle_diff_alert_history` (last 5 entries). Validation alert adds `proof_bundle_diff_alert_history_count`, `latest_proof_bundle_diff_alert_at`, `latest_proof_bundle_diff_alert_status`.
+
+`GET /api/validation/proof-bundle-diff-alert-history` — bounded diff alert timeline (`?limit=25` max). `verified_mrms: false`, `local_history_only: true`. Read-only; recording happens during diff evaluation.
+
 Scheduled validation report additions (Phase 32): `bundle_requested`, `diff_bundle_requested`, `mrms_proof_bundle`, `mrms_proof_bundle_diff`; steps `proof_report`, `proof_regression`, `proof_bundle_export`, `proof_bundle_diff`.
 
 `GET /api/validation/proof-bundle-diff` — latest proof bundle diff report (`?refresh=true` rebuilds). `verified_mrms: false`, `local_diff_only: true`.

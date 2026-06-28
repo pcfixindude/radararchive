@@ -434,6 +434,13 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Unchanged/improved/no_baseline diff skips handoff with recorded reason (not failure)
 - Does **not** verify MRMS, enable production rendering, or mutate catalog gates
 
+### Proof bundle diff alert history (Phase 34)
+- `proof_bundle_diff_alert_history.py` — bounded timeline (25 entries) on each diff evaluation
+- Recorded from `mrms-proof-bundle-diff`, scheduled proof bundle, and API diff refresh
+- Summary `proof_bundle_diff_alert` + `proof_bundle_diff_alert_history`; alert timeline count fields
+- `GET /api/validation/proof-bundle-diff-alert-history`; `make proof-bundle-diff-alert-history`
+- Duplicate exact diff results skipped; does **not** verify MRMS or clear alerts silently
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

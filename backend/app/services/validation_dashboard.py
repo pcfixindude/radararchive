@@ -14,6 +14,10 @@ from backend.app.services.mrms_operator_handoff import (
     load_latest_operator_handoff,
 )
 from backend.app.services.operator_guidance import compact_operator_guidance
+from backend.app.services.proof_bundle_diff_alert_history import (
+    compact_latest_proof_bundle_diff_alert,
+    load_recent_proof_bundle_diff_alert_history,
+)
 from backend.app.services.mrms_proof_bundle import (
     compact_proof_bundle_status,
     load_latest_proof_bundle_manifest,
@@ -104,6 +108,10 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "mrms_proof_bundle_diff": compact_proof_bundle_diff_status(storage),
         "operator_handoff": compact_operator_handoff_status(storage, scheduled=scheduled),
         "operator_guidance": compact_operator_guidance(alert),
+        "proof_bundle_diff_alert": compact_latest_proof_bundle_diff_alert(storage),
+        "proof_bundle_diff_alert_history": load_recent_proof_bundle_diff_alert_history(
+            storage, limit=5
+        ),
         "runbook_references": RUNBOOK_LINK_METADATA,
         "catalog": catalog,
     }
@@ -126,6 +134,9 @@ def build_validation_latest(storage: LocalStorage) -> dict[str, Any]:
         "mrms_proof_bundle": load_latest_proof_bundle_manifest(storage),
         "mrms_proof_bundle_diff": load_latest_proof_bundle_diff(storage),
         "operator_handoff": load_latest_operator_handoff(storage),
+        "proof_bundle_diff_alert_history": load_recent_proof_bundle_diff_alert_history(
+            storage, limit=25
+        ),
     }
 
 

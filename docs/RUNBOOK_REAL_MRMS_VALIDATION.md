@@ -233,6 +233,33 @@ make scheduled-validation ARGS="--proof --bundle --diff-bundle --handoff"
 
 When diff status is **worsened** or **mixed** and `--handoff` is set, the operator handoff checklist is regenerated with diff context and runbook references. Unchanged/improved/no_baseline skips handoff with a recorded reason (not a failure).
 
+## Proof bundle diff alert history (Phase 34)
+
+Bounded timeline of proof bundle diff alert states — **does not verify MRMS**.
+
+```bash
+make proof-bundle-diff-alert-history
+make proof-bundle-diff-alert-history ARGS="--json"
+make proof-bundle-diff-alert-history ARGS="--limit 5"
+curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-alert-history
+```
+
+History is recorded automatically when:
+- `make mrms-proof-bundle-diff` runs
+- `make scheduled-proof-bundle` or `make scheduled-proof-bundle-handoff` runs diff step
+
+Persisted to `data/dev/proof_bundle_diff_alert_history.json` (last 25 entries, gitignored).
+
+**Interpreting status over time (local monitoring only):**
+- `worsened` — evidence degraded vs baseline bundle; operator attention likely needed
+- `mixed` — some signals improved, some worsened; triage each change
+- `improved` — evidence moved positively; does **not** auto-clear unrelated alerts
+- `unchanged` — key metrics match; monitor for drift on next export
+- `no_baseline` — fewer than two bundles; export twice before trend analysis
+- `unknown` — insufficient evidence files
+
+Timeline history does **not** verify MRMS, enable production rendering, or mutate catalog gates.
+
 ## Proof bundle diff worsened
 
 <a id="proof-bundle-diff-worsened"></a>
