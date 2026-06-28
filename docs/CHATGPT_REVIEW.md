@@ -11,7 +11,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 62
 - Latest phase: Phase 62 — Gated real MRMS rendering candidate preflight
-- Latest commit: `d31ac92`
+- Latest commit: `72f1300`
 - Latest tag: `phase-62-render-candidate-preflight`
 - Push status: pushed to origin main with tag
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
