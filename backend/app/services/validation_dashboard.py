@@ -7,12 +7,14 @@ from typing import Any, Optional
 from sqlalchemy.orm import Session
 
 from backend.app.config import settings
+from backend.app.services.catalog_status import build_catalog_status
 from backend.app.services.grib2_inspector import detect_decoder_availability
 from backend.app.services.render_queue import get_queue_summary
 from backend.app.services.storage import LocalStorage
 from backend.app.services.validation_report_store import (
     load_latest_benchmark_report,
     load_latest_validation_report,
+    load_validation_history,
 )
 
 
@@ -22,6 +24,8 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
     queue = get_queue_summary(session)
     validation = load_latest_validation_report(storage)
     benchmark = load_latest_benchmark_report(storage)
+    history = load_validation_history(storage)
+    catalog = build_catalog_status(session)
 
     return {
         "prototype": True,
@@ -37,6 +41,8 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "benchmark_available": benchmark is not None,
         "benchmark": _compact_benchmark(benchmark),
         "render_queue": queue.to_dict(),
+        "validation_history_count": len(history),
+        "catalog": catalog,
     }
 
 
@@ -58,12 +64,20 @@ def _compact_validation(validation: Optional[dict[str, Any]]) -> Optional[dict[s
     return {
         "validated_at": validation.get("validated_at"),
         "source_mode": validation.get("source_mode"),
+        "batch": validation.get("batch", False),
+        "requested_frame_count": validation.get("requested_frame_count"),
+        "effective_frame_count": validation.get("effective_frame_count"),
         "discovered_count": validation.get("discovered_count", 0),
         "downloaded_count": validation.get("downloaded_count", 0),
         "inspected_count": validation.get("inspected_count", 0),
         "decoded_count": validation.get("decoded_count", 0),
         "render_jobs_enqueued": validation.get("render_jobs_enqueued", 0),
         "worker_jobs_processed": validation.get("worker_jobs_processed", 0),
+        "tiles_planned": validation.get("tiles_planned", 0),
+        "tiles_written": validation.get("tiles_written", tile_cache.get("tiles_written", 0)),
+        "tiles_skipped": validation.get("tiles_skipped", tile_cache.get("tiles_skipped", 0)),
+        "output_bytes": validation.get("output_bytes", tile_cache.get("output_bytes", 0)),
+        "elapsed_seconds": validation.get("elapsed_seconds"),
         "decoder_available": validation.get("decoder_available", False),
         "tile_cache": tile_cache,
         "warnings": validation.get("warnings", [])[:5],

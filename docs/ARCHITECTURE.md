@@ -287,6 +287,20 @@ Frontend: `ValidationStatusPanel` in controls sidebar (mobile-friendly).
 
 All responses include `verified_mrms: false` and `prototype: true`.
 
+### Batch validation + catalog growth (Phase 21)
+Batch orchestrator processes up to N frames (default 3, max 10):
+
+1. Discover/register/download N candidates
+2. Per-frame inspect/decode with `frame_summaries`
+3. Aggregate tile metrics + elapsed seconds
+4. Persist to `validation_latest.json` + append bounded history (last 10)
+
+CLI: `make validate-real-mrms-batch`, `make catalog-status`
+
+Dev API additions:
+- `GET /api/validation/history` — last 10 compact validation runs
+- `GET /api/catalog/status` — MRMS catalog counts by status + latest timestamps
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

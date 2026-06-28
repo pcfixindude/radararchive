@@ -229,6 +229,22 @@ Report: `stage_timings`, `tile_build_elapsed_seconds`, `tiles_planned`/`tiles_wr
 
 Persisted to `data/dev/benchmark_latest.json`. Dev API: `GET /api/validation/summary`.
 
+## Batch validation (Phase 21)
+
+Multi-frame validation with safe defaults (count 3, max 10):
+
+```bash
+make validate-real-mrms-batch
+make validate-real-mrms-batch ARGS="--count 5 --json-report"
+make validate-real-mrms ARGS="--count 3"
+MRMS_SOURCE_MODE=real make validate-real-mrms-batch ARGS="--real --count 3"
+make catalog-status
+```
+
+Batch report includes per-frame summaries, aggregate tile metrics, `elapsed_seconds`, `verified_mrms: false`.
+
+History: last 10 runs in `data/dev/validation_history.json`. API: `GET /api/validation/history`.
+
 ## Inspection CLI
 
 ```bash
@@ -264,6 +280,8 @@ When no decoder is installed, the script still reports gzip size and GRIB magic 
 - `scripts/enqueue_render_job.py`, `scripts/run_render_worker.py`, `scripts/render_queue_status.py`
 - `scripts/validate_real_mrms.py` — MRMS validation orchestrator (Phase 19)
 - `scripts/benchmark_real_mrms.py` — MRMS benchmark timing (Phase 20)
+- `scripts/batch_validate_mrms.py` — batch validation (Phase 21)
+- `scripts/catalog_status.py` — catalog status CLI (Phase 21)
 
 ## Non-goals (Phases 11–12)
 

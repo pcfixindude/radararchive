@@ -915,3 +915,39 @@ curl http://127.0.0.1:8000/api/validation/summary
 - Benchmark tile build runs directly (not only via queue worker)
 - `verified_mrms` always false — not verified production radar
 - Production serving gates unchanged; placeholder default unchanged
+
+## Phase 21 - Multi-Frame Catalog Growth + Batch Validation
+
+Batch MRMS validation (default 3 frames, max 10), catalog status helpers, bounded validation history, and dashboard refresh.
+
+### Backend
+- `mrms_batch_validation.py` — `run_mrms_batch_validation`, per-frame summaries, safe count cap
+- `catalog_status.py` — MRMS catalog counts by download/process/render status
+- `validation_report_store.py` — bounded history (last 10) in `data/dev/validation_history.json`
+- Dev API: `GET /api/validation/history`, `GET /api/catalog/status`
+- Extended `GET /api/validation/summary` with catalog + history count
+
+### Scripts / Makefile
+- `scripts/batch_validate_mrms.py` — `make validate-real-mrms-batch` (default count 3)
+- `scripts/catalog_status.py` — `make catalog-status`
+- `scripts/validate_real_mrms.py` — `--count N` routes to batch when N > 1
+
+### Frontend
+- Validation panel: catalog counts, batch frame count, history count, Refresh button
+
+### Run commands
+
+```bash
+make test
+make validate-real-mrms-batch
+make catalog-status
+make render-queue-status
+cd frontend && npm run build
+```
+
+### Known limitations
+- Batch default/max caps prevent large downloads (max 10 frames)
+- Stub mode cannot decode real GRIB2 without real downloads
+- History stores compact summaries only (last 10)
+- `verified_mrms` always false
+- Production serving gates unchanged; placeholder default unchanged

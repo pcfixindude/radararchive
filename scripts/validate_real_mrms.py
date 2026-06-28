@@ -8,11 +8,27 @@ import sys
 
 from backend.app.config import MRMS_SOURCE_MODE_REAL, settings
 from backend.app.database import get_session_factory, init_db
+from backend.app.services.mrms_batch_validation import MAX_BATCH_FRAME_COUNT, run_mrms_batch_validation
 from backend.app.services.mrms_validation import resolve_validation_source_mode, run_mrms_validation
 from backend.app.services.storage import LocalStorage
 
 
 def _print_report(report) -> None:
+    if getattr(report, "batch", False):
+        print("MRMS batch validation report (experimental prototype — NOT verified MRMS):")
+        print(f"  source_mode: {report.source_mode}")
+        print(f"  effective_frame_count: {report.effective_frame_count}")
+        print(f"  discovered_count: {report.discovered_count}")
+        print(f"  downloaded_count: {report.downloaded_count}")
+        print(f"  decoded_count: {report.decoded_count}")
+        print(f"  elapsed_seconds: {report.elapsed_seconds:.4f}")
+        print(f"  verified_mrms: {report.verified_mrms}")
+        for warning in report.warnings:
+            print(f"  warning: {warning}")
+        for error in report.errors:
+            print(f"  error: {error}")
+        return
+
     print("MRMS validation report (experimental prototype — NOT verified MRMS):")
     print(f"  source_mode: {report.source_mode}")
     print(f"  discovered_count: {report.discovered_count}")
@@ -52,6 +68,12 @@ def main() -> None:
     )
     parser.add_argument("--limit", type=int, default=1, help="Max frames (default 1)")
     parser.add_argument(
+        "--count",
+        type=int,
+        default=None,
+        help=f"Alias for --limit; values >1 use batch validation (max {MAX_BATCH_FRAME_COUNT})",
+    )
+    parser.add_argument(
         "--product",
         default="MRMS_ReflectivityAtLowestAltitude",
         help="MRMS product name",
@@ -63,6 +85,7 @@ def main() -> None:
     )
     parser.add_argument("--json-report", action="store_true", help="Print JSON report to stdout")
     args = parser.parse_args()
+    frame_count = args.count if args.count is not None else args.limit
 
     source_mode = resolve_validation_source_mode(real_requested=args.real)
     if source_mode == MRMS_SOURCE_MODE_REAL:
@@ -82,14 +105,24 @@ def main() -> None:
     session = get_session_factory()()
     storage = LocalStorage(settings.local_storage_root)
     try:
-        report = run_mrms_validation(
-            session,
-            storage,
-            product=args.product,
-            limit=args.limit,
-            source_mode=source_mode,
-            run_worker=args.run_worker,
-        )
+        if frame_count > 1:
+            report = run_mrms_batch_validation(
+                session,
+                storage,
+                frame_count=frame_count,
+                product=args.product,
+                source_mode=source_mode,
+                run_worker=args.run_worker,
+            )
+        else:
+            report = run_mrms_validation(
+                session,
+                storage,
+                product=args.product,
+                limit=1,
+                source_mode=source_mode,
+                run_worker=args.run_worker,
+            )
     finally:
         session.close()
 

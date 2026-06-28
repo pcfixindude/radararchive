@@ -75,7 +75,8 @@ def _decode_ok(storage, raw_path):
     )
 
 
-def test_validation_summary_endpoint_empty(client, storage):
+def test_validation_summary_endpoint_empty(client, storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
     response = client.get("/api/validation/summary")
     assert response.status_code == 200
     body = response.json()
@@ -86,9 +87,11 @@ def test_validation_summary_endpoint_empty(client, storage):
     assert body["validation_available"] is False
     assert body["benchmark_available"] is False
     assert "render_queue" in body
+    assert "catalog" in body
 
 
-def test_validation_latest_endpoint_empty(client):
+def test_validation_latest_endpoint_empty(client, storage, monkeypatch):
+    monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
     response = client.get("/api/validation/latest")
     assert response.status_code == 200
     body = response.json()

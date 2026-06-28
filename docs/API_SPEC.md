@@ -191,6 +191,10 @@ No delete/reset endpoints. Process jobs with `make render-worker-once` (one job)
 
 Reports are written by CLI commands to `data/dev/`. Not verified MRMS production output.
 
+`GET /api/validation/history` — last 10 compact validation runs (dev/prototype).
+
+`GET /api/catalog/status` — MRMS catalog frame counts by download/process/render status, latest timestamps.
+
 ## MRMS source discovery (Phase 8 — dev/metadata)
 
 GET /api/sources/mrms/latest?product=MRMS_ReflectivityAtLowestAltitude&limit=5

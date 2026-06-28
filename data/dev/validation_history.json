@@ -1,0 +1,28 @@
+[
+  {
+    "batch": true,
+    "decoded_count": 0,
+    "discovered_count": 3,
+    "downloaded_count": 0,
+    "effective_frame_count": 3,
+    "elapsed_seconds": 0.013,
+    "prototype": true,
+    "requested_frame_count": 3,
+    "source_mode": "stub",
+    "validated_at": "2026-06-28T06:09:15Z",
+    "verified_mrms": false
+  },
+  {
+    "batch": false,
+    "decoded_count": 0,
+    "discovered_count": 1,
+    "downloaded_count": 0,
+    "effective_frame_count": null,
+    "elapsed_seconds": null,
+    "prototype": true,
+    "requested_frame_count": 1,
+    "source_mode": "stub",
+    "validated_at": "2026-06-28T06:09:14Z",
+    "verified_mrms": false
+  }
+]

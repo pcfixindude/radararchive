@@ -156,12 +156,20 @@ export type ValidationTileCacheSummary = {
 export type ValidationCompact = {
   validated_at?: string | null;
   source_mode?: string | null;
+  batch?: boolean;
+  requested_frame_count?: number | null;
+  effective_frame_count?: number | null;
   discovered_count: number;
   downloaded_count: number;
   inspected_count: number;
   decoded_count: number;
   render_jobs_enqueued: number;
   worker_jobs_processed: number;
+  tiles_planned?: number;
+  tiles_written?: number;
+  tiles_skipped?: number;
+  output_bytes?: number;
+  elapsed_seconds?: number | null;
   decoder_available: boolean;
   tile_cache: ValidationTileCacheSummary;
   warnings: string[];
@@ -201,6 +209,22 @@ export type ValidationSummary = {
   benchmark_available: boolean;
   benchmark: BenchmarkCompact | null;
   render_queue: RenderQueueSummary;
+  validation_history_count: number;
+  catalog: CatalogStatus;
+};
+
+export type CatalogStatus = {
+  product_id: string;
+  total_frames: number;
+  mrms_discovered_frames: number;
+  download_status: Record<string, number>;
+  processed_status: Record<string, number>;
+  render_status: Record<string, number>;
+  latest_timestamp: string | null;
+  earliest_timestamp: string | null;
+  latest_downloaded_timestamp: string | null;
+  prototype: boolean;
+  verified_mrms: boolean;
 };
 
 export async function fetchRenderJobs(limit = 3): Promise<RenderJobInfo[]> {

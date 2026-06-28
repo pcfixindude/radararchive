@@ -40,6 +40,17 @@ export default function App() {
   const [tileModeLabel, setTileModeLabel] = useState('Placeholder');
   const [renderJobHint, setRenderJobHint] = useState('');
   const [validationSummary, setValidationSummary] = useState<ValidationSummary | null>(null);
+  const [validationRefreshing, setValidationRefreshing] = useState(false);
+
+  const refreshValidationSummary = async () => {
+    setValidationRefreshing(true);
+    try {
+      const summary = await fetchValidationSummary();
+      setValidationSummary(summary);
+    } finally {
+      setValidationRefreshing(false);
+    }
+  };
 
   function resolveTileModeLabel(config: Awaited<ReturnType<typeof fetchTilesConfig>>): string {
     if (!config) {
@@ -268,7 +279,11 @@ export default function App() {
             <p className="warn-banner">Selected timestamp is not processed yet. Choose a processed frame or run process-once.</p>
           ) : null}
           <PlanSelector plan={selectedPlan} accessInfo={accessInfo} onChange={setSelectedPlan} />
-          <ValidationStatusPanel summary={validationSummary} />
+          <ValidationStatusPanel
+            summary={validationSummary}
+            onRefresh={refreshValidationSummary}
+            refreshing={validationRefreshing}
+          />
           <LayerPanel layers={layers} selectedLayer={selectedLayer} onSelect={setSelectedLayer} />
           <TimestampDisplay
             timestamp={selectedTime}
