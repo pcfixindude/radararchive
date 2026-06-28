@@ -28,5 +28,7 @@ data/dev/proof_bundle_diff_alert_history.json
 data/dev/proof_bundle_diff_acknowledgments.json
 data/dev/proof_bundle_diff_escalation_history.json
 data/dev/proof_bundle_diff_escalation_stdout_latest.json
+data/dev/proof_bundle_diff_escalation_digest_latest.md
+data/dev/proof_bundle_diff_escalation_digest_latest.json
 data/dev/mrms_operator_handoff_latest.md
 data/dev/mrms_operator_handoff_latest.json

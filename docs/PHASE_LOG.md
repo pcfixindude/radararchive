@@ -1483,3 +1483,34 @@ cd frontend && npm run build
 - Stdout notices are local terminal only — no email/Slack/webhooks
 - History does not clear alerts or verify MRMS
 - `verified_mrms` always false
+
+## Phase 38 - Escalation Metrics + Local Digest Export
+
+Trend metrics rollup and optional local Markdown digest for operator review.
+
+### Backend
+- `proof_bundle_diff_escalation_metrics.py` — counts, streaks, stale ack rollup
+- `proof_bundle_diff_escalation_digest.py` — Markdown + JSON metadata export
+- `GET /api/validation/proof-bundle-diff-escalation-metrics`
+- `GET /api/validation/proof-bundle-diff-escalation-digest`
+- Summary metrics + digest compacts
+
+### Scripts / Makefile
+- `make proof-bundle-diff-escalation-metrics`, `make proof-bundle-diff-escalation-digest`
+
+### Frontend
+- Dev Validation escalation metrics + digest section
+
+### Run commands
+
+```bash
+make test
+make proof-bundle-diff-escalation-metrics
+make proof-bundle-diff-escalation-digest
+cd frontend && npm run build
+```
+
+### Known limitations
+- Digest is local file export only — not a notification system
+- Metrics derived from bounded history (max 25 snapshots)
+- `verified_mrms` always false

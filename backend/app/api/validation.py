@@ -16,6 +16,8 @@ from backend.app.schemas.validation import (
     ProofBundleDiffAlertTrendResponse,
     ProofBundleDiffEscalationResponse,
     ProofBundleDiffEscalationHistoryResponse,
+    ProofBundleDiffEscalationMetricsResponse,
+    ProofBundleDiffEscalationDigestResponse,
     OperatorHandoffResponse,
     MrmsProofRegressionHistoryResponse,
     MrmsProofRegressionResponse,
@@ -55,6 +57,12 @@ from backend.app.services.proof_bundle_diff_escalation import (
 )
 from backend.app.services.proof_bundle_diff_escalation_history import (
     build_proof_bundle_diff_escalation_history_payload,
+)
+from backend.app.services.proof_bundle_diff_escalation_metrics import (
+    build_proof_bundle_diff_escalation_metrics_payload,
+)
+from backend.app.services.proof_bundle_diff_escalation_digest import (
+    build_proof_bundle_diff_escalation_digest_payload,
 )
 from backend.app.services.mrms_proof_history import (
     build_proof_history_payload,
@@ -353,6 +361,28 @@ def validation_proof_bundle_diff_escalation_history(
     bounded = max(1, min(limit, 25))
     payload = build_proof_bundle_diff_escalation_history_payload(storage, limit=bounded)
     return ProofBundleDiffEscalationHistoryResponse(**payload)
+
+
+@router.get(
+    "/proof-bundle-diff-escalation-metrics",
+    response_model=ProofBundleDiffEscalationMetricsResponse,
+)
+def validation_proof_bundle_diff_escalation_metrics() -> ProofBundleDiffEscalationMetricsResponse:
+    """Proof bundle diff escalation history metrics (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_proof_bundle_diff_escalation_metrics_payload(storage)
+    return ProofBundleDiffEscalationMetricsResponse(**payload)
+
+
+@router.get(
+    "/proof-bundle-diff-escalation-digest",
+    response_model=ProofBundleDiffEscalationDigestResponse,
+)
+def validation_proof_bundle_diff_escalation_digest() -> ProofBundleDiffEscalationDigestResponse:
+    """Latest local escalation digest metadata/Markdown (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_proof_bundle_diff_escalation_digest_payload(storage)
+    return ProofBundleDiffEscalationDigestResponse(**payload)
 
 
 @router.get(

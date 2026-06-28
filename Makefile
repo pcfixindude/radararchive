@@ -1,4 +1,4 @@
-.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once discover-mrms download-mrms inspect-grib2 decode-grib2 build-tile-cache build-production-tiles render-status render-queue-status enqueue-render-job render-worker-once render-worker validate-real-mrms validate-real-mrms-batch benchmark-real-mrms benchmark-render-queue scheduled-validation scheduled-proof-bundle scheduled-proof-bundle-handoff scheduled-proof-bundle-notify validation-failures validation-alerts mrms-proof-report mrms-proof-regression mrms-signoff mrms-proof-history mrms-proof-bundle mrms-proof-bundle-diff mrms-operator-handoff proof-bundle-diff-alert-history proof-bundle-diff-alert-trend proof-bundle-diff-escalation proof-bundle-diff-escalation-history proof-bundle-diff-acknowledge real-mrms-smoke-test catalog-status
+.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once discover-mrms download-mrms inspect-grib2 decode-grib2 build-tile-cache build-production-tiles render-status render-queue-status enqueue-render-job render-worker-once render-worker validate-real-mrms validate-real-mrms-batch benchmark-real-mrms benchmark-render-queue scheduled-validation scheduled-proof-bundle scheduled-proof-bundle-handoff scheduled-proof-bundle-notify validation-failures validation-alerts mrms-proof-report mrms-proof-regression mrms-signoff mrms-proof-history mrms-proof-bundle mrms-proof-bundle-diff mrms-operator-handoff proof-bundle-diff-alert-history proof-bundle-diff-alert-trend proof-bundle-diff-escalation proof-bundle-diff-escalation-history proof-bundle-diff-escalation-metrics proof-bundle-diff-escalation-digest proof-bundle-diff-acknowledge real-mrms-smoke-test catalog-status
 
 ARGS ?=
 
@@ -127,6 +127,12 @@ proof-bundle-diff-escalation:
 
 proof-bundle-diff-escalation-history:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/proof_bundle_diff_escalation_history.py $(ARGS)
+
+proof-bundle-diff-escalation-metrics:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/proof_bundle_diff_escalation_metrics.py $(ARGS)
+
+proof-bundle-diff-escalation-digest:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/proof_bundle_diff_escalation_digest.py $(ARGS)
 
 proof-bundle-diff-acknowledge:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/proof_bundle_diff_acknowledgment.py $(ARGS)

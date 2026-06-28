@@ -127,6 +127,8 @@ make proof-bundle-diff-alert-history
 make proof-bundle-diff-alert-trend
 make proof-bundle-diff-escalation
 make proof-bundle-diff-escalation-history
+make proof-bundle-diff-escalation-metrics
+make proof-bundle-diff-escalation-digest
 make proof-bundle-diff-acknowledge ARGS="--operator OP --note 'local review only'"
 make validation-failures
 make validation-alerts
@@ -156,6 +158,8 @@ curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-alert-history
 curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-alert-trend
 curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation
 curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-history
+curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-metrics
+curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-digest
 curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-acknowledgments
 curl http://127.0.0.1:8000/api/validation/operator-handoff
 curl http://127.0.0.1:8000/api/validation/signoffs
@@ -203,6 +207,8 @@ Limitations:
 - `make proof-bundle-diff-alert-trend` summarizes worsening/improving/mixed/stable trend over recent history
 - `make proof-bundle-diff-escalation` shows escalation level and runbook guidance for worsening/stale-ack trends (local only)
 - `make proof-bundle-diff-escalation-history` shows bounded escalation snapshots over time
+- `make proof-bundle-diff-escalation-metrics` summarizes urgent/attention/watch counts and streaks
+- `make proof-bundle-diff-escalation-digest` exports local Markdown digest (not a notification system)
 - `make scheduled-proof-bundle-notify` runs proof bundle pipeline with optional local stdout urgent notice
 - `make proof-bundle-diff-acknowledge` records local acknowledgment (does not clear alerts or verify MRMS)
 - `make validation-failures` shows recent local failure log entries

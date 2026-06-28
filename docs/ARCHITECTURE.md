@@ -462,6 +462,13 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Summary `proof_bundle_diff_escalation_history`; alert history count + stdout notice status
 - Gitignored: `proof_bundle_diff_escalation_history.json`, `proof_bundle_diff_escalation_stdout_latest.json`
 
+### Diff alert escalation metrics + digest (Phase 38)
+- `proof_bundle_diff_escalation_metrics.py` — rollup counts/streaks from bounded history
+- `proof_bundle_diff_escalation_digest.py` — local Markdown + JSON metadata export
+- `GET /api/validation/proof-bundle-diff-escalation-metrics`, `GET .../proof-bundle-diff-escalation-digest`
+- Summary `proof_bundle_diff_escalation_metrics`, `proof_bundle_diff_escalation_digest`
+- Gitignored: `proof_bundle_diff_escalation_digest_latest.md/json`
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

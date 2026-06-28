@@ -262,6 +262,12 @@ Summary additions (Phase 37): `proof_bundle_diff_escalation_history` compact (`c
 
 Scheduled validation: optional `--notify-stdout` / `--urgent-stdout` prints local urgent notice when escalation is urgent; `make scheduled-proof-bundle-notify` runs proof bundle + handoff + notify.
 
+`GET /api/validation/proof-bundle-diff-escalation-metrics` — rollup counts/streaks from bounded history (`verified_mrms: false`, `local_metrics_only: true`).
+
+`GET /api/validation/proof-bundle-diff-escalation-digest` — latest local digest metadata/Markdown (`local_digest_only: true`).
+
+Summary additions (Phase 38): `proof_bundle_diff_escalation_metrics`, `proof_bundle_diff_escalation_digest` compacts.
+
 Scheduled validation report additions (Phase 32): `bundle_requested`, `diff_bundle_requested`, `mrms_proof_bundle`, `mrms_proof_bundle_diff`; steps `proof_report`, `proof_regression`, `proof_bundle_export`, `proof_bundle_diff`.
 
 `GET /api/validation/proof-bundle-diff` — latest proof bundle diff report (`?refresh=true` rebuilds). `verified_mrms: false`, `local_diff_only: true`.

@@ -48,6 +48,7 @@ export default function ValidationStatusPanel({
   const [showDiffAlertTrend, setShowDiffAlertTrend] = useState(false);
   const [showDiffEscalation, setShowDiffEscalation] = useState(false);
   const [showDiffEscalationHistory, setShowDiffEscalationHistory] = useState(false);
+  const [showDiffEscalationMetrics, setShowDiffEscalationMetrics] = useState(false);
   const [ackOperator, setAckOperator] = useState('');
   const [ackNote, setAckNote] = useState('');
   const [ackSubmitting, setAckSubmitting] = useState(false);
@@ -186,6 +187,8 @@ export default function ValidationStatusPanel({
   const diffAck = summary.proof_bundle_diff_acknowledgment ?? null;
   const diffEscalation = summary.proof_bundle_diff_escalation ?? null;
   const diffEscalationHistory = summary.proof_bundle_diff_escalation_history ?? null;
+  const diffEscalationMetrics = summary.proof_bundle_diff_escalation_metrics ?? null;
+  const diffEscalationDigest = summary.proof_bundle_diff_escalation_digest ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
   const queue = summary.render_queue;
@@ -605,6 +608,58 @@ export default function ValidationStatusPanel({
           </ul>
         ) : showDiffEscalationHistory ? (
           <p className="validation-meta">No recent escalation snapshots in summary.</p>
+        ) : null}
+      </section>
+      <section className="validation-diff-escalation-metrics">
+        <div className="validation-header-actions">
+          <p className="validation-meta">
+            Escalation metrics (local digest only — does not verify MRMS; does not enable production
+            rendering; does not clear alerts; no external notifications)
+          </p>
+          <button
+            type="button"
+            className="validation-refresh"
+            onClick={() => setShowDiffEscalationMetrics((value) => !value)}
+          >
+            {showDiffEscalationMetrics ? 'Hide metrics' : 'Show metrics'}
+          </button>
+        </div>
+        {diffEscalationMetrics?.available || (diffEscalationMetrics?.total_snapshots ?? 0) > 0 ? (
+          <p className="validation-meta">
+            Snapshots {diffEscalationMetrics?.total_snapshots ?? 0} — urgent{' '}
+            {diffEscalationMetrics?.urgent_count ?? 0}, attention{' '}
+            {diffEscalationMetrics?.attention_count ?? 0}, watch {diffEscalationMetrics?.watch_count ?? 0}
+          </p>
+        ) : (
+          <p className="validation-meta">
+            No escalation metrics — run make proof-bundle-diff-escalation-metrics after history exists.
+          </p>
+        )}
+        {diffEscalationDigest?.available ? (
+          <p className="validation-meta">
+            Latest digest {formatTimestamp(diffEscalationDigest.generated_at)} —{' '}
+            {diffEscalationDigest.markdown_path ?? '—'} (local digest only)
+          </p>
+        ) : (
+          <p className="validation-meta">
+            No digest exported — run make proof-bundle-diff-escalation-digest.
+          </p>
+        )}
+        {showDiffEscalationMetrics && diffEscalationMetrics ? (
+          <>
+            <p className="validation-meta">
+              Current urgent streak {diffEscalationMetrics.current_urgent_streak} — current
+              attention/urgent streak {diffEscalationMetrics.current_attention_or_urgent_streak}
+            </p>
+            <p className="validation-meta">
+              Longest urgent streak {diffEscalationMetrics.longest_urgent_streak} — longest
+              attention/urgent streak {diffEscalationMetrics.longest_attention_or_urgent_streak}
+            </p>
+            <p className="validation-meta">
+              Stale acknowledgment snapshots {diffEscalationMetrics.stale_acknowledgment_count} —
+              verified_mrms: {yesNo(summary.verified_mrms)}
+            </p>
+          </>
         ) : null}
       </section>
       <section className="validation-diff-alert-trend">

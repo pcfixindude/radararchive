@@ -337,6 +337,65 @@ class ProofBundleDiffEscalationHistoryResponse(BaseModel):
     entries: list[ProofBundleDiffEscalationHistoryEntryCompact] = Field(default_factory=list)
 
 
+class ProofBundleDiffEscalationMetricsCompact(BaseModel):
+    available: bool = False
+    total_snapshots: int = 0
+    urgent_count: int = 0
+    attention_count: int = 0
+    watch_count: int = 0
+    none_count: int = 0
+    latest_level: str = "none"
+    latest_at: Optional[str] = None
+    first_urgent_at: Optional[str] = None
+    last_urgent_at: Optional[str] = None
+    longest_urgent_streak: int = 0
+    longest_attention_or_urgent_streak: int = 0
+    current_urgent_streak: int = 0
+    current_attention_or_urgent_streak: int = 0
+    acknowledgment_status: Optional[str] = None
+    stale_acknowledgment_count: int = 0
+    verified_mrms: bool = False
+    local_metrics_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class ProofBundleDiffEscalationMetricsResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_metrics_only: bool = True
+    does_not_clear_alerts: bool = True
+    metrics: ProofBundleDiffEscalationMetricsCompact
+
+
+class ProofBundleDiffEscalationDigestCompact(BaseModel):
+    available: bool = False
+    generated_at: Optional[str] = None
+    markdown_path: Optional[str] = None
+    json_path: Optional[str] = None
+    latest_escalation_level: Optional[str] = None
+    snapshot_count: int = 0
+    urgent_count: int = 0
+    attention_count: int = 0
+    verified_mrms: bool = False
+    local_digest_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    prototype: bool = True
+
+
+class ProofBundleDiffEscalationDigestResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_digest_only: bool = True
+    does_not_clear_alerts: bool = True
+    digest: Optional[dict[str, Any]] = None
+    markdown: Optional[str] = None
+    compact: ProofBundleDiffEscalationDigestCompact
+
+
 class ValidationAlertsResponse(BaseModel):
     prototype: bool = True
     verified_mrms: bool = False
@@ -797,6 +856,8 @@ class ValidationSummaryResponse(BaseModel):
     proof_bundle_diff_acknowledgment: Optional[ProofBundleDiffAcknowledgmentCompact] = None
     proof_bundle_diff_escalation: Optional[ProofBundleDiffEscalationCompact] = None
     proof_bundle_diff_escalation_history: Optional[ProofBundleDiffEscalationHistoryCompact] = None
+    proof_bundle_diff_escalation_metrics: Optional[ProofBundleDiffEscalationMetricsCompact] = None
+    proof_bundle_diff_escalation_digest: Optional[ProofBundleDiffEscalationDigestCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse

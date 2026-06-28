@@ -357,6 +357,8 @@ Sign-off via `make mrms-signoff` or dev-only `POST /api/validation/signoffs` is 
 
 `make proof-bundle-diff-escalation-history` prints bounded escalation snapshots. `make scheduled-proof-bundle-notify` runs scheduled proof bundle with optional local stdout urgent notice when escalation is urgent — no external notifications.
 
+`make proof-bundle-diff-escalation-metrics` prints rollup counts and streaks. `make proof-bundle-diff-escalation-digest` exports a local Markdown digest for operator review — not a notification system.
+
 ## Inspection CLI
 
 ```bash

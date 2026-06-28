@@ -1,29 +1,27 @@
 # Next Steps
 
-## Phase 38 - Escalation History Trend Charts + Operator Digest Export (Draft)
+## Phase 39 - Escalation Digest Scheduling + Operator Review Checklist (Draft)
 
-Goal: Summarize escalation history into simple trend metrics (urgent/attention counts over time) and optional local markdown digest export — still without `verified_mrms=true` or external notifications.
+Goal: Optional scheduled digest regeneration after proof bundle runs and a lightweight operator review checklist tied to digest metrics — still without `verified_mrms=true` or external notifications.
 
 Suggested work:
-1. Escalation history digest script (`--markdown` export to gitignored path)
-2. Summary API: escalation level counts over recent window
-3. Dev panel: compact urgent/attention count chips
-4. Optional weekly operator digest Makefile target (stdout/file only)
+1. `--digest` flag on scheduled proof bundle (local file only)
+2. Digest diff between exports (gitignored metadata)
+3. Dev panel: digest regeneration hint when metrics show urgent streak
+4. Optional bounded digest history (last 5 exports)
 
 Do not start yet:
 - Stripe, real auth, HRRR, WPC, native Android
 - Redis/Celery, cloud deployment, email/Slack/webhooks
 - Setting `verified_mrms=true` or production promotion
 
-## Phase 37 verification commands
+## Phase 38 verification commands
 
 ```bash
 make test
-make proof-bundle-diff-escalation
+make proof-bundle-diff-escalation-metrics
+make proof-bundle-diff-escalation-digest
 make proof-bundle-diff-escalation-history
-make proof-bundle-diff-acknowledge ARGS="--operator TEST --note 'local test acknowledgment only'"
-make scheduled-proof-bundle
 make scheduled-proof-bundle-notify
-make validation-alerts
 cd frontend && npm run build
 ```

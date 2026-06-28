@@ -516,6 +516,47 @@ export type ProofBundleDiffEscalationHistoryCompact = {
   prototype: boolean;
 };
 
+export type ProofBundleDiffEscalationMetricsCompact = {
+  available: boolean;
+  total_snapshots: number;
+  urgent_count: number;
+  attention_count: number;
+  watch_count: number;
+  none_count: number;
+  latest_level: string;
+  latest_at?: string | null;
+  first_urgent_at?: string | null;
+  last_urgent_at?: string | null;
+  longest_urgent_streak: number;
+  longest_attention_or_urgent_streak: number;
+  current_urgent_streak: number;
+  current_attention_or_urgent_streak: number;
+  acknowledgment_status?: string | null;
+  stale_acknowledgment_count: number;
+  verified_mrms: boolean;
+  local_metrics_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  prototype: boolean;
+};
+
+export type ProofBundleDiffEscalationDigestCompact = {
+  available: boolean;
+  generated_at?: string | null;
+  markdown_path?: string | null;
+  json_path?: string | null;
+  latest_escalation_level?: string | null;
+  snapshot_count?: number;
+  urgent_count?: number;
+  attention_count?: number;
+  verified_mrms: boolean;
+  local_digest_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  no_external_notifications?: boolean;
+  prototype: boolean;
+};
+
 export type ProofBundleDiffAcknowledgmentCreateRequest = {
   operator_name?: string;
   operator_initials?: string;
@@ -775,6 +816,8 @@ export type ValidationSummary = {
   proof_bundle_diff_acknowledgment?: ProofBundleDiffAcknowledgmentCompact | null;
   proof_bundle_diff_escalation?: ProofBundleDiffEscalationCompact | null;
   proof_bundle_diff_escalation_history?: ProofBundleDiffEscalationHistoryCompact | null;
+  proof_bundle_diff_escalation_metrics?: ProofBundleDiffEscalationMetricsCompact | null;
+  proof_bundle_diff_escalation_digest?: ProofBundleDiffEscalationDigestCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;

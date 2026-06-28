@@ -320,6 +320,29 @@ curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-history
 
 **What urgent stdout notice means:** Operator should review escalation history and runbook guidance immediately in the local dev environment. The notice is a review aid only — it does **not** verify MRMS, clear alerts, or enable production rendering.
 
+## Proof bundle diff escalation metrics + digest (Phase 38)
+
+Trend metrics and optional local Markdown digest export — **local review only**, not a notification system.
+
+```bash
+make proof-bundle-diff-escalation-metrics
+make proof-bundle-diff-escalation-metrics ARGS="--json"
+make proof-bundle-diff-escalation-digest
+make proof-bundle-diff-escalation-digest ARGS="--json-report"
+curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-metrics
+curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation-digest
+```
+
+**Interpreting streaks:**
+- `current_urgent_streak` — consecutive urgent snapshots from latest history entry backward
+- `current_attention_or_urgent_streak` — consecutive attention or urgent snapshots from latest backward
+- `longest_*` — maximum consecutive run across full bounded history (oldest → newest)
+
+**Digest export:**
+- Writes `data/dev/proof_bundle_diff_escalation_digest_latest.md` + `.json` (gitignored)
+- Includes metrics, recent snapshots, acknowledgment, guidance, validation alert status
+- Does **not** verify MRMS, clear alerts, enable production rendering, or send external notifications
+
 ## Proof bundle diff alert escalation (Phase 36)
 
 Escalation hints combine trend summary, diff alert history, and acknowledgment state — **local operator guidance only**. Escalation does **not** verify MRMS, clear alerts, enable production rendering, or mutate catalog gates.
