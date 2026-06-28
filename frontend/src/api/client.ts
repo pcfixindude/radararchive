@@ -777,6 +777,30 @@ export type MrmsReviewSessionExportDiffTrendCompact = {
   prototype: boolean;
 };
 
+export type MrmsReviewSessionExportDiffTrendHintCompact = {
+  available?: boolean;
+  review_trend_regeneration_recommended: boolean;
+  reason?: string | null;
+  suggested_command?: string | null;
+  trend?: string;
+  latest_export_diff_status?: string | null;
+  current_mixed_or_worsened_streak?: number;
+  current_worsened_streak?: number;
+  latest_review_session_id?: string | null;
+  latest_export_session_id?: string | null;
+  export_is_stale?: boolean;
+  latest_session_at?: string | null;
+  latest_export_at?: string | null;
+  digest_regeneration_recommended?: boolean;
+  session_summary_available?: boolean;
+  verified_mrms: boolean;
+  local_hint_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  no_external_notifications?: boolean;
+  prototype: boolean;
+};
+
 export type ProofBundleDiffAcknowledgmentCreateRequest = {
   operator_name?: string;
   operator_initials?: string;
@@ -919,6 +943,7 @@ export type ScheduledReviewExportCompact = {
   review_export_metadata_path?: string | null;
   review_export_reason?: string | null;
   review_export_elapsed_seconds?: number | null;
+  review_export_trend_hint?: MrmsReviewSessionExportDiffTrendHintCompact | null;
   verified_mrms: boolean;
   local_export_only: boolean;
   does_not_clear_alerts: boolean;
@@ -1084,6 +1109,7 @@ export type ValidationSummary = {
   mrms_review_session_export?: MrmsReviewSessionExportCompact | null;
   mrms_review_session_export_diff?: MrmsReviewSessionExportDiffCompact | null;
   mrms_review_session_export_diff_trend?: MrmsReviewSessionExportDiffTrendCompact | null;
+  mrms_review_session_export_diff_trend_hint?: MrmsReviewSessionExportDiffTrendHintCompact | null;
   review_export_regeneration_hint?: ReviewExportRegenerationHintCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];

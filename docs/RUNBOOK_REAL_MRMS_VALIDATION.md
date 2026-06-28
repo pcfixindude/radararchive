@@ -547,6 +547,34 @@ curl "http://127.0.0.1:8000/api/validation/review-sessions/export/diff/trend?win
 
 **Warnings:** Trend is local-only — does not verify MRMS, clear alerts, notify externally, or enable production rendering.
 
+## Review session export diff trend hint (Phase 47)
+
+Suggest when export diff trends indicate a new review session or export — **local review only**.
+
+```bash
+make mrms-review-session-export-diff-trend-hint
+make mrms-review-session-export-diff-trend-hint ARGS="--json"
+curl http://127.0.0.1:8000/api/validation/review-sessions/export/diff/trend-hint
+```
+
+**Hint recommends regeneration when:**
+- Export diff trend is `worsening`
+- Trend is `mixed` with mixed/worsened streak ≥ 2
+- Latest export diff is `worsened` or `mixed`
+- Latest review session is newer than latest export (`export_is_stale`)
+- Digest regeneration hint is already recommended
+
+**Suggested commands:**
+- Stale export only → `make mrms-review-session-export`
+- Worsening/mixed trend or diff → `make mrms-review-session ... --export-after-create`
+- Digest-driven → `make scheduled-proof-bundle-review-export`
+
+**Scheduled validation:** When `--review-export` / `make scheduled-proof-bundle-review-export` runs, the report includes `review_export_trend_hint` after the review export step. Does **not** auto-create sessions or export beyond the explicit review-export flag.
+
+**Dev Validation UI:** Regeneration recommended yes/no, reason, suggested command, trend, diff status, streaks, stale export flag.
+
+**Warnings:** Hint is local-only — does not verify MRMS, clear alerts, notify externally, or enable production rendering.
+
 ## Scheduled review session export (Phase 44)
 
 Optional scheduled validation step exports the latest review session Markdown after digest/handoff — **local scheduled review only**.

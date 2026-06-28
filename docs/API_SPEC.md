@@ -306,6 +306,12 @@ Endpoints (Phase 46): `GET /api/validation/review-sessions/export/diff/trend` (r
 
 Export diff trend values: `no_data`, `stable`, `improving`, `worsening`, `mixed` — derived from bounded export diff history; does not verify MRMS or clear alerts.
 
+Summary additions (Phase 47): `mrms_review_session_export_diff_trend_hint` compact (`review_trend_regeneration_recommended`, `reason`, `suggested_command`, `trend`, `latest_export_diff_status`, streaks, `export_is_stale`).
+
+Endpoints (Phase 47): `GET /api/validation/review-sessions/export/diff/trend-hint` (read-only; register before `/export/diff/trend`; `verified_mrms: false`, `local_hint_only: true`).
+
+Scheduled validation report additions (Phase 47): when `review_export_requested`, `review_export_trend_hint` compact on report and in `scheduled_review_export` summary (does not auto-create sessions or export unless `--review-export` requested).
+
 Scheduled validation report additions (Phase 32): `bundle_requested`, `diff_bundle_requested`, `mrms_proof_bundle`, `mrms_proof_bundle_diff`; steps `proof_report`, `proof_regression`, `proof_bundle_export`, `proof_bundle_diff`.
 
 `GET /api/validation/proof-bundle-diff` — latest proof bundle diff report (`?refresh=true` rebuilds). `verified_mrms: false`, `local_diff_only: true`.

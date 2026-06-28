@@ -1770,3 +1770,34 @@ cd frontend && npm run build
 - Local/dev review tooling only — not verified MRMS
 - Does not clear alerts or mutate production/catalog/render gates
 - `verified_mrms` always false
+
+## Phase 47 - Review Export Diff Trend Hints
+
+Regeneration hints from export diff trends with optional scheduled validation tie-in.
+
+### Backend
+- `mrms_review_session_export_diff_trend_hint.py` — recommends new review/export from trend, diff, session staleness, digest hint
+- `GET /api/validation/review-sessions/export/diff/trend-hint`
+- Summary: `mrms_review_session_export_diff_trend_hint`
+- Scheduled report: `review_export_trend_hint` when `review_export_requested` (no auto session/export)
+
+### Scripts / Makefile
+- `make mrms-review-session-export-diff-trend-hint` (`--json`)
+
+### Frontend
+- Dev Validation: regeneration recommended, reason, suggested command, trend, streaks, stale export
+
+### Run commands
+
+```bash
+make test
+make mrms-review-session-export-diff-trend-hint
+make scheduled-proof-bundle-review-export
+cd frontend && npm run build
+```
+
+### Known limitations
+- Hint is read-only — does not auto-create sessions or export
+- Local/dev review tooling only — not verified MRMS
+- Does not clear alerts or mutate production/catalog/render gates
+- `verified_mrms` always false

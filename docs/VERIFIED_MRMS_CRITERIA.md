@@ -194,6 +194,10 @@ Review session export diff (`make mrms-review-session-export-diff`, `GET /api/va
 
 Review session export diff trend (`make mrms-review-session-export-diff-trend`, `GET /api/validation/review-sessions/export/diff/trend`) summarizes bounded export diff history into `improving`, `worsening`, `mixed`, `stable`, or `no_data`. It includes streaks, status counts, and suggested local next actions. This is **supporting local review evidence only** — it does **not** verify MRMS, clear alerts, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
 
+## Review session export diff trend hint (Phase 47)
+
+Review session export diff trend hint (`make mrms-review-session-export-diff-trend-hint`, `GET /api/validation/review-sessions/export/diff/trend-hint`) recommends when operators should create a new review session or re-export based on trend, diff, session/export staleness, and digest regeneration signals. Scheduled validation includes `review_export_trend_hint` when review export is requested — it does **not** auto-create sessions. This is **supporting local review evidence only** — it does **not** verify MRMS, clear alerts, notify externally, enable production rendering, or satisfy any verified-MRMS criterion.
+
 ## Scheduled proof bundle monitoring (Phase 32)
 
 `make scheduled-proof-bundle` runs scheduled validation with `--proof --bundle --diff-bundle`. This is **local evidence monitoring only** — it does not verify MRMS or enable production rendering. Alerts may flag `worsened` or `mixed` diff status for operator review.

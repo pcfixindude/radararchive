@@ -524,6 +524,12 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Summary: `mrms_review_session_export_diff_trend` compact
 - Read-only — does not mutate export diff recording, alerts, or production gates
 
+### Review session export diff trend hints (Phase 47)
+- `mrms_review_session_export_diff_trend_hint.py` — regeneration hint from trend, diff, export, session, digest signals
+- `GET /api/validation/review-sessions/export/diff/trend-hint`
+- Summary: `mrms_review_session_export_diff_trend_hint` compact
+- Scheduled validation: `review_export_trend_hint` when `review_export_requested` (no auto session/export)
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

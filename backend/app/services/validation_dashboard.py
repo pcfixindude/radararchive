@@ -76,6 +76,10 @@ from backend.app.services.mrms_review_session_export_diff import (
 from backend.app.services.mrms_review_session_export_diff_trends import (
     compact_review_session_export_diff_trend,
 )
+from backend.app.services.mrms_review_session_export_diff_trend_hint import (
+    build_review_session_export_diff_trend_hint,
+    compact_review_session_export_diff_trend_hint,
+)
 from backend.app.services.render_queue import get_queue_summary
 from backend.app.services.storage import LocalStorage
 from backend.app.services.validation_alerts import (
@@ -176,6 +180,9 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "mrms_review_session_export": compact_review_session_export_summary(storage),
         "mrms_review_session_export_diff": compact_review_session_export_diff_summary(storage),
         "mrms_review_session_export_diff_trend": compact_review_session_export_diff_trend(storage),
+        "mrms_review_session_export_diff_trend_hint": compact_review_session_export_diff_trend_hint(
+            storage
+        ),
         "review_export_regeneration_hint": build_review_export_regeneration_hint(storage),
         "runbook_references": RUNBOOK_LINK_METADATA,
         "catalog": catalog,

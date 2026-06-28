@@ -470,6 +470,7 @@ def compact_scheduled_review_export(
     """Compact review export step status from the latest scheduled validation report."""
     if scheduled is None:
         return None
+    trend_hint = scheduled.get("review_export_trend_hint")
     return {
         "review_export_requested": bool(scheduled.get("review_export_requested")),
         "review_export_generated": bool(scheduled.get("review_export_generated")),
@@ -477,6 +478,7 @@ def compact_scheduled_review_export(
         "review_export_metadata_path": scheduled.get("review_export_metadata_path"),
         "review_export_reason": scheduled.get("review_export_reason"),
         "review_export_elapsed_seconds": scheduled.get("review_export_elapsed_seconds"),
+        "review_export_trend_hint": trend_hint if isinstance(trend_hint, dict) else None,
         "verified_mrms": False,
         "local_export_only": True,
         "does_not_clear_alerts": True,

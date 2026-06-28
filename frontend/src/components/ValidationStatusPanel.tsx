@@ -248,6 +248,7 @@ export default function ValidationStatusPanel({
   const reviewSessionExport = summary.mrms_review_session_export ?? null;
   const reviewSessionExportDiff = summary.mrms_review_session_export_diff ?? null;
   const reviewSessionExportDiffTrend = summary.mrms_review_session_export_diff_trend ?? null;
+  const reviewSessionExportDiffTrendHint = summary.mrms_review_session_export_diff_trend_hint ?? null;
   const reviewExportRegenerationHint = summary.review_export_regeneration_hint ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
@@ -1051,6 +1052,39 @@ export default function ValidationStatusPanel({
         <p className="validation-meta">
           Export diff trend is local-only — does not verify MRMS, clear alerts, notify externally, or
           enable production rendering
+        </p>
+        {reviewSessionExportDiffTrendHint ? (
+          <>
+            <p
+              className={
+                reviewSessionExportDiffTrendHint.review_trend_regeneration_recommended
+                  ? 'validation-warn'
+                  : 'validation-meta'
+              }
+            >
+              Export diff trend regeneration recommended:{' '}
+              {reviewSessionExportDiffTrendHint.review_trend_regeneration_recommended ? 'yes' : 'no'}
+              {reviewSessionExportDiffTrendHint.reason
+                ? ` — ${reviewSessionExportDiffTrendHint.reason}`
+                : ''}
+            </p>
+            <p className="validation-meta">
+              Trend {reviewSessionExportDiffTrendHint.trend ?? 'no_data'} — latest export diff{' '}
+              {reviewSessionExportDiffTrendHint.latest_export_diff_status ?? '—'} — worsened streak{' '}
+              {reviewSessionExportDiffTrendHint.current_worsened_streak ?? 0} — mixed/worsened streak{' '}
+              {reviewSessionExportDiffTrendHint.current_mixed_or_worsened_streak ?? 0} — stale export{' '}
+              {reviewSessionExportDiffTrendHint.export_is_stale ? 'yes' : 'no'}
+            </p>
+            {reviewSessionExportDiffTrendHint.suggested_command ? (
+              <p className="validation-meta">
+                Suggested: {reviewSessionExportDiffTrendHint.suggested_command}
+              </p>
+            ) : null}
+          </>
+        ) : null}
+        <p className="validation-meta">
+          Export diff trend hint is local-only — does not verify MRMS, clear alerts, notify
+          externally, or enable production rendering
         </p>
         {showReviewSessionForm ? (
           <form className="validation-signoff-form" onSubmit={(event) => void handleReviewSessionSubmit(event)}>

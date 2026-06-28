@@ -119,6 +119,7 @@ class ScheduledValidationReport:
     review_export_metadata_path: Optional[str] = None
     review_export_reason: Optional[str] = None
     review_export_elapsed_seconds: Optional[float] = None
+    review_export_trend_hint: Optional[dict[str, Any]] = None
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     elapsed_seconds: float = 0.0
@@ -171,6 +172,7 @@ class ScheduledValidationReport:
             "review_export_metadata_path": self.review_export_metadata_path,
             "review_export_reason": self.review_export_reason,
             "review_export_elapsed_seconds": self.review_export_elapsed_seconds,
+            "review_export_trend_hint": self.review_export_trend_hint,
             "warnings": list(self.warnings),
             "errors": list(self.errors),
             "elapsed_seconds": round(self.elapsed_seconds, 4),
@@ -829,6 +831,11 @@ def run_scheduled_validation(
             command_context=command_context,
             step=review_export_step,
         )
+        from backend.app.services.mrms_review_session_export_diff_trend_hint import (
+            build_review_session_export_diff_trend_hint,
+        )
+
+        report.review_export_trend_hint = build_review_session_export_diff_trend_hint(storage)
 
     report.success = not report.errors and all(
         step.status in (STEP_SUCCEEDED, STEP_WARNING, STEP_SKIPPED) for step in report.steps
