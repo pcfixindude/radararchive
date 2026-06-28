@@ -11,7 +11,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 63
 - Latest phase: Phase 63 — Gated real MRMS rendering candidate dry-run plan
-- Latest commit: `12869db`
+- Latest commit: `0a7940e`
 - Latest tag: `phase-63-render-candidate-dry-run-plan`
 - Push status: pushed to origin main with tag
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
