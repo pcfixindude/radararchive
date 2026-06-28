@@ -96,6 +96,10 @@ def load_recent_validation_failures(
     return entries[-limit:][::-1]
 
 
+def load_all_validation_failures(storage: LocalStorage) -> list[dict[str, Any]]:
+    return _read_all_entries(storage)
+
+
 def count_validation_failures(storage: LocalStorage) -> int:
     return len(_read_all_entries(storage))
 

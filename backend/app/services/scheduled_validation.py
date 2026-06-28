@@ -27,6 +27,7 @@ from backend.app.services.render_queue_benchmark import (
 from backend.app.services.storage import LocalStorage
 from backend.app.services.validation_dashboard import build_validation_summary
 from backend.app.services.validation_failure_log import append_validation_failure
+from backend.app.services.validation_alerts import refresh_validation_alert
 from backend.app.services.validation_report_store import save_scheduled_validation_report
 
 DEFAULT_SCHEDULED_COUNT = DEFAULT_BATCH_FRAME_COUNT
@@ -404,7 +405,9 @@ def run_scheduled_validation(
         _log_report_failures(storage, report)
 
     if persist:
-        save_scheduled_validation_report(storage, report.to_dict())
+        report_dict = report.to_dict()
+        save_scheduled_validation_report(storage, report_dict)
+        refresh_validation_alert(storage, scheduled=report_dict)
     return report
 
 

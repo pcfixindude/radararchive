@@ -1060,3 +1060,40 @@ cd frontend && npm run build
 - Smoke test still requires network for real downloads
 - `verified_mrms` always false
 - Production serving gates unchanged; placeholder default unchanged
+
+## Phase 25 - Validation Alert Markers + Verified MRMS Proof Criteria
+
+Local alert marker service, grouped failure causes in dev dashboard/API, and documented proof criteria for a future verified MRMS phase.
+
+### Backend
+- `validation_alerts.py` — alert status, grouped causes, cause classification, `data/dev/validation_alert_latest.json`
+- `validation_failure_log.py` — `load_all_validation_failures()` for grouping
+- `scheduled_validation.py` — refreshes alert after persist
+- `validation_dashboard.py` — summary fields `validation_alert`, `grouped_failure_causes`
+- `GET /api/validation/alerts` — latest alert (`?refresh=true` optional)
+
+### Scripts / Makefile
+- `scripts/validation_alerts.py` — `make validation-alerts`
+
+### Docs
+- `docs/VERIFIED_MRMS_CRITERIA.md` — explicit proof checklist (not met today)
+- Updated runbook, architecture, API spec, README links
+
+### Frontend
+- Dev panel: alert status, grouped failure causes, suggested next action, alert timestamp
+
+### Run commands
+
+```bash
+make test
+make validation-alerts
+make validation-failures
+make scheduled-validation
+cd frontend && npm run build
+```
+
+### Known limitations
+- Alert marker is local/dev-only JSON, not replicated
+- Cause classification is heuristic (normalized message buckets)
+- `verified_mrms` always false — criteria doc is forward-looking only
+- Production serving gates unchanged; placeholder default unchanged

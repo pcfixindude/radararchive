@@ -11,6 +11,11 @@ from backend.app.services.catalog_status import build_catalog_status
 from backend.app.services.grib2_inspector import detect_decoder_availability
 from backend.app.services.render_queue import get_queue_summary
 from backend.app.services.storage import LocalStorage
+from backend.app.services.validation_alerts import (
+    compact_validation_alert,
+    load_validation_alert,
+    refresh_validation_alert,
+)
 from backend.app.services.validation_failure_log import (
     compact_failure,
     count_validation_failures,
@@ -37,6 +42,9 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
     queue_benchmark_history = load_queue_benchmark_history(storage)
     scheduled = load_latest_scheduled_validation_report(storage)
     recent_failures = load_recent_validation_failures(storage, limit=5)
+    alert = load_validation_alert(storage)
+    if alert is None:
+        alert = refresh_validation_alert(storage, scheduled=scheduled)
     catalog = build_catalog_status(session)
 
     return {
@@ -63,6 +71,8 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "scheduled_validation": _compact_scheduled_validation(scheduled),
         "validation_failures_count": count_validation_failures(storage),
         "validation_failures_recent": [compact_failure(item) for item in recent_failures],
+        "validation_alert": compact_validation_alert(alert),
+        "grouped_failure_causes": (alert or {}).get("grouped_failure_causes", [])[:5],
         "catalog": catalog,
     }
 
@@ -77,6 +87,7 @@ def build_validation_latest(storage: LocalStorage) -> dict[str, Any]:
         "benchmark": load_latest_benchmark_report(storage),
         "queue_benchmark": load_latest_queue_benchmark_report(storage),
         "scheduled_validation": load_latest_scheduled_validation_report(storage),
+        "validation_alert": load_validation_alert(storage),
     }
 
 

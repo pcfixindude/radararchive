@@ -4,6 +4,8 @@ This runbook explains how to run, inspect, and troubleshoot the **experimental**
 
 **Important:** All validation output is prototype tooling. `verified_mrms` remains **false**. This is **not** verified production radar.
 
+Future proof criteria (not met today): **[VERIFIED_MRMS_CRITERIA.md](VERIFIED_MRMS_CRITERIA.md)**.
+
 ## What the pipeline does
 
 1. **Discover/register** MRMS catalog candidates (stub or real NOAA AWS)
@@ -77,10 +79,21 @@ curl http://127.0.0.1:8000/api/validation/summary
 curl http://127.0.0.1:8000/api/validation/latest
 curl http://127.0.0.1:8000/api/validation/scheduled
 curl http://127.0.0.1:8000/api/validation/failures
+curl http://127.0.0.1:8000/api/validation/alerts
 curl http://127.0.0.1:8000/api/catalog/status
 ```
 
-Frontend: Dev Validation panel shows scheduled steps, failure count, and **Show details** JSON drill-down.
+Frontend: Dev Validation panel shows alert status, grouped failure causes, suggested next action, scheduled steps, failure count, and **Show details** JSON drill-down.
+
+## Check validation alerts
+
+```bash
+make validation-alerts
+make validation-alerts ARGS="--refresh"
+make validation-alerts ARGS="--json"
+```
+
+Alert file: `data/dev/validation_alert_latest.json` (local dev only; rebuilt after scheduled validation).
 
 ## Check recent failures
 
@@ -119,10 +132,13 @@ Log file: `data/dev/validation_failures.jsonl` (append-only, bounded to last 100
 - Any report with `verified_mrms: false` (all dev reports)
 - Serving production-prototype tiles without explicit ops review and future validation phase
 
+See **[VERIFIED_MRMS_CRITERIA.md](VERIFIED_MRMS_CRITERIA.md)** for the full checklist required before `verified_mrms` could ever become true.
+
 ## Verification commands
 
 ```bash
 make test
+make validation-alerts
 make scheduled-validation
 make validation-failures
 make catalog-status

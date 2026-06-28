@@ -342,6 +342,20 @@ Dev API: `GET /api/validation/failures`; summary adds `validation_failures_count
 
 Operator runbook: `docs/RUNBOOK_REAL_MRMS_VALIDATION.md`.
 
+### Validation alert markers + failure grouping (Phase 25)
+After scheduled validation (or on summary refresh when no alert file exists), `validation_alerts.py` rebuilds a local alert marker:
+
+- Persisted: `data/dev/validation_alert_latest.json`
+- Status: `ok` / `warning` / `failed` from failure log + latest scheduled run
+- Grouped causes: by `step` + normalized message + coarse bucket (`no_network`, `decoder_unavailable`, `no_grib2_artifact`, `zero_tiles_written`, `production_flag_off`, `catalog_gate_missing`, `unknown`)
+- `suggested_next_action` for operator triage
+
+CLI: `make validation-alerts` (`--refresh`, `--json`).
+
+Dev API: `GET /api/validation/alerts`; summary adds `validation_alert`, `grouped_failure_causes`.
+
+Future verified MRMS proof criteria (not met today): `docs/VERIFIED_MRMS_CRITERIA.md`. `verified_mrms` remains **false**.
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

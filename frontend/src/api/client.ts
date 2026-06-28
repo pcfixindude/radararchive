@@ -309,6 +309,28 @@ export type ScheduledValidationCompact = {
   prototype: boolean;
 };
 
+export type ValidationAlertCompact = {
+  status: string;
+  latest_run_at?: string | null;
+  updated_at?: string | null;
+  failure_count: number;
+  warning_count: number;
+  operator_attention_needed: boolean;
+  suggested_next_action?: string | null;
+  grouped_failure_causes?: GroupedFailureCauseCompact[];
+  verified_mrms: boolean;
+  prototype: boolean;
+};
+
+export type GroupedFailureCauseCompact = {
+  step: string;
+  cause: string;
+  message?: string;
+  normalized_message?: string;
+  count: number;
+  latest_logged_at?: string | null;
+};
+
 export type ValidationLatest = {
   prototype: boolean;
   verified_mrms: boolean;
@@ -317,6 +339,7 @@ export type ValidationLatest = {
   benchmark: Record<string, unknown> | null;
   queue_benchmark: Record<string, unknown> | null;
   scheduled_validation: Record<string, unknown> | null;
+  validation_alert: Record<string, unknown> | null;
 };
 
 export type ValidationSummary = {
@@ -341,6 +364,8 @@ export type ValidationSummary = {
   scheduled_validation?: ScheduledValidationCompact | null;
   validation_failures_count?: number;
   validation_failures_recent?: ValidationFailureCompact[];
+  validation_alert?: ValidationAlertCompact | null;
+  grouped_failure_causes?: GroupedFailureCauseCompact[];
   frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;
 };

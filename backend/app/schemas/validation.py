@@ -187,6 +187,34 @@ class ValidationFailureCompact(BaseModel):
     prototype: bool = True
 
 
+class GroupedFailureCauseCompact(BaseModel):
+    step: str = "unknown"
+    cause: str = "unknown"
+    message: str = ""
+    normalized_message: str = ""
+    count: int = 0
+    latest_logged_at: Optional[str] = None
+
+
+class ValidationAlertCompact(BaseModel):
+    status: str = "ok"
+    latest_run_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    failure_count: int = 0
+    warning_count: int = 0
+    operator_attention_needed: bool = False
+    suggested_next_action: Optional[str] = None
+    grouped_failure_causes: list[GroupedFailureCauseCompact] = Field(default_factory=list)
+    verified_mrms: bool = False
+    prototype: bool = True
+
+
+class ValidationAlertsResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    alert: Optional[dict[str, Any]] = None
+
+
 class ScheduledValidationCompact(BaseModel):
     ran_at: Optional[str] = None
     source_mode: Optional[str] = None
@@ -239,6 +267,8 @@ class ValidationSummaryResponse(BaseModel):
     scheduled_validation: Optional[ScheduledValidationCompact] = None
     validation_failures_count: int = 0
     validation_failures_recent: list[ValidationFailureCompact] = Field(default_factory=list)
+    validation_alert: Optional[ValidationAlertCompact] = None
+    grouped_failure_causes: list[GroupedFailureCauseCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse
 
@@ -260,6 +290,7 @@ class ValidationLatestResponse(BaseModel):
     benchmark: Optional[dict[str, Any]] = None
     queue_benchmark: Optional[dict[str, Any]] = None
     scheduled_validation: Optional[dict[str, Any]] = None
+    validation_alert: Optional[dict[str, Any]] = None
 
 
 class ValidationFailuresResponse(BaseModel):

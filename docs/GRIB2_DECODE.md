@@ -305,6 +305,14 @@ Common interpretations:
 - **failed** queue step: check `make validation-failures` and render queue status
 - **zero tiles**: missing decode artifacts or production flag off — not necessarily a pipeline crash
 
+## Verification criteria (Phase 25 — documentation only)
+
+Decoded output and prototype tiles do **not** constitute verified MRMS. Before `verified_mrms` could ever become true, all criteria in [VERIFIED_MRMS_CRITERIA.md](VERIFIED_MRMS_CRITERIA.md) must pass with operator review.
+
+Current project status: criteria **not met**. Decode artifacts alone are insufficient proof.
+
+Local alert marker (`make validation-alerts`) summarizes validation health from failure log + scheduled runs — still prototype diagnostics only.
+
 ## Inspection CLI
 
 ```bash

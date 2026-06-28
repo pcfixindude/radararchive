@@ -1,27 +1,28 @@
 # Next Steps
 
-## Phase 25 - Validation Alerting Hooks + Deeper Real-MRMS Proof Criteria
+## Phase 26 - Verified MRMS Proof Automation (Draft)
 
-Goal: Add optional local-only alert hooks (log file markers only), document explicit proof criteria for a future `verified_mrms` phase, and improve failure triage grouping in the dev panel — still without cloud deployment or verified MRMS claims.
+Goal: Automate checks from [VERIFIED_MRMS_CRITERIA.md](VERIFIED_MRMS_CRITERIA.md) where possible — checksum recording, multi-frame validation reports, geo sanity assertions — still without setting `verified_mrms=true` or enabling production rendering by default.
 
 Suggested work:
-1. Failure grouping by step/phase in dev panel
-2. Optional `data/dev/validation_alert.marker` on scheduled failure (local only)
-3. Draft proof checklist for future verified MRMS phase (docs only)
-4. Link runbook sections from dev panel help text
-5. Keep placeholder default for offline dev
+1. Automated checksum + source metadata capture on real download
+2. Multi-frame validation report with pass/fail per criterion
+3. Geo bounds/CRS assertion helpers (optional decoder)
+4. Operator sign-off record template (local JSON)
+5. Alert marker integration when criteria regress
 
 Do not start yet:
 - Stripe, real auth, HRRR, WPC, native Android
 - Redis/Celery, cloud deployment, email/Slack/PagerDuty
-- Setting `verified_mrms=true` without documented proof phase
+- Setting `verified_mrms=true` without documented operator review phase
 
-## Phase 24 verification commands
+## Phase 25 verification commands
 
 ```bash
 make test
-make scheduled-validation
+make validation-alerts
 make validation-failures
+make scheduled-validation
 make catalog-status
 make render-queue-status
 cd frontend && npm run build

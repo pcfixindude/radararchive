@@ -8,12 +8,14 @@ from backend.app.database import get_db
 from backend.app.schemas.validation import (
     QueueBenchmarkHistoryResponse,
     ScheduledValidationHistoryResponse,
+    ValidationAlertsResponse,
     ValidationFailuresResponse,
     ValidationHistoryResponse,
     ValidationLatestResponse,
     ValidationSummaryResponse,
 )
 from backend.app.services.storage import LocalStorage
+from backend.app.services.validation_alerts import load_validation_alert, refresh_validation_alert
 from backend.app.services.validation_dashboard import build_validation_latest, build_validation_summary
 from backend.app.services.validation_failure_log import (
     MAX_FAILURE_ENTRIES,
@@ -106,4 +108,21 @@ def validation_failures(limit: int = 10) -> ValidationFailuresResponse:
         count=count_validation_failures(storage),
         max_entries=MAX_FAILURE_ENTRIES,
         entries=[compact_failure(item) for item in entries],
+    )
+
+
+@router.get("/alerts", response_model=ValidationAlertsResponse)
+def validation_alerts(refresh: bool = False) -> ValidationAlertsResponse:
+    """Latest validation alert marker and grouped failure causes (dev/prototype)."""
+    storage = LocalStorage(settings.local_storage_root)
+    if refresh:
+        alert = refresh_validation_alert(storage)
+    else:
+        alert = load_validation_alert(storage)
+        if alert is None:
+            alert = refresh_validation_alert(storage)
+    return ValidationAlertsResponse(
+        prototype=True,
+        verified_mrms=False,
+        alert=alert,
     )

@@ -113,7 +113,7 @@ curl http://127.0.0.1:8000/api/render/jobs/summary
 
 MRMS validation pipeline (Phase 19–24 — experimental, not verified MRMS):
 
-See **[docs/RUNBOOK_REAL_MRMS_VALIDATION.md](docs/RUNBOOK_REAL_MRMS_VALIDATION.md)** for operator troubleshooting.
+See **[docs/RUNBOOK_REAL_MRMS_VALIDATION.md](docs/RUNBOOK_REAL_MRMS_VALIDATION.md)** for operator troubleshooting and **[docs/VERIFIED_MRMS_CRITERIA.md](docs/VERIFIED_MRMS_CRITERIA.md)** for future verified MRMS proof requirements (not met today).
 
 ```bash
 make validate-real-mrms
@@ -122,6 +122,7 @@ make benchmark-real-mrms
 make benchmark-render-queue
 make scheduled-validation
 make validation-failures
+make validation-alerts
 make real-mrms-smoke-test
 make scheduled-validation ARGS="--json-report"
 make catalog-status
@@ -129,6 +130,7 @@ MRMS_SOURCE_MODE=real make scheduled-validation ARGS="--real --count 3 --min-zoo
 curl http://127.0.0.1:8000/api/validation/summary
 curl http://127.0.0.1:8000/api/validation/scheduled
 curl http://127.0.0.1:8000/api/validation/failures
+curl http://127.0.0.1:8000/api/validation/alerts
 curl http://127.0.0.1:8000/api/validation/latest
 ```
 
@@ -165,8 +167,10 @@ Limitations:
 - `make benchmark-render-queue` enqueues multi-zoom jobs (default count 3, zoom 0–1; use `--dry-run` to plan only)
 - `make scheduled-validation` runs catalog + batch + queue benchmark pipeline (cron-friendly; `--real` intentional)
 - `make validation-failures` shows recent local failure log entries
+- `make validation-alerts` shows local validation alert marker and grouped failure causes
 - `make real-mrms-smoke-test` runs intentional real-mode smoke test (count 1, zoom 0)
 - Operator runbook: [docs/RUNBOOK_REAL_MRMS_VALIDATION.md](docs/RUNBOOK_REAL_MRMS_VALIDATION.md)
+- Verified MRMS proof criteria (not met): [docs/VERIFIED_MRMS_CRITERIA.md](docs/VERIFIED_MRMS_CRITERIA.md)
 - `make catalog-status` reports MRMS catalog counts by status
 - Dev validation dashboard: summary/history/benchmarks/scheduled APIs + panel with Refresh and Show details
 - Build supports `ARGS=` forwarding on Makefile targets (e.g. `make build-production-tiles ARGS="--dry-run"`)

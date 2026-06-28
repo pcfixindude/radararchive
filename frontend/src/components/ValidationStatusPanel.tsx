@@ -61,6 +61,8 @@ export default function ValidationStatusPanel({
   const scheduledSteps = scheduled?.steps ?? [];
   const recentFailures = summary.validation_failures_recent ?? [];
   const frameSummaries = summary.frame_summaries ?? [];
+  const validationAlert = summary.validation_alert ?? null;
+  const groupedCauses = summary.grouped_failure_causes ?? validationAlert?.grouped_failure_causes ?? [];
   const queue = summary.render_queue;
   const catalog = summary.catalog;
   const history = summary.validation_history ?? [];
@@ -81,6 +83,44 @@ export default function ValidationStatusPanel({
         </div>
       </div>
       <p className="validation-warn">Experimental pipeline — not verified real MRMS.</p>
+      {validationAlert ? (
+        <>
+          <p
+            className={
+              validationAlert.operator_attention_needed
+                ? 'validation-warn'
+                : 'validation-meta'
+            }
+          >
+            Operator attention: {validationAlert.operator_attention_needed ? 'needed' : 'not needed'} — alert{' '}
+            {validationAlert.status ?? 'ok'}
+          </p>
+          <p className="validation-meta">
+            Alert updated: {formatTimestamp(validationAlert.updated_at)} — latest run{' '}
+            {formatTimestamp(validationAlert.latest_run_at)}
+          </p>
+          <p className="validation-meta">
+            Alert counts: {validationAlert.failure_count ?? 0} failures, {validationAlert.warning_count ?? 0} warnings
+          </p>
+          {validationAlert.suggested_next_action ? (
+            <p className="validation-meta">Suggested next action: {validationAlert.suggested_next_action}</p>
+          ) : null}
+        </>
+      ) : null}
+      {groupedCauses.length > 0 ? (
+        <>
+          <p className="validation-meta">Grouped failure causes (prototype diagnostics):</p>
+          <ul className="validation-history-list">
+            {groupedCauses.map((cause, index) => (
+              <li key={`${cause.step}-${cause.cause}-${index}`} className="validation-meta">
+                {cause.step} — {cause.cause} ×{cause.count}
+                {cause.message ? `: ${cause.message}` : ''}
+                {cause.latest_logged_at ? ` (${formatTimestamp(cause.latest_logged_at)})` : ''}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
       <p className="validation-meta">Placeholder default: {yesNo(summary.placeholder_default)}</p>
       <p className="validation-meta">
         Production rendering: {summary.production_rendering_enabled ? 'enabled (flag on)' : 'disabled (default)'}

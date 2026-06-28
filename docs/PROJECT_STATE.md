@@ -1,12 +1,14 @@
 # Project State
 
-Current phase: Phase 24 complete
+Current phase: Phase 25 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
 - MRMS discovery → download → decode prototype pipeline
 - **Scheduled validation** with step-level drill-down and failure logging
+- **Validation alert markers** with grouped failure causes (local dev only)
+- **Verified MRMS proof criteria** documented — criteria **not met**; `verified_mrms` false
 - **Operator runbook**: [RUNBOOK_REAL_MRMS_VALIDATION.md](RUNBOOK_REAL_MRMS_VALIDATION.md)
 - **Default tile serving: placeholder** (`ENABLE_DECODED_TILES=false`, `ENABLE_PRODUCTION_RADAR_TILES=false`)
 - Not verified real MRMS — warping prototype only
@@ -19,11 +21,12 @@ ENABLE_PRODUCTION_RADAR_TILES=false
 STALE_RUNNING_JOB_SECONDS=3600
 ```
 
-## Operator commands (Phase 24)
+## Operator commands (Phase 25)
 
 ```bash
 make scheduled-validation
 make validation-failures
+make validation-alerts
 make real-mrms-smoke-test
 ```
 
@@ -32,6 +35,7 @@ make real-mrms-smoke-test
 ```bash
 curl http://127.0.0.1:8000/api/validation/summary
 curl http://127.0.0.1:8000/api/validation/failures
+curl http://127.0.0.1:8000/api/validation/alerts
 curl http://127.0.0.1:8000/api/validation/scheduled
 ```
 
@@ -39,6 +43,7 @@ curl http://127.0.0.1:8000/api/validation/scheduled
 
 ```bash
 make test
+make validation-alerts
 make scheduled-validation
 make validation-failures
 cd frontend && npm run build

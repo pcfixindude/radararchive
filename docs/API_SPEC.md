@@ -204,7 +204,11 @@ Summary additions (Phase 23): `scheduled_validation` compact status, `frame_summ
 
 Summary additions (Phase 24): `scheduled_validation.steps` step drill-down, `validation_failures_count`, `validation_failures_recent`.
 
+Summary additions (Phase 25): `validation_alert` compact marker (`status`, counts, `suggested_next_action`, `operator_attention_needed`), `grouped_failure_causes` (top 5 by step + normalized cause).
+
 `GET /api/validation/failures` — recent validation failure log entries (append-only JSONL, max 100).
+
+`GET /api/validation/alerts` — latest persisted validation alert marker (`data/dev/validation_alert_latest.json`). Query `?refresh=true` rebuilds from failure log + scheduled report. `verified_mrms: false`.
 
 `GET /api/catalog/status` — MRMS catalog frame counts by download/process/render status, latest timestamps.
 

@@ -2,6 +2,19 @@
   {
     "batch": true,
     "decoded_count": 0,
+    "discovered_count": 3,
+    "downloaded_count": 0,
+    "effective_frame_count": 3,
+    "elapsed_seconds": 0.0137,
+    "prototype": true,
+    "requested_frame_count": 3,
+    "source_mode": "stub",
+    "validated_at": "2026-06-28T13:33:09Z",
+    "verified_mrms": false
+  },
+  {
+    "batch": true,
+    "decoded_count": 0,
     "discovered_count": 1,
     "downloaded_count": 1,
     "effective_frame_count": 1,
