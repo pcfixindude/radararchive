@@ -257,6 +257,7 @@ Limitations:
 - `make mrms-visual-review-compare` compares latest vs previous visual review manifests; `make mrms-visual-review-hint` suggests when to regenerate (Phase 57)
 - `make mrms-visual-review-sample-set` builds a local recommended sample subset for manual drilldown inspection (Phase 60)
 - `make mrms-visual-review-readiness` computes local sample-set annotations/readiness summary (`--refresh` persists Markdown; Phase 61)
+- `make mrms-render-candidate-preflight` generates local render candidate preflight checklist (`--refresh` persists JSON/Markdown; Phase 62)
 - `make scheduled-proof-bundle-visual-review` runs full scheduled proof/digest/export/operator-status with explicit visual review generation (Phase 59; `--visual-review` opt-in)
 - `make mrms-review-session ARGS="... --export-after-create"` creates a session and immediately exports Markdown (session is kept if export fails)
 - `make mrms-signoff` records local operator sign-off (does not set verified_mrms)

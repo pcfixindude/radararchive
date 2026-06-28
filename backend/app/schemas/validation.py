@@ -1081,6 +1081,51 @@ class MrmsVisualReviewSampleAnnotationUpsertResponse(BaseModel):
     compact: MrmsVisualReviewSampleReadinessCompact
 
 
+class MrmsRenderCandidatePreflightEvidenceFoundCompact(BaseModel):
+    visual_review: bool = False
+    sample_set: bool = False
+    sample_readiness: bool = False
+    required_docs: bool = False
+
+
+class MrmsRenderCandidatePreflightCompact(BaseModel):
+    available: bool = False
+    preflight_level: Optional[str] = None
+    preflight_reason: Optional[str] = None
+    blocking_items: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    computed_at: Optional[str] = None
+    json_path: Optional[str] = None
+    markdown_path: Optional[str] = None
+    suggested_command: Optional[str] = None
+    evidence_found: MrmsRenderCandidatePreflightEvidenceFoundCompact = Field(
+        default_factory=MrmsRenderCandidatePreflightEvidenceFoundCompact
+    )
+    verified_mrms: bool = False
+    local_advisory_preflight_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    no_external_notifications: bool = True
+    candidate_preflight_ready_is_not_production_authorization: bool = True
+    prototype: bool = True
+
+
+class MrmsRenderCandidatePreflightResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_advisory_preflight_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    no_external_notifications: bool = True
+    candidate_preflight_ready_is_not_production_authorization: bool = True
+    latest: dict[str, Any] = Field(default_factory=dict)
+    compact: MrmsRenderCandidatePreflightCompact
+
+
 class ScheduledOperatorStatusCompact(BaseModel):
     operator_status_requested: bool = False
     operator_status_generated: bool = False
@@ -1810,6 +1855,7 @@ class ValidationSummaryResponse(BaseModel):
     mrms_visual_review_hint: Optional[MrmsVisualReviewHintCompact] = None
     mrms_visual_review_sample_set: Optional[MrmsVisualReviewSampleSetCompact] = None
     mrms_visual_review_sample_readiness: Optional[MrmsVisualReviewSampleReadinessCompact] = None
+    mrms_render_candidate_preflight: Optional[MrmsRenderCandidatePreflightCompact] = None
     scheduled_operator_status: Optional[ScheduledOperatorStatusCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)

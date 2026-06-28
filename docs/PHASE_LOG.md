@@ -2189,3 +2189,30 @@ cd frontend && npm run build
 ### Known limitations
 - Readiness scoring is advisory only — conservative blocks on rejected, missing, stale, unreviewed, questionable, or follow-up-tagged samples
 - Does not verify MRMS, clear alerts, enable production rendering, or mutate catalog/render gates
+
+## Phase 62 - Gated Real MRMS Rendering Candidate Preflight
+
+Local advisory preflight checklist assembling safety gates, visual review evidence, sample-set readiness, and required docs before any render candidate path.
+
+### Backend
+- `mrms_render_candidate_preflight.py` — evidence gathering, conservative `blocked` / `needs_review` / `candidate_preflight_ready` scoring
+- Paths: `mrms_render_candidate_preflight.json`, `mrms_render_candidate_preflight.md`
+- `compact_render_candidate_preflight()` on validation summary
+- API: `GET/POST /api/validation/mrms-render-candidate/preflight`
+- CLI: `scripts/mrms_render_candidate_preflight.py`; `make mrms-render-candidate-preflight`
+
+### Frontend
+- Dev Validation **MRMS render candidate preflight** collapsible with blocking items, warnings, evidence found/missing, refresh button
+
+### Run commands
+
+```bash
+make test
+make mrms-render-candidate-preflight --refresh
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Preflight is advisory only — `candidate_preflight_ready` is not verified MRMS or production authorization
+- Does not download/decode/render, clear alerts, enable production rendering, or mutate catalog/render gates

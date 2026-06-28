@@ -53,3 +53,5 @@ data/dev/mrms_visual_review_sample_set.json
 data/dev/mrms_visual_review_sample_set.md
 data/dev/mrms_visual_review_sample_annotations.json
 data/dev/mrms_visual_review_sample_readiness.md
+data/dev/mrms_render_candidate_preflight.json
+data/dev/mrms_render_candidate_preflight.md

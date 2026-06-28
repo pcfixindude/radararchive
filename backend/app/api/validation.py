@@ -48,6 +48,7 @@ from backend.app.schemas.validation import (
     MrmsVisualReviewSampleReadinessResponse,
     MrmsVisualReviewSampleAnnotationUpsertRequest,
     MrmsVisualReviewSampleAnnotationUpsertResponse,
+    MrmsRenderCandidatePreflightResponse,
     MrmsVisualReviewResponse,
     OperatorReviewStatusResponse,
     OperatorWorkflowPresetsResponse,
@@ -144,6 +145,10 @@ from backend.app.services.mrms_visual_review_sample_readiness import (
     compact_visual_review_sample_readiness,
     refresh_visual_review_sample_readiness,
     upsert_sample_annotation,
+)
+from backend.app.services.mrms_render_candidate_preflight import (
+    build_render_candidate_preflight_payload,
+    generate_render_candidate_preflight,
 )
 from backend.app.services.operator_review_status import build_operator_review_status_payload
 from backend.app.services.operator_workflow_presets import build_operator_workflow_presets_payload
@@ -361,6 +366,23 @@ def validation_operator_workflow_presets() -> OperatorWorkflowPresetsResponse:
     storage = LocalStorage(settings.local_storage_root)
     payload = build_operator_workflow_presets_payload(storage)
     return OperatorWorkflowPresetsResponse(**payload)
+
+
+@router.get("/mrms-render-candidate/preflight", response_model=MrmsRenderCandidatePreflightResponse)
+def validation_mrms_render_candidate_preflight() -> MrmsRenderCandidatePreflightResponse:
+    """Local MRMS render candidate preflight (read-only advisory; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_render_candidate_preflight_payload(storage)
+    return MrmsRenderCandidatePreflightResponse(**payload)
+
+
+@router.post("/mrms-render-candidate/preflight", response_model=MrmsRenderCandidatePreflightResponse)
+def validation_mrms_render_candidate_preflight_refresh() -> MrmsRenderCandidatePreflightResponse:
+    """Dev/local only — regenerate render candidate preflight report; does NOT verify MRMS."""
+    storage = LocalStorage(settings.local_storage_root)
+    generate_render_candidate_preflight(storage)
+    payload = build_render_candidate_preflight_payload(storage)
+    return MrmsRenderCandidatePreflightResponse(**payload)
 
 
 @router.get(

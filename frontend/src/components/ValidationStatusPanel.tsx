@@ -7,6 +7,7 @@ import {
   submitVisualReviewSampleSet,
   submitVisualReviewSampleAnnotation,
   refreshVisualReviewSampleReadiness,
+  refreshRenderCandidatePreflight,
   submitDiffAcknowledgment,
   type MrmsProofHistory,
   type MrmsProofRegressionHistory,
@@ -72,6 +73,9 @@ export default function ValidationStatusPanel({
   const [annotationError, setAnnotationError] = useState<string | null>(null);
   const [readinessRefreshing, setReadinessRefreshing] = useState(false);
   const [readinessMessage, setReadinessMessage] = useState<string | null>(null);
+  const [preflightRefreshing, setPreflightRefreshing] = useState(false);
+  const [preflightMessage, setPreflightMessage] = useState<string | null>(null);
+  const [preflightError, setPreflightError] = useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -297,6 +301,24 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handlePreflightRefresh() {
+    setPreflightMessage(null);
+    setPreflightError(null);
+    setPreflightRefreshing(true);
+    const result = await refreshRenderCandidatePreflight();
+    setPreflightRefreshing(false);
+    if (!result.ok) {
+      setPreflightError(result.error);
+      return;
+    }
+    setPreflightMessage(
+      `Preflight report refreshed (${result.data.compact.preflight_level ?? '—'}) — local advisory only; does not authorize production use.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   if (!summary) {
     return (
       <section className="panel validation-panel">
@@ -363,6 +385,7 @@ export default function ValidationStatusPanel({
   const mrmsVisualReviewHint = summary.mrms_visual_review_hint ?? null;
   const mrmsVisualReviewSampleSet = summary.mrms_visual_review_sample_set ?? null;
   const mrmsVisualReviewSampleReadiness = summary.mrms_visual_review_sample_readiness ?? null;
+  const mrmsRenderCandidatePreflight = summary.mrms_render_candidate_preflight ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -918,6 +941,96 @@ export default function ValidationStatusPanel({
             'make mrms-visual-review'
           }
           label="Suggested command"
+          manualCopy
+        />
+        <SafetyNote />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="MRMS render candidate preflight"
+        className="validation-render-candidate-preflight"
+        summary={
+          <p className="validation-meta">
+            {mrmsRenderCandidatePreflight?.preflight_level
+              ? `Advisory ${mrmsRenderCandidatePreflight.preflight_level} — ${mrmsRenderCandidatePreflight.blocking_items?.length ?? 0} blocking, ${mrmsRenderCandidatePreflight.warnings?.length ?? 0} warnings`
+              : 'No preflight report yet — run make mrms-render-candidate-preflight --refresh'}
+          </p>
+        }
+      >
+        <p className="validation-warn">
+          Local advisory preflight only. Does not verify MRMS, enable production rendering, create
+          production tiles, clear alerts, or authorize production use.{' '}
+          <code>candidate_preflight_ready</code> is not production authorization.
+        </p>
+        {mrmsRenderCandidatePreflight ? (
+          <>
+            <p className="validation-meta">
+              Preflight level: {mrmsRenderCandidatePreflight.preflight_level ?? '—'} — reason:{' '}
+              {mrmsRenderCandidatePreflight.preflight_reason ?? '—'}
+            </p>
+            <p className="validation-meta">
+              Evidence found — visual review:{' '}
+              {yesNo(mrmsRenderCandidatePreflight.evidence_found?.visual_review ?? false)} — sample set:{' '}
+              {yesNo(mrmsRenderCandidatePreflight.evidence_found?.sample_set ?? false)} — sample
+              readiness: {yesNo(mrmsRenderCandidatePreflight.evidence_found?.sample_readiness ?? false)}{' '}
+              — required docs: {yesNo(mrmsRenderCandidatePreflight.evidence_found?.required_docs ?? false)}
+            </p>
+            {(mrmsRenderCandidatePreflight.blocking_items ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Blocking items</strong>
+                <ul>
+                  {(mrmsRenderCandidatePreflight.blocking_items ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="validation-meta">Blocking items: none</p>
+            )}
+            {(mrmsRenderCandidatePreflight.warnings ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Warnings</strong>
+                <ul>
+                  {(mrmsRenderCandidatePreflight.warnings ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="validation-meta">Warnings: none</p>
+            )}
+            {mrmsRenderCandidatePreflight.json_path ? (
+              <p className="validation-meta">
+                JSON: <code>{mrmsRenderCandidatePreflight.json_path}</code>
+              </p>
+            ) : null}
+            {mrmsRenderCandidatePreflight.markdown_path ? (
+              <p className="validation-meta">
+                Markdown: <code>{mrmsRenderCandidatePreflight.markdown_path}</code>
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            Generate a local preflight report after visual review, sample-set selection, and sample
+            readiness scoring are in place.
+          </p>
+        )}
+        <button
+          type="button"
+          className="validation-refresh"
+          onClick={() => void handlePreflightRefresh()}
+          disabled={preflightRefreshing}
+        >
+          {preflightRefreshing ? 'Refreshing…' : 'Refresh preflight report (local only)'}
+        </button>
+        {preflightMessage ? <p className="validation-meta">{preflightMessage}</p> : null}
+        {preflightError ? <p className="validation-warn">{preflightError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidatePreflight?.suggested_command ??
+            'make mrms-render-candidate-preflight --refresh'
+          }
+          label="Suggested preflight command"
           manualCopy
         />
         <SafetyNote />

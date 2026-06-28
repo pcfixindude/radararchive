@@ -919,6 +919,34 @@ export type MrmsVisualReviewSampleAnnotationUpsertResponse = {
   compact: MrmsVisualReviewSampleReadinessCompact;
 };
 
+export type MrmsRenderCandidatePreflightEvidenceFoundCompact = {
+  visual_review?: boolean;
+  sample_set?: boolean;
+  sample_readiness?: boolean;
+  required_docs?: boolean;
+};
+
+export type MrmsRenderCandidatePreflightCompact = {
+  available?: boolean;
+  preflight_level?: string | null;
+  preflight_reason?: string | null;
+  blocking_items?: string[];
+  warnings?: string[];
+  computed_at?: string | null;
+  json_path?: string | null;
+  markdown_path?: string | null;
+  suggested_command?: string | null;
+  evidence_found?: MrmsRenderCandidatePreflightEvidenceFoundCompact | null;
+  verified_mrms: boolean;
+  local_advisory_preflight_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  does_not_create_production_tiles: boolean;
+  no_external_notifications: boolean;
+  candidate_preflight_ready_is_not_production_authorization: boolean;
+};
+
 export type OperatorWorkflowPresetsCompact = {
   available?: boolean;
   recommended_count?: number;
@@ -1457,6 +1485,7 @@ export type ValidationSummary = {
   mrms_visual_review_hint?: MrmsVisualReviewHintCompact | null;
   mrms_visual_review_sample_set?: MrmsVisualReviewSampleSetCompact | null;
   mrms_visual_review_sample_readiness?: MrmsVisualReviewSampleReadinessCompact | null;
+  mrms_render_candidate_preflight?: MrmsRenderCandidatePreflightCompact | null;
   scheduled_operator_status?: ScheduledOperatorStatusCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
@@ -1663,6 +1692,24 @@ export async function refreshVisualReviewSampleReadiness(): Promise<
       return { ok: false, error: `Sample readiness refresh failed (${response.status})` };
     }
     const data = (await response.json()) as { compact: MrmsVisualReviewSampleReadinessCompact };
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function refreshRenderCandidatePreflight(): Promise<
+  | { ok: true; data: { compact: MrmsRenderCandidatePreflightCompact } }
+  | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(`${API_BASE}/api/validation/mrms-render-candidate/preflight`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      return { ok: false, error: `Render candidate preflight refresh failed (${response.status})` };
+    }
+    const data = (await response.json()) as { compact: MrmsRenderCandidatePreflightCompact };
     return { ok: true, data };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
