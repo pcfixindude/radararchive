@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+import time
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Any, Optional
 
 from sqlalchemy.orm import Session
 
@@ -27,6 +28,8 @@ from backend.app.services.storage import LocalStorage
 from backend.app.services.tile_pyramid import (
     TILE_SIZE,
     build_production_tile_repo_path,
+    count_tiles_for_zoom_range,
+    iter_tiles_for_bounds,
     validate_geo_metadata,
     warp_grid_to_tile_values,
 )
@@ -34,14 +37,75 @@ from backend.app.services.tile_service import encode_normalized_grid_png
 
 PRODUCTION_TILE_ROOT = "data/tiles/production"
 
+DEFAULT_MIN_ZOOM = 0
+DEFAULT_MAX_ZOOM = 0
+MAX_ALLOWED_ZOOM = 4
+MAX_TILES_PER_BUILD = 256
+
+
+@dataclass
+class ProductionTileJob:
+    layer: str
+    timestamp: str
+    z: int
+    x: int
+    y: int
+    artifact: DecodeArtifact
+    metadata: GeoRenderMetadata
+    output_dir: str
+    geo_path: str
+
+
+@dataclass
+class TileBuildOutcome:
+    status: str
+    cache_path: Optional[str] = None
+    output_bytes: int = 0
+    error: Optional[str] = None
+
 
 @dataclass
 class BuildProductionTilesResult:
-    built: int
-    skipped: int
-    artifacts_found: int
-    catalog_marked: int
+    frames_considered: int = 0
+    frames_skipped: int = 0
+    zooms_built: list[int] = field(default_factory=list)
+    tiles_written: int = 0
+    tiles_skipped_existing: int = 0
+    tiles_planned: int = 0
+    tiles_failed: int = 0
+    elapsed_seconds: float = 0.0
+    output_bytes: int = 0
+    errors: list[str] = field(default_factory=list)
+    artifacts_found: int = 0
+    catalog_marked: int = 0
+    dry_run: bool = False
+    force: bool = False
     notes: list[str] = field(default_factory=list)
+
+    # Legacy aliases used by earlier phases/tests.
+    @property
+    def built(self) -> int:
+        return self.tiles_written
+
+    @property
+    def skipped(self) -> int:
+        return self.frames_skipped + self.tiles_skipped_existing + self.tiles_failed
+
+    def to_dict(self) -> dict[str, Any]:
+        payload = asdict(self)
+        payload["built"] = self.built
+        payload["skipped"] = self.skipped
+        payload["prototype"] = True
+        payload["verified_mrms"] = False
+        return payload
+
+
+def clamp_zoom_range(min_zoom: int, max_zoom: int) -> tuple[int, int]:
+    lo = max(0, min_zoom)
+    hi = min(MAX_ALLOWED_ZOOM, max_zoom)
+    if lo > hi:
+        lo = hi
+    return lo, hi
 
 
 def read_normalized_grid_from_artifact(
@@ -86,7 +150,7 @@ def render_production_warped_tile_png(
     y: int,
     tile_size: int = TILE_SIZE,
 ) -> Optional[bytes]:
-    """Warp grid to EPSG:3857 tile and encode PNG (uses tile_service color ramp)."""
+    """Warp grid to EPSG:3857 tile and encode PNG."""
     warped = warp_grid_to_tile_values(grid, metadata, z=z, x=x, y=y, tile_size=tile_size)
     if warped is None:
         return None
@@ -103,23 +167,134 @@ def build_production_tile_for_frame(
     z: int,
     x: int,
     y: int,
-) -> Optional[str]:
-    """Build one production tile; returns repo path when written."""
+    force: bool = False,
+    dry_run: bool = False,
+) -> TileBuildOutcome:
+    """Build one production tile; idempotent unless force=True."""
+    cache_path = build_production_tile_repo_path(storage, layer, timestamp, z, x, y)
+
+    if dry_run:
+        return TileBuildOutcome(status="planned", cache_path=cache_path)
+
+    if not force and storage.path_exists(cache_path):
+        return TileBuildOutcome(status="skipped_existing", cache_path=cache_path)
+
     validation = validate_geo_metadata(metadata)
     if not validation.valid:
-        return None
+        return TileBuildOutcome(
+            status="failed",
+            cache_path=cache_path,
+            error="; ".join(validation.errors),
+        )
 
     grid = read_normalized_grid_from_artifact(storage, artifact)
     if grid is None:
-        return None
+        return TileBuildOutcome(status="failed", cache_path=cache_path, error="grid unreadable")
 
     png_bytes = render_production_warped_tile_png(grid, metadata, z=z, x=x, y=y)
     if png_bytes is None:
-        return None
+        return TileBuildOutcome(status="failed", cache_path=cache_path, error="warp failed")
 
-    cache_path = build_production_tile_repo_path(storage, layer, timestamp, z, x, y)
     storage.write_bytes(cache_path, png_bytes, overwrite=True)
-    return cache_path
+    return TileBuildOutcome(status="written", cache_path=cache_path, output_bytes=len(png_bytes))
+
+
+def plan_production_tile_jobs(
+    storage: LocalStorage,
+    session: Optional[Session],
+    *,
+    layer: str,
+    min_zoom: int,
+    max_zoom: int,
+    limit: Optional[int] = None,
+) -> tuple[list[ProductionTileJob], list[str]]:
+    """Plan tile jobs for decode artifacts (worker-style batch input)."""
+    jobs: list[ProductionTileJob] = []
+    errors: list[str] = []
+    artifact_dirs = list_decode_artifact_dirs(storage)
+    considered = 0
+
+    for output_dir in artifact_dirs:
+        if limit is not None and considered >= limit:
+            break
+
+        artifact = load_decode_manifest(storage, output_dir)
+        if artifact is None:
+            continue
+
+        geo_path = geo_metadata_path(storage, output_dir)
+        if not storage.path_exists(geo_path):
+            errors.append(f"{output_dir}: missing geo_metadata.json")
+            continue
+
+        metadata = load_geo_metadata(storage, output_dir)
+        if metadata is None:
+            errors.append(f"{output_dir}: geo metadata unreadable")
+            continue
+
+        validation = validate_geo_metadata(metadata)
+        if not validation.valid:
+            errors.append(f"{output_dir}: {'; '.join(validation.errors)}")
+            continue
+
+        considered += 1
+        timestamp = artifact.raw_path.rsplit("/", 1)[-1]
+        if session is not None:
+            frame = _find_catalog_frame_for_artifact(session, artifact)
+            if frame is not None:
+                timestamp = frame.timestamp
+
+        lo, hi = clamp_zoom_range(min_zoom, max_zoom)
+        tile_count = count_tiles_for_zoom_range(metadata.bounds, lo, hi)
+        if tile_count > MAX_TILES_PER_BUILD:
+            errors.append(
+                f"{output_dir}: planned {tile_count} tiles exceeds cap {MAX_TILES_PER_BUILD}; skipped"
+            )
+            continue
+
+        for z in range(lo, hi + 1):
+            for tz, tx, ty in iter_tiles_for_bounds(metadata.bounds, z):
+                jobs.append(
+                    ProductionTileJob(
+                        layer=layer,
+                        timestamp=timestamp,
+                        z=tz,
+                        x=tx,
+                        y=ty,
+                        artifact=artifact,
+                        metadata=metadata,
+                        output_dir=output_dir,
+                        geo_path=geo_path,
+                    )
+                )
+
+    return jobs, errors
+
+
+def execute_production_tile_batch(
+    storage: LocalStorage,
+    jobs: list[ProductionTileJob],
+    *,
+    force: bool = False,
+    dry_run: bool = False,
+) -> list[TileBuildOutcome]:
+    """Worker-style batch executor for planned production tile jobs."""
+    outcomes: list[TileBuildOutcome] = []
+    for job in jobs:
+        outcome = build_production_tile_for_frame(
+            storage,
+            layer=job.layer,
+            timestamp=job.timestamp,
+            artifact=job.artifact,
+            metadata=job.metadata,
+            z=job.z,
+            x=job.x,
+            y=job.y,
+            force=force,
+            dry_run=dry_run,
+        )
+        outcomes.append(outcome)
+    return outcomes
 
 
 def _find_catalog_frame_for_artifact(session: Session, artifact: DecodeArtifact) -> Optional[RadarFile]:
@@ -153,103 +328,144 @@ def build_production_tiles(
     session: Optional[Session] = None,
     *,
     layer: str = "mrms_reflectivity",
+    min_zoom: int = DEFAULT_MIN_ZOOM,
+    max_zoom: int = DEFAULT_MAX_ZOOM,
     z_levels: Optional[list[int]] = None,
-    xy_limit: int = 1,
+    xy_limit: Optional[int] = None,
+    force: bool = False,
+    dry_run: bool = False,
+    limit: Optional[int] = None,
     mark_catalog: bool = False,
 ) -> BuildProductionTilesResult:
     """Build production tile cache from decode artifacts with geo_metadata.json."""
+    started = time.perf_counter()
     storage.ensure_directories(PRODUCTION_TILE_ROOT)
-    z_levels = z_levels or [0]
-    built = 0
-    skipped = 0
-    catalog_marked = 0
-    notes: list[str] = []
+
+    lo, hi = clamp_zoom_range(min_zoom, max_zoom)
+    if z_levels is not None:
+        lo, hi = min(z_levels), max(z_levels)
+
+    result = BuildProductionTilesResult(
+        dry_run=dry_run,
+        force=force,
+        zooms_built=list(range(lo, hi + 1)),
+    )
     artifact_dirs = list_decode_artifact_dirs(storage)
+    result.artifacts_found = len(artifact_dirs)
 
     if not artifact_dirs:
-        notes.append("No decode artifacts found under data/staging/grib2_decode/.")
-        notes.append("Run: make decode-grib2  (or use test fixtures)")
-        return BuildProductionTilesResult(
-            built=0,
-            skipped=0,
-            artifacts_found=0,
-            catalog_marked=0,
-            notes=notes,
-        )
+        result.notes.append("No decode artifacts found under data/staging/grib2_decode/.")
+        result.notes.append("Run: make decode-grib2  (or use test fixtures)")
+        result.elapsed_seconds = round(time.perf_counter() - started, 4)
+        return result
 
-    for output_dir in artifact_dirs:
-        artifact = load_decode_manifest(storage, output_dir)
-        if artifact is None:
-            skipped += 1
-            continue
+    jobs: list[ProductionTileJob] = []
+    plan_errors: list[str] = []
 
-        geo_path = geo_metadata_path(storage, output_dir)
-        if not storage.path_exists(geo_path):
-            notes.append(f"Skipping {output_dir}: missing geo_metadata.json")
-            skipped += 1
-            continue
-
-        metadata = load_geo_metadata(storage, output_dir)
-        if metadata is None:
-            skipped += 1
-            continue
-
-        validation = validate_geo_metadata(metadata)
-        if not validation.valid:
-            notes.append(f"Skipping {output_dir}: {'; '.join(validation.errors)}")
-            skipped += 1
-            continue
-
-        timestamp = artifact.raw_path.rsplit("/", 1)[-1]
-        frame: Optional[RadarFile] = None
-        if session is not None:
-            frame = _find_catalog_frame_for_artifact(session, artifact)
-            if frame is not None:
-                timestamp = frame.timestamp
-
-        artifact_built = 0
-        for z in z_levels:
+    if xy_limit is not None:
+        dirs = artifact_dirs[: limit if limit is not None else len(artifact_dirs)]
+        result.frames_considered = len(dirs)
+        for output_dir in dirs:
+            artifact = load_decode_manifest(storage, output_dir)
+            if artifact is None:
+                result.frames_skipped += 1
+                continue
+            geo_path = geo_metadata_path(storage, output_dir)
+            if not storage.path_exists(geo_path):
+                result.frames_skipped += 1
+                plan_errors.append(f"{output_dir}: missing geo_metadata.json")
+                continue
+            metadata = load_geo_metadata(storage, output_dir)
+            if metadata is None:
+                result.frames_skipped += 1
+                continue
+            validation = validate_geo_metadata(metadata)
+            if not validation.valid:
+                result.frames_skipped += 1
+                plan_errors.append(f"{output_dir}: {'; '.join(validation.errors)}")
+                continue
+            timestamp = artifact.raw_path.rsplit("/", 1)[-1]
+            if session is not None:
+                frame = _find_catalog_frame_for_artifact(session, artifact)
+                if frame is not None:
+                    timestamp = frame.timestamp
             for x in range(xy_limit):
                 for y in range(xy_limit):
-                    path = build_production_tile_for_frame(
-                        storage,
-                        layer=layer,
-                        timestamp=timestamp,
-                        artifact=artifact,
-                        metadata=metadata,
-                        z=z,
-                        x=x,
-                        y=y,
+                    jobs.append(
+                        ProductionTileJob(
+                            layer=layer,
+                            timestamp=timestamp,
+                            z=lo,
+                            x=x,
+                            y=y,
+                            artifact=artifact,
+                            metadata=metadata,
+                            output_dir=output_dir,
+                            geo_path=geo_path,
+                        )
                     )
-                    if path is None:
-                        skipped += 1
-                    else:
-                        built += 1
-                        artifact_built += 1
+    else:
+        jobs, plan_errors = plan_production_tile_jobs(
+            storage,
+            session,
+            layer=layer,
+            min_zoom=lo,
+            max_zoom=hi,
+            limit=limit,
+        )
+        planned_dirs = {job.output_dir for job in jobs}
+        result.frames_considered = len(planned_dirs) + len(
+            [e for e in plan_errors if "missing geo_metadata" in e or "unreadable" in e or "unsupported" in e]
+        )
+        result.frames_skipped = max(0, len(artifact_dirs) - len(planned_dirs))
 
-        if mark_catalog and session is not None and frame is not None and artifact_built > 0:
+    result.errors.extend(plan_errors)
+    result.tiles_planned = len(jobs)
+    outcomes = execute_production_tile_batch(storage, jobs, force=force, dry_run=dry_run)
+
+    frames_with_writes: set[str] = set()
+    catalog_marked = 0
+
+    for job, outcome in zip(jobs, outcomes):
+        if outcome.status == "planned":
+            continue
+        if outcome.status == "written":
+            result.tiles_written += 1
+            result.output_bytes += outcome.output_bytes
+            frames_with_writes.add(job.output_dir)
+        elif outcome.status == "skipped_existing":
+            result.tiles_skipped_existing += 1
+        elif outcome.status == "failed":
+            result.tiles_failed += 1
+            if outcome.error:
+                result.errors.append(f"{job.cache_path or job.output_dir}: {outcome.error}")
+
+    if mark_catalog and session is not None and not dry_run:
+        for output_dir in frames_with_writes:
+            artifact = load_decode_manifest(storage, output_dir)
+            if artifact is None:
+                continue
+            frame = _find_catalog_frame_for_artifact(session, artifact)
+            if frame is None:
+                continue
             mark_frame_production_prototype(
                 frame,
                 artifact=artifact,
-                metadata_path=geo_path,
+                metadata_path=geo_metadata_path(storage, output_dir),
             )
             catalog_marked += 1
+        if catalog_marked > 0:
+            session.commit()
 
-    notes.append(f"Artifacts found: {len(artifact_dirs)}")
-    notes.append("Production warping prototype — not verified real MRMS output.")
-    if mark_catalog:
-        notes.append(f"Catalog marked production_rendered (prototype): {catalog_marked} frame(s)")
-    else:
-        notes.append("Catalog not modified (use --mark-catalog to update matching frames).")
+    result.catalog_marked = catalog_marked
+    result.elapsed_seconds = round(time.perf_counter() - started, 4)
+    result.notes.append(f"Artifacts found: {len(artifact_dirs)}")
+    result.notes.append("Production warping prototype — not verified real MRMS output.")
+    if dry_run:
+        result.notes.append(f"Dry run: {result.tiles_planned} tile(s) planned, none written.")
+    if mark_catalog and not dry_run:
+        result.notes.append(f"Catalog marked production_rendered (prototype): {catalog_marked} frame(s)")
+    elif not mark_catalog:
+        result.notes.append("Catalog not modified (use --mark-catalog to update matching frames).")
 
-    if session is not None and mark_catalog and catalog_marked > 0:
-        session.commit()
-
-    return BuildProductionTilesResult(
-        built=built,
-        skipped=skipped,
-        artifacts_found=len(artifact_dirs),
-        catalog_marked=catalog_marked,
-        notes=notes,
-    )
-
+    return result

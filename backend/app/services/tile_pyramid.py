@@ -131,6 +131,68 @@ def _geo_to_grid_fraction(
     return col_frac, row_frac
 
 
+def lon_lat_to_grid_fraction(
+    lon: float,
+    lat: float,
+    metadata: GeoRenderMetadata,
+) -> tuple[float, float]:
+    """Map lon/lat to grid fraction using transform when available, else bounds."""
+    transform = metadata.transform
+    width = metadata.grid_width
+    height = metadata.grid_height
+    if transform and len(transform) >= 6 and width > 1 and height > 1:
+        a, b, c, d, e, f = transform[:6]
+        det = a * e - b * d
+        if abs(det) > 1e-12:
+            col = (e * (lon - c) - b * (lat - f)) / det
+            row = (-d * (lon - c) + a * (lat - f)) / det
+            col_frac = col / (width - 1)
+            row_frac = row / (height - 1)
+            return col_frac, row_frac
+    return _geo_to_grid_fraction(lon, lat, metadata.bounds)
+
+
+def mercator_to_tile_xy(x: float, y: float, z: int) -> tuple[int, int]:
+    n = 2**z
+    tile_span = (2 * WEB_MERCATOR_HALF_EXTENT) / n
+    x_idx = int((x + WEB_MERCATOR_HALF_EXTENT) / tile_span)
+    y_idx = int((WEB_MERCATOR_HALF_EXTENT - y) / tile_span)
+    x_idx = max(0, min(n - 1, x_idx))
+    y_idx = max(0, min(n - 1, y_idx))
+    return x_idx, y_idx
+
+
+def iter_tiles_for_bounds(bounds: list[float], z: int) -> list[tuple[int, int, int]]:
+    """Return (z, x, y) tile indices intersecting WGS84 bounds at zoom z."""
+    west, south, east, north = bounds
+    corners = [
+        lon_lat_to_web_mercator(west, south),
+        lon_lat_to_web_mercator(east, south),
+        lon_lat_to_web_mercator(west, north),
+        lon_lat_to_web_mercator(east, north),
+    ]
+    xs: list[int] = []
+    ys: list[int] = []
+    for mx, my in corners:
+        tx, ty = mercator_to_tile_xy(mx, my, z)
+        xs.append(tx)
+        ys.append(ty)
+    x_min, x_max = min(xs), max(xs)
+    y_min, y_max = min(ys), max(ys)
+    tiles: list[tuple[int, int, int]] = []
+    for x in range(x_min, x_max + 1):
+        for y in range(y_min, y_max + 1):
+            tiles.append((z, x, y))
+    return tiles
+
+
+def count_tiles_for_zoom_range(bounds: list[float], min_zoom: int, max_zoom: int) -> int:
+    total = 0
+    for z in range(min_zoom, max_zoom + 1):
+        total += len(iter_tiles_for_bounds(bounds, z))
+    return total
+
+
 def _sample_bilinear(grid: list[list[float]], col_frac: float, row_frac: float) -> float:
     height = len(grid)
     width = len(grid[0]) if height else 0
@@ -173,7 +235,6 @@ def warp_grid_to_tile_values(
         return None
 
     min_x, min_y, max_x, max_y = tile_bounds_epsg3857(z, x, y)
-    bounds = metadata.bounds
     tile: list[list[float]] = []
 
     for row in range(tile_size):
@@ -182,7 +243,7 @@ def warp_grid_to_tile_values(
         for col in range(tile_size):
             px = min_x + (col + 0.5) * (max_x - min_x) / tile_size
             lon, lat = web_mercator_to_lon_lat(px, py)
-            col_frac, row_frac = _geo_to_grid_fraction(lon, lat, bounds)
+            col_frac, row_frac = lon_lat_to_grid_fraction(lon, lat, metadata)
             row_values.append(_sample_bilinear(grid, col_frac, row_frac))
         tile.append(row_values)
     return tile

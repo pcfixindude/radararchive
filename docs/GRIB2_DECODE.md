@@ -151,6 +151,17 @@ Output cache: `data/tiles/production/{layer}/{timestamp}/{z}/{x}/{y}.png`
 
 Serving tile mode: `production-prototype` (not verified real radar).
 
+Build CLI (Phase 16):
+
+```bash
+make build-production-tiles
+PYTHONPATH=. python scripts/build_production_tiles.py --min-zoom 0 --max-zoom 2
+PYTHONPATH=. python scripts/build_production_tiles.py --dry-run --json-report
+PYTHONPATH=. python scripts/build_production_tiles.py --force
+```
+
+Benchmark JSON includes: `frames_considered`, `tiles_written`, `tiles_planned`, `elapsed_seconds`, `output_bytes`, `errors`, `prototype`, `verified_mrms`.
+
 Report: `make render-status` (optional `--sync` to update catalog from artifacts).
 
 ## Inspection CLI

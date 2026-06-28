@@ -1,15 +1,15 @@
 # Next Steps
 
-## Phase 16 - Production Pipeline Hardening + Multi-Zoom Pyramids
+## Phase 17 - Background Worker + Render Queue
 
-Goal: Expand warping prototype to full zoom pyramids, improve CRS/transform handling, validate against known MRMS frames, and add worker-based batch rendering.
+Goal: Move production tile batch builds off the CLI into a worker process with a simple job queue, progress tracking, and safer catalog promotion workflow.
 
 Suggested work:
-1. Multi-zoom production pyramid (z0–z8) with CONUS bounds tuning
-2. Use `transform` from geo metadata when present
-3. Background worker job for `build-production-tiles` (not in API routes)
-4. Benchmark one real MRMS frame end-to-end
-5. Separate `production_rendered` from `production_prototype` status if needed
+1. Worker script/process for `build-production-tiles` batches (not in API routes)
+2. Simple SQLite or file-based job queue for render tasks
+3. Separate `production_prototype` vs future `production_verified` catalog status
+4. Progress reporting API (dev-only) for build status
+5. Validate one real MRMS frame against known bounds
 6. Keep placeholder default for offline dev
 
 Do not start yet:
@@ -17,26 +17,29 @@ Do not start yet:
 - Real auth / user accounts
 - HRRR / WPC / native Android
 
-## Phase 15 verification commands
+## Phase 16 verification commands
 
 ```bash
 make test
 make build-production-tiles
-make render-status
+PYTHONPATH=. python scripts/build_production_tiles.py --dry-run --json-report
 cd frontend && npm run build
 ```
 
-Production warping prototype:
+Production build benchmark:
 
 ```bash
 make decode-grib2
-make build-production-tiles
-make build-production-tiles -- --mark-catalog   # fixture/test catalog only
+PYTHONPATH=. python scripts/build_production_tiles.py --min-zoom 0 --max-zoom 2 --json-report
+PYTHONPATH=. python scripts/build_production_tiles.py --dry-run
+PYTHONPATH=. python scripts/build_production_tiles.py --force
+```
+
+Production serving (unchanged gates):
+
+```bash
+PYTHONPATH=. python scripts/build_production_tiles.py --mark-catalog   # fixture/test ONLY
 ENABLE_PRODUCTION_RADAR_TILES=true make backend
-curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/{timestamp}/0/0/0.png"
-# X-RadarArchive-Tile: production-prototype
-# X-RadarArchive-Production-Rendering: true
-# X-RadarArchive-Render-Status: production_rendered
 ```
 
 Placeholder default (unchanged):
@@ -45,11 +48,4 @@ Placeholder default (unchanged):
 curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:00:00Z/0/0/0.png"
 # X-RadarArchive-Tile: placeholder
 # X-RadarArchive-Production-Rendering: false
-# X-RadarArchive-Render-Status: placeholder
-```
-
-Decoded prototype (unchanged):
-
-```bash
-ENABLE_DECODED_TILES=true make backend
 ```

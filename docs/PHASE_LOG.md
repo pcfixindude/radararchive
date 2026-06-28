@@ -735,3 +735,34 @@ cd frontend && npm run build
 - `.raw` normalized grids only (no rasterio required)
 - Default remains placeholder tiles; production flag off by default
 - Catalog not auto-marked unless `--mark-catalog` on build script
+
+## Phase 16 - Production Tile Build Hardening + Multi-Zoom Benchmark
+
+Hardened production tile builder with limited multi-zoom pyramids, batch worker functions, idempotent builds, dry-run, and JSON benchmark reports.
+
+### Backend
+- Multi-zoom support: `--min-zoom` / `--max-zoom` (default 0–0, capped at z4, max 256 tiles/build)
+- Bounds-based tile planning via `iter_tiles_for_bounds`
+- `transform` metadata used for grid sampling when present (affine inverse)
+- Worker-style: `plan_production_tile_jobs` + `execute_production_tile_batch`
+- Idempotent: skip existing tiles unless `--force`
+- `BuildProductionTilesResult.to_dict()` JSON report with metrics
+
+### Scripts
+- `scripts/build_production_tiles.py`: `--min-zoom`, `--max-zoom`, `--force`, `--dry-run`, `--json-report`, `--limit`
+- Prominent stderr warning when `--mark-catalog` is used
+
+### Run commands
+
+```bash
+make test
+make build-production-tiles
+make build-production-tiles -- --dry-run --json-report
+cd frontend && npm run build
+```
+
+### Known limitations
+- No job queue/worker process yet — batch functions only
+- Zoom cap z4 and 256 tiles/build to prevent accidental pyramids
+- Still not verified real MRMS production output
+- Placeholder default unchanged

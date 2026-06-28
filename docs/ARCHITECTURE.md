@@ -218,9 +218,28 @@ Tile serving order in `decoded_tile_cache.serve_tile_with_optional_decode`:
 
 CLI: `make build-production-tiles` (`scripts/build_production_tiles.py`); optional `--mark-catalog` for test/fixture frames only.
 
+### Production build batch + multi-zoom (Phase 16)
+Build flow:
+1. `plan_production_tile_jobs` — scan decode artifacts, validate geo metadata, compute bounds-intersecting XYZ tiles per zoom
+2. `execute_production_tile_batch` — worker-style executor (no queue yet)
+3. Idempotent write: skip existing cache paths unless `--force`
+4. `--dry-run` reports planned tiles without writing
+
+Safe defaults:
+- `--min-zoom 0 --max-zoom 0` (single zoom level)
+- Max zoom capped at z4
+- Max 256 tiles per build
+
+Benchmark report (`BuildProductionTilesResult.to_dict()`):
+- `frames_considered`, `frames_skipped`, `zooms_built`, `tiles_written`, `tiles_planned`
+- `elapsed_seconds`, `output_bytes`, `errors`
+- `prototype: true`, `verified_mrms: false`
+
 Production cache: `data/tiles/production/{layer}/{timestamp}/{z}/{x}/{y}.png`
 
 Tile mode when served: `production-prototype` with `X-RadarArchive-Production-Rendering: true`.
+
+Build CLI flags (Phase 16): `--min-zoom`, `--max-zoom`, `--force`, `--dry-run`, `--json-report`, `--limit`, `--mark-catalog`.
 
 CLI: `make render-status` (`scripts/render_status.py`) — reports frame/artifact counts; `--sync` updates catalog without marking production.
 

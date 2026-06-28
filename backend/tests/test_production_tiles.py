@@ -18,14 +18,21 @@ from backend.app.services.decoded_tile_cache import (
 )
 from backend.app.services.grib2_decoder import MANIFEST_NAME, RASTER_RAW_NAME, build_decode_output_dir
 from backend.app.services.production_tile_builder import (
+    DEFAULT_MAX_ZOOM,
+    DEFAULT_MIN_ZOOM,
+    MAX_TILES_PER_BUILD,
     build_production_tile_for_frame,
     build_production_tiles,
     mark_frame_production_prototype,
+    plan_production_tile_jobs,
     render_production_warped_tile_png,
 )
-from backend.app.services.tile_pyramid import build_production_tile_repo_path, production_tile_cache_path
 from backend.app.services.render_metadata import GeoRenderMetadata, write_geo_metadata
 from backend.app.services.tile_pyramid import (
+    build_production_tile_repo_path,
+    count_tiles_for_zoom_range,
+    iter_tiles_for_bounds,
+    lon_lat_to_grid_fraction,
     production_tile_cache_path,
     validate_geo_metadata,
     warp_grid_to_tile_values,
@@ -158,7 +165,7 @@ def test_build_production_tile_for_frame_writes_cache(storage):
     artifact = load_decode_manifest(storage, output_dir)
     assert artifact is not None
 
-    path = build_production_tile_for_frame(
+    outcome = build_production_tile_for_frame(
         storage,
         layer="mrms_reflectivity",
         timestamp="2026-06-25T18:00:00Z",
@@ -168,8 +175,9 @@ def test_build_production_tile_for_frame_writes_cache(storage):
         x=0,
         y=0,
     )
-    assert path is not None
-    assert storage.path_exists(path)
+    assert outcome.status == "written"
+    assert outcome.cache_path is not None
+    assert storage.path_exists(outcome.cache_path)
 
 
 def test_build_production_tiles_safe_with_no_artifacts(storage):
@@ -326,3 +334,106 @@ def test_mark_frame_production_prototype_unit(storage):
     )
     assert frame.render_status == RENDER_STATUS_PRODUCTION_RENDERED
     assert frame.production_rendering is True
+
+
+def test_safe_default_zoom_range():
+    assert DEFAULT_MIN_ZOOM == 0
+    assert DEFAULT_MAX_ZOOM == 0
+
+
+def test_multi_zoom_tile_count_limited_for_small_bounds():
+    bounds = [-100.0, 35.0, -99.0, 36.0]
+    z0 = len(iter_tiles_for_bounds(bounds, 0))
+    z1 = len(iter_tiles_for_bounds(bounds, 1))
+    assert z0 >= 1
+    assert count_tiles_for_zoom_range(bounds, 0, 1) == z0 + z1
+
+
+def test_dry_run_writes_no_files(storage):
+    raw_path = storage.normalize_path("raw", "mrms", "reflectivity", "dry_run.grib2.gz")
+    _write_warp_fixture(storage, raw_path)
+
+    result = build_production_tiles(storage, dry_run=True)
+    assert result.tiles_planned >= 1
+    assert result.tiles_written == 0
+    assert result.dry_run is True
+    assert result.output_bytes == 0
+
+
+def test_idempotent_skip_existing_tiles(storage):
+    raw_path = storage.normalize_path("raw", "mrms", "reflectivity", "idempotent.grib2.gz")
+    _write_warp_fixture(storage, raw_path)
+
+    first = build_production_tiles(storage)
+    assert first.tiles_written >= 1
+
+    second = build_production_tiles(storage)
+    assert second.tiles_skipped_existing >= 1
+    assert second.tiles_written == 0
+
+
+def test_force_rebuild_tiles(storage):
+    raw_path = storage.normalize_path("raw", "mrms", "reflectivity", "force.grib2.gz")
+    _write_warp_fixture(storage, raw_path)
+
+    first = build_production_tiles(storage)
+    assert first.tiles_written >= 1
+
+    forced = build_production_tiles(storage, force=True)
+    assert forced.tiles_written >= 1
+    assert forced.force is True
+
+
+def test_json_report_shape(storage):
+    raw_path = storage.normalize_path("raw", "mrms", "reflectivity", "json.grib2.gz")
+    _write_warp_fixture(storage, raw_path)
+
+    result = build_production_tiles(storage, dry_run=True)
+    report = result.to_dict()
+    for key in (
+        "frames_considered",
+        "frames_skipped",
+        "zooms_built",
+        "tiles_written",
+        "tiles_planned",
+        "elapsed_seconds",
+        "output_bytes",
+        "errors",
+        "prototype",
+        "verified_mrms",
+    ):
+        assert key in report
+    assert report["prototype"] is True
+    assert report["verified_mrms"] is False
+
+
+def test_build_summary_metrics_populated(storage):
+    raw_path = storage.normalize_path("raw", "mrms", "reflectivity", "metrics.grib2.gz")
+    _write_warp_fixture(storage, raw_path)
+
+    result = build_production_tiles(storage)
+    assert result.frames_considered >= 1
+    assert result.zooms_built == [0]
+    assert result.tiles_written >= 1
+    assert result.output_bytes > 0
+    assert result.elapsed_seconds >= 0
+
+
+def test_transform_metadata_used_when_present(storage):
+    raw_path = storage.normalize_path("raw", "mrms", "reflectivity", "transform.grib2.gz")
+    output_dir, metadata = _write_warp_fixture(storage, raw_path)
+    metadata.transform = [0.125, 0.0, -100.0, 0.0, -0.125, 36.0]
+    write_geo_metadata(storage, output_dir, metadata)
+
+    col_frac, row_frac = lon_lat_to_grid_fraction(-99.5, 35.5, metadata)
+    assert 0.0 <= col_frac <= 1.0
+    assert 0.0 <= row_frac <= 1.0
+
+
+def test_plan_production_tile_jobs_batch(storage):
+    raw_path = storage.normalize_path("raw", "mrms", "reflectivity", "batch.grib2.gz")
+    _write_warp_fixture(storage, raw_path)
+
+    jobs, errors = plan_production_tile_jobs(storage, None, layer="mrms_reflectivity", min_zoom=0, max_zoom=0)
+    assert len(jobs) >= 1
+    assert errors == []
