@@ -100,6 +100,26 @@ export function fetchAccessCurrent(plan: DemoPlan): Promise<AccessCurrentInfo> {
   return getJson<AccessCurrentInfo>(`/api/access/current?plan=${encodeURIComponent(plan)}`, plan);
 }
 
+export type TilesConfigInfo = {
+  enable_decoded_tiles: boolean;
+  default_mode: string;
+  decoded_mode: string;
+  production_rendering: boolean;
+  note: string;
+};
+
+export async function fetchTilesConfig(): Promise<TilesConfigInfo | null> {
+  try {
+    const response = await fetch(`${API_BASE}/tiles/config`);
+    if (!response.ok) {
+      return null;
+    }
+    return response.json() as Promise<TilesConfigInfo>;
+  } catch {
+    return null;
+  }
+}
+
 export function tileUrl(layer: string, timestamp: string, plan: DemoPlan, z = 0, x = 0, y = 0): string {
   const encoded = encodeURIComponent(timestamp);
   return `${API_BASE}/tiles/${encodeURIComponent(layer)}/${encoded}/${z}/${x}/${y}.png?plan=${encodeURIComponent(plan)}`;

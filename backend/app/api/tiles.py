@@ -3,12 +3,35 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from backend.app.api.deps import ensure_plan_exists, resolve_demo_plan
+from backend.app.config import settings
 from backend.app.database import get_db
 from backend.app.services import access_control as access_service
 from backend.app.services import catalog as catalog_service
-from backend.app.services.tile_service import generate_placeholder_tile_png
+from backend.app.services.decoded_tile_cache import serve_tile_with_optional_decode
+from backend.app.services.storage import LocalStorage
 
 router = APIRouter()
+
+
+def _tile_response_headers(tile_mode: str, raw_kind: str = "") -> dict[str, str]:
+    return {
+        "Cache-Control": "no-store",
+        "X-RadarArchive-Tile": tile_mode,
+        "X-RadarArchive-Production-Rendering": "false",
+        "X-RadarArchive-Raw-Kind": raw_kind,
+    }
+
+
+@router.get("/tiles/config")
+def tiles_config() -> dict:
+    """Dev endpoint: tile serving mode configuration."""
+    return {
+        "enable_decoded_tiles": settings.enable_decoded_tiles,
+        "default_mode": "placeholder",
+        "decoded_mode": "decoded-prototype",
+        "production_rendering": False,
+        "note": "Decoded tiles are prototype-only and require ENABLE_DECODED_TILES=true plus decode artifacts.",
+    }
 
 
 @router.get("/tiles/{layer}/{timestamp}/{z}/{x}/{y}.png")
@@ -41,17 +64,21 @@ def get_tile(
     if frame is None:
         raise HTTPException(status_code=404, detail="Tile unavailable for layer/timestamp")
 
-    tile_kind = "placeholder"
-    if frame.processed_status == "placeholder_for_real_raw":
-        tile_kind = "placeholder_for_real_raw"
-
-    png_bytes = generate_placeholder_tile_png(z=z, x=x, y=y)
-    return Response(
-        content=png_bytes,
-        media_type="image/png",
-        headers={
-            "Cache-Control": "no-store",
-            "X-RadarArchive-Tile": tile_kind,
-            "X-RadarArchive-Raw-Kind": frame.raw_kind or "",
-        },
+    storage = LocalStorage(settings.local_storage_root)
+    served = serve_tile_with_optional_decode(
+        storage,
+        frame,
+        timestamp,
+        enable_decoded_tiles=settings.enable_decoded_tiles,
+        z=z,
+        x=x,
+        y=y,
     )
+
+    headers = _tile_response_headers(served.tile_mode, frame.raw_kind or "")
+    if served.fallback:
+        headers["X-RadarArchive-Tile-Fallback"] = "true"
+    if served.from_cache:
+        headers["X-RadarArchive-Tile-Cache"] = "hit"
+
+    return Response(content=served.png_bytes, media_type="image/png", headers=headers)

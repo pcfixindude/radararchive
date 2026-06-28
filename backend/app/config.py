@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     mrms_s3_region_prefix: str = "CONUS"
     mrms_request_timeout_seconds: float = 5.0
     mrms_discovery_lookback_days: int = 3
+    enable_decoded_tiles: bool = False
 
     @property
     def sqlite_path(self) -> Optional[Path]:

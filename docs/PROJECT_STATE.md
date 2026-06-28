@@ -1,34 +1,45 @@
 # Project State
 
-Current phase: Phase 12 complete
+Current phase: Phase 13 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
-- MRMS discovery + download pipeline
-- Placeholder processor and `/tiles` behavior unchanged
-- GRIB2 inspection spike (`make inspect-grib2`)
-- GRIB2 decode prototype (`make decode-grib2`) — optional rasterio/wgrib2
-- Decode output under `data/staging/grib2_decode/` (not served by API)
-- No production rendering; real MRMS not marked as rendered
+- MRMS discovery → download → decode prototype pipeline
+- **Default tile serving: placeholder** (`ENABLE_DECODED_TILES=false`)
+- Optional decoded prototype tiles when flag enabled + decode artifacts exist
+- `make build-tile-cache` pre-builds prototype tile cache
+- No production rendering; catalog not marked as rendered
+
+## Feature flag
+
+```bash
+# Default — placeholder tiles only
+ENABLE_DECODED_TILES=false
+
+# Enable decoded prototype tiles (requires decode artifacts)
+ENABLE_DECODED_TILES=true make backend
+```
 
 ## Local test
 
 ```bash
 make test
+make build-tile-cache
 make inspect-grib2
-make decode-grib2
 cd frontend && npm run build
 ```
 
-## Prototype decode
+## Pipeline
 
 ```bash
+make download-mrms -- --register-discovered --limit 1
 make decode-grib2
-PYTHONPATH=. python scripts/decode_grib2.py --file data/raw/mrms/reflectivity/example.grib2.gz
+make build-tile-cache
+ENABLE_DECODED_TILES=true make backend
 ```
 
-See `docs/GRIB2_DECODE.md` for optional decoder install and production rendering prerequisites.
+See `docs/GRIB2_DECODE.md` for full decode/tile-cache notes.
 
 ## Demo plans
 

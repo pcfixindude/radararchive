@@ -69,24 +69,34 @@ make inspect-grib2
 
 See `docs/GRIB2_DECODE.md` for decoder options and the intended future pipeline.
 
-Decode GRIB2 prototype raster (Phase 12 — optional deps, not served by `/tiles`):
+Decode GRIB2 prototype raster (Phase 12 — optional deps):
 
 ```bash
 make decode-grib2
 PYTHONPATH=. python scripts/decode_grib2.py --file data/raw/mrms/reflectivity/example.grib2.gz
 ```
 
+Build prototype tile cache (Phase 13 — feature-flagged, default off):
+
+```bash
+make build-tile-cache
+ENABLE_DECODED_TILES=true make backend
+curl http://127.0.0.1:8000/tiles/config
+```
+
 Behavior:
 - Demo/collector/MRMS stub raw files → `placeholder_processed` (map tiles work)
-- Real downloaded `.grib2.gz` → `placeholder_for_real_raw` preview only (GRIB2 decode not implemented)
-- All tiles remain programmatic placeholders — not real radar
+- Real downloaded `.grib2.gz` → `placeholder_for_real_raw` preview by default
+- With `ENABLE_DECODED_TILES=true` + decode artifacts → optional `decoded-prototype` tiles
+- All serving modes include `X-RadarArchive-Production-Rendering: false`
 
 Limitations:
 - Default `MRMS_SOURCE_MODE=stub` uses offline sample listings and stub downloads
 - Real mode downloads public NOAA AWS GRIB2.gz but does not parse or render radar
 - `make inspect-grib2` reports metadata when wgrib2/optional decoders are installed
 - `make decode-grib2` writes prototype artifacts to `data/staging/grib2_decode/` when decoders exist
-- Map `/tiles` still serves placeholders only
+- `ENABLE_DECODED_TILES=false` by default — map `/tiles` serves placeholders only
+- Set `ENABLE_DECODED_TILES=true` to allow decoded-prototype tiles when artifacts exist
 
 In another terminal:
 

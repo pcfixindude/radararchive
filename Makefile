@@ -1,4 +1,4 @@
-.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once discover-mrms download-mrms inspect-grib2 decode-grib2
+.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once discover-mrms download-mrms inspect-grib2 decode-grib2 build-tile-cache
 
 setup:
 	python3 -m venv .venv
@@ -41,3 +41,6 @@ inspect-grib2:
 
 decode-grib2:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/decode_grib2.py --latest-mrms --limit 1
+
+build-tile-cache:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/build_tile_cache.py

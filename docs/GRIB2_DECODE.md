@@ -91,6 +91,19 @@ The manifest explicitly states that catalog `processed_status` and `/tiles` were
 4. Update `/tiles` to serve real imagery only when explicitly enabled
 5. Keep stub/demo paths on placeholder tiles for offline dev
 
+The manifest explicitly states that catalog `processed_status` and default `/tiles` behavior were not changed.
+
+## Tile cache prototype (Phase 13)
+
+Feature flag: `ENABLE_DECODED_TILES=false` (default).
+
+When enabled and Phase 12 artifacts exist for a catalog frame:
+- `/tiles` may return `decoded-prototype` PNG tiles (simple grid sampling)
+- Pre-build cache: `make build-tile-cache` → `data/tiles/decoded_prototype/`
+- Headers: `X-RadarArchive-Tile: decoded-prototype`, `X-RadarArchive-Production-Rendering: false`
+
+When disabled or artifacts missing: placeholder tiles (unchanged Phase 4–12 behavior).
+
 ## Inspection CLI
 
 ```bash
@@ -116,6 +129,7 @@ When no decoder is installed, the script still reports gzip size and GRIB magic 
 - `backend/app/services/grib2_decoder.py` — prototype raster decode (optional deps)
 - `scripts/inspect_grib2.py` — inspection CLI
 - `scripts/decode_grib2.py` — decode prototype CLI
+- `scripts/build_tile_cache.py` — tile cache builder CLI
 
 ## Non-goals (Phases 11–12)
 

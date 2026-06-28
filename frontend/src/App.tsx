@@ -5,6 +5,7 @@ import {
   fetchAccessCurrent,
   fetchLayers,
   fetchTimes,
+  fetchTilesConfig,
   type AccessCurrentInfo,
   type DemoPlan,
 } from './api/client';
@@ -32,6 +33,7 @@ export default function App() {
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [error, setError] = useState('');
   const [radarOpacity, setRadarOpacity] = useState(0.65);
+  const [tileModeLabel, setTileModeLabel] = useState('Placeholder');
 
   const selectedLayerMeta = useMemo(
     () => layers.find((layer) => layer.id === selectedLayer),
@@ -110,6 +112,27 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
 
+    async function loadTileMode() {
+      const config = await fetchTilesConfig();
+      if (cancelled || !config) {
+        return;
+      }
+      if (config.enable_decoded_tiles) {
+        setTileModeLabel('Decoded prototype (when artifacts exist)');
+      } else {
+        setTileModeLabel('Placeholder');
+      }
+    }
+
+    loadTileMode();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
     async function loadTimes() {
       if (loadState === 'backend_down') {
         return;
@@ -158,7 +181,9 @@ export default function App() {
     <div className="app-shell">
       <header className="app-header">
         <h1>RadarArchive</h1>
-        <p className="demo-banner">Placeholder tiles only — GRIB2 inspection spike available; rendering still placeholder.</p>
+        <p className="demo-banner">
+          Tile mode: {tileModeLabel} — not production radar. GRIB2 inspection/decode prototypes available offline.
+        </p>
       </header>
       <main className="app-main">
         <WeatherMap

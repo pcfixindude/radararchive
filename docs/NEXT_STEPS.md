@@ -1,42 +1,44 @@
 # Next Steps
 
-## Phase 13 - Tile Pyramid from Decoded Raster (feature-flagged)
+## Phase 14 - Geo-Accurate Tile Warping + Production Render Gate
 
-Goal: Generate a tile cache or COG from Phase 12 decode artifacts and serve real imagery via `/tiles` behind an explicit feature flag — keep placeholder tiles as default for offline/stub paths.
+Goal: Replace simple grid sampling with proper CRS/bounds alignment, add explicit production render status separate from prototype, and gate real tile serving behind multiple checks (flag + status + artifact validity).
 
 Suggested work:
-1. Warp decoded grid to layer bounds / Web Mercator tile scheme
-2. Write tile pyramid under `data/tiles/mrms/reflectivity/{timestamp}/`
-3. Add catalog status such as `real_raster_processed` (distinct from placeholder)
-4. Gate `/tiles` on feature flag + status; default remains placeholder
-5. Benchmark one CONUS frame end-to-end
+1. Map MRMS grid to layer bounds / Web Mercator
+2. Add `real_raster_processed` catalog status distinct from prototype
+3. Separate `ENABLE_DECODED_TILES` from future `ENABLE_PRODUCTION_RENDERING`
+4. Benchmark tile pyramid for one CONUS frame
+5. Keep placeholder default for offline dev
 
 Do not start yet:
 - Stripe billing integration
 - Real auth / user accounts
 - HRRR / WPC / native Android
 
-## Phase 12 verification commands
+## Phase 13 verification commands
 
 ```bash
 make test
-make inspect-grib2
+make build-tile-cache
 make decode-grib2
-make process-once
 cd frontend && npm run build
 ```
 
-Decode prototype:
+Decoded tile prototype:
 
 ```bash
 make decode-grib2
-MRMS_SOURCE_MODE=real make download-mrms -- --register-discovered --limit 1
-make decode-grib2
-ls data/staging/grib2_decode/
+make build-tile-cache
+curl http://127.0.0.1:8000/tiles/config
+curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:00:00Z/0/0/0.png"
+ENABLE_DECODED_TILES=true make backend
 ```
 
-Placeholder pipeline (must remain unchanged):
+Placeholder default (unchanged):
 
 ```bash
 curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:00:00Z/0/0/0.png"
+# X-RadarArchive-Tile: placeholder
+# X-RadarArchive-Production-Rendering: false
 ```

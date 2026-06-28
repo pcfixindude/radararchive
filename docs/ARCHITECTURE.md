@@ -173,7 +173,25 @@ Output: `data/staging/grib2_decode/{token}/decode_manifest.json` + raster file.
 
 CLI: `make decode-grib2` (`scripts/decode_grib2.py`).
 
-**Does not change** catalog `processed_status`, processor behavior, or `/tiles` responses.
+**Does not change** catalog `processed_status` or default `/tiles` behavior.
+
+### Decoded tile cache prototype (Phase 13)
+`backend/app/services/decoded_tile_cache.py` — optional prototype tiles from Phase 12 artifacts.
+
+Feature flag: `ENABLE_DECODED_TILES=false` (default).
+
+When enabled + valid artifact:
+- Serves `decoded-prototype` PNG tiles derived from `normalized.raw` / `normalized.tif`
+- Caches under `data/tiles/decoded_prototype/{timestamp}/{z}/{x}/{y}.png`
+
+When disabled or artifact missing:
+- Falls back to existing placeholder tile behavior
+
+CLI: `make build-tile-cache` (`scripts/build_tile_cache.py`).
+
+Dev endpoint: `GET /tiles/config`
+
+Headers always include `X-RadarArchive-Production-Rendering: false`.
 
 Staging: decompressed copies under `data/staging/grib2_inspect/` for tool inspection only.
 
@@ -196,4 +214,5 @@ Raw source files are immutable. Processed files can be regenerated. Database rec
 - `data/processed/` — processed PNG placeholders (processor stub)
 - `data/staging/grib2_inspect/` — decompressed GRIB2 staging for inspection spike (Phase 11)
 - `data/staging/grib2_decode/` — prototype normalized raster artifacts (Phase 12, not served by API)
+- `data/tiles/decoded_prototype/` — optional prototype tile cache (Phase 13, feature-flagged)
 - `data/tiles/` — rendered map tiles directory (reserved for later phases)

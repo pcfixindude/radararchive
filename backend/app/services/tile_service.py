@@ -39,3 +39,68 @@ def generate_placeholder_tile_png(
         + _png_chunk(b"IDAT", compressed)
         + _png_chunk(b"IEND", b"")
     )
+
+
+def _sample_grid_to_tile(
+    grid: list[list[float]],
+    *,
+    z: int,
+    x: int,
+    y: int,
+    width: int,
+    height: int,
+) -> list[list[float]]:
+    grid_h = len(grid)
+    grid_w = len(grid[0]) if grid_h else 0
+    if grid_w == 0 or grid_h == 0:
+        return [[0.0 for _ in range(width)] for _ in range(height)]
+
+    num_tiles = max(1, 2**z)
+    region_w = max(1, grid_w // num_tiles)
+    region_h = max(1, grid_h // num_tiles)
+    start_x = min(grid_w - 1, x * region_w)
+    start_y = min(grid_h - 1, y * region_h)
+
+    tile: list[list[float]] = []
+    for row in range(height):
+        gy = min(grid_h - 1, start_y + (row * region_h // max(1, height)))
+        row_values: list[float] = []
+        for col in range(width):
+            gx = min(grid_w - 1, start_x + (col * region_w // max(1, width)))
+            row_values.append(max(0.0, min(1.0, float(grid[gy][gx]))))
+        tile.append(row_values)
+    return tile
+
+
+def generate_decoded_prototype_tile_png(
+    grid: list[list[float]],
+    *,
+    z: int = 0,
+    x: int = 0,
+    y: int = 0,
+    width: int = 256,
+    height: int = 256,
+) -> bytes:
+    """Render a prototype PNG from a normalized 0..1 grid (not geo-accurate)."""
+    sampled = _sample_grid_to_tile(grid, z=z, x=x, y=y, width=width, height=height)
+
+    raw = b""
+    for row in sampled:
+        raw += b"\x00"
+        for value in row:
+            # Simple reflectivity-like blue→green→yellow→red prototype ramp.
+            v = max(0.0, min(1.0, value))
+            r = int(min(255, v * 510))
+            g = int(min(255, max(0.0, (v - 0.25) * 340)))
+            b = int(min(255, max(0.0, (0.6 - v) * 420)))
+            alpha = 180 if v > 0.05 else 40
+            raw += bytes([r, g, b, alpha])
+
+    compressed = zlib.compress(raw, 9)
+    ihdr = struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + _png_chunk(b"IHDR", ihdr)
+        + _png_chunk(b"IDAT", compressed)
+        + _png_chunk(b"IEND", b"")
+    )

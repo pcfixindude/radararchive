@@ -611,3 +611,43 @@ cd frontend && npm run build
 - rasterio/wgrib2 optional; friendly exit when missing
 - wgrib2 bin export is 1-D prototype metadata (width x 1)
 - Real MRMS not marked as rendered in catalog
+
+## Phase 13 - Feature-Flagged Decoded Tile Cache (prototype)
+
+Added optional decoded prototype tile serving behind `ENABLE_DECODED_TILES=false` (default). Placeholder tiles remain default.
+
+### Backend
+- `backend/app/services/decoded_tile_cache.py` — read Phase 12 artifacts, render/cache prototype PNG tiles
+- Config: `ENABLE_DECODED_TILES` (default `false`)
+- Tile cache: `data/tiles/decoded_prototype/{timestamp}/{z}/{x}/{y}.png`
+- Headers: `X-RadarArchive-Tile`, `X-RadarArchive-Production-Rendering: false`
+- `GET /tiles/config` — dev tile mode configuration
+- Fallback to placeholder when flag on but no artifact
+
+### Scripts / Makefile
+- `scripts/build_tile_cache.py`, `make build-tile-cache`
+
+### Frontend
+- Banner shows tile mode (Placeholder vs Decoded prototype when flag enabled)
+
+### Run commands
+
+```bash
+make test
+make build-tile-cache
+ENABLE_DECODED_TILES=true make backend
+```
+
+### Test commands
+
+```bash
+make test
+make build-tile-cache
+cd frontend && npm run build
+```
+
+### Known limitations
+- Decoded tiles are prototype-only (`production_rendering: false` always)
+- Default remains placeholder tiles (`ENABLE_DECODED_TILES=false`)
+- Not geo-accurate warping; simple grid sampling
+- Catalog not marked as production rendered
