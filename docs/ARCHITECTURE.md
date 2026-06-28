@@ -549,6 +549,12 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Summary: `scheduled_operator_status` compact; `operator_review_status` includes `guidance_items`, `top_guidance_item`, `runbook_path`, `runbook_section`, `suggested_action`
 - Read-only — does not mutate alerts, sessions, exports, digests, or gates
 
+### Dev Validation panel UX polish (Phase 51)
+- `CollapsibleSection` + `StatusBadge`, `SafetyNote`, `CommandLine` helpers
+- `ValidationStatusPanel` — collapsible detail sections; **Operator Review Status** fixed at top
+- Summary visible when collapsed; expand for forms, history lists, JSON drilldown
+- Frontend-only — no API or backend changes; does not affect verification or production gates
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

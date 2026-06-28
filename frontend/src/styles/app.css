@@ -70,6 +70,98 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
   white-space: pre-wrap;
   word-break: break-word;
 }
+.validation-operator-review-status {
+  margin: 0.5rem 0 0.75rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  background: #1e293b;
+}
+.validation-operator-review-status h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
+.validation-collapsible {
+  margin: 0.5rem 0 0;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  background: #0f172a;
+}
+.validation-collapsible-header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.validation-collapsible-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.25rem 0;
+  border: none;
+  background: transparent;
+  color: #e2e8f0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.validation-collapsible-toggle:hover {
+  color: #f8fafc;
+}
+.validation-collapsible-chevron {
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  color: #94a3b8;
+}
+.validation-collapsible-summary {
+  margin-top: 0.25rem;
+}
+.validation-collapsible-summary .validation-meta,
+.validation-collapsible-summary .validation-warn {
+  margin-top: 0.2rem;
+}
+.validation-collapsible-body {
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid #334155;
+}
+.validation-status-badge {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: lowercase;
+  background: #334155;
+  color: #e2e8f0;
+}
+.validation-status-badge--urgent {
+  background: #7f1d1d;
+  color: #fecaca;
+}
+.validation-status-badge--attention {
+  background: #78350f;
+  color: #fde68a;
+}
+.validation-status-badge--watch {
+  background: #1e3a5f;
+  color: #bfdbfe;
+}
+.validation-status-badge--ok {
+  background: #14532d;
+  color: #bbf7d0;
+}
+.validation-status-badge--unknown,
+.validation-status-badge--no_data {
+  background: #334155;
+  color: #cbd5e1;
+}
+.validation-command-line {
+  word-break: break-word;
+}
 
 @media (max-width: 800px) {
   .app-main { grid-template-columns: 1fr; grid-template-rows: minmax(45vh, 1fr) auto; }

@@ -1,10 +1,11 @@
 # Project State
 
-Current phase: Phase 50 complete
+Current phase: Phase 51 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
+- **Dev Validation UX polish** — collapsible detail sections; Operator Review Status remains top-level summary
 - **Scheduled operator review status** — consolidated status in scheduled validation reports with runbook guidance
 - **Operator review status consolidation** — runbook deep-links and guidance items in Dev Validation
 - **Default tile serving: placeholder**
@@ -18,17 +19,17 @@ ENABLE_PRODUCTION_RADAR_TILES=false
 STALE_RUNNING_JOB_SECONDS=3600
 ```
 
-## Operator commands (Phase 50)
+## Operator commands (Phase 51)
 
 ```bash
 make operator-review-status
-make scheduled-proof-bundle-operator-status
+make scheduled-validation
 curl http://127.0.0.1:8000/api/validation/summary
 ```
 
 ## Dev API
 
-Summary includes `operator_review_status` (with `guidance_items`, `top_guidance_item`, runbook fields) and `scheduled_operator_status` compact from the latest scheduled run.
+Summary unchanged from Phase 50. Dev Validation panel is frontend-only polish — collapsible sections with summary lines visible when collapsed.
 
 ## Verified MRMS
 

@@ -246,20 +246,21 @@ Limitations:
 - `make mrms-review-session-export` exports latest review session to local Markdown + JSON metadata (does not verify MRMS)
 - `make mrms-review-session-exports` lists bounded review session export history (read-only)
 - `make mrms-review-session-export-diff` shows latest export diff vs previous export (local review only; `improved`/`worsened`/`mixed`/`unchanged`/`no_baseline`)
-- `make mrms-review-session-export-diff-history` lists bounded export diff history (`--json`, `--limit`); Dev Validation summary shows recent 5 entries with show/hide toggle
+- `make mrms-review-session-export-diff-history` lists bounded export diff history (`--json`, `--limit`); Dev Validation collapsible **Review export diff history** shows recent entries when expanded
 - `make mrms-review-session-export-diff-trend` summarizes export diff trend (`improving`/`worsening`/`mixed`/`stable`/`no_data`; `--json`, `--limit`)
 - `make mrms-review-session-export-diff-trend-hint` shows when a new review session/export is recommended (`--json`)
-- `make operator-review-status` prints consolidated local operator review status with runbook guidance (`--json`); Dev Validation shows compact block near top of validation area
+- `make operator-review-status` prints consolidated local operator review status with runbook guidance (`--json`); Dev Validation **Operator Review Status** block stays fixed near the top (not collapsible)
 - `make mrms-review-session ARGS="... --export-after-create"` creates a session and immediately exports Markdown (session is kept if export fails)
 - `make mrms-signoff` records local operator sign-off (does not set verified_mrms)
 - `POST /api/validation/signoffs` — dev-only sign-off API (same validation as CLI; does not verify MRMS)
-- Dev Validation **Show proof review** includes sign-off form + scheduled proof-step compact status
+- Dev Validation panel (Phase 51): collapsible detail sections for alerts, proof, digest, review/export/diff/history, scheduled status, and raw JSON — **Operator Review Status** remains the top-level summary; local-only UI polish (no API or verification changes)
+- Dev Validation **Proof review & sign-off** collapsible includes sign-off form + scheduled proof-step compact status
 - `make real-mrms-smoke-test` runs intentional real-mode smoke test (count 1, zoom 0)
 - Operator runbook: [docs/RUNBOOK_REAL_MRMS_VALIDATION.md](docs/RUNBOOK_REAL_MRMS_VALIDATION.md)
 - Verified MRMS proof criteria (not met): [docs/VERIFIED_MRMS_CRITERIA.md](docs/VERIFIED_MRMS_CRITERIA.md)
 - Operator sign-off template: [docs/MRMS_OPERATOR_SIGNOFF_TEMPLATE.md](docs/MRMS_OPERATOR_SIGNOFF_TEMPLATE.md)
 - `make catalog-status` reports MRMS catalog counts by status
-- Dev validation dashboard: summary/history/benchmarks/scheduled APIs + panel with Refresh and Show details
+- Dev validation dashboard: summary/history/benchmarks/scheduled APIs + panel with Refresh, collapsible sections, and Show details (raw JSON)
 - Build supports `ARGS=` forwarding on Makefile targets (e.g. `make build-production-tiles ARGS="--dry-run"`)
 - `ENABLE_DECODED_TILES=false` by default — map `/tiles` serves placeholders only
 - `ENABLE_PRODUCTION_RADAR_TILES=false` by default — production prototype tiles blocked

@@ -10,17 +10,11 @@ import {
   type MrmsSignoffsList,
   type ValidationSummary,
 } from '../api/client';
-
-function yesNo(value: boolean): string {
-  return value ? 'yes' : 'no';
-}
-
-function formatTimestamp(value: string | null | undefined): string {
-  if (!value) {
-    return '—';
-  }
-  return value.replace('T', ' ').replace('Z', ' UTC');
-}
+import CollapsibleSection from './validation/CollapsibleSection';
+import CommandLine from './validation/CommandLine';
+import SafetyNote from './validation/SafetyNote';
+import StatusBadge from './validation/StatusBadge';
+import { formatTimestamp, yesNo } from './validation/format';
 
 export default function ValidationStatusPanel({
   summary,
@@ -32,7 +26,6 @@ export default function ValidationStatusPanel({
   refreshing?: boolean;
 }) {
   const [showDetails, setShowDetails] = useState(false);
-  const [showProofReview, setShowProofReview] = useState(false);
   const [detailsJson, setDetailsJson] = useState<string | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [proofHistory, setProofHistory] = useState<MrmsProofHistory | null>(null);
@@ -45,13 +38,6 @@ export default function ValidationStatusPanel({
   const [signoffAcceptedLimitations, setSignoffAcceptedLimitations] = useState(false);
   const [signoffSubmitting, setSignoffSubmitting] = useState(false);
   const [signoffMessage, setSignoffMessage] = useState<string | null>(null);
-  const [showDiffAlertTimeline, setShowDiffAlertTimeline] = useState(false);
-  const [showDiffAlertTrend, setShowDiffAlertTrend] = useState(false);
-  const [showDiffEscalation, setShowDiffEscalation] = useState(false);
-  const [showDiffEscalationHistory, setShowDiffEscalationHistory] = useState(false);
-  const [showDiffEscalationMetrics, setShowDiffEscalationMetrics] = useState(false);
-  const [showDigestHistory, setShowDigestHistory] = useState(false);
-  const [showExportDiffHistory, setShowExportDiffHistory] = useState(false);
   const [ackOperator, setAckOperator] = useState('');
   const [ackNote, setAckNote] = useState('');
   const [ackSubmitting, setAckSubmitting] = useState(false);
@@ -65,7 +51,6 @@ export default function ValidationStatusPanel({
   const [reviewSessionSubmitting, setReviewSessionSubmitting] = useState(false);
   const [reviewSessionMessage, setReviewSessionMessage] = useState<string | null>(null);
   const [reviewSessionError, setReviewSessionError] = useState<string | null>(null);
-  const [showReviewSessionForm, setShowReviewSessionForm] = useState(false);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -93,6 +78,18 @@ export default function ValidationStatusPanel({
   async function toggleDetails() {
     if (showDetails) {
       setShowDetails(false);
+      return;
+    }
+    setDetailsLoading(true);
+    const latest = await fetchValidationLatest();
+    setDetailsJson(latest ? JSON.stringify(latest, null, 2) : 'Details unavailable');
+    setDetailsLoading(false);
+    setShowDetails(true);
+  }
+
+  async function openDetails() {
+    if (detailsJson) {
+      setShowDetails(true);
       return;
     }
     setDetailsLoading(true);
@@ -279,15 +276,8 @@ export default function ValidationStatusPanel({
       {operatorReviewStatus ? (
         <section className="validation-operator-review-status">
           <h3>Operator Review Status</h3>
-          <p
-            className={
-              operatorReviewStatus.status_level === 'urgent' ||
-              operatorReviewStatus.status_level === 'attention'
-                ? 'validation-warn'
-                : 'validation-meta'
-            }
-          >
-            Status: {operatorReviewStatus.status_level ?? 'unknown'}
+          <p className="validation-meta">
+            Status: <StatusBadge level={operatorReviewStatus.status_level} />
             {operatorReviewStatus.status_reason ? ` — ${operatorReviewStatus.status_reason}` : ''}
           </p>
           {operatorReviewStatus.top_recommended_action ? (
@@ -295,11 +285,7 @@ export default function ValidationStatusPanel({
               Top recommended action: {operatorReviewStatus.top_recommended_action}
             </p>
           ) : null}
-          {operatorReviewStatus.top_suggested_command ? (
-            <p className="validation-meta">
-              Suggested command: <code>{operatorReviewStatus.top_suggested_command}</code>
-            </p>
-          ) : null}
+          <CommandLine command={operatorReviewStatus.top_suggested_command} />
           {operatorReviewStatus.top_guidance_item ? (
             <p className="validation-meta">
               Top guidance: {operatorReviewStatus.top_guidance_item.title}
@@ -319,115 +305,196 @@ export default function ValidationStatusPanel({
               Suggested action: {operatorReviewStatus.suggested_action}
             </p>
           ) : null}
-          {scheduledOperatorStatus?.operator_status_requested ? (
-            <p className="validation-meta">
-              Scheduled operator status: level{' '}
-              {scheduledOperatorStatus.operator_status_level ?? '—'}
-              {scheduledOperatorStatus.operator_status_reason
-                ? ` — ${scheduledOperatorStatus.operator_status_reason}`
-                : ''}
-              {scheduledOperatorStatus.operator_status_top_suggested_command ? (
-                <>
-                  {' '}
-                  — command:{' '}
-                  <code>{scheduledOperatorStatus.operator_status_top_suggested_command}</code>
-                </>
-              ) : null}
-              {scheduledOperatorStatus.operator_status_error ? (
-                <span className="validation-warn">
-                  {' '}
-                  — error: {scheduledOperatorStatus.operator_status_error}
-                </span>
-              ) : null}
-            </p>
-          ) : null}
           <p className="validation-meta">
-            Review session recommended:{' '}
-            {operatorReviewStatus.review_session_recommended ? 'yes' : 'no'} — review export
-            recommended: {operatorReviewStatus.review_export_recommended ? 'yes' : 'no'} — digest
-            regeneration recommended:{' '}
-            {operatorReviewStatus.digest_regeneration_recommended ? 'yes' : 'no'}
+            Review session recommended: {yesNo(operatorReviewStatus.review_session_recommended ?? false)} —
+            review export recommended: {yesNo(operatorReviewStatus.review_export_recommended ?? false)} —
+            digest regeneration recommended:{' '}
+            {yesNo(operatorReviewStatus.digest_regeneration_recommended ?? false)}
           </p>
           <p className="validation-meta">
             Evidence trend: {operatorReviewStatus.evidence_trend ?? 'unknown'}
             {operatorReviewStatus.latest_export_diff_status
               ? ` — latest export diff: ${operatorReviewStatus.latest_export_diff_status}`
               : ''}
-            {operatorReviewStatus.latest_export_diff_trend
-              ? ` — export diff trend: ${operatorReviewStatus.latest_export_diff_trend}`
-              : ''}
           </p>
           <p className="validation-meta">
             Latest review session: {formatTimestamp(operatorReviewStatus.latest_review_session_at)} —
-            latest export: {formatTimestamp(operatorReviewStatus.latest_review_export_at)} — latest
-            digest: {formatTimestamp(operatorReviewStatus.latest_digest_at)}
+            latest export: {formatTimestamp(operatorReviewStatus.latest_review_export_at)} —
+            latest digest: {formatTimestamp(operatorReviewStatus.latest_digest_at)}
           </p>
-          <p className="validation-meta">
-            Open attention count: {operatorReviewStatus.open_attention_count ?? '—'} — active
-            guidance count: {operatorReviewStatus.active_guidance_count ?? 0}
-          </p>
-          <p className="validation-warn">
-            Local consolidation only — does not verify MRMS, clear alerts, notify externally, or
-            enable production rendering
-          </p>
+          <SafetyNote />
         </section>
       ) : null}
-      {validationAlert ? (
-        <>
-          <p
-            className={
-              validationAlert.operator_attention_needed
-                ? 'validation-warn'
-                : 'validation-meta'
-            }
-          >
-            Operator attention: {validationAlert.operator_attention_needed ? 'needed' : 'not needed'} — alert{' '}
-            {validationAlert.status ?? 'ok'}
-          </p>
-          <p className="validation-meta">
-            Alert updated: {formatTimestamp(validationAlert.updated_at)} — latest run{' '}
-            {formatTimestamp(validationAlert.latest_run_at)}
-          </p>
-          <p className="validation-meta">
-            Alert counts: {validationAlert.failure_count ?? 0} failures, {validationAlert.warning_count ?? 0} warnings
-          </p>
-          {validationAlert.suggested_next_action ? (
-            <p className="validation-meta">Suggested next action: {validationAlert.suggested_next_action}</p>
-          ) : null}
-          {validationAlert.operator_attention_needed && operatorGuidance.length > 0 ? (
-            <section className="validation-operator-guidance">
-              <p className="validation-warn">
-                Operator guidance (local review only — does not verify MRMS; does not enable production
-                rendering)
+      <CollapsibleSection
+        title="Scheduled validation & operator status"
+        className="validation-scheduled-summary"
+        summary={
+          <>
+            {scheduled ? (
+              <p className="validation-meta">
+                Latest run {formatTimestamp(scheduled.ran_at)}:{' '}
+                {scheduled.success ? 'success' : 'failed'} (exit {scheduled.exit_code})
+                {scheduled.elapsed_seconds != null
+                  ? ` — ${scheduled.elapsed_seconds.toFixed(1)}s`
+                  : ''}
               </p>
-              <ul className="validation-history-list">
-                {operatorGuidance.map((item, index) => (
-                  <li key={`${item.cause}-${index}`} className="validation-meta">
-                    {item.title} — <code>{item.path}</code>
-                    {item.section_label ? ` — section: ${item.section_label}` : ''}
-                    {item.anchor ? ` (anchor: ${item.anchor})` : ''}
-                    {item.suggested_action ? ` — ${item.suggested_action}` : ''}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
-        </>
-      ) : null}
-      {groupedCauses.length > 0 ? (
-        <>
-          <p className="validation-meta">Grouped failure causes (prototype diagnostics):</p>
+            ) : (
+              <p className="validation-meta">No scheduled validation — run make scheduled-validation.</p>
+            )}
+            {scheduledOperatorStatus?.operator_status_requested ? (
+              <p className="validation-meta">
+                Operator status:{' '}
+                <StatusBadge level={scheduledOperatorStatus.operator_status_level} />
+                {scheduledOperatorStatus.operator_status_reason
+                  ? ` — ${scheduledOperatorStatus.operator_status_reason}`
+                  : ''}
+                {scheduledOperatorStatus.operator_status_top_suggested_command ? (
+                  <>
+                    {' '}
+                    — <code>{scheduledOperatorStatus.operator_status_top_suggested_command}</code>
+                  </>
+                ) : null}
+              </p>
+            ) : null}
+          </>
+        }
+      >
+        {scheduledProofStep?.proof_requested || scheduledProofStep?.ran ? (
+          <p className="validation-meta">
+            Scheduled proof step: {scheduledProofStep.ran ? scheduledProofStep.status ?? '—' : 'not run'}
+            {scheduledProofStep.elapsed_seconds != null
+              ? ` (${scheduledProofStep.elapsed_seconds.toFixed(2)}s)`
+              : ''}
+          </p>
+        ) : null}
+        {scheduledProofBundle ? (
+          <>
+            <p className="validation-meta">
+              Bundle exported: {yesNo(scheduledProofBundle.bundle_exported ?? false)}
+              {scheduledProofBundle.bundle_created_at
+                ? ` — ${formatTimestamp(scheduledProofBundle.bundle_created_at)}`
+                : ''}
+            </p>
+            <p className="validation-meta">
+              Diff: {scheduledProofBundle.diff_status ?? '—'} — changes{' '}
+              {scheduledProofBundle.evidence_changes_count ?? 0}
+            </p>
+          </>
+        ) : null}
+        {scheduledDigest?.digest_requested ? (
+          <p className="validation-meta">
+            Digest: {scheduledDigest.digest_generated ? 'generated' : 'skipped'}
+            {scheduledDigest.digest_reason ? ` — ${scheduledDigest.digest_reason}` : ''}
+          </p>
+        ) : null}
+        {scheduledReviewExport?.review_export_requested ? (
+          <p className="validation-meta">
+            Review export: {scheduledReviewExport.review_export_generated ? 'generated' : 'skipped'}
+            {scheduledReviewExport.review_export_reason
+              ? ` — ${scheduledReviewExport.review_export_reason}`
+              : ''}
+          </p>
+        ) : null}
+        {scheduledSteps.length > 0 ? (
           <ul className="validation-history-list">
-            {groupedCauses.map((cause, index) => (
-              <li key={`${cause.step}-${cause.cause}-${index}`} className="validation-meta">
-                {cause.step} — {cause.cause} ×{cause.count}
-                {cause.message ? `: ${cause.message}` : ''}
-                {cause.latest_logged_at ? ` (${formatTimestamp(cause.latest_logged_at)})` : ''}
+            {scheduledSteps.map((step, index) => (
+              <li key={`${step.name ?? 'step'}-${index}`} className="validation-meta">
+                {step.name ?? '—'}: {step.status ?? '—'}
+                {step.elapsed_seconds != null ? ` (${step.elapsed_seconds.toFixed(2)}s)` : ''}
               </li>
             ))}
           </ul>
-        </>
-      ) : null}
+        ) : null}
+        <SafetyNote variant="meta" />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Validation alerts"
+        className="validation-alerts-section"
+        summary={
+          validationAlert ? (
+            <p
+              className={
+                validationAlert.operator_attention_needed ? 'validation-warn' : 'validation-meta'
+              }
+            >
+              Alert {validationAlert.status ?? 'ok'} — attention{' '}
+              {validationAlert.operator_attention_needed ? 'needed' : 'not needed'} — updated{' '}
+              {formatTimestamp(validationAlert.updated_at)}
+            </p>
+          ) : (
+            <p className="validation-meta">No validation alert data.</p>
+          )
+        }
+      >
+        {validationAlert ? (
+          <>
+            <p
+              className={
+                validationAlert.operator_attention_needed ? 'validation-warn' : 'validation-meta'
+              }
+            >
+              Operator attention: {validationAlert.operator_attention_needed ? 'needed' : 'not needed'} — alert{' '}
+              {validationAlert.status ?? 'ok'}
+            </p>
+            <p className="validation-meta">
+              Alert updated: {formatTimestamp(validationAlert.updated_at)} — latest run{' '}
+              {formatTimestamp(validationAlert.latest_run_at)}
+            </p>
+            <p className="validation-meta">
+              Alert counts: {validationAlert.failure_count ?? 0} failures,{' '}
+              {validationAlert.warning_count ?? 0} warnings
+            </p>
+            {validationAlert.suggested_next_action ? (
+              <p className="validation-meta">
+                Suggested next action: {validationAlert.suggested_next_action}
+              </p>
+            ) : null}
+            {validationAlert.operator_attention_needed && operatorGuidance.length > 0 ? (
+              <section className="validation-operator-guidance">
+                <SafetyNote />
+                <ul className="validation-history-list">
+                  {operatorGuidance.map((item, index) => (
+                    <li key={`${item.cause}-${index}`} className="validation-meta">
+                      {item.title} — <code>{item.path}</code>
+                      {item.section_label ? ` — section: ${item.section_label}` : ''}
+                      {item.anchor ? ` (anchor: ${item.anchor})` : ''}
+                      {item.suggested_action ? ` — ${item.suggested_action}` : ''}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">No validation alert — run make validation-alerts.</p>
+        )}
+        {groupedCauses.length > 0 ? (
+          <>
+            <p className="validation-meta">Grouped failure causes (prototype diagnostics):</p>
+            <ul className="validation-history-list">
+              {groupedCauses.map((cause, index) => (
+                <li key={`${cause.step}-${cause.cause}-${index}`} className="validation-meta">
+                  {cause.step} — {cause.cause} ×{cause.count}
+                  {cause.message ? `: ${cause.message}` : ''}
+                  {cause.latest_logged_at ? ` (${formatTimestamp(cause.latest_logged_at)})` : ''}
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
+        <SafetyNote variant="meta" />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Proof report & regression"
+        className="validation-proof-report-section"
+        summary={
+          <p className="validation-meta">
+            Proof: {mrmsProof?.overall_status ?? 'not_started'}
+            {proofRegression?.regression_detected ? ' — regression detected' : ''}
+            {mrmsProof?.generated_at ? ` — ${formatTimestamp(mrmsProof.generated_at)}` : ''}
+          </p>
+        }
+      >
       {mrmsProof ? (
         <>
           <p className="validation-warn">
@@ -476,103 +543,38 @@ export default function ValidationStatusPanel({
           Proof regression remains active after sign-off — evidence must improve before alert clears.
         </p>
       ) : null}
-      <section className="validation-proof-bundle">
-        <p className="validation-meta">Proof bundle (local evidence only — does not verify MRMS)</p>
+        <SafetyNote variant="meta" />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Proof bundle"
+        className="validation-proof-bundle-section"
+        summary={
+          <p className="validation-meta">
+            {proofBundle?.available
+              ? `Latest ${formatTimestamp(proofBundle.created_at)} — ${proofBundle.file_count ?? 0} files`
+              : 'No proof bundle — run make mrms-proof-bundle'}
+          </p>
+        }
+      >
         {proofBundle?.available ? (
           <p className="validation-meta">
-            Latest bundle {formatTimestamp(proofBundle.created_at)} — {proofBundle.file_count ?? 0} files
-            {proofBundle.zip_path ? ` — ${proofBundle.zip_path}` : ''}
-            {proofBundle.bundle_folder ? ` (folder: ${proofBundle.bundle_folder})` : ''}
+            {proofBundle.zip_path ? `ZIP: ${proofBundle.zip_path}` : ''}
+            {proofBundle.bundle_folder ? ` — folder: ${proofBundle.bundle_folder}` : ''}
           </p>
-        ) : (
-          <p className="validation-meta">No proof bundle yet — run make mrms-proof-bundle.</p>
-        )}
-        <p className="validation-meta">
-          Export does not enable production rendering — verified_mrms: {yesNo(summary.verified_mrms)}
-        </p>
-      </section>
-      <section className="validation-scheduled-proof-bundle">
-        <p className="validation-meta">
-          Scheduled proof bundle monitoring (local evidence only — does not verify MRMS)
-        </p>
-        {scheduledProofBundle ? (
-          <>
-            <p className="validation-meta">
-              Bundle exported: {scheduledProofBundle.bundle_exported ? 'yes' : 'no'}
-              {scheduledProofBundle.bundle_created_at
-                ? ` — ${formatTimestamp(scheduledProofBundle.bundle_created_at)}`
-                : ''}
-              {scheduledProofBundle.bundle_id ? ` (id ${scheduledProofBundle.bundle_id.slice(0, 8)}…)` : ''}
-            </p>
-            <p className="validation-meta">
-              Diff ran: {scheduledProofBundle.diff_ran ? 'yes' : 'no'}
-              {scheduledProofBundle.diff_status ? ` — status ${scheduledProofBundle.diff_status}` : ''}
-              {scheduledProofBundle.evidence_changes_count != null
-                ? ` — changes ${scheduledProofBundle.evidence_changes_count}`
-                : ''}
-            </p>
-            {scheduledProofBundle.operator_attention_needed || validationAlert?.proof_bundle_diff_attention ? (
-              <p className="validation-warn">
-                Proof bundle diff requires operator attention — does not enable production rendering
-              </p>
-            ) : null}
-            {scheduledProofBundle.handoff_requested ? (
-              <p className="validation-meta">
-                Scheduled handoff: {scheduledProofBundle.handoff_generated ? 'generated' : 'skipped'}
-                {scheduledProofBundle.handoff_reason ? ` — ${scheduledProofBundle.handoff_reason}` : ''}
-                {scheduledProofBundle.handoff_path ? ` — ${scheduledProofBundle.handoff_path}` : ''}
-              </p>
-            ) : null}
-            {scheduledProofBundle.handoff_requested ? (
-              <p className="validation-meta">
-                Local operator handoff only — does not verify MRMS — does not enable production rendering
-              </p>
-            ) : null}
-            {scheduledDigest?.digest_requested ? (
-              <>
-                <p className="validation-meta">
-                  Scheduled digest: {scheduledDigest.digest_generated ? 'generated' : 'skipped'}
-                  {scheduledDigest.digest_reason ? ` — ${scheduledDigest.digest_reason}` : ''}
-                  {scheduledDigest.digest_path ? ` — ${scheduledDigest.digest_path}` : ''}
-                  {scheduledDigest.digest_elapsed_seconds != null
-                    ? ` (${scheduledDigest.digest_elapsed_seconds.toFixed(2)}s)`
-                    : ''}
-                </p>
-                <p className="validation-meta">
-                  Local digest only — does not notify externally — does not verify MRMS — does not
-                  enable production rendering — does not clear alerts
-                </p>
-              </>
-            ) : null}
-            {scheduledReviewExport?.review_export_requested ? (
-              <>
-                <p className="validation-meta">
-                  Scheduled review export:{' '}
-                  {scheduledReviewExport.review_export_generated ? 'generated' : 'skipped'}
-                  {scheduledReviewExport.review_export_reason
-                    ? ` — ${scheduledReviewExport.review_export_reason}`
-                    : ''}
-                  {scheduledReviewExport.review_export_path
-                    ? ` — ${scheduledReviewExport.review_export_path}`
-                    : ''}
-                  {scheduledReviewExport.review_export_elapsed_seconds != null
-                    ? ` (${scheduledReviewExport.review_export_elapsed_seconds.toFixed(2)}s)`
-                    : ''}
-                </p>
-                <p className="validation-meta">
-                  Local export only — does not notify externally — does not verify MRMS — does not
-                  clear alerts — does not enable production rendering
-                </p>
-              </>
-            ) : null}
-          </>
-        ) : (
+        ) : null}
+        <SafetyNote variant="meta" />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Proof bundle diff & handoff"
+        className="validation-proof-bundle-diff-section"
+        summary={
           <p className="validation-meta">
-            No scheduled proof bundle status — run make scheduled-proof-bundle.
+            Diff: {proofBundleDiff?.overall_diff_status ?? 'none'}
+            {proofBundleDiff?.checked_at ? ` — ${formatTimestamp(proofBundleDiff.checked_at)}` : ''}
+            {operatorHandoff?.available ? ' — handoff available' : ''}
           </p>
-        )}
-        <p className="validation-meta">verified_mrms: {yesNo(summary.verified_mrms)}</p>
-      </section>
+        }
+      >
       <section className="validation-proof-bundle-diff">
         <p className="validation-meta">Proof bundle diff / handoff (local review only — does not verify MRMS)</p>
         {proofBundleDiff?.available ? (
@@ -622,53 +624,25 @@ export default function ValidationStatusPanel({
               : ''}
           </p>
         ) : null}
-        <p className="validation-meta">
-          Local operator handoff only — does not verify MRMS — does not enable production rendering
-        </p>
-        <p className="validation-meta">
-          Diff/handoff does not enable production rendering — verified_mrms: {yesNo(summary.verified_mrms)}
-        </p>
+        <SafetyNote variant="meta" />
       </section>
-      <section className="validation-diff-alert-history">
-        <div className="validation-header-actions">
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Proof bundle diff alert history"
+        className="validation-diff-alert-history"
+        summary={
           <p className="validation-meta">
-            Proof bundle diff alert timeline (local evidence monitoring only — does not verify MRMS)
-          </p>
-          <button
-            type="button"
-            className="validation-refresh"
-            onClick={() => setShowDiffAlertTimeline((value) => !value)}
-          >
-            {showDiffAlertTimeline ? 'Hide timeline' : 'Show timeline'}
-          </button>
-        </div>
-        {diffAlertLatest?.available || validationAlert?.latest_proof_bundle_diff_alert_at ? (
-          <p className="validation-meta">
-            Latest alert status:{' '}
+            Latest:{' '}
             {diffAlertLatest?.diff_status ??
               validationAlert?.latest_proof_bundle_diff_alert_status ??
               '—'}
-            {diffAlertLatest?.created_at || validationAlert?.latest_proof_bundle_diff_alert_at
-              ? ` (${formatTimestamp(
-                  diffAlertLatest?.created_at ?? validationAlert?.latest_proof_bundle_diff_alert_at,
-                )})`
+            {validationAlert?.proof_bundle_diff_alert_history_count != null
+              ? ` — ${validationAlert.proof_bundle_diff_alert_history_count} entries`
               : ''}
-            {diffAlertLatest?.operator_attention_needed ? ' — attention needed' : ''}
           </p>
-        ) : (
-          <p className="validation-meta">
-            No diff alert history yet — run make mrms-proof-bundle-diff or make scheduled-proof-bundle.
-          </p>
-        )}
-        {validationAlert?.proof_bundle_diff_alert_history_count != null ? (
-          <p className="validation-meta">
-            Timeline entries: {validationAlert.proof_bundle_diff_alert_history_count}
-          </p>
-        ) : null}
-        <p className="validation-meta">
-          Does not enable production rendering — verified_mrms: {yesNo(summary.verified_mrms)}
-        </p>
-        {showDiffAlertTimeline && diffAlertTimeline.length > 0 ? (
+        }
+      >
+        {diffAlertTimeline.length > 0 ? (
           <ul className="validation-history-list">
             {diffAlertTimeline.map((entry, index) => (
               <li
@@ -680,136 +654,76 @@ export default function ValidationStatusPanel({
                   ? ` — changes ${entry.evidence_changes_count}`
                   : ''}
                 {entry.operator_attention_needed ? ' — attention needed' : ''}
-                {entry.suggested_next_action ? ` — ${entry.suggested_next_action}` : ''}
               </li>
             ))}
           </ul>
-        ) : showDiffAlertTimeline ? (
-          <p className="validation-meta">No timeline entries in summary — run make proof-bundle-diff-alert-history.</p>
-        ) : null}
-      </section>
-      <section className="validation-diff-escalation">
-        <div className="validation-header-actions">
-          <p className="validation-meta">
-            Diff alert escalation (local operator guidance only — does not verify MRMS; does not enable
-            production rendering; does not clear alerts)
-          </p>
-          <button
-            type="button"
-            className="validation-refresh"
-            onClick={() => setShowDiffEscalation((value) => !value)}
-          >
-            {showDiffEscalation ? 'Hide escalation' : 'Show escalation'}
-          </button>
-        </div>
-        {diffEscalation?.available ||
-        validationAlert?.proof_bundle_diff_escalation_level ||
-        (diffEscalation?.escalation_level && diffEscalation.escalation_level !== 'none') ? (
-          <p
-            className={
-              diffEscalation?.escalation_level === 'urgent' ||
-              validationAlert?.proof_bundle_diff_escalation_level === 'urgent'
-                ? 'validation-warn'
-                : 'validation-meta'
-            }
-          >
-            Escalation:{' '}
-            {diffEscalation?.escalation_level ??
-              validationAlert?.proof_bundle_diff_escalation_level ??
-              'none'}
-            {diffEscalation?.reason || validationAlert?.proof_bundle_diff_escalation_reason
-              ? ` — ${diffEscalation?.reason ?? validationAlert?.proof_bundle_diff_escalation_reason}`
-              : ''}
-          </p>
         ) : (
-          <p className="validation-meta">
-            No escalation hints — run make proof-bundle-diff-escalation after diff alert history.
-          </p>
+          <p className="validation-meta">No timeline entries — run make proof-bundle-diff-alert-history.</p>
         )}
+        <SafetyNote variant="meta" />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Diff alert escalation"
+        className="validation-diff-escalation"
+        summary={
+          <p className="validation-meta">
+            Escalation:{' '}
+            <StatusBadge
+              level={
+                diffEscalation?.escalation_level ??
+                validationAlert?.proof_bundle_diff_escalation_level ??
+                'none'
+              }
+            />
+          </p>
+        }
+      >
         {(diffEscalation?.stale_acknowledgment ||
           validationAlert?.proof_bundle_diff_escalation_stale_ack) && (
           <p className="validation-warn">
             Stale acknowledgment — latest ack predates or does not cover current attention streak
           </p>
         )}
-        {showDiffEscalation ? (
-          <>
-            {diffEscalation?.suggested_next_action ||
-            validationAlert?.proof_bundle_diff_escalation_suggested_next_action ? (
-              <p className="validation-meta">
-                Suggested:{' '}
-                {diffEscalation?.suggested_next_action ??
-                  validationAlert?.proof_bundle_diff_escalation_suggested_next_action}
-              </p>
-            ) : null}
+        {diffEscalation?.suggested_next_action ||
+        validationAlert?.proof_bundle_diff_escalation_suggested_next_action ? (
+          <p className="validation-meta">
+            Suggested:{' '}
+            {diffEscalation?.suggested_next_action ??
+              validationAlert?.proof_bundle_diff_escalation_suggested_next_action}
+          </p>
+        ) : null}
+        {(diffEscalation?.guidance_items ??
+          validationAlert?.proof_bundle_diff_escalation_guidance_items ??
+          []
+        ).length > 0 ? (
+          <ul className="validation-history-list">
             {(diffEscalation?.guidance_items ??
               validationAlert?.proof_bundle_diff_escalation_guidance_items ??
               []
-            ).length > 0 ? (
-              <ul className="validation-history-list">
-                {(diffEscalation?.guidance_items ??
-                  validationAlert?.proof_bundle_diff_escalation_guidance_items ??
-                  []
-                ).map((item, index) => (
-                  <li key={`${item.cause}-${index}`} className="validation-meta">
-                    {item.title}
-                    {item.section_label ? ` — ${item.section_label}` : ''}
-                    {item.path ? ` — ${item.path}` : ''}
-                    {item.anchor ? ` (anchor: ${item.anchor})` : ''}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-            <p className="validation-meta">
-              verified_mrms: {yesNo(summary.verified_mrms)} — local escalation only — does not clear
-              alerts
-            </p>
-          </>
+            ).map((item, index) => (
+              <li key={`${item.cause}-${index}`} className="validation-meta">
+                {item.title}
+                {item.section_label ? ` — ${item.section_label}` : ''}
+                {item.path ? ` — ${item.path}` : ''}
+              </li>
+            ))}
+          </ul>
         ) : null}
-      </section>
-      <section className="validation-diff-escalation-history">
-        <div className="validation-header-actions">
+        <SafetyNote variant="meta" />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Escalation history"
+        className="validation-diff-escalation-history"
+        summary={
           <p className="validation-meta">
-            Escalation history (local monitoring only — terminal stdout notices are local only; no
-            external notifications; does not verify MRMS; does not clear alerts)
+            Snapshots:{' '}
+            {diffEscalationHistory?.count ??
+              validationAlert?.proof_bundle_diff_escalation_history_count ??
+              0}
           </p>
-          <button
-            type="button"
-            className="validation-refresh"
-            onClick={() => setShowDiffEscalationHistory((value) => !value)}
-          >
-            {showDiffEscalationHistory ? 'Hide history' : 'Show history'}
-          </button>
-        </div>
-        {diffEscalationHistory?.available ||
-        (validationAlert?.proof_bundle_diff_escalation_history_count ?? 0) > 0 ? (
-          <p className="validation-meta">
-            Snapshots: {diffEscalationHistory?.count ?? validationAlert?.proof_bundle_diff_escalation_history_count ?? 0}
-            {diffEscalationHistory?.latest_snapshot_at ||
-            validationAlert?.latest_proof_bundle_diff_escalation_snapshot_at
-              ? ` — latest ${formatTimestamp(
-                  diffEscalationHistory?.latest_snapshot_at ??
-                    validationAlert?.latest_proof_bundle_diff_escalation_snapshot_at
-                )}`
-              : ''}
-          </p>
-        ) : (
-          <p className="validation-meta">
-            No escalation history — run make proof-bundle-diff-escalation or scheduled-proof-bundle.
-          </p>
-        )}
-        {(diffEscalationHistory?.urgent_stdout_notice_triggered ||
-          validationAlert?.urgent_stdout_notice_triggered) && (
-          <p className="validation-warn">
-            Urgent stdout notice triggered{' '}
-            {formatTimestamp(
-              diffEscalationHistory?.urgent_stdout_notice_at ??
-                validationAlert?.urgent_stdout_notice_at
-            )}{' '}
-            — local terminal only; does not verify MRMS
-          </p>
-        )}
-        {showDiffEscalationHistory && (diffEscalationHistory?.recent ?? []).length > 0 ? (
+        }
+      >
+        {(diffEscalationHistory?.recent ?? []).length > 0 ? (
           <ul className="validation-history-list">
             {(diffEscalationHistory?.recent ?? []).map((entry, index) => (
               <li
@@ -818,227 +732,221 @@ export default function ValidationStatusPanel({
               >
                 {formatTimestamp(entry.created_at)} — {entry.escalation_level ?? 'none'}
                 {entry.latest_diff_status ? ` (${entry.latest_diff_status})` : ''}
-                {entry.stale_acknowledgment ? ' — stale ack' : ''}
               </li>
             ))}
           </ul>
-        ) : showDiffEscalationHistory ? (
+        ) : (
           <p className="validation-meta">No recent escalation snapshots in summary.</p>
-        ) : null}
-      </section>
-      <section className="validation-diff-escalation-metrics">
-        <div className="validation-header-actions">
+        )}
+        <SafetyNote variant="meta" />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Digest, metrics & regeneration"
+        className="validation-diff-escalation-metrics"
+        summary={
           <p className="validation-meta">
-            Escalation metrics (local digest only — does not verify MRMS; does not enable production
-            rendering; does not clear alerts; no external notifications)
+            Digest regeneration:{' '}
+            {yesNo(digestRegenerationHint?.digest_regeneration_recommended ?? false)}
+            {digestRegenerationHint?.suggested_command ? (
+              <>
+                {' '}
+                — <code>{digestRegenerationHint.suggested_command}</code>
+              </>
+            ) : null}
           </p>
-          <button
-            type="button"
-            className="validation-refresh"
-            onClick={() => setShowDiffEscalationMetrics((value) => !value)}
-          >
-            {showDiffEscalationMetrics ? 'Hide metrics' : 'Show metrics'}
-          </button>
-        </div>
+        }
+      >
         {diffEscalationMetrics?.available || (diffEscalationMetrics?.total_snapshots ?? 0) > 0 ? (
           <p className="validation-meta">
             Snapshots {diffEscalationMetrics?.total_snapshots ?? 0} — urgent{' '}
             {diffEscalationMetrics?.urgent_count ?? 0}, attention{' '}
-            {diffEscalationMetrics?.attention_count ?? 0}, watch {diffEscalationMetrics?.watch_count ?? 0}
+            {diffEscalationMetrics?.attention_count ?? 0}
           </p>
-        ) : (
-          <p className="validation-meta">
-            No escalation metrics — run make proof-bundle-diff-escalation-metrics after history exists.
-          </p>
-        )}
+        ) : null}
         {diffEscalationDigest?.available ? (
           <p className="validation-meta">
             Latest digest {formatTimestamp(diffEscalationDigest.generated_at)} —{' '}
-            {diffEscalationDigest.markdown_path ?? '—'} (local digest only — does not notify externally)
+            {diffEscalationDigest.markdown_path ?? '—'}
           </p>
-        ) : (
-          <p className="validation-meta">
-            No digest exported — run make proof-bundle-diff-escalation-digest.
-          </p>
-        )}
-        {digestHistory?.available || (digestHistory?.count ?? 0) > 0 ? (
-          <p className="validation-meta">
-            Digest history: {digestHistory?.count ?? 0} export(s)
-            {digestHistory?.latest?.created_at
-              ? ` — latest ${formatTimestamp(digestHistory.latest.created_at)}`
-              : ''}
-          </p>
-        ) : (
-          <p className="validation-meta">
-            No digest history — export a digest with make proof-bundle-diff-escalation-digest.
-          </p>
-        )}
+        ) : null}
         {digestDiff?.available ? (
           <p className="validation-meta">
             Digest diff: {digestDiff.overall_digest_diff_status ?? 'unknown'}
-            {digestDiff.checked_at ? ` (${formatTimestamp(digestDiff.checked_at)})` : ''}
-          </p>
-        ) : (
-          <p className="validation-meta">No digest diff yet — export digest twice to compare.</p>
-        )}
-        {digestRegenerationHint ? (
-          <p
-            className={
-              digestRegenerationHint.digest_regeneration_recommended
-                ? 'validation-warn'
-                : 'validation-meta'
-            }
-          >
-            Digest regeneration recommended:{' '}
-            {digestRegenerationHint.digest_regeneration_recommended ? 'yes' : 'no'}
-            {digestRegenerationHint.reason ? ` — ${digestRegenerationHint.reason}` : ''}
-            {digestRegenerationHint.suggested_command
-              ? ` — run ${digestRegenerationHint.suggested_command}`
-              : ''}
           </p>
         ) : null}
-        <p className="validation-meta">
-          Local digest only — does not notify externally — does not verify MRMS — does not enable
-          production rendering — does not clear alerts
-        </p>
-        <div className="validation-header-actions">
-          <button
-            type="button"
-            className="validation-refresh"
-            onClick={() => setShowDigestHistory((value) => !value)}
-          >
-            {showDigestHistory ? 'Hide digest history' : 'Show digest history'}
-          </button>
-        </div>
-        {showDigestHistory && (digestHistory?.recent ?? []).length > 0 ? (
+        {digestRegenerationHint ? (
+          <CommandLine command={digestRegenerationHint.suggested_command} />
+        ) : null}
+        {(digestHistory?.recent ?? []).length > 0 ? (
           <ul className="validation-history-list">
             {(digestHistory?.recent ?? []).map((entry, index) => (
               <li key={`${entry.created_at ?? 'digest'}-${index}`} className="validation-meta">
                 {formatTimestamp(entry.created_at)} — {entry.latest_escalation_level ?? '—'}
-                {entry.latest_diff_status ? ` (${entry.latest_diff_status})` : ''}
-                {entry.digest_path ? ` — ${entry.digest_path}` : ''}
               </li>
             ))}
           </ul>
-        ) : showDigestHistory ? (
-          <p className="validation-meta">No recent digest exports in summary.</p>
         ) : null}
-        {showDiffEscalationMetrics && diffEscalationMetrics ? (
-          <>
-            <p className="validation-meta">
-              Current urgent streak {diffEscalationMetrics.current_urgent_streak} — current
-              attention/urgent streak {diffEscalationMetrics.current_attention_or_urgent_streak}
-            </p>
-            <p className="validation-meta">
-              Longest urgent streak {diffEscalationMetrics.longest_urgent_streak} — longest
-              attention/urgent streak {diffEscalationMetrics.longest_attention_or_urgent_streak}
-            </p>
-            <p className="validation-meta">
-              Stale acknowledgment snapshots {diffEscalationMetrics.stale_acknowledgment_count} —
-              verified_mrms: {yesNo(summary.verified_mrms)}
-            </p>
-          </>
-        ) : null}
-      </section>
-      <section className="validation-review-session">
-        <div className="validation-header-actions">
-          <p className="validation-meta">MRMS proof review session (local review only — does not verify MRMS)</p>
-          <button
-            type="button"
-            className="validation-refresh"
-            onClick={() => setShowReviewSessionForm((value) => !value)}
-          >
-            {showReviewSessionForm ? 'Hide session form' : 'Show session form'}
-          </button>
-        </div>
+        <SafetyNote variant="meta" />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Review sessions"
+        className="validation-review-session"
+        summary={
+          <p className="validation-meta">
+            {reviewSessionSummary?.available
+              ? `Latest ${formatTimestamp(reviewSessionSummary.latest_created_at)} — ${reviewSessionSummary.latest_operator ?? '—'} — attention ${reviewSessionSummary.open_attention_count ?? 0}`
+              : 'No review sessions — run make mrms-review-session'}
+          </p>
+        }
+      >
         {reviewSessionSummary?.available ? (
-          <>
-            <p className="validation-meta">
-              Latest session {formatTimestamp(reviewSessionSummary.latest_created_at)} —{' '}
-              {reviewSessionSummary.latest_operator ?? '—'} — escalation{' '}
-              {reviewSessionSummary.latest_escalation_level ?? '—'} — open attention{' '}
-              {reviewSessionSummary.open_attention_count ?? 0}
-            </p>
-            {reviewSessionComparison?.available ? (
-              <>
-                <p className="validation-meta">
-                  Session comparison: {reviewSessionComparison.overall_review_diff_status ?? 'unknown'}
-                  {reviewSessionComparison.compared_at
-                    ? ` (${formatTimestamp(reviewSessionComparison.compared_at)})`
-                    : ''}
-                </p>
-                <p className="validation-meta">
-                  Baseline {formatTimestamp(reviewSessionComparison.baseline_created_at)} —{' '}
-                  {reviewSessionComparison.baseline_operator ?? '—'} → latest{' '}
-                  {formatTimestamp(reviewSessionComparison.latest_created_at)} —{' '}
-                  {reviewSessionComparison.latest_operator ?? '—'}
-                </p>
-                {reviewSessionComparison.open_attention_count_change ? (
-                  <p className="validation-meta">
-                    Open attention count: baseline{' '}
-                    {reviewSessionComparison.open_attention_count_change.baseline ?? '—'} → latest{' '}
-                    {reviewSessionComparison.open_attention_count_change.latest ?? '—'}
-                  </p>
-                ) : null}
-                {reviewSessionComparison.checklist_reviewed_count_change ? (
-                  <p className="validation-meta">
-                    Checklist reviewed: baseline{' '}
-                    {reviewSessionComparison.checklist_reviewed_count_change.baseline ?? '—'} → latest{' '}
-                    {reviewSessionComparison.checklist_reviewed_count_change.latest ?? '—'}
-                  </p>
-                ) : null}
-                {reviewSessionComparison.checklist_not_reviewed_count_change ? (
-                  <p className="validation-meta">
-                    Checklist not reviewed: baseline{' '}
-                    {reviewSessionComparison.checklist_not_reviewed_count_change.baseline ?? '—'} →
-                    latest{' '}
-                    {reviewSessionComparison.checklist_not_reviewed_count_change.latest ?? '—'}
-                  </p>
-                ) : null}
-                {(reviewSessionComparison.improvements?.length ?? 0) > 0 ? (
-                  <p className="validation-meta">
-                    Improvements: {reviewSessionComparison.improvements?.join(', ')}
-                  </p>
-                ) : null}
-                {(reviewSessionComparison.regressions?.length ?? 0) > 0 ? (
-                  <p className="validation-warn">
-                    Regressions: {reviewSessionComparison.regressions?.join(', ')}
-                  </p>
-                ) : null}
-              </>
-            ) : (
-              <p className="validation-meta">
-                No session comparison yet — run make mrms-review-session-compare after two sessions.
-              </p>
-            )}
-            {openAttentionGuidance.length > 0 ? (
-              <section className="validation-open-attention-guidance">
-                <p className="validation-warn">
-                  Open attention runbook guidance (local review only — does not verify MRMS)
-                </p>
-                <ul className="validation-history-list">
-                  {openAttentionGuidance.map((item, index) => (
-                    <li key={`${item.cause}-${index}`} className="validation-meta">
-                      {item.title} — <code>{item.path}</code>
-                      {item.section_label ? ` — section: ${item.section_label}` : ''}
-                      {item.anchor ? ` (anchor: ${item.anchor})` : ''}
-                      {item.attention_item ? ` — item: ${item.attention_item}` : ''}
-                      {item.suggested_action ? ` — ${item.suggested_action}` : ''}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ) : null}
-          </>
+          <p className="validation-meta">
+            Latest session {formatTimestamp(reviewSessionSummary.latest_created_at)} —{' '}
+            {reviewSessionSummary.latest_operator ?? '—'} — escalation{' '}
+            {reviewSessionSummary.latest_escalation_level ?? '—'} — open attention{' '}
+            {reviewSessionSummary.open_attention_count ?? 0}
+          </p>
         ) : (
           <p className="validation-meta">
             No review sessions — run make mrms-review-session (local only).
           </p>
         )}
-        <p className="validation-meta">
-          Local comparison only — verified_mrms: {yesNo(summary.verified_mrms)} — does not clear
-          alerts or enable production rendering
-        </p>
+        <form className="validation-signoff-form" onSubmit={(event) => void handleReviewSessionSubmit(event)}>
+          <p className="validation-warn">Review session form — local only; does not verify MRMS.</p>
+          <label className="validation-meta">
+            Operator initials or name
+            <input
+              type="text"
+              value={reviewSessionOperator}
+              onChange={(event) => setReviewSessionOperator(event.target.value)}
+              autoComplete="name"
+            />
+          </label>
+          <label className="validation-meta">
+            Session notes
+            <textarea
+              value={reviewSessionNotes}
+              onChange={(event) => setReviewSessionNotes(event.target.value)}
+              rows={2}
+            />
+          </label>
+          <label className="validation-meta">
+            <input
+              type="checkbox"
+              checked={reviewSessionAcceptedLimitations}
+              onChange={(event) => setReviewSessionAcceptedLimitations(event.target.checked)}
+            />{' '}
+            I accept this review session does not verify MRMS (required)
+          </label>
+          <label className="validation-meta">
+            <input
+              type="checkbox"
+              checked={reviewSessionExportAfterCreate}
+              onChange={(event) => setReviewSessionExportAfterCreate(event.target.checked)}
+            />{' '}
+            Export Markdown after creating this session
+          </label>
+          <button type="submit" className="validation-refresh" disabled={reviewSessionSubmitting}>
+            {reviewSessionSubmitting ? 'Submitting…' : 'Submit local review session'}
+          </button>
+          {reviewSessionMessage ? <p className="validation-meta">{reviewSessionMessage}</p> : null}
+          {reviewSessionError ? <p className="validation-warn">{reviewSessionError}</p> : null}
+        </form>
+        <SafetyNote variant="meta" />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Review session comparison"
+        className="validation-review-session-compare"
+        summary={
+          <p className="validation-meta">
+            {reviewSessionComparison?.available
+              ? `${reviewSessionComparison.overall_review_diff_status ?? 'unknown'} — attention ${reviewSessionComparison.open_attention_count_change?.latest ?? reviewSessionSummary?.open_attention_count ?? '—'}`
+              : 'No comparison — run make mrms-review-session-compare'}
+          </p>
+        }
+      >
+        {reviewSessionComparison?.available ? (
+          <>
+            <p className="validation-meta">
+              Session comparison: {reviewSessionComparison.overall_review_diff_status ?? 'unknown'}
+              {reviewSessionComparison.compared_at
+                ? ` (${formatTimestamp(reviewSessionComparison.compared_at)})`
+                : ''}
+            </p>
+            <p className="validation-meta">
+              Baseline {formatTimestamp(reviewSessionComparison.baseline_created_at)} —{' '}
+              {reviewSessionComparison.baseline_operator ?? '—'} → latest{' '}
+              {formatTimestamp(reviewSessionComparison.latest_created_at)} —{' '}
+              {reviewSessionComparison.latest_operator ?? '—'}
+            </p>
+            {reviewSessionComparison.open_attention_count_change ? (
+              <p className="validation-meta">
+                Open attention count: baseline{' '}
+                {reviewSessionComparison.open_attention_count_change.baseline ?? '—'} → latest{' '}
+                {reviewSessionComparison.open_attention_count_change.latest ?? '—'}
+              </p>
+            ) : null}
+            {reviewSessionComparison.checklist_reviewed_count_change ? (
+              <p className="validation-meta">
+                Checklist reviewed: baseline{' '}
+                {reviewSessionComparison.checklist_reviewed_count_change.baseline ?? '—'} → latest{' '}
+                {reviewSessionComparison.checklist_reviewed_count_change.latest ?? '—'}
+              </p>
+            ) : null}
+            {reviewSessionComparison.checklist_not_reviewed_count_change ? (
+              <p className="validation-meta">
+                Checklist not reviewed: baseline{' '}
+                {reviewSessionComparison.checklist_not_reviewed_count_change.baseline ?? '—'} → latest{' '}
+                {reviewSessionComparison.checklist_not_reviewed_count_change.latest ?? '—'}
+              </p>
+            ) : null}
+            {(reviewSessionComparison.improvements?.length ?? 0) > 0 ? (
+              <p className="validation-meta">
+                Improvements: {reviewSessionComparison.improvements?.join(', ')}
+              </p>
+            ) : null}
+            {(reviewSessionComparison.regressions?.length ?? 0) > 0 ? (
+              <p className="validation-warn">
+                Regressions: {reviewSessionComparison.regressions?.join(', ')}
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            No session comparison yet — run make mrms-review-session-compare after two sessions.
+          </p>
+        )}
+        {openAttentionGuidance.length > 0 ? (
+          <section className="validation-open-attention-guidance">
+            <p className="validation-warn">
+              Open attention runbook guidance (local review only — does not verify MRMS)
+            </p>
+            <ul className="validation-history-list">
+              {openAttentionGuidance.map((item, index) => (
+                <li key={`${item.cause}-${index}`} className="validation-meta">
+                  {item.title} — <code>{item.path}</code>
+                  {item.suggested_action ? ` — ${item.suggested_action}` : ''}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+        <SafetyNote variant="meta" />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Review session export"
+        className="validation-review-session-export"
+        summary={
+          <p className="validation-meta">
+            {reviewSessionExport?.available
+              ? `${formatTimestamp(reviewSessionExport.created_at)} — ${reviewSessionExport.comparison_status ?? '—'}`
+              : 'No export — run make mrms-review-session-export'}
+            {reviewExportRegenerationHint?.review_export_regeneration_recommended
+              ? ' — regeneration recommended'
+              : ''}
+          </p>
+        }
+      >
         {reviewSessionExport?.available ? (
           <p className="validation-meta">
             Latest export {formatTimestamp(reviewSessionExport.created_at)} —{' '}
@@ -1052,27 +960,34 @@ export default function ValidationStatusPanel({
           </p>
         )}
         {reviewExportRegenerationHint ? (
-          <p
-            className={
-              reviewExportRegenerationHint.review_export_regeneration_recommended
-                ? 'validation-warn'
-                : 'validation-meta'
-            }
-          >
-            Review export regeneration recommended:{' '}
-            {reviewExportRegenerationHint.review_export_regeneration_recommended ? 'yes' : 'no'}
-            {reviewExportRegenerationHint.reason
-              ? ` — ${reviewExportRegenerationHint.reason}`
-              : ''}
-            {reviewExportRegenerationHint.suggested_command
-              ? ` — run ${reviewExportRegenerationHint.suggested_command}`
-              : ''}
-          </p>
+          <>
+            <p
+              className={
+                reviewExportRegenerationHint.review_export_regeneration_recommended
+                  ? 'validation-warn'
+                  : 'validation-meta'
+              }
+            >
+              Review export regeneration recommended:{' '}
+              {yesNo(reviewExportRegenerationHint.review_export_regeneration_recommended ?? false)}
+              {reviewExportRegenerationHint.reason ? ` — ${reviewExportRegenerationHint.reason}` : ''}
+            </p>
+            <CommandLine command={reviewExportRegenerationHint.suggested_command} />
+          </>
         ) : null}
-        <p className="validation-meta">
-          Local export only — does not verify MRMS, clear alerts, notify externally, or enable
-          production rendering
-        </p>
+        <SafetyNote variant="meta" />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Review export diff"
+        className="validation-review-export-diff"
+        summary={
+          <p className="validation-meta">
+            {reviewSessionExportDiff?.available
+              ? `${reviewSessionExportDiff.overall_export_diff_status ?? 'unknown'} — session changed ${reviewSessionExportDiff.session_changed ? 'yes' : 'no'}`
+              : 'No export diff — run make mrms-review-session-export twice'}
+          </p>
+        }
+      >
         {reviewSessionExportDiff?.available ? (
           <>
             <p className="validation-meta">
@@ -1080,22 +995,7 @@ export default function ValidationStatusPanel({
               {reviewSessionExportDiff.compared_at
                 ? ` (${formatTimestamp(reviewSessionExportDiff.compared_at)})`
                 : ''}
-              — latest export {formatTimestamp(reviewSessionExportDiff.latest_export_created_at)} — baseline{' '}
-              {formatTimestamp(reviewSessionExportDiff.baseline_export_created_at)} — session changed{' '}
-              {reviewSessionExportDiff.session_changed ? 'yes' : 'no'}
             </p>
-            {reviewSessionExportDiff.open_attention_count_change ? (
-              <p className="validation-meta">
-                Open attention count change: baseline{' '}
-                {reviewSessionExportDiff.open_attention_count_change.baseline ?? '—'} → latest{' '}
-                {reviewSessionExportDiff.open_attention_count_change.latest ?? '—'}
-              </p>
-            ) : null}
-            {(reviewSessionExportDiff.improvements?.length ?? 0) > 0 ? (
-              <p className="validation-meta">
-                Export diff improvements: {reviewSessionExportDiff.improvements?.join(', ')}
-              </p>
-            ) : null}
             {(reviewSessionExportDiff.regressions?.length ?? 0) > 0 ? (
               <p className="validation-warn">
                 Export diff regressions: {reviewSessionExportDiff.regressions?.join(', ')}
@@ -1104,196 +1004,86 @@ export default function ValidationStatusPanel({
           </>
         ) : (
           <p className="validation-meta">
-            No review export diff — run make mrms-review-session-export twice or use export-after-create
-            (local only).
+            No review export diff — run make mrms-review-session-export twice or use export-after-create.
           </p>
         )}
-        <p className="validation-meta">
-          Export diff is local-only review evidence — does not verify MRMS, clear alerts, notify
-          externally, or enable production rendering
-        </p>
-        {reviewSessionExportDiffHistory?.available ? (
+        <SafetyNote variant="meta" />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Review export diff history"
+        className="validation-review-export-diff-history"
+        summary={
           <p className="validation-meta">
-            Export diff history: {reviewSessionExportDiffHistory.count ?? 0} entries — latest{' '}
-            {reviewSessionExportDiffHistory.latest_status ?? '—'}
-            {reviewSessionExportDiffHistory.latest_created_at
-              ? ` (${formatTimestamp(reviewSessionExportDiffHistory.latest_created_at)})`
-              : ''}
+            {reviewSessionExportDiffHistory?.available
+              ? `${reviewSessionExportDiffHistory.count ?? 0} entries — latest ${reviewSessionExportDiffHistory.latest_status ?? '—'}`
+              : 'No export diff history'}
           </p>
-        ) : (
-          <p className="validation-meta">
-            No export diff history — run make mrms-review-session-export-diff-history (local only).
-          </p>
-        )}
-        <div className="validation-header-actions">
-          <button
-            type="button"
-            className="validation-refresh"
-            onClick={() => setShowExportDiffHistory((value) => !value)}
-          >
-            {showExportDiffHistory ? 'Hide export diff history' : 'Show export diff history'}
-          </button>
-        </div>
-        {showExportDiffHistory && (reviewSessionExportDiffHistory?.recent ?? []).length > 0 ? (
+        }
+      >
+        {(reviewSessionExportDiffHistory?.recent ?? []).length > 0 ? (
           <ul className="validation-history-list">
             {(reviewSessionExportDiffHistory?.recent ?? []).map((entry, index) => (
               <li
                 key={`${entry.created_at ?? 'export-diff'}-${index}`}
                 className="validation-meta"
               >
-                {formatTimestamp(entry.created_at)} — {entry.overall_export_diff_status ?? '—'} —
-                session changed {entry.session_changed ? 'yes' : 'no'}
-                {entry.open_attention_count_change
-                  ? ` — attention ${entry.open_attention_count_change.baseline ?? '—'} → ${entry.open_attention_count_change.latest ?? '—'}`
-                  : ''}
-                {entry.comparison_status_change
-                  ? ` — comparison ${entry.comparison_status_change.baseline ?? '—'} → ${entry.comparison_status_change.latest ?? '—'}`
-                  : ''}
-                {` — improvements ${entry.improvements_count ?? 0}, regressions ${entry.regressions_count ?? 0}`}
+                {formatTimestamp(entry.created_at)} — {entry.overall_export_diff_status ?? '—'}
               </li>
             ))}
           </ul>
-        ) : showExportDiffHistory ? (
-          <p className="validation-meta">No recent export diff entries in summary.</p>
-        ) : null}
-        <p className="validation-meta">
-          Export diff history is local-only — does not verify MRMS, clear alerts, notify externally,
-          or enable production rendering
-        </p>
-        {reviewSessionExportDiffTrend?.available ? (
-          <>
-            <p className="validation-meta">
-              Export diff trend: {reviewSessionExportDiffTrend.trend ?? 'no_data'}
-              {reviewSessionExportDiffTrend.latest_status
-                ? ` — latest ${reviewSessionExportDiffTrend.latest_status}`
-                : ''}
-              {reviewSessionExportDiffTrend.latest_at
-                ? ` (${formatTimestamp(reviewSessionExportDiffTrend.latest_at)})`
-                : ''}
-            </p>
-            <p className="validation-meta">
-              Counts — improved {reviewSessionExportDiffTrend.improved_count ?? 0}, worsened{' '}
-              {reviewSessionExportDiffTrend.worsened_count ?? 0}, mixed{' '}
-              {reviewSessionExportDiffTrend.mixed_count ?? 0}, unchanged{' '}
-              {reviewSessionExportDiffTrend.unchanged_count ?? 0}
-            </p>
-            <p className="validation-meta">
-              Streaks — worsened {reviewSessionExportDiffTrend.current_worsened_streak ?? 0}, mixed/
-              worsened {reviewSessionExportDiffTrend.current_mixed_or_worsened_streak ?? 0}
-            </p>
-            <p className="validation-meta">
-              Last worsened {formatTimestamp(reviewSessionExportDiffTrend.last_worsened_at)} — last
-              improved {formatTimestamp(reviewSessionExportDiffTrend.last_improved_at)}
-            </p>
-            {reviewSessionExportDiffTrend.suggested_next_action ? (
-              <p className="validation-meta">
-                Suggested: {reviewSessionExportDiffTrend.suggested_next_action}
-              </p>
-            ) : null}
-          </>
         ) : (
           <p className="validation-meta">
-            No export diff trend — run make mrms-review-session-export-diff-trend after multiple
-            exports (local only).
+            No export diff history — run make mrms-review-session-export-diff-history (local only).
           </p>
         )}
-        <p className="validation-meta">
-          Export diff trend is local-only — does not verify MRMS, clear alerts, notify externally, or
-          enable production rendering
-        </p>
+        <SafetyNote variant="meta" />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Review export diff trend & hint"
+        className="validation-review-export-diff-trend"
+        summary={
+          <p className="validation-meta">
+            {reviewSessionExportDiffTrend?.available
+              ? `Trend ${reviewSessionExportDiffTrend.trend ?? 'no_data'}`
+              : 'No export diff trend'}
+            {reviewSessionExportDiffTrendHint?.review_trend_regeneration_recommended
+              ? ' — regeneration recommended'
+              : ''}
+          </p>
+        }
+      >
+        {reviewSessionExportDiffTrend?.available ? (
+          <p className="validation-meta">
+            Export diff trend: {reviewSessionExportDiffTrend.trend ?? 'no_data'}
+            {reviewSessionExportDiffTrend.latest_at
+              ? ` (${formatTimestamp(reviewSessionExportDiffTrend.latest_at)})`
+              : ''}
+          </p>
+        ) : (
+          <p className="validation-meta">
+            No export diff trend — run make mrms-review-session-export-diff-trend after multiple exports.
+          </p>
+        )}
         {reviewSessionExportDiffTrendHint ? (
           <>
-            <p
-              className={
-                reviewSessionExportDiffTrendHint.review_trend_regeneration_recommended
-                  ? 'validation-warn'
-                  : 'validation-meta'
-              }
-            >
-              Export diff trend regeneration recommended:{' '}
-              {reviewSessionExportDiffTrendHint.review_trend_regeneration_recommended ? 'yes' : 'no'}
-              {reviewSessionExportDiffTrendHint.reason
-                ? ` — ${reviewSessionExportDiffTrendHint.reason}`
-                : ''}
-            </p>
             <p className="validation-meta">
-              Trend {reviewSessionExportDiffTrendHint.trend ?? 'no_data'} — latest export diff{' '}
-              {reviewSessionExportDiffTrendHint.latest_export_diff_status ?? '—'} — worsened streak{' '}
-              {reviewSessionExportDiffTrendHint.current_worsened_streak ?? 0} — mixed/worsened streak{' '}
-              {reviewSessionExportDiffTrendHint.current_mixed_or_worsened_streak ?? 0} — stale export{' '}
-              {reviewSessionExportDiffTrendHint.export_is_stale ? 'yes' : 'no'}
+              Trend regeneration recommended:{' '}
+              {yesNo(reviewSessionExportDiffTrendHint.review_trend_regeneration_recommended ?? false)}
             </p>
-            {reviewSessionExportDiffTrendHint.suggested_command ? (
-              <p className="validation-meta">
-                Suggested: {reviewSessionExportDiffTrendHint.suggested_command}
-              </p>
-            ) : null}
+            <CommandLine command={reviewSessionExportDiffTrendHint.suggested_command} />
           </>
         ) : null}
-        <p className="validation-meta">
-          Export diff trend hint is local-only — does not verify MRMS, clear alerts, notify
-          externally, or enable production rendering
-        </p>
-        {showReviewSessionForm ? (
-          <form className="validation-signoff-form" onSubmit={(event) => void handleReviewSessionSubmit(event)}>
-            <p className="validation-warn">
-              Review session form — local evidence link only; does not verify MRMS; does not clear
-              alerts; does not enable production rendering.
-            </p>
-            <label className="validation-meta">
-              Operator initials or name
-              <input
-                type="text"
-                value={reviewSessionOperator}
-                onChange={(event) => setReviewSessionOperator(event.target.value)}
-                autoComplete="name"
-              />
-            </label>
-            <label className="validation-meta">
-              Session notes
-              <textarea
-                value={reviewSessionNotes}
-                onChange={(event) => setReviewSessionNotes(event.target.value)}
-                rows={2}
-              />
-            </label>
-            <label className="validation-meta">
-              <input
-                type="checkbox"
-                checked={reviewSessionAcceptedLimitations}
-                onChange={(event) => setReviewSessionAcceptedLimitations(event.target.checked)}
-              />{' '}
-              I accept this review session does not verify MRMS (required)
-            </label>
-            <label className="validation-meta">
-              <input
-                type="checkbox"
-                checked={reviewSessionExportAfterCreate}
-                onChange={(event) => setReviewSessionExportAfterCreate(event.target.checked)}
-              />{' '}
-              Export Markdown after creating this session
-            </label>
-            <button type="submit" className="validation-refresh" disabled={reviewSessionSubmitting}>
-              {reviewSessionSubmitting ? 'Submitting…' : 'Submit local review session'}
-            </button>
-            {reviewSessionMessage ? <p className="validation-meta">{reviewSessionMessage}</p> : null}
-            {reviewSessionError ? <p className="validation-warn">{reviewSessionError}</p> : null}
-          </form>
-        ) : null}
-      </section>
-      <section className="validation-diff-alert-trend">
-        <div className="validation-header-actions">
+        <SafetyNote variant="meta" />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Diff alert trend & acknowledgment"
+        className="validation-diff-alert-trend"
+        summary={
           <p className="validation-meta">
-            Diff alert trend (local evidence monitoring only — does not verify MRMS)
+            Trend: {diffAlertTrend?.trend ?? validationAlert?.proof_bundle_diff_alert_trend ?? 'no_data'}
           </p>
-          <button
-            type="button"
-            className="validation-refresh"
-            onClick={() => setShowDiffAlertTrend((value) => !value)}
-          >
-            {showDiffAlertTrend ? 'Hide trend' : 'Show trend'}
-          </button>
-        </div>
+        }
+      >
         {diffAlertTrend?.available || validationAlert?.proof_bundle_diff_alert_trend ? (
           <p className="validation-meta">
             Trend: {diffAlertTrend?.trend ?? validationAlert?.proof_bundle_diff_alert_trend ?? 'no_data'}
@@ -1303,9 +1093,11 @@ export default function ValidationStatusPanel({
               : ''}
           </p>
         ) : (
-          <p className="validation-meta">No trend data — run make proof-bundle-diff-alert-trend after diff history.</p>
+          <p className="validation-meta">
+            No trend data — run make proof-bundle-diff-alert-trend after diff history.
+          </p>
         )}
-        {showDiffAlertTrend && diffAlertTrend ? (
+        {diffAlertTrend ? (
           <>
             <p className="validation-meta">
               Last worsened: {formatTimestamp(diffAlertTrend.last_worsened_at)} — last mixed:{' '}
@@ -1363,7 +1155,8 @@ export default function ValidationStatusPanel({
           {ackMessage ? <p className="validation-meta">{ackMessage}</p> : null}
           {ackError ? <p className="validation-warn">{ackError}</p> : null}
         </form>
-      </section>
+        <SafetyNote variant="meta" />
+      </CollapsibleSection>
       {runbookReferences.length > 0 ? (
         <section className="validation-runbook-links">
           <p className="validation-meta">Operator runbook references (repo docs):</p>
@@ -1377,17 +1170,16 @@ export default function ValidationStatusPanel({
           </ul>
         </section>
       ) : null}
-      <div className="validation-header-actions" style={{ marginTop: '0.5rem' }}>
-        <button
-          type="button"
-          className="validation-refresh"
-          onClick={() => setShowProofReview((value) => !value)}
-        >
-          {showProofReview ? 'Hide proof review' : 'Show proof review'}
-        </button>
-      </div>
-      {showProofReview ? (
-        <section className="validation-proof-review">
+      <CollapsibleSection
+        title="Proof review & sign-off"
+        className="validation-proof-review"
+        summary={
+          <p className="validation-meta">
+            Proof history {proofHistory?.count ?? 0} — sign-offs {signoffsList?.count ?? 0}
+            {proofReviewLoading ? ' (loading…)' : ''}
+          </p>
+        }
+      >
           <p className="validation-warn">Proof review draft — not verified MRMS; local sign-off only.</p>
           <p className="validation-meta">
             Proof history ({proofHistory?.count ?? 0} saved) — latest{' '}
@@ -1479,8 +1271,18 @@ export default function ValidationStatusPanel({
             {signoffMessage ? <p className="validation-meta">{signoffMessage}</p> : null}
             {signoffError ? <p className="validation-warn">{signoffError}</p> : null}
           </form>
-        </section>
-      ) : null}
+        <SafetyNote variant="meta" />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Validation pipeline"
+        className="validation-pipeline-summary"
+        summary={
+          <p className="validation-meta">
+            Catalog {catalog.total_frames} frames — queue {queue.queued} queued / {queue.running} running —
+            production {summary.production_rendering_enabled ? 'enabled' : 'disabled'}
+          </p>
+        }
+      >
       <p className="validation-meta">Placeholder default: {yesNo(summary.placeholder_default)}</p>
       <p className="validation-meta">
         Production rendering: {summary.production_rendering_enabled ? 'enabled (flag on)' : 'disabled (default)'}
@@ -1613,9 +1415,37 @@ export default function ValidationStatusPanel({
       ) : (
         <p className="validation-meta">No queue benchmark yet — run make benchmark-render-queue.</p>
       )}
+        <SafetyNote variant="meta" />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Raw JSON drilldown"
+        className="validation-raw-json"
+        expanded={showDetails}
+        onExpandedChange={(next) => {
+          if (!next) {
+            setShowDetails(false);
+            return;
+          }
+          void openDetails();
+        }}
+        summary={
+          <p className="validation-meta">
+            {detailsLoading
+              ? 'Loading…'
+              : detailsJson
+                ? 'Loaded validation latest payload'
+                : 'Collapsed — expand or use header Show details'}
+          </p>
+        }
+      >
       {showDetails && detailsJson ? (
         <pre className="validation-details-json">{detailsJson}</pre>
-      ) : null}
+      ) : (
+        <p className="validation-meta">
+          Use the header <strong>Show details</strong> button to fetch and display the latest validation JSON.
+        </p>
+      )}
+      </CollapsibleSection>
     </section>
   );
 }

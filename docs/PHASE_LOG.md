@@ -1889,3 +1889,31 @@ cd frontend && npm run build
 - Local/dev review tooling only — not verified MRMS
 - Does not clear alerts or mutate production/catalog/render gates
 - `verified_mrms` always false
+
+## Phase 51 - Dev Validation Panel UX Polish
+
+Collapsible detail sections in the Dev Validation panel for easier scanning; Operator Review Status remains prominent and non-collapsible.
+
+### Frontend
+- `CollapsibleSection`, `StatusBadge`, `SafetyNote`, `CommandLine` helpers under `frontend/src/components/validation/`
+- `ValidationStatusPanel.tsx` refactored: collapsible sections for validation alerts, proof bundle/diff/history, escalation/digest, review sessions/export/diff/history/trend, scheduled status, proof review, validation pipeline, raw JSON
+- Summary lines visible when collapsed (status, counts, timestamps, suggested commands)
+- Consistent safety labels: local only, does not verify MRMS, does not clear alerts, does not enable production rendering
+- Mobile-friendly collapsible headers; no new UI library
+
+### Backend
+- No changes — API contracts unchanged
+
+### Run commands
+
+```bash
+make test
+make operator-review-status
+make scheduled-validation
+cd frontend && npm run build
+```
+
+### Known limitations
+- UI polish only — does not change verification, alerts, proof state, review sessions, exports, or production gates
+- `verified_mrms` always false
+- Collapsed sections hide detail bodies; expand to use forms and full history lists

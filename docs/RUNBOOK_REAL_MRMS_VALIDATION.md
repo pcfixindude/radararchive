@@ -136,7 +136,7 @@ make mrms-proof-history ARGS="--regression"
 make mrms-proof-history ARGS="--signoffs"
 ```
 
-Dev Validation panel: **Show proof review** — proof history, regression history, sign-off list (local only, not verified MRMS).
+Dev Validation panel: expand **Proof review & sign-off** — proof history, regression history, sign-off list (local only, not verified MRMS).
 
 ## Dev sign-off form and API (Phase 29)
 
@@ -152,7 +152,7 @@ curl -X POST http://127.0.0.1:8000/api/validation/signoffs \
   -d '{"operator_initials":"OP","operator_notes":"local review only"}'
 ```
 
-Dev Validation panel: **Show proof review** → dev sign-off form with honest local-only wording.
+Dev Validation panel: expand **Proof review & sign-off** → dev sign-off form with honest local-only wording.
 
 After sign-off:
 - Validation alert refreshes with `latest_signoff_at`
@@ -588,7 +588,7 @@ curl http://127.0.0.1:8000/api/validation/review-sessions/export/diff/history
 
 **Each recent entry shows:** timestamp, `overall_export_diff_status` (`improved`/`worsened`/`mixed`/`unchanged`/`no_baseline`), session changed, open attention count change, comparison status change, improvement/regression counts.
 
-**Dev Validation UI:** Toggle “Show export diff history” — count, latest status/timestamp, expandable list.
+**Dev Validation UI:** Expand **Review export diff history** — count, latest status/timestamp, and recent entries (max 5 in summary).
 
 **Warnings:** History is local-only — does not verify MRMS, clear alerts, notify externally, or enable production rendering.
 
@@ -607,7 +607,7 @@ curl http://127.0.0.1:8000/api/validation/summary
 
 **Suggested command priority:** digest stale → `make scheduled-proof-bundle-review-export`; export stale (session exists) → `make mrms-review-session-export`; trend/session attention → `make mrms-review-session` with `--export-after-create`; no session → initial session with `--export-after-create`.
 
-**Dev Validation UI:** “Operator Review Status” block near the top shows level, reason, recommended action, suggested command, recommendation flags, evidence trend, timestamps, and counts. Detailed blocks (session form, export diff, trend, history, digest, proof bundle, alerts) remain unchanged.
+**Dev Validation UI:** **Operator Review Status** stays fixed near the top (level, reason, recommended action, suggested command, recommendation flags, evidence trend, timestamps, counts). Detailed areas (alerts, proof bundle, digest, review sessions, export/diff/history/trend, scheduled status) are collapsible sections with summary lines when collapsed (Phase 51).
 
 **Warnings:** Consolidation is local-only — does not verify MRMS, clear alerts, notify externally, or enable production rendering.
 
