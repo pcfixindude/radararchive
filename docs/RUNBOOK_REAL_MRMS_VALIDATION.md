@@ -522,6 +522,31 @@ curl http://127.0.0.1:8000/api/validation/review-sessions/export/diff/history
 
 **Warnings:** Export diff does **not** verify MRMS, clear alerts, notify externally, or enable production rendering.
 
+## Review session export diff trend (Phase 46)
+
+Summarize whether recent review exports are trending better, worse, stable, or mixed — **local review only**.
+
+```bash
+make mrms-review-session-export-diff-trend
+make mrms-review-session-export-diff-trend ARGS="--json"
+make mrms-review-session-export-diff-trend ARGS="--limit 15"
+curl http://127.0.0.1:8000/api/validation/review-sessions/export/diff/trend
+curl "http://127.0.0.1:8000/api/validation/review-sessions/export/diff/trend?window=15"
+```
+
+**Interpreting `trend`:**
+- `no_data` — no export diff history yet
+- `stable` — mostly unchanged recent exports
+- `improving` — more improved than worsened in window
+- `worsening` — more worsened than improved, or active worsened/mixed streak
+- `mixed` — conflicting signals (e.g. multiple mixed diffs)
+
+**Trend includes:** counts, streaks, last worsened/improved timestamps, `suggested_next_action`.
+
+**Dev Validation UI:** Export diff trend, latest status, counts, streaks, last timestamps, suggested action.
+
+**Warnings:** Trend is local-only — does not verify MRMS, clear alerts, notify externally, or enable production rendering.
+
 ## Scheduled review session export (Phase 44)
 
 Optional scheduled validation step exports the latest review session Markdown after digest/handoff — **local scheduled review only**.

@@ -1740,3 +1740,33 @@ cd frontend && npm run build
 - Local/dev review tooling only — not verified MRMS
 - Does not clear alerts or mutate production/catalog/render gates
 - `verified_mrms` always false
+
+## Phase 46 - Review Export Diff Trends
+
+Trend summaries from bounded export diff history — local/dev review only.
+
+### Backend
+- `mrms_review_session_export_diff_trends.py` — counts, streaks, timestamps, `suggested_next_action`
+- `GET /api/validation/review-sessions/export/diff/trend` (optional `window` 1–25)
+- Summary: `mrms_review_session_export_diff_trend`
+- Read-only — does not change export diff recording
+
+### Scripts / Makefile
+- `make mrms-review-session-export-diff-trend` (`--json`, `--limit`)
+
+### Frontend
+- Dev Validation: trend, latest status, counts, streaks, last timestamps, suggested action
+
+### Run commands
+
+```bash
+make test
+make mrms-review-session-export-diff-trend
+cd frontend && npm run build
+```
+
+### Known limitations
+- Trend requires export diff history (`no_data` when empty)
+- Local/dev review tooling only — not verified MRMS
+- Does not clear alerts or mutate production/catalog/render gates
+- `verified_mrms` always false

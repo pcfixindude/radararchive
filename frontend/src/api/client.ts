@@ -747,6 +747,36 @@ export type MrmsReviewSessionExportDiffCompact = {
   prototype: boolean;
 };
 
+export type MrmsReviewSessionExportDiffTrendCompact = {
+  available: boolean;
+  total_diffs?: number;
+  latest_status?: string | null;
+  latest_at?: string | null;
+  last_worsened_at?: string | null;
+  last_improved_at?: string | null;
+  last_mixed_at?: string | null;
+  last_unchanged_at?: string | null;
+  worsened_count?: number;
+  improved_count?: number;
+  mixed_count?: number;
+  unchanged_count?: number;
+  no_baseline_count?: number;
+  current_worsened_streak?: number;
+  current_improved_streak?: number;
+  current_mixed_or_worsened_streak?: number;
+  longest_worsened_streak?: number;
+  longest_mixed_or_worsened_streak?: number;
+  trend?: string;
+  window_size?: number;
+  history_count?: number;
+  suggested_next_action?: string | null;
+  verified_mrms: boolean;
+  local_trend_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  prototype: boolean;
+};
+
 export type ProofBundleDiffAcknowledgmentCreateRequest = {
   operator_name?: string;
   operator_initials?: string;
@@ -1053,6 +1083,7 @@ export type ValidationSummary = {
   mrms_review_session?: MrmsReviewSessionSummaryCompact | null;
   mrms_review_session_export?: MrmsReviewSessionExportCompact | null;
   mrms_review_session_export_diff?: MrmsReviewSessionExportDiffCompact | null;
+  mrms_review_session_export_diff_trend?: MrmsReviewSessionExportDiffTrendCompact | null;
   review_export_regeneration_hint?: ReviewExportRegenerationHintCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];

@@ -131,6 +131,9 @@ mrms-review-session-export-diff:
 mrms-review-session-export-diff-history:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_review_session_export_diff.py --history $(ARGS)
 
+mrms-review-session-export-diff-trend:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_review_session_export_diff_trend.py $(ARGS)
+
 mrms-proof-history:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_proof_history.py $(ARGS)
 

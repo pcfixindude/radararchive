@@ -822,6 +822,46 @@ class MrmsReviewSessionExportDiffHistoryResponse(BaseModel):
     compact: MrmsReviewSessionExportDiffCompact
 
 
+class MrmsReviewSessionExportDiffTrendCompact(BaseModel):
+    available: bool = False
+    total_diffs: int = 0
+    latest_status: Optional[str] = None
+    latest_at: Optional[str] = None
+    last_worsened_at: Optional[str] = None
+    last_improved_at: Optional[str] = None
+    last_mixed_at: Optional[str] = None
+    last_unchanged_at: Optional[str] = None
+    worsened_count: int = 0
+    improved_count: int = 0
+    mixed_count: int = 0
+    unchanged_count: int = 0
+    no_baseline_count: int = 0
+    current_worsened_streak: int = 0
+    current_improved_streak: int = 0
+    current_mixed_or_worsened_streak: int = 0
+    longest_worsened_streak: int = 0
+    longest_mixed_or_worsened_streak: int = 0
+    trend: str = "no_data"
+    window_size: int = 10
+    history_count: int = 0
+    suggested_next_action: Optional[str] = None
+    verified_mrms: bool = False
+    local_trend_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class MrmsReviewSessionExportDiffTrendResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_trend_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    trend: MrmsReviewSessionExportDiffTrendCompact
+
+
 class MrmsProofHistoryEntryCompact(BaseModel):
     generated_at: Optional[str] = None
     overall_status: str = "not_started"
@@ -1248,6 +1288,7 @@ class ValidationSummaryResponse(BaseModel):
     mrms_review_session: Optional[MrmsReviewSessionSummaryCompact] = None
     mrms_review_session_export: Optional[MrmsReviewSessionExportCompact] = None
     mrms_review_session_export_diff: Optional[MrmsReviewSessionExportDiffCompact] = None
+    mrms_review_session_export_diff_trend: Optional[MrmsReviewSessionExportDiffTrendCompact] = None
     review_export_regeneration_hint: Optional[ReviewExportRegenerationHintCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)

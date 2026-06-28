@@ -36,6 +36,7 @@ from backend.app.schemas.validation import (
     MrmsReviewSessionExportHistoryResponse,
     MrmsReviewSessionExportDiffResponse,
     MrmsReviewSessionExportDiffHistoryResponse,
+    MrmsReviewSessionExportDiffTrendResponse,
     QueueBenchmarkHistoryResponse,
     ScheduledValidationHistoryResponse,
     ValidationAlertsResponse,
@@ -103,6 +104,9 @@ from backend.app.services.mrms_review_session_export import (
 )
 from backend.app.services.mrms_review_session_export_diff import (
     build_review_session_export_diff_payload,
+)
+from backend.app.services.mrms_review_session_export_diff_trends import (
+    build_review_session_export_diff_trend_payload,
 )
 from backend.app.services.mrms_proof_report import load_mrms_proof_report
 from backend.app.services.validation_alerts import (
@@ -302,6 +306,20 @@ def validation_signoffs_create(body: MrmsSignoffCreateRequest) -> MrmsSignoffCre
         signoff=record,
         alert=compact_validation_alert(alert),
     )
+
+
+@router.get(
+    "/review-sessions/export/diff/trend",
+    response_model=MrmsReviewSessionExportDiffTrendResponse,
+)
+def validation_review_sessions_export_diff_trend(
+    window: int = 10,
+) -> MrmsReviewSessionExportDiffTrendResponse:
+    """Review session export diff trend summary (read-only; local review only)."""
+    storage = LocalStorage(settings.local_storage_root)
+    bounded = max(1, min(window, 25))
+    payload = build_review_session_export_diff_trend_payload(storage, window=bounded)
+    return MrmsReviewSessionExportDiffTrendResponse(**payload)
 
 
 @router.get(

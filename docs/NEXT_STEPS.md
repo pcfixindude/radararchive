@@ -1,26 +1,24 @@
 # Next Steps
 
-## Phase 46 - Review Export Diff Trends (Draft)
+## Phase 47 - Export Diff Trend Alerts (Draft)
 
-Goal: Optional trend summaries across export diff history — still local-only.
+Goal: Optional tie between export diff trends and validation summary hints — still local-only.
 
 Suggested work:
-1. Compact trend metrics from bounded export diff history
-2. Tie export diff regeneration hints to scheduled validation history
-3. Optional dashboard sparkline or history table in Dev Validation
+1. Export diff trend regeneration hints when worsening streak persists
+2. Optional scheduled validation step to surface export diff trend in report
+3. Dev Validation history table for export diff entries
 
 Do not start yet:
 - Stripe, real auth, HRRR, WPC, native Android
 - Redis/Celery, cloud deployment, email/Slack/webhooks
 - Setting `verified_mrms=true` or production promotion
 
-## Phase 45 verification commands
+## Phase 46 verification commands
 
 ```bash
 make test
-make mrms-review-session ARGS="--operator TEST --notes 'local test review only' --accepted-limitations"
-make mrms-review-session ARGS="--operator TEST --notes 'local test review with export' --accepted-limitations --export-after-create"
-make mrms-review-session-export-diff
-make mrms-review-session-export-diff-history
+make mrms-review-session-export-diff-trend
+make mrms-review-session-export-diff-trend ARGS="--json"
 cd frontend && npm run build
 ```

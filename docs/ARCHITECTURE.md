@@ -518,6 +518,12 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - `try_export_after_review_session_create()` — optional `export_after_create` on session create; no rollback on export failure
 - Gitignored: `mrms_review_session_export_diff_latest.json`, `..._history.json`
 
+### Review session export diff trends (Phase 46)
+- `mrms_review_session_export_diff_trends.py` — trend summary from bounded export diff history
+- `GET /api/validation/review-sessions/export/diff/trend` (before `/export/diff` routes)
+- Summary: `mrms_review_session_export_diff_trend` compact
+- Read-only — does not mutate export diff recording, alerts, or production gates
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

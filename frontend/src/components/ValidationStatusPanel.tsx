@@ -247,6 +247,7 @@ export default function ValidationStatusPanel({
   const openAttentionGuidance = reviewSessionSummary?.open_attention_guidance ?? [];
   const reviewSessionExport = summary.mrms_review_session_export ?? null;
   const reviewSessionExportDiff = summary.mrms_review_session_export_diff ?? null;
+  const reviewSessionExportDiffTrend = summary.mrms_review_session_export_diff_trend ?? null;
   const reviewExportRegenerationHint = summary.review_export_regeneration_hint ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
@@ -1009,6 +1010,47 @@ export default function ValidationStatusPanel({
         <p className="validation-meta">
           Export diff is local-only review evidence — does not verify MRMS, clear alerts, notify
           externally, or enable production rendering
+        </p>
+        {reviewSessionExportDiffTrend?.available ? (
+          <>
+            <p className="validation-meta">
+              Export diff trend: {reviewSessionExportDiffTrend.trend ?? 'no_data'}
+              {reviewSessionExportDiffTrend.latest_status
+                ? ` — latest ${reviewSessionExportDiffTrend.latest_status}`
+                : ''}
+              {reviewSessionExportDiffTrend.latest_at
+                ? ` (${formatTimestamp(reviewSessionExportDiffTrend.latest_at)})`
+                : ''}
+            </p>
+            <p className="validation-meta">
+              Counts — improved {reviewSessionExportDiffTrend.improved_count ?? 0}, worsened{' '}
+              {reviewSessionExportDiffTrend.worsened_count ?? 0}, mixed{' '}
+              {reviewSessionExportDiffTrend.mixed_count ?? 0}, unchanged{' '}
+              {reviewSessionExportDiffTrend.unchanged_count ?? 0}
+            </p>
+            <p className="validation-meta">
+              Streaks — worsened {reviewSessionExportDiffTrend.current_worsened_streak ?? 0}, mixed/
+              worsened {reviewSessionExportDiffTrend.current_mixed_or_worsened_streak ?? 0}
+            </p>
+            <p className="validation-meta">
+              Last worsened {formatTimestamp(reviewSessionExportDiffTrend.last_worsened_at)} — last
+              improved {formatTimestamp(reviewSessionExportDiffTrend.last_improved_at)}
+            </p>
+            {reviewSessionExportDiffTrend.suggested_next_action ? (
+              <p className="validation-meta">
+                Suggested: {reviewSessionExportDiffTrend.suggested_next_action}
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            No export diff trend — run make mrms-review-session-export-diff-trend after multiple
+            exports (local only).
+          </p>
+        )}
+        <p className="validation-meta">
+          Export diff trend is local-only — does not verify MRMS, clear alerts, notify externally, or
+          enable production rendering
         </p>
         {showReviewSessionForm ? (
           <form className="validation-signoff-form" onSubmit={(event) => void handleReviewSessionSubmit(event)}>

@@ -66,6 +66,11 @@ def _load_diff_history(storage: LocalStorage) -> list[dict[str, Any]]:
     return []
 
 
+def load_export_diff_history(storage: LocalStorage) -> list[dict[str, Any]]:
+    """Load bounded review session export diff history (newest first)."""
+    return _load_diff_history(storage)
+
+
 def _save_diff_history(storage: LocalStorage, entries: list[dict[str, Any]]) -> None:
     repo_path = _diff_history_repo_path(storage)
     storage.ensure_directories(repo_path.rsplit("/", 1)[0])
