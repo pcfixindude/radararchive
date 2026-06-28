@@ -146,6 +146,30 @@ Returns tile serving configuration (dev):
 
 Access plan enforcement uses demo plans only — no real auth, JWT, or Stripe yet.
 
+## Render jobs (Phase 17 — dev/prototype)
+
+`POST /api/render/jobs` — enqueue a production tile build job (SQLite queue, not verified MRMS).
+
+```json
+{
+  "layer": "mrms_reflectivity",
+  "min_zoom": 0,
+  "max_zoom": 0,
+  "force": false,
+  "mark_catalog": false
+}
+```
+
+Response includes `prototype: true`, `verified_mrms: false`, and `status: "queued"`.
+
+`GET /api/render/jobs` — list recent jobs (query `limit`, default 50).
+
+`GET /api/render/jobs/{id}` — job status with progress and metrics.
+
+Job statuses: `queued`, `running`, `succeeded`, `failed`, `canceled`.
+
+No delete/reset endpoints. Process jobs with `make render-worker-once` (local worker).
+
 ## MRMS source discovery (Phase 8 — dev/metadata)
 
 GET /api/sources/mrms/latest?product=MRMS_ReflectivityAtLowestAltitude&limit=5

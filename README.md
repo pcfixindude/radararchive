@@ -95,11 +95,17 @@ Build production warped tiles (Phase 15–16 — prototype, default off):
 
 ```bash
 make build-production-tiles
-PYTHONPATH=. python scripts/build_production_tiles.py --dry-run
-PYTHONPATH=. python scripts/build_production_tiles.py --min-zoom 0 --max-zoom 2 --json-report
-PYTHONPATH=. python scripts/build_production_tiles.py --force
-PYTHONPATH=. python scripts/build_production_tiles.py --mark-catalog   # fixture/test ONLY — NOT verified MRMS
-ENABLE_PRODUCTION_RADAR_TILES=true make backend
+make build-production-tiles ARGS="--dry-run --json-report"
+make build-production-tiles ARGS="--min-zoom 0 --max-zoom 2 --force"
+```
+
+Render queue + worker (Phase 17 — local dev, SQLite only):
+
+```bash
+make enqueue-render-job
+make enqueue-render-job ARGS="--min-zoom 0 --max-zoom 2"
+make render-worker-once
+curl http://127.0.0.1:8000/api/render/jobs
 ```
 
 Feature flags:
@@ -122,7 +128,8 @@ Limitations:
 - `make inspect-grib2` reports metadata when wgrib2/optional decoders are installed
 - `make decode-grib2` writes prototype artifacts + `geo_metadata.json` to `data/staging/grib2_decode/` when decoders exist
 - `make build-production-tiles` warps normalized grids to EPSG:3857 tiles (stdlib math; default zoom 0 only)
-- Build supports `--dry-run`, `--force`, `--json-report`, `--min-zoom`/`--max-zoom` (see script help)
+- `make enqueue-render-job` + `make render-worker-once` process builds via SQLite queue (no Redis)
+- Build supports `ARGS=` forwarding on Makefile targets (e.g. `make build-production-tiles ARGS="--dry-run"`)
 - `ENABLE_DECODED_TILES=false` by default — map `/tiles` serves placeholders only
 - `ENABLE_PRODUCTION_RADAR_TILES=false` by default — production prototype tiles blocked
 - Production prototype is not verified real MRMS; decoded prototype uses simple grid sampling

@@ -1,51 +1,52 @@
 # Next Steps
 
-## Phase 17 - Background Worker + Render Queue
+## Phase 18 - Render Job Observability + Continuous Worker
 
-Goal: Move production tile batch builds off the CLI into a worker process with a simple job queue, progress tracking, and safer catalog promotion workflow.
+Goal: Add a long-running local worker loop, job retry policy, and richer dev observability without cloud deployment.
 
 Suggested work:
-1. Worker script/process for `build-production-tiles` batches (not in API routes)
-2. Simple SQLite or file-based job queue for render tasks
-3. Separate `production_prototype` vs future `production_verified` catalog status
-4. Progress reporting API (dev-only) for build status
-5. Validate one real MRMS frame against known bounds
+1. `make render-worker` loop (poll queue, sleep between jobs)
+2. Job retry for transient failures (max attempts)
+3. Dev dashboard or expanded API filters (status, layer)
+4. Wire render job status into `make render-status` report
+5. Validate one real MRMS frame end-to-end through queue
 6. Keep placeholder default for offline dev
 
 Do not start yet:
 - Stripe billing integration
 - Real auth / user accounts
 - HRRR / WPC / native Android
+- Redis/Celery unless optional and clearly not required
 
-## Phase 16 verification commands
+## Phase 17 verification commands
 
 ```bash
 make test
-make build-production-tiles
-PYTHONPATH=. python scripts/build_production_tiles.py --dry-run --json-report
+make enqueue-render-job
+make enqueue-render-job ARGS="--min-zoom 0 --max-zoom 2"
+make render-worker-once
+make build-production-tiles ARGS="--dry-run --json-report"
 cd frontend && npm run build
 ```
 
-Production build benchmark:
+Render queue workflow:
 
 ```bash
 make decode-grib2
-PYTHONPATH=. python scripts/build_production_tiles.py --min-zoom 0 --max-zoom 2 --json-report
-PYTHONPATH=. python scripts/build_production_tiles.py --dry-run
-PYTHONPATH=. python scripts/build_production_tiles.py --force
+make enqueue-render-job ARGS="--min-zoom 0 --max-zoom 2"
+make render-worker-once
+curl http://127.0.0.1:8000/api/render/jobs
 ```
 
 Production serving (unchanged gates):
 
 ```bash
-PYTHONPATH=. python scripts/build_production_tiles.py --mark-catalog   # fixture/test ONLY
 ENABLE_PRODUCTION_RADAR_TILES=true make backend
+# Still requires catalog gate + cached tiles
 ```
 
 Placeholder default (unchanged):
 
 ```bash
 curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:00:00Z/0/0/0.png"
-# X-RadarArchive-Tile: placeholder
-# X-RadarArchive-Production-Rendering: false
 ```

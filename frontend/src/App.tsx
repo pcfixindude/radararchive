@@ -6,6 +6,7 @@ import {
   fetchLayers,
   fetchTimes,
   fetchTilesConfig,
+  fetchRenderJobs,
   type AccessCurrentInfo,
   type DemoPlan,
 } from './api/client';
@@ -34,6 +35,7 @@ export default function App() {
   const [error, setError] = useState('');
   const [radarOpacity, setRadarOpacity] = useState(0.65);
   const [tileModeLabel, setTileModeLabel] = useState('Placeholder');
+  const [renderJobHint, setRenderJobHint] = useState('');
 
   function resolveTileModeLabel(config: Awaited<ReturnType<typeof fetchTilesConfig>>): string {
     if (!config) {
@@ -142,6 +144,26 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
 
+    async function loadRenderJobs() {
+      const jobs = await fetchRenderJobs(1);
+      if (cancelled || jobs.length === 0) {
+        return;
+      }
+      const latest = jobs[0];
+      setRenderJobHint(
+        `Render queue (prototype): job #${latest.id} ${latest.status} ${latest.progress_current}/${latest.progress_total} — not verified MRMS`,
+      );
+    }
+
+    loadRenderJobs();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
     async function loadTimes() {
       if (loadState === 'backend_down') {
         return;
@@ -194,6 +216,7 @@ export default function App() {
           Tile mode: {tileModeLabel} — not verified real MRMS. Production prototype uses geo warping
           experiments only; default map tiles remain placeholders.
         </p>
+        {renderJobHint ? <p className="demo-banner subtle">{renderJobHint}</p> : null}
       </header>
       <main className="app-main">
         <WeatherMap

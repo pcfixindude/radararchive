@@ -164,6 +164,30 @@ Benchmark JSON includes: `frames_considered`, `tiles_written`, `tiles_planned`, 
 
 Report: `make render-status` (optional `--sync` to update catalog from artifacts).
 
+## Render queue + worker (Phase 17)
+
+SQLite-backed job queue for production tile builds (local dev — no Redis/Celery).
+
+```bash
+make enqueue-render-job
+make enqueue-render-job ARGS="--min-zoom 0 --max-zoom 2"
+make render-worker-once
+make render-worker-once ARGS="--json-report"
+```
+
+Or via API:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/render/jobs \
+  -H 'Content-Type: application/json' \
+  -d '{"min_zoom":0,"max_zoom":2}'
+curl http://127.0.0.1:8000/api/render/jobs/1
+```
+
+Worker calls Phase 16 `build_production_tiles` with idempotent skip/force behavior. Jobs track `progress_current`, `tiles_written`, `output_bytes`, and `error_message`.
+
+`--mark-catalog` on enqueue shows a clear warning — prototype only, not verified MRMS.
+
 ## Inspection CLI
 
 ```bash
@@ -194,6 +218,9 @@ When no decoder is installed, the script still reports gzip size and GRIB magic 
 - `backend/app/services/tile_pyramid.py` — geo warping math (Phase 15)
 - `backend/app/services/production_tile_builder.py` — production tile builder
 - `scripts/build_production_tiles.py` — production tile CLI
+- `backend/app/services/render_queue.py` — render job queue
+- `backend/app/workers/render_worker.py` — local worker
+- `scripts/enqueue_render_job.py`, `scripts/run_render_worker.py`
 
 ## Non-goals (Phases 11–12)
 

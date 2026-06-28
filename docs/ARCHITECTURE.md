@@ -221,9 +221,24 @@ CLI: `make build-production-tiles` (`scripts/build_production_tiles.py`); option
 ### Production build batch + multi-zoom (Phase 16)
 Build flow:
 1. `plan_production_tile_jobs` — scan decode artifacts, validate geo metadata, compute bounds-intersecting XYZ tiles per zoom
-2. `execute_production_tile_batch` — worker-style executor (no queue yet)
+2. `execute_production_tile_batch` — batch executor with progress callbacks
 3. Idempotent write: skip existing cache paths unless `--force`
 4. `--dry-run` reports planned tiles without writing
+
+### Render queue + local worker (Phase 17)
+SQLite table `render_jobs` tracks queued production tile builds.
+
+Flow:
+1. Enqueue via `make enqueue-render-job`, `POST /api/render/jobs`, or `scripts/enqueue_render_job.py`
+2. Worker claims oldest `queued` job → `running` via `make render-worker-once` or `scripts/run_render_worker.py`
+3. Worker calls `build_production_tiles` with job params; updates `progress_current`/`progress_total`
+4. Job ends `succeeded` or `failed` with metrics (`tiles_written`, `output_bytes`, `error_message`)
+
+No Redis/Celery. Local dev SQLite only. Tile serving gates unchanged.
+
+Dev API: `GET/POST /api/render/jobs`, `GET /api/render/jobs/{id}`
+
+Makefile `ARGS` forwarding: `make enqueue-render-job ARGS="--min-zoom 0 --max-zoom 2"`
 
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)

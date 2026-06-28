@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 from sqlalchemy.orm import Session
 
@@ -277,10 +277,13 @@ def execute_production_tile_batch(
     *,
     force: bool = False,
     dry_run: bool = False,
+    on_progress: Optional[Callable[[int, int], None]] = None,
+    on_tile_outcome: Optional[Callable[[str, int], None]] = None,
 ) -> list[TileBuildOutcome]:
     """Worker-style batch executor for planned production tile jobs."""
     outcomes: list[TileBuildOutcome] = []
-    for job in jobs:
+    total = len(jobs)
+    for index, job in enumerate(jobs):
         outcome = build_production_tile_for_frame(
             storage,
             layer=job.layer,
@@ -294,6 +297,10 @@ def execute_production_tile_batch(
             dry_run=dry_run,
         )
         outcomes.append(outcome)
+        if on_tile_outcome is not None and outcome.status != "planned":
+            on_tile_outcome(outcome.status, outcome.output_bytes)
+        if on_progress is not None:
+            on_progress(index + 1, total)
     return outcomes
 
 
@@ -336,6 +343,8 @@ def build_production_tiles(
     dry_run: bool = False,
     limit: Optional[int] = None,
     mark_catalog: bool = False,
+    on_progress: Optional[Callable[[int, int], None]] = None,
+    on_tile_outcome: Optional[Callable[[str, int], None]] = None,
 ) -> BuildProductionTilesResult:
     """Build production tile cache from decode artifacts with geo_metadata.json."""
     started = time.perf_counter()
@@ -421,7 +430,14 @@ def build_production_tiles(
 
     result.errors.extend(plan_errors)
     result.tiles_planned = len(jobs)
-    outcomes = execute_production_tile_batch(storage, jobs, force=force, dry_run=dry_run)
+    outcomes = execute_production_tile_batch(
+        storage,
+        jobs,
+        force=force,
+        dry_run=dry_run,
+        on_progress=on_progress,
+        on_tile_outcome=on_tile_outcome,
+    )
 
     frames_with_writes: set[str] = set()
     catalog_marked = 0

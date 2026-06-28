@@ -123,6 +123,28 @@ export async function fetchTilesConfig(): Promise<TilesConfigInfo | null> {
   }
 }
 
+export type RenderJobInfo = {
+  id: number;
+  status: string;
+  progress_current: number;
+  progress_total: number;
+  tiles_written: number;
+  prototype: boolean;
+  verified_mrms: boolean;
+};
+
+export async function fetchRenderJobs(limit = 3): Promise<RenderJobInfo[]> {
+  try {
+    const response = await fetch(`${API_BASE}/api/render/jobs?limit=${limit}`);
+    if (!response.ok) {
+      return [];
+    }
+    return response.json() as Promise<RenderJobInfo[]>;
+  } catch {
+    return [];
+  }
+}
+
 export function tileUrl(layer: string, timestamp: string, plan: DemoPlan, z = 0, x = 0, y = 0): string {
   const encoded = encodeURIComponent(timestamp);
   return `${API_BASE}/tiles/${encodeURIComponent(layer)}/${encoded}/${z}/${x}/${y}.png?plan=${encodeURIComponent(plan)}`;

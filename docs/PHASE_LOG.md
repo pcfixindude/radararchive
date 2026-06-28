@@ -766,3 +766,38 @@ cd frontend && npm run build
 - Zoom cap z4 and 256 tiles/build to prevent accidental pyramids
 - Still not verified real MRMS production output
 - Placeholder default unchanged
+
+## Phase 17 - Render Queue + Local Worker
+
+Added SQLite-backed render job queue and local worker for production tile builds with progress tracking.
+
+### Backend
+- `RenderJob` model/table (`render_jobs`) — queued, running, succeeded, failed, canceled
+- `backend/app/services/render_queue.py` — enqueue, claim, progress, status updates
+- `backend/app/workers/render_worker.py` — processes jobs via Phase 16 `build_production_tiles`
+- Dev API: `POST/GET /api/render/jobs`, `GET /api/render/jobs/{id}`
+- Progress callbacks on tile batch execution
+- No Redis/Celery — SQLite only
+
+### Scripts / Makefile
+- `scripts/enqueue_render_job.py`, `scripts/run_render_worker.py`
+- `make enqueue-render-job`, `make render-worker-once`
+- `ARGS` forwarding for Makefile script targets
+
+### Frontend
+- Optional render queue status hint in header (prototype wording)
+
+### Run commands
+
+```bash
+make test
+make enqueue-render-job
+make render-worker-once
+cd frontend && npm run build
+```
+
+### Known limitations
+- Local dev worker only — not cloud deployment
+- Worker processes one job per invocation (`render-worker-once`)
+- No destructive job delete API
+- Production serving gates unchanged; placeholder default unchanged

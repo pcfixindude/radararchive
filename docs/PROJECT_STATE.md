@@ -1,15 +1,14 @@
 # Project State
 
-Current phase: Phase 16 complete
+Current phase: Phase 17 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
 - MRMS discovery → download → decode prototype pipeline
 - **Default tile serving: placeholder** (`ENABLE_DECODED_TILES=false`, `ENABLE_PRODUCTION_RADAR_TILES=false`)
-- Optional decoded prototype tiles when `ENABLE_DECODED_TILES=true` + decode artifacts
-- **Production warping prototype** with multi-zoom build (`--min-zoom` / `--max-zoom`, default z0 only)
-- `make build-production-tiles` supports dry-run, force rebuild, JSON benchmark report
+- Production warping prototype with multi-zoom build (Phase 16)
+- **SQLite render job queue** + local worker (Phase 17)
 - Production tiles served only when flag + catalog gate + cached tile all true
 - Not verified real MRMS — warping prototype only
 
@@ -19,56 +18,43 @@ Current status:
 # Default — placeholder tiles only
 ENABLE_DECODED_TILES=false
 ENABLE_PRODUCTION_RADAR_TILES=false
+```
 
-# Decoded prototype tiles (requires decode artifacts)
-ENABLE_DECODED_TILES=true make backend
+## Render queue (Phase 17)
 
-# Production warping prototype (requires built tiles + catalog gate)
-ENABLE_PRODUCTION_RADAR_TILES=true make backend
+```bash
+# Enqueue a job
+make enqueue-render-job
+make enqueue-render-job ARGS="--min-zoom 0 --max-zoom 2"
+
+# Process one queued job
+make render-worker-once
+make render-worker-once ARGS="--json-report"
+
+# Or via API (dev)
+curl -X POST http://127.0.0.1:8000/api/render/jobs -H 'Content-Type: application/json' -d '{"min_zoom":0,"max_zoom":0}'
+curl http://127.0.0.1:8000/api/render/jobs
 ```
 
 ## Local test
 
 ```bash
 make test
-make build-production-tiles
-PYTHONPATH=. python scripts/build_production_tiles.py --dry-run --json-report
+make enqueue-render-job
+make render-worker-once
 cd frontend && npm run build
-```
-
-## Production tile build (Phase 16)
-
-```bash
-# Safe default — zoom 0 only
-make build-production-tiles
-
-# Plan without writing
-PYTHONPATH=. python scripts/build_production_tiles.py --dry-run
-
-# Limited multi-zoom (capped at z4, max 256 tiles)
-PYTHONPATH=. python scripts/build_production_tiles.py --min-zoom 0 --max-zoom 2
-
-# JSON benchmark report
-PYTHONPATH=. python scripts/build_production_tiles.py --json-report
-
-# Rebuild existing tiles
-PYTHONPATH=. python scripts/build_production_tiles.py --force
-
-# Fixture/test catalog mark (prototype only — NOT verified MRMS)
-PYTHONPATH=. python scripts/build_production_tiles.py --mark-catalog
 ```
 
 ## Pipeline
 
 ```bash
-make download-mrms -- --register-discovered --limit 1
 make decode-grib2
-make build-production-tiles
-make render-status
+make enqueue-render-job ARGS="--min-zoom 0 --max-zoom 2"
+make render-worker-once
 ENABLE_PRODUCTION_RADAR_TILES=true make backend
 ```
 
-See `docs/GRIB2_DECODE.md` for decode/warping/benchmark notes.
+See `docs/GRIB2_DECODE.md` for decode/warping/worker notes.
 
 ## Demo plans
 

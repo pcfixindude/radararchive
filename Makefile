@@ -1,4 +1,6 @@
-.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once discover-mrms download-mrms inspect-grib2 decode-grib2 build-tile-cache build-production-tiles render-status
+.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once discover-mrms download-mrms inspect-grib2 decode-grib2 build-tile-cache build-production-tiles render-status enqueue-render-job render-worker-once
+
+ARGS ?=
 
 setup:
 	python3 -m venv .venv
@@ -46,7 +48,13 @@ build-tile-cache:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/build_tile_cache.py
 
 build-production-tiles:
-	. .venv/bin/activate && PYTHONPATH=. python scripts/build_production_tiles.py
+	. .venv/bin/activate && PYTHONPATH=. python scripts/build_production_tiles.py $(ARGS)
 
 render-status:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/render_status.py
+
+enqueue-render-job:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/enqueue_render_job.py $(ARGS)
+
+render-worker-once:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/run_render_worker.py $(ARGS)
