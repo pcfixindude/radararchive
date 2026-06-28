@@ -79,6 +79,26 @@ def _ensure_radar_file_columns(engine) -> None:
         statements.append("ALTER TABLE radar_files ADD COLUMN downloaded_at VARCHAR")
     if "raw_kind" not in columns:
         statements.append("ALTER TABLE radar_files ADD COLUMN raw_kind VARCHAR")
+    if "render_status" not in columns:
+        statements.append(
+            "ALTER TABLE radar_files ADD COLUMN render_status VARCHAR NOT NULL DEFAULT 'placeholder'"
+        )
+    if "render_mode" not in columns:
+        statements.append(
+            "ALTER TABLE radar_files ADD COLUMN render_mode VARCHAR NOT NULL DEFAULT 'placeholder'"
+        )
+    if "production_rendering" not in columns:
+        statements.append(
+            "ALTER TABLE radar_files ADD COLUMN production_rendering BOOLEAN NOT NULL DEFAULT 0"
+        )
+    if "render_artifact_path" not in columns:
+        statements.append("ALTER TABLE radar_files ADD COLUMN render_artifact_path VARCHAR")
+    if "render_metadata_path" not in columns:
+        statements.append("ALTER TABLE radar_files ADD COLUMN render_metadata_path VARCHAR")
+    if "render_error" not in columns:
+        statements.append("ALTER TABLE radar_files ADD COLUMN render_error VARCHAR")
+    if "rendered_at" not in columns:
+        statements.append("ALTER TABLE radar_files ADD COLUMN rendered_at VARCHAR")
 
     with engine.begin() as connection:
         for statement in statements:

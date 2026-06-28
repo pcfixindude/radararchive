@@ -191,7 +191,32 @@ CLI: `make build-tile-cache` (`scripts/build_tile_cache.py`).
 
 Dev endpoint: `GET /tiles/config`
 
-Headers always include `X-RadarArchive-Production-Rendering: false`.
+Headers always include `X-RadarArchive-Production-Rendering: false` for placeholder and decoded prototype modes.
+
+### Render status + production gate (Phase 14)
+`backend/app/services/render_metadata.py` — `GeoRenderMetadata` + `geo_metadata.json` per decode artifact.
+
+`backend/app/services/render_status.py` — classify catalog frames, report render status, sync catalog fields.
+
+Catalog render fields on `radar_files`:
+- `render_status`: `placeholder` | `decoded_prototype` | `production_pending` | `production_rendered` | `production_failed`
+- `render_mode`, `production_rendering`, `render_artifact_path`, `render_metadata_path`, `render_error`, `rendered_at`
+
+Feature flags:
+- `ENABLE_DECODED_TILES=false` — decoded prototype tiles (Phase 13)
+- `ENABLE_PRODUCTION_RADAR_TILES=false` — production geo-accurate tiles (Phase 14 gate only; no renderer yet)
+
+Tile serving order in `decoded_tile_cache.serve_tile_with_optional_decode`:
+1. Production (requires both flags + `production_rendering=true` + `render_status=production_rendered` + artifact) — not implemented
+2. Decoded prototype when `ENABLE_DECODED_TILES=true`
+3. Placeholder (default)
+
+CLI: `make render-status` (`scripts/render_status.py`) — reports frame/artifact counts; `--sync` updates catalog without marking production.
+
+Response headers:
+- `X-RadarArchive-Tile` — tile mode string
+- `X-RadarArchive-Production-Rendering` — `true`/`false`
+- `X-RadarArchive-Render-Status` — catalog render status for served tile
 
 Staging: decompressed copies under `data/staging/grib2_inspect/` for tool inspection only.
 
@@ -213,6 +238,6 @@ Raw source files are immutable. Processed files can be regenerated. Database rec
 - `data/raw/` — immutable source files (collector/seed stubs)
 - `data/processed/` — processed PNG placeholders (processor stub)
 - `data/staging/grib2_inspect/` — decompressed GRIB2 staging for inspection spike (Phase 11)
-- `data/staging/grib2_decode/` — prototype normalized raster artifacts (Phase 12, not served by API)
+- `data/staging/grib2_decode/` — prototype normalized raster artifacts + `geo_metadata.json` (Phase 12–14, not production tiles)
 - `data/tiles/decoded_prototype/` — optional prototype tile cache (Phase 13, feature-flagged)
 - `data/tiles/` — rendered map tiles directory (reserved for later phases)

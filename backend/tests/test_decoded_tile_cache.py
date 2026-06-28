@@ -101,6 +101,7 @@ def test_flag_on_with_artifact_serves_decoded_prototype(client, db_session, stor
     assert response.content.startswith(b"\x89PNG\r\n\x1a\n")
     assert response.headers.get("x-radararchive-tile") == TILE_MODE_DECODED_PROTOTYPE
     assert response.headers.get("x-radararchive-production-rendering") == "false"
+    assert response.headers.get("x-radararchive-render-status") == "decoded_prototype"
 
 
 def test_plan_enforcement_still_blocks_tiles(client, db_session, storage, monkeypatch):

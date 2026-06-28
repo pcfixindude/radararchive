@@ -7,17 +7,18 @@ from backend.app.config import settings
 from backend.app.database import get_db
 from backend.app.services import access_control as access_service
 from backend.app.services import catalog as catalog_service
-from backend.app.services.decoded_tile_cache import serve_tile_with_optional_decode
+from backend.app.services.decoded_tile_cache import TileServeResult, serve_tile_with_optional_decode
 from backend.app.services.storage import LocalStorage
 
 router = APIRouter()
 
 
-def _tile_response_headers(tile_mode: str, raw_kind: str = "") -> dict[str, str]:
+def _tile_response_headers(served: TileServeResult, raw_kind: str = "") -> dict[str, str]:
     return {
         "Cache-Control": "no-store",
-        "X-RadarArchive-Tile": tile_mode,
-        "X-RadarArchive-Production-Rendering": "false",
+        "X-RadarArchive-Tile": served.tile_mode,
+        "X-RadarArchive-Production-Rendering": "true" if served.production_rendering else "false",
+        "X-RadarArchive-Render-Status": served.render_status,
         "X-RadarArchive-Raw-Kind": raw_kind,
     }
 
@@ -27,10 +28,16 @@ def tiles_config() -> dict:
     """Dev endpoint: tile serving mode configuration."""
     return {
         "enable_decoded_tiles": settings.enable_decoded_tiles,
+        "enable_production_radar_tiles": settings.enable_production_radar_tiles,
         "default_mode": "placeholder",
         "decoded_mode": "decoded-prototype",
         "production_rendering": False,
-        "note": "Decoded tiles are prototype-only and require ENABLE_DECODED_TILES=true plus decode artifacts.",
+        "production_rendering_enabled": settings.enable_production_radar_tiles,
+        "note": (
+            "Placeholder tiles are the default. Decoded prototype tiles require "
+            "ENABLE_DECODED_TILES=true plus decode artifacts. Production geo-accurate "
+            "rendering is disabled (ENABLE_PRODUCTION_RADAR_TILES=false)."
+        ),
     }
 
 
@@ -70,12 +77,13 @@ def get_tile(
         frame,
         timestamp,
         enable_decoded_tiles=settings.enable_decoded_tiles,
+        enable_production_radar_tiles=settings.enable_production_radar_tiles,
         z=z,
         x=x,
         y=y,
     )
 
-    headers = _tile_response_headers(served.tile_mode, frame.raw_kind or "")
+    headers = _tile_response_headers(served, frame.raw_kind or "")
     if served.fallback:
         headers["X-RadarArchive-Tile-Fallback"] = "true"
     if served.from_cache:

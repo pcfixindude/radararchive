@@ -18,6 +18,11 @@ from backend.app.services.grib2_inspector import (
     is_inspectable_grib2_path,
     stage_grib2_gz,
 )
+from backend.app.services.render_metadata import (
+    build_geo_metadata_for_decode,
+    enrich_geo_metadata_from_rasterio,
+    write_geo_metadata,
+)
 from backend.app.services.storage import LocalStorage
 
 DECODE_OUTPUT_ROOT = "data/staging/grib2_decode"
@@ -284,11 +289,21 @@ def decode_grib2_file(
     }
     manifest_abs = _write_manifest(output_abs_dir, manifest_payload)
 
+    geo = build_geo_metadata_for_decode(
+        grid_width=int(decode_info.get("width") or 0),
+        grid_height=int(decode_info.get("height") or 0),
+    )
+    raster_repo_for_geo = None
+    raster_name = decode_info.get("raster_path")
+    if raster_name:
+        raster_repo_for_geo = storage.normalize_path(output_repo_dir, str(raster_name))
+        geo = enrich_geo_metadata_from_rasterio(storage, raster_repo_for_geo, geo)
+    geo_repo_path = write_geo_metadata(storage, output_repo_dir, geo)
+
     result.success = True
     result.decoder_used = str(decode_info.get("decoder"))
     result.output_dir = output_repo_dir
     result.manifest_path = storage.normalize_path(output_repo_dir, MANIFEST_NAME)
-    raster_name = decode_info.get("raster_path")
     if raster_name:
         result.raster_path = storage.normalize_path(output_repo_dir, str(raster_name))
     result.width = decode_info.get("width")
@@ -296,6 +311,7 @@ def decode_grib2_file(
     result.value_min = decode_info.get("value_min")
     result.value_max = decode_info.get("value_max")
     result.notes.append(f"Wrote prototype manifest: {manifest_abs.name}")
+    result.notes.append(f"Wrote geo metadata: {geo_repo_path.rsplit('/', 1)[-1]}")
     result.notes.append("Catalog processed_status and /tiles behavior were not changed.")
 
     return result

@@ -27,6 +27,16 @@ DOWNLOAD_STATUS_PENDING = "pending"
 DOWNLOAD_STATUS_DOWNLOADED = "downloaded"
 DOWNLOAD_STATUS_FAILED = "failed"
 
+RENDER_STATUS_PLACEHOLDER = "placeholder"
+RENDER_STATUS_DECODED_PROTOTYPE = "decoded_prototype"
+RENDER_STATUS_PRODUCTION_PENDING = "production_pending"
+RENDER_STATUS_PRODUCTION_RENDERED = "production_rendered"
+RENDER_STATUS_PRODUCTION_FAILED = "production_failed"
+
+RENDER_MODE_PLACEHOLDER = "placeholder"
+RENDER_MODE_DECODED_PROTOTYPE = "decoded_prototype"
+RENDER_MODE_PRODUCTION = "production"
+
 
 def is_placeholder_tile_status(status: str) -> bool:
     return status in PLACEHOLDER_TILE_STATUSES
@@ -51,5 +61,12 @@ class RadarFile(Base):
     download_status: Mapped[str] = mapped_column(String, nullable=False, default=DOWNLOAD_STATUS_PENDING)
     downloaded_at: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     raw_kind: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    render_status: Mapped[str] = mapped_column(String, nullable=False, default=RENDER_STATUS_PLACEHOLDER)
+    render_mode: Mapped[str] = mapped_column(String, nullable=False, default=RENDER_MODE_PLACEHOLDER)
+    production_rendering: Mapped[bool] = mapped_column(nullable=False, default=False)
+    render_artifact_path: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    render_metadata_path: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    render_error: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    rendered_at: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     product: Mapped["Product"] = relationship(back_populates="radar_files")

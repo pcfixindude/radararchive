@@ -7,7 +7,12 @@ import struct
 from dataclasses import dataclass, field
 from typing import Optional
 
-from backend.app.models.radar_file import RadarFile
+from backend.app.models.radar_file import (
+    RENDER_STATUS_DECODED_PROTOTYPE,
+    RENDER_STATUS_PLACEHOLDER,
+    RENDER_STATUS_PRODUCTION_RENDERED,
+    RadarFile,
+)
 from backend.app.services.grib2_decoder import (
     DECODE_OUTPUT_ROOT,
     MANIFEST_NAME,
@@ -44,6 +49,8 @@ class DecodeArtifact:
 class TileServeResult:
     png_bytes: bytes
     tile_mode: str
+    render_status: str
+    production_rendering: bool
     from_cache: bool
     fallback: bool = False
     notes: list[str] = field(default_factory=list)
@@ -219,6 +226,30 @@ def get_or_build_cached_tile(
     return png_bytes
 
 
+def try_serve_production_tile(
+    storage: LocalStorage,
+    frame: RadarFile,
+    timestamp: str,
+    *,
+    enable_production_radar_tiles: bool,
+    z: int,
+    x: int,
+    y: int,
+) -> Optional[TileServeResult]:
+    """Serve geo-accurate production tiles when fully enabled (not implemented in Phase 14)."""
+    if not enable_production_radar_tiles:
+        return None
+    if not frame.production_rendering:
+        return None
+    if frame.render_status != RENDER_STATUS_PRODUCTION_RENDERED:
+        return None
+    if not frame.render_artifact_path or not storage.path_exists(frame.render_artifact_path):
+        return None
+
+    # Production tile pyramid rendering is future work — gate only, no renderer yet.
+    return None
+
+
 def try_serve_decoded_prototype_tile(
     storage: LocalStorage,
     frame: RadarFile,
@@ -241,6 +272,8 @@ def try_serve_decoded_prototype_tile(
     return TileServeResult(
         png_bytes=png_bytes,
         tile_mode=TILE_MODE_DECODED_PROTOTYPE,
+        render_status=RENDER_STATUS_DECODED_PROTOTYPE,
+        production_rendering=False,
         from_cache=from_cache,
         notes=["Prototype decode tile — not production radar rendering."],
     )
@@ -252,11 +285,24 @@ def serve_tile_with_optional_decode(
     timestamp: str,
     *,
     enable_decoded_tiles: bool,
+    enable_production_radar_tiles: bool = False,
     z: int,
     x: int,
     y: int,
 ) -> TileServeResult:
-    """Return decoded prototype tile when enabled and available, else placeholder."""
+    """Return production, decoded prototype, or placeholder tile based on flags and catalog."""
+    production = try_serve_production_tile(
+        storage,
+        frame,
+        timestamp,
+        enable_production_radar_tiles=enable_production_radar_tiles,
+        z=z,
+        x=x,
+        y=y,
+    )
+    if production is not None:
+        return production
+
     placeholder_kind = TILE_MODE_PLACEHOLDER
     if frame.processed_status == "placeholder_for_real_raw":
         placeholder_kind = TILE_MODE_PLACEHOLDER_FOR_REAL_RAW
@@ -276,9 +322,13 @@ def serve_tile_with_optional_decode(
     return TileServeResult(
         png_bytes=generate_placeholder_tile_png(z=z, x=x, y=y),
         tile_mode=placeholder_kind,
+        render_status=RENDER_STATUS_PLACEHOLDER,
+        production_rendering=False,
         from_cache=False,
-        fallback=enable_decoded_tiles,
-        notes=["Placeholder tile (default or decode fallback)."] if enable_decoded_tiles else [],
+        fallback=enable_decoded_tiles or enable_production_radar_tiles,
+        notes=["Placeholder tile (default or render fallback)."]
+        if (enable_decoded_tiles or enable_production_radar_tiles)
+        else [],
     )
 
 

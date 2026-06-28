@@ -102,9 +102,11 @@ export function fetchAccessCurrent(plan: DemoPlan): Promise<AccessCurrentInfo> {
 
 export type TilesConfigInfo = {
   enable_decoded_tiles: boolean;
+  enable_production_radar_tiles: boolean;
   default_mode: string;
   decoded_mode: string;
   production_rendering: boolean;
+  production_rendering_enabled: boolean;
   note: string;
 };
 

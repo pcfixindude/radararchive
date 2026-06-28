@@ -651,3 +651,46 @@ cd frontend && npm run build
 - Default remains placeholder tiles (`ENABLE_DECODED_TILES=false`)
 - Not geo-accurate warping; simple grid sampling
 - Catalog not marked as production rendered
+
+## Phase 14 - Production Render Guardrails + Geo Metadata
+
+Added render-status catalog fields, geo-metadata structures, and production tile gates without enabling geo-accurate rendering.
+
+### Backend
+- Catalog columns: `render_status`, `render_mode`, `production_rendering`, `render_artifact_path`, `render_metadata_path`, `render_error`, `rendered_at`
+- Render statuses: `placeholder`, `decoded_prototype`, `production_pending`, `production_rendered`, `production_failed`
+- `backend/app/services/render_metadata.py` — `GeoRenderMetadata`, `geo_metadata.json` read/write, optional rasterio enrichment
+- `backend/app/services/render_status.py` — classify frames, build report, sync catalog (never auto-marks `production_rendered`)
+- Config: `ENABLE_PRODUCTION_RADAR_TILES=false` (default) — production tiles blocked unless flag + catalog gate both true
+- `/tiles` headers: `X-RadarArchive-Tile`, `X-RadarArchive-Production-Rendering`, `X-RadarArchive-Render-Status`
+- Phase 12 decode writes `geo_metadata.json` alongside `decode_manifest.json`
+- Production tile renderer not implemented — gate only
+
+### Scripts / Makefile
+- `scripts/render_status.py`, `make render-status` (optional `--sync`, `--dry-run`)
+
+### Frontend
+- Clearer tile mode banner; decoded prototype labeled as experimental, not verified MRMS
+
+### Run commands
+
+```bash
+make test
+make render-status
+cd frontend && npm run build
+```
+
+### Test commands
+
+```bash
+make test
+make render-status
+cd frontend && npm run build
+```
+
+### Known limitations
+- No geo-accurate production tile warping yet
+- `ENABLE_PRODUCTION_RADAR_TILES=false` by default
+- Decoded prototype remains behind `ENABLE_DECODED_TILES=false`
+- Placeholder tiles remain default API behavior
+- GDAL/rasterio/wgrib2 still optional

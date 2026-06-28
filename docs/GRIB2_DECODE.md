@@ -104,6 +104,38 @@ When enabled and Phase 12 artifacts exist for a catalog frame:
 
 When disabled or artifacts missing: placeholder tiles (unchanged Phase 4–12 behavior).
 
+## Geo metadata + production gate (Phase 14)
+
+Each successful Phase 12 decode writes `geo_metadata.json` alongside `decode_manifest.json`:
+
+```json
+{
+  "product_name": "MRMS_ReflectivityAtLowestAltitude",
+  "valid_timestamp": null,
+  "source_crs": null,
+  "output_crs": "EPSG:3857",
+  "bounds": [-125.0, 24.0, -66.0, 50.0],
+  "grid_width": 3500,
+  "grid_height": 7000,
+  "geo_accurate": false,
+  "production_rendering": false,
+  "notes": ["Prototype geo metadata — not geo-verified."]
+}
+```
+
+Optional rasterio may enrich CRS/bounds when installed (not required for tests or `make setup`).
+
+Catalog render fields (`render_status`, `render_mode`, `production_rendering`, paths) track placeholder vs decoded vs future production states. **Prototype artifacts are never marked `production_rendered`.**
+
+Production tile serving requires:
+- `ENABLE_PRODUCTION_RADAR_TILES=true`
+- Catalog `production_rendering=true` and `render_status=production_rendered`
+- Valid `render_artifact_path`
+
+Phase 14 implements the gate only — no production tile renderer yet. `/tiles` headers include `X-RadarArchive-Render-Status`.
+
+Report: `make render-status` (optional `--sync` to update catalog from artifacts).
+
 ## Inspection CLI
 
 ```bash
@@ -129,7 +161,9 @@ When no decoder is installed, the script still reports gzip size and GRIB magic 
 - `backend/app/services/grib2_decoder.py` — prototype raster decode (optional deps)
 - `scripts/inspect_grib2.py` — inspection CLI
 - `scripts/decode_grib2.py` — decode prototype CLI
-- `scripts/build_tile_cache.py` — tile cache builder CLI
+- `backend/app/services/render_metadata.py` — geo metadata structures
+- `backend/app/services/render_status.py` — render status report/sync
+- `scripts/render_status.py` — render status CLI
 
 ## Non-goals (Phases 11–12)
 

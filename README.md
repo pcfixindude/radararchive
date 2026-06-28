@@ -84,19 +84,35 @@ ENABLE_DECODED_TILES=true make backend
 curl http://127.0.0.1:8000/tiles/config
 ```
 
+Render status report (Phase 14 — production guardrails):
+
+```bash
+make render-status
+make render-status -- --sync --dry-run
+```
+
+Feature flags:
+
+```bash
+ENABLE_DECODED_TILES=false          # default — placeholder tiles
+ENABLE_PRODUCTION_RADAR_TILES=false  # default — production geo-accurate tiles blocked
+```
+
 Behavior:
 - Demo/collector/MRMS stub raw files → `placeholder_processed` (map tiles work)
 - Real downloaded `.grib2.gz` → `placeholder_for_real_raw` preview by default
 - With `ENABLE_DECODED_TILES=true` + decode artifacts → optional `decoded-prototype` tiles
-- All serving modes include `X-RadarArchive-Production-Rendering: false`
+- Production geo-accurate tiles require `ENABLE_PRODUCTION_RADAR_TILES=true` + catalog gate (not implemented in Phase 14)
+- Headers: `X-RadarArchive-Tile`, `X-RadarArchive-Production-Rendering`, `X-RadarArchive-Render-Status`
 
 Limitations:
 - Default `MRMS_SOURCE_MODE=stub` uses offline sample listings and stub downloads
-- Real mode downloads public NOAA AWS GRIB2.gz but does not parse or render radar
+- Real mode downloads public NOAA AWS GRIB2.gz but does not parse or render production radar
 - `make inspect-grib2` reports metadata when wgrib2/optional decoders are installed
-- `make decode-grib2` writes prototype artifacts to `data/staging/grib2_decode/` when decoders exist
+- `make decode-grib2` writes prototype artifacts + `geo_metadata.json` to `data/staging/grib2_decode/` when decoders exist
 - `ENABLE_DECODED_TILES=false` by default — map `/tiles` serves placeholders only
-- Set `ENABLE_DECODED_TILES=true` to allow decoded-prototype tiles when artifacts exist
+- `ENABLE_PRODUCTION_RADAR_TILES=false` by default — no geo-accurate production tiles
+- Decoded prototype tiles are experimental grid samples, not verified MRMS imagery
 
 In another terminal:
 

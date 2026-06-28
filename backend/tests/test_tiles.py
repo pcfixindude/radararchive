@@ -17,6 +17,8 @@ def test_tile_endpoint_returns_png_for_processed_timestamp(client, db_session, s
     assert response.headers["content-type"] == "image/png"
     assert response.content.startswith(b"\x89PNG\r\n\x1a\n")
     assert response.headers.get("x-radararchive-tile") == "placeholder"
+    assert response.headers.get("x-radararchive-production-rendering") == "false"
+    assert response.headers.get("x-radararchive-render-status") == "placeholder"
 
 
 def test_tile_endpoint_404_for_unprocessed_timestamp(client):

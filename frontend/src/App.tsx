@@ -35,6 +35,16 @@ export default function App() {
   const [radarOpacity, setRadarOpacity] = useState(0.65);
   const [tileModeLabel, setTileModeLabel] = useState('Placeholder');
 
+  function resolveTileModeLabel(config: Awaited<ReturnType<typeof fetchTilesConfig>>): string {
+    if (!config) {
+      return 'Placeholder';
+    }
+    if (config.enable_decoded_tiles) {
+      return 'Decoded prototype (when artifacts exist)';
+    }
+    return 'Placeholder';
+  }
+
   const selectedLayerMeta = useMemo(
     () => layers.find((layer) => layer.id === selectedLayer),
     [layers, selectedLayer],
@@ -117,11 +127,7 @@ export default function App() {
       if (cancelled || !config) {
         return;
       }
-      if (config.enable_decoded_tiles) {
-        setTileModeLabel('Decoded prototype (when artifacts exist)');
-      } else {
-        setTileModeLabel('Placeholder');
-      }
+      setTileModeLabel(resolveTileModeLabel(config));
     }
 
     loadTileMode();
@@ -182,7 +188,8 @@ export default function App() {
       <header className="app-header">
         <h1>RadarArchive</h1>
         <p className="demo-banner">
-          Tile mode: {tileModeLabel} — not production radar. GRIB2 inspection/decode prototypes available offline.
+          Tile mode: {tileModeLabel} — not production geo-accurate radar unless explicitly enabled and rendered.
+          Decoded prototype tiles are experimental grid samples, not verified MRMS imagery.
         </p>
       </header>
       <main className="app-main">

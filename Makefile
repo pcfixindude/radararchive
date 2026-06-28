@@ -1,4 +1,4 @@
-.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once discover-mrms download-mrms inspect-grib2 decode-grib2 build-tile-cache
+.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once discover-mrms download-mrms inspect-grib2 decode-grib2 build-tile-cache render-status
 
 setup:
 	python3 -m venv .venv
@@ -44,3 +44,6 @@ decode-grib2:
 
 build-tile-cache:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/build_tile_cache.py
+
+render-status:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/render_status.py

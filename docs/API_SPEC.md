@@ -92,8 +92,9 @@ Query param: `?plan=pro` (recommended for browser tile requests)
 
 Behavior:
 - Returns `image/png` when layer/timestamp is processed **and** within plan window
-- **Default (`ENABLE_DECODED_TILES=false`):** placeholder PNG tiles
+- **Default (`ENABLE_DECODED_TILES=false`, `ENABLE_PRODUCTION_RADAR_TILES=false`):** placeholder PNG tiles
 - **Optional (`ENABLE_DECODED_TILES=true`):** decoded-prototype PNG when Phase 12 artifacts exist; otherwise placeholder fallback
+- **Production (`ENABLE_PRODUCTION_RADAR_TILES=true`):** blocked until catalog `production_rendering=true` and `render_status=production_rendered` with valid artifact (no renderer in Phase 14)
 - Returns `404` when layer/timestamp is unavailable or unprocessed
 - Returns `403` JSON when timestamp exists but is outside the demo plan window:
 
@@ -121,8 +122,9 @@ Note: URL-encode the timestamp if needed.
 
 Response headers:
 - `X-RadarArchive-Tile`: `placeholder` | `placeholder_for_real_raw` | `decoded-prototype`
-- `X-RadarArchive-Production-Rendering`: `false` (always, Phase 13)
-- `X-RadarArchive-Tile-Fallback`: `true` when decode enabled but artifact missing
+- `X-RadarArchive-Production-Rendering`: `true` | `false` (always `false` in Phase 14 — no production renderer)
+- `X-RadarArchive-Render-Status`: `placeholder` | `decoded_prototype` | `production_pending` | `production_rendered` | `production_failed`
+- `X-RadarArchive-Tile-Fallback`: `true` when decode/production enabled but artifact missing or gate blocked
 - `X-RadarArchive-Tile-Cache`: `hit` when served from pre-built cache
 
 GET /tiles/config
@@ -132,10 +134,12 @@ Returns tile serving configuration (dev):
 ```json
 {
   "enable_decoded_tiles": false,
+  "enable_production_radar_tiles": false,
   "default_mode": "placeholder",
   "decoded_mode": "decoded-prototype",
   "production_rendering": false,
-  "note": "Decoded tiles are prototype-only and require ENABLE_DECODED_TILES=true plus decode artifacts."
+  "production_rendering_enabled": false,
+  "note": "Placeholder default; decoded prototype requires ENABLE_DECODED_TILES; production geo-accurate rendering disabled."
 }
 ```
 
