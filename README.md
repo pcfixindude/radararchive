@@ -13,6 +13,8 @@ Initial scope:
 - Layer toggles
 - Subscription-ready structure
 
+**ChatGPT continuation:** [docs/CHATGPT_REVIEW.md](docs/CHATGPT_REVIEW.md) is the concise handoff file for continuing work in ChatGPT without full chat history. Cursor updates it before each phase commit.
+
 Not initial scope:
 - Native Android app
 - Global weather coverage

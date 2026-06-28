@@ -13,7 +13,7 @@ All phase implementation work must follow [PHASE_WORKFLOW_RULES.md](PHASE_WORKFL
 6. Keep raw source data immutable.
 7. Processed data may be regenerated.
 8. Add or update tests for every backend change.
-9. Update docs/PHASE_LOG.md, docs/NEXT_STEPS.md, and docs/PROJECT_STATE.md after each phase (see [PHASE_WORKFLOW_RULES.md](PHASE_WORKFLOW_RULES.md)).
+9. Update docs/PHASE_LOG.md, docs/NEXT_STEPS.md, docs/PROJECT_STATE.md, and docs/CHATGPT_REVIEW.md after each phase (see [PHASE_WORKFLOW_RULES.md](PHASE_WORKFLOW_RULES.md)).
 10. Keep secrets out of git.
 11. Do not scrape commercial weather sites.
 12. Add NOAA/NWS attribution/disclaimer where public data is displayed.
@@ -31,9 +31,10 @@ All phase implementation work must follow [PHASE_WORKFLOW_RULES.md](PHASE_WORKFL
 See [PHASE_WORKFLOW_RULES.md](PHASE_WORKFLOW_RULES.md) for the full Git, testing, and completion-report checklist. Summary:
 
 1. Run `git status --short` and verify only intended phase files changed.
-2. Stage and commit: `git add .` then `git commit -m "phase XX: short description"`.
-3. Tag: `git tag phase-XX-short-name`.
-4. Push: `git push origin main --tags`.
+2. Update `docs/CHATGPT_REVIEW.md` before final commit/tag/push.
+3. Stage and commit: `git add .` then `git commit -m "phase XX: short description"`.
+4. Tag: `git tag phase-XX-short-name`.
+5. Push: `git push origin main --tags`.
 
 Do **not** commit or push if:
 

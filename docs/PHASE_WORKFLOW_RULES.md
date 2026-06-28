@@ -60,8 +60,9 @@ Generated local artifacts under `data/dev/` (proof bundles, diffs, digests, hand
 Before commit:
 
 1. Run `git status --short` and verify only intended phase files changed.
-2. Do **not** commit if unexpected unrelated files are in the working tree.
-3. Do **not** commit or push if any required test or build command fails.
+2. Update `docs/CHATGPT_REVIEW.md` with current phase state, commit hash, tag, push result, and next recommended phase.
+3. Do **not** commit if unexpected unrelated files are in the working tree.
+4. Do **not** commit or push if any required test or build command fails.
 
 ## Git workflow (after checks pass)
 
@@ -77,6 +78,7 @@ git push origin main --tags
 
 Update as applicable:
 
+- `docs/CHATGPT_REVIEW.md` — **required before every phase commit**; concise handoff for ChatGPT continuation (phase number, commit, tag, safety state, next phase)
 - `docs/PHASE_LOG.md` — what changed in this phase
 - `docs/PROJECT_STATE.md` — current status
 - `docs/NEXT_STEPS.md` — next recommended phase
@@ -109,6 +111,7 @@ End every phase with:
 
 Before implementing a phase, read:
 
+- `docs/CHATGPT_REVIEW.md` — current handoff state and next recommended phase
 - `README.md`
 - `docs/CURSOR_RULES.md`
 - `docs/PHASE_WORKFLOW_RULES.md` (this file)
