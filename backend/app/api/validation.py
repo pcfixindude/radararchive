@@ -14,6 +14,7 @@ from backend.app.schemas.validation import (
     ProofBundleDiffAcknowledgmentsResponse,
     ProofBundleDiffAlertHistoryResponse,
     ProofBundleDiffAlertTrendResponse,
+    ProofBundleDiffEscalationResponse,
     OperatorHandoffResponse,
     MrmsProofRegressionHistoryResponse,
     MrmsProofRegressionResponse,
@@ -47,6 +48,9 @@ from backend.app.services.proof_bundle_diff_acknowledgment import (
 )
 from backend.app.services.proof_bundle_diff_alert_trends import (
     build_proof_bundle_diff_alert_trend_payload,
+)
+from backend.app.services.proof_bundle_diff_escalation import (
+    build_proof_bundle_diff_escalation_payload,
 )
 from backend.app.services.mrms_proof_history import (
     build_proof_history_payload,
@@ -320,6 +324,17 @@ def validation_proof_bundle_diff_alert_trend(
     bounded = max(1, min(window, 25))
     payload = build_proof_bundle_diff_alert_trend_payload(storage, window=bounded)
     return ProofBundleDiffAlertTrendResponse(**payload)
+
+
+@router.get(
+    "/proof-bundle-diff-escalation",
+    response_model=ProofBundleDiffEscalationResponse,
+)
+def validation_proof_bundle_diff_escalation() -> ProofBundleDiffEscalationResponse:
+    """Proof bundle diff alert escalation hints (read-only; does not verify MRMS or clear alerts)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_proof_bundle_diff_escalation_payload(storage)
+    return ProofBundleDiffEscalationResponse(**payload)
 
 
 @router.get(

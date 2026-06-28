@@ -252,6 +252,10 @@ Summary additions (Phase 35): `proof_bundle_diff_alert_trend` compact (`trend`, 
 
 `POST /api/validation/proof-bundle-diff-acknowledgments` — dev/local acknowledgment (`operator_initials`/`operator_name`, `note` required). Does **not** clear alerts or set `verified_mrms`. Response includes `diff_alert_still_active`.
 
+`GET /api/validation/proof-bundle-diff-escalation` — escalation hints from trend + history + acknowledgment (`verified_mrms: false`, `local_escalation_only: true`, `does_not_clear_alerts: true`). Read-only.
+
+Summary additions (Phase 36): `proof_bundle_diff_escalation` compact (`escalation_level`, `reason`, `stale_acknowledgment`, `suggested_next_action`, `guidance_items`). Validation alert adds `proof_bundle_diff_escalation_level`, `proof_bundle_diff_escalation_stale_ack`, `proof_bundle_diff_escalation_reason`, `proof_bundle_diff_escalation_suggested_next_action`, `proof_bundle_diff_escalation_guidance_items`.
+
 Scheduled validation report additions (Phase 32): `bundle_requested`, `diff_bundle_requested`, `mrms_proof_bundle`, `mrms_proof_bundle_diff`; steps `proof_report`, `proof_regression`, `proof_bundle_export`, `proof_bundle_diff`.
 
 `GET /api/validation/proof-bundle-diff` — latest proof bundle diff report (`?refresh=true` rebuilds). `verified_mrms: false`, `local_diff_only: true`.

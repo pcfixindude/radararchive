@@ -235,9 +235,56 @@ class ValidationAlertCompact(BaseModel):
     latest_diff_acknowledgment_at: Optional[str] = None
     latest_diff_acknowledgment_operator: Optional[str] = None
     diff_alert_acknowledged_but_still_active: bool = False
+    proof_bundle_diff_escalation_level: Optional[str] = None
+    proof_bundle_diff_escalation_stale_ack: bool = False
+    proof_bundle_diff_escalation_reason: Optional[str] = None
+    proof_bundle_diff_escalation_suggested_next_action: Optional[str] = None
+    proof_bundle_diff_escalation_guidance_items: list[OperatorGuidanceItemCompact] = Field(
+        default_factory=list
+    )
     operator_guidance: list[OperatorGuidanceItemCompact] = Field(default_factory=list)
     verified_mrms: bool = False
     prototype: bool = True
+
+
+class ProofBundleDiffEscalationGuidanceItemCompact(BaseModel):
+    title: str
+    path: str
+    anchor: str = ""
+    section_label: str = ""
+    cause: str
+    suggested_action: str = ""
+    verified_mrms: bool = False
+    local_guidance_only: bool = True
+    prototype: bool = True
+
+
+class ProofBundleDiffEscalationCompact(BaseModel):
+    available: bool = False
+    escalation_level: str = "none"
+    reason: str = ""
+    latest_diff_status: Optional[str] = None
+    current_attention_streak: int = 0
+    acknowledgment_status: str = "none"
+    latest_acknowledgment_at: Optional[str] = None
+    latest_acknowledgment_operator: Optional[str] = None
+    stale_acknowledgment: bool = False
+    suggested_next_action: str = ""
+    guidance_items: list[ProofBundleDiffEscalationGuidanceItemCompact] = Field(default_factory=list)
+    trend: Optional[str] = None
+    verified_mrms: bool = False
+    local_escalation_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class ProofBundleDiffEscalationResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_escalation_only: bool = True
+    does_not_clear_alerts: bool = True
+    escalation: ProofBundleDiffEscalationCompact
 
 
 class ValidationAlertsResponse(BaseModel):
@@ -698,6 +745,7 @@ class ValidationSummaryResponse(BaseModel):
     )
     proof_bundle_diff_alert_trend: Optional[ProofBundleDiffAlertTrendCompact] = None
     proof_bundle_diff_acknowledgment: Optional[ProofBundleDiffAcknowledgmentCompact] = None
+    proof_bundle_diff_escalation: Optional[ProofBundleDiffEscalationCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)
     catalog: CatalogStatusResponse

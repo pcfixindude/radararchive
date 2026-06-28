@@ -366,6 +366,11 @@ export type ValidationAlertCompact = {
   latest_diff_acknowledgment_at?: string | null;
   latest_diff_acknowledgment_operator?: string | null;
   diff_alert_acknowledged_but_still_active?: boolean;
+  proof_bundle_diff_escalation_level?: string | null;
+  proof_bundle_diff_escalation_stale_ack?: boolean;
+  proof_bundle_diff_escalation_reason?: string | null;
+  proof_bundle_diff_escalation_suggested_next_action?: string | null;
+  proof_bundle_diff_escalation_guidance_items?: OperatorGuidanceItem[];
   operator_guidance?: OperatorGuidanceItem[];
   verified_mrms: boolean;
   prototype: boolean;
@@ -447,6 +452,26 @@ export type ProofBundleDiffAcknowledgmentCompact = {
   acknowledged_attention?: boolean;
   verified_mrms: boolean;
   local_acknowledgment_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  prototype: boolean;
+};
+
+export type ProofBundleDiffEscalationCompact = {
+  available: boolean;
+  escalation_level: string;
+  reason: string;
+  latest_diff_status?: string | null;
+  current_attention_streak: number;
+  acknowledgment_status: string;
+  latest_acknowledgment_at?: string | null;
+  latest_acknowledgment_operator?: string | null;
+  stale_acknowledgment: boolean;
+  suggested_next_action: string;
+  guidance_items?: OperatorGuidanceItem[];
+  trend?: string | null;
+  verified_mrms: boolean;
+  local_escalation_only: boolean;
   does_not_clear_alerts: boolean;
   does_not_enable_production: boolean;
   prototype: boolean;
@@ -709,6 +734,7 @@ export type ValidationSummary = {
   proof_bundle_diff_alert_history?: ProofBundleDiffAlertEntry[];
   proof_bundle_diff_alert_trend?: ProofBundleDiffAlertTrendCompact | null;
   proof_bundle_diff_acknowledgment?: ProofBundleDiffAcknowledgmentCompact | null;
+  proof_bundle_diff_escalation?: ProofBundleDiffEscalationCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
   catalog: CatalogStatus;

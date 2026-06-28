@@ -46,6 +46,7 @@ export default function ValidationStatusPanel({
   const [signoffMessage, setSignoffMessage] = useState<string | null>(null);
   const [showDiffAlertTimeline, setShowDiffAlertTimeline] = useState(false);
   const [showDiffAlertTrend, setShowDiffAlertTrend] = useState(false);
+  const [showDiffEscalation, setShowDiffEscalation] = useState(false);
   const [ackOperator, setAckOperator] = useState('');
   const [ackNote, setAckNote] = useState('');
   const [ackSubmitting, setAckSubmitting] = useState(false);
@@ -182,6 +183,7 @@ export default function ValidationStatusPanel({
   const diffAlertLatest = summary.proof_bundle_diff_alert ?? null;
   const diffAlertTrend = summary.proof_bundle_diff_alert_trend ?? null;
   const diffAck = summary.proof_bundle_diff_acknowledgment ?? null;
+  const diffEscalation = summary.proof_bundle_diff_escalation ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
   const queue = summary.render_queue;
@@ -463,6 +465,85 @@ export default function ValidationStatusPanel({
           </ul>
         ) : showDiffAlertTimeline ? (
           <p className="validation-meta">No timeline entries in summary — run make proof-bundle-diff-alert-history.</p>
+        ) : null}
+      </section>
+      <section className="validation-diff-escalation">
+        <div className="validation-header-actions">
+          <p className="validation-meta">
+            Diff alert escalation (local operator guidance only — does not verify MRMS; does not enable
+            production rendering; does not clear alerts)
+          </p>
+          <button
+            type="button"
+            className="validation-refresh"
+            onClick={() => setShowDiffEscalation((value) => !value)}
+          >
+            {showDiffEscalation ? 'Hide escalation' : 'Show escalation'}
+          </button>
+        </div>
+        {diffEscalation?.available ||
+        validationAlert?.proof_bundle_diff_escalation_level ||
+        (diffEscalation?.escalation_level && diffEscalation.escalation_level !== 'none') ? (
+          <p
+            className={
+              diffEscalation?.escalation_level === 'urgent' ||
+              validationAlert?.proof_bundle_diff_escalation_level === 'urgent'
+                ? 'validation-warn'
+                : 'validation-meta'
+            }
+          >
+            Escalation:{' '}
+            {diffEscalation?.escalation_level ??
+              validationAlert?.proof_bundle_diff_escalation_level ??
+              'none'}
+            {diffEscalation?.reason || validationAlert?.proof_bundle_diff_escalation_reason
+              ? ` — ${diffEscalation?.reason ?? validationAlert?.proof_bundle_diff_escalation_reason}`
+              : ''}
+          </p>
+        ) : (
+          <p className="validation-meta">
+            No escalation hints — run make proof-bundle-diff-escalation after diff alert history.
+          </p>
+        )}
+        {(diffEscalation?.stale_acknowledgment ||
+          validationAlert?.proof_bundle_diff_escalation_stale_ack) && (
+          <p className="validation-warn">
+            Stale acknowledgment — latest ack predates or does not cover current attention streak
+          </p>
+        )}
+        {showDiffEscalation ? (
+          <>
+            {diffEscalation?.suggested_next_action ||
+            validationAlert?.proof_bundle_diff_escalation_suggested_next_action ? (
+              <p className="validation-meta">
+                Suggested:{' '}
+                {diffEscalation?.suggested_next_action ??
+                  validationAlert?.proof_bundle_diff_escalation_suggested_next_action}
+              </p>
+            ) : null}
+            {(diffEscalation?.guidance_items ??
+              validationAlert?.proof_bundle_diff_escalation_guidance_items ??
+              []
+            ).length > 0 ? (
+              <ul className="validation-history-list">
+                {(diffEscalation?.guidance_items ??
+                  validationAlert?.proof_bundle_diff_escalation_guidance_items ??
+                  []
+                ).map((item, index) => (
+                  <li key={`${item.cause}-${index}`} className="validation-meta">
+                    {item.title}
+                    {item.section_label ? ` — ${item.section_label}` : ''}
+                    {item.path ? ` — ${item.path}` : ''}
+                    {item.anchor ? ` (anchor: ${item.anchor})` : ''}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <p className="validation-meta">
+              verified_mrms: {yesNo(summary.verified_mrms)} — local escalation only — does not clear
+              alerts
+            </p>
+          </>
         ) : null}
       </section>
       <section className="validation-diff-alert-trend">

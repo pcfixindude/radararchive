@@ -448,6 +448,13 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - `GET/POST /api/validation/proof-bundle-diff-acknowledgments`
 - Summary includes `proof_bundle_diff_alert_trend` and `proof_bundle_diff_acknowledgment`
 
+### Diff alert escalation (Phase 36)
+- `proof_bundle_diff_escalation.py` — combines trend, history, acknowledgment → escalation level + runbook guidance
+- Levels: `none`, `watch`, `attention`, `urgent`; stale acknowledgment detection
+- `GET /api/validation/proof-bundle-diff-escalation` (read-only)
+- Summary `proof_bundle_diff_escalation`; alert fields for level, stale ack, guidance items
+- Does **not** clear alerts, verify MRMS, or enable production rendering
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

@@ -340,7 +340,12 @@ def build_validation_alert(
         build_proof_bundle_diff_alert_trend,
     )
 
+    from backend.app.services.proof_bundle_diff_escalation import (
+        build_proof_bundle_diff_escalation,
+    )
+
     diff_alert_trend = build_proof_bundle_diff_alert_trend(storage)
+    diff_escalation = build_proof_bundle_diff_escalation(storage)
     latest_ack = load_latest_diff_acknowledgment(storage)
     ack_count = count_diff_acknowledgments(storage)
     operator_attention_needed = (
@@ -390,6 +395,13 @@ def build_validation_alert(
         "latest_diff_acknowledgment_at": (latest_ack or {}).get("created_at"),
         "latest_diff_acknowledgment_operator": (latest_ack or {}).get("operator"),
         "diff_alert_acknowledged_but_still_active": diff_alert_acknowledged_but_still_active,
+        "proof_bundle_diff_escalation_level": diff_escalation.get("escalation_level"),
+        "proof_bundle_diff_escalation_stale_ack": diff_escalation.get("stale_acknowledgment"),
+        "proof_bundle_diff_escalation_reason": diff_escalation.get("reason"),
+        "proof_bundle_diff_escalation_suggested_next_action": diff_escalation.get(
+            "suggested_next_action"
+        ),
+        "proof_bundle_diff_escalation_guidance_items": diff_escalation.get("guidance_items", []),
         "production_rendering_enabled": settings.enable_production_radar_tiles,
         "verified_mrms": False,
         "prototype": True,
@@ -472,6 +484,17 @@ def compact_validation_alert(alert: Optional[dict[str, Any]]) -> Optional[dict[s
         "diff_alert_acknowledged_but_still_active": bool(
             alert.get("diff_alert_acknowledged_but_still_active")
         ),
+        "proof_bundle_diff_escalation_level": alert.get("proof_bundle_diff_escalation_level"),
+        "proof_bundle_diff_escalation_stale_ack": bool(
+            alert.get("proof_bundle_diff_escalation_stale_ack")
+        ),
+        "proof_bundle_diff_escalation_reason": alert.get("proof_bundle_diff_escalation_reason"),
+        "proof_bundle_diff_escalation_suggested_next_action": alert.get(
+            "proof_bundle_diff_escalation_suggested_next_action"
+        ),
+        "proof_bundle_diff_escalation_guidance_items": (
+            alert.get("proof_bundle_diff_escalation_guidance_items") or []
+        )[:8],
         "suggested_next_action": alert.get("suggested_next_action"),
         "grouped_failure_causes": grouped[:5],
         "operator_guidance": (alert.get("operator_guidance") or [])[:8],

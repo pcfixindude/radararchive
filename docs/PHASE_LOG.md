@@ -1427,3 +1427,32 @@ cd frontend && npm run build
 - Acknowledgment does not clear validation alerts
 - Trend window defaults to 10 entries
 - `verified_mrms` always false
+
+## Phase 36 - Diff Alert Escalation Hints + Runbook Deep Links
+
+Escalation combines trend, diff alert history, and acknowledgment state into operator guidance levels with runbook section links.
+
+### Backend
+- `proof_bundle_diff_escalation.py` — levels: none/watch/attention/urgent; stale acknowledgment detection
+- Summary `proof_bundle_diff_escalation`; alert escalation fields + guidance items
+- `GET /api/validation/proof-bundle-diff-escalation` (read-only)
+
+### Scripts / Makefile
+- `make proof-bundle-diff-escalation` (`--json`)
+
+### Frontend
+- Dev Validation escalation section with show/hide toggle
+
+### Run commands
+
+```bash
+make test
+make proof-bundle-diff-escalation
+make proof-bundle-diff-acknowledge ARGS="--operator OP --note 'local ack'"
+cd frontend && npm run build
+```
+
+### Known limitations
+- Escalation does not clear alerts or verify MRMS
+- Escalation does not enable production rendering or mutate catalog gates
+- `verified_mrms` always false

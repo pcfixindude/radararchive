@@ -290,6 +290,38 @@ curl -X POST http://127.0.0.1:8000/api/validation/proof-bundle-diff-acknowledgme
 
 Acknowledgments persist to `data/dev/proof_bundle_diff_acknowledgments.json` (gitignored, max 50).
 
+## Proof bundle diff alert escalation (Phase 36)
+
+Escalation hints combine trend summary, diff alert history, and acknowledgment state — **local operator guidance only**. Escalation does **not** verify MRMS, clear alerts, enable production rendering, or mutate catalog gates.
+
+```bash
+make proof-bundle-diff-escalation
+make proof-bundle-diff-escalation ARGS="--json"
+curl http://127.0.0.1:8000/api/validation/proof-bundle-diff-escalation
+```
+
+**Escalation levels:**
+- `none` — no history, stable/unchanged, or no attention needed
+- `watch` — first worsened/mixed signal, or no acknowledgment yet
+- `attention` — worsened/mixed for **2+** consecutive attention-needed entries
+- `urgent` — worsened/mixed for **3+** consecutive attention entries **and** no current acknowledgment
+
+<a id="proof-bundle-diff-escalation-watch"></a>
+
+**Watch:** Review latest diff alert timeline entry and trend summary. Record a local acknowledgment if you have reviewed evidence — acknowledgment does not clear alerts.
+
+<a id="proof-bundle-diff-escalation-attention"></a>
+
+**Attention:** Two or more consecutive worsened/mixed diff alerts. Compare bundle evidence, re-run `make scheduled-proof-bundle`, and refresh acknowledgment with notes if review is complete.
+
+<a id="proof-bundle-diff-escalation-urgent"></a>
+
+**Urgent:** Three or more consecutive attention-needed alerts without a current acknowledgment. Prioritize bundle diff review and runbook sections linked in Dev Validation escalation guidance.
+
+<a id="proof-bundle-diff-stale-acknowledgment"></a>
+
+**Stale acknowledgment** means the latest acknowledgment was created **before** the latest worsened/mixed diff alert, or the attention streak continued **after** the acknowledgment. Submit a new local acknowledgment after re-review — this still does **not** clear alerts or set `verified_mrms=true`.
+
 ## Proof bundle diff worsened
 
 <a id="proof-bundle-diff-worsened"></a>

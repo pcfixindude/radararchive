@@ -21,6 +21,9 @@ from backend.app.services.proof_bundle_diff_acknowledgment import (
 from backend.app.services.proof_bundle_diff_alert_trends import (
     compact_proof_bundle_diff_alert_trend,
 )
+from backend.app.services.proof_bundle_diff_escalation import (
+    compact_proof_bundle_diff_escalation,
+)
 from backend.app.services.proof_bundle_diff_alert_history import (
     compact_latest_proof_bundle_diff_alert,
     load_recent_proof_bundle_diff_alert_history,
@@ -121,6 +124,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         ),
         "proof_bundle_diff_alert_trend": compact_proof_bundle_diff_alert_trend(storage),
         "proof_bundle_diff_acknowledgment": compact_diff_acknowledgment_summary(storage),
+        "proof_bundle_diff_escalation": compact_proof_bundle_diff_escalation(storage),
         "runbook_references": RUNBOOK_LINK_METADATA,
         "catalog": catalog,
     }

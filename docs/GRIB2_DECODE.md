@@ -353,6 +353,8 @@ Sign-off via `make mrms-signoff` or dev-only `POST /api/validation/signoffs` is 
 
 `make proof-bundle-diff-alert-trend` summarizes recent diff alert history into worsening/improving/mixed/stable trend with attention streaks. `make proof-bundle-diff-acknowledge` records a local operator note that does **not** clear alerts.
 
+`make proof-bundle-diff-escalation` combines trend, history, and acknowledgment into escalation levels (`none`/`watch`/`attention`/`urgent`) with runbook section hints. Escalation is local guidance only — it does not verify MRMS output or clear alerts.
+
 ## Inspection CLI
 
 ```bash
