@@ -225,20 +225,31 @@ Build flow:
 3. Idempotent write: skip existing cache paths unless `--force`
 4. `--dry-run` reports planned tiles without writing
 
-### Render queue + local worker (Phase 17)
+### Render queue + local worker (Phase 17–18)
 SQLite table `render_jobs` tracks queued production tile builds.
 
 Flow:
 1. Enqueue via `make enqueue-render-job`, `POST /api/render/jobs`, or `scripts/enqueue_render_job.py`
-2. Worker claims oldest `queued` job → `running` via `make render-worker-once` or `scripts/run_render_worker.py`
+2. Worker claims oldest runnable `queued` job → `running` via `make render-worker-once` (one job) or `make render-worker` (continuous loop)
 3. Worker calls `build_production_tiles` with job params; updates `progress_current`/`progress_total`
-4. Job ends `succeeded` or `failed` with metrics (`tiles_written`, `output_bytes`, `error_message`)
+4. On failure: re-queue with `next_retry_at` when `attempt_count < max_attempts`; else terminal `failed`
+5. Explicit retry: `POST /api/render/jobs/{id}/retry` for failed jobs with attempts remaining
+6. Cancel: `POST /api/render/jobs/{id}/cancel` for queued/running jobs
+
+Retry fields: `attempt_count`, `max_attempts`, `last_error_at`, `next_retry_at`, `canceled_at`.
+
+Continuous worker (`run_worker_loop`): configurable `--max-jobs` (default 100) and `--sleep` when queue empty. Graceful exit when max jobs reached.
+
+Queue observability:
+- `make render-queue-status` / `GET /api/render/jobs/summary` — counts by status + tile/byte totals
+- `make render-status` includes queue summary section
+- `GET /api/render/jobs` filters: `status`, `layer`, `timestamp`, `job_type`
 
 No Redis/Celery. Local dev SQLite only. Tile serving gates unchanged.
 
-Dev API: `GET/POST /api/render/jobs`, `GET /api/render/jobs/{id}`
+Dev API: `GET/POST /api/render/jobs`, `GET /api/render/jobs/summary`, `GET /api/render/jobs/{id}`, `POST .../retry`, `POST .../cancel`
 
-Makefile `ARGS` forwarding: `make enqueue-render-job ARGS="--min-zoom 0 --max-zoom 2"`
+Makefile `ARGS` forwarding: `make render-worker ARGS="--max-jobs 5 --sleep 0.5"`
 
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)

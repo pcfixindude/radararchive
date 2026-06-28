@@ -1,6 +1,6 @@
 # Project State
 
-Current phase: Phase 17 complete
+Current phase: Phase 18 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
@@ -8,7 +8,8 @@ Current status:
 - MRMS discovery → download → decode prototype pipeline
 - **Default tile serving: placeholder** (`ENABLE_DECODED_TILES=false`, `ENABLE_PRODUCTION_RADAR_TILES=false`)
 - Production warping prototype with multi-zoom build (Phase 16)
-- **SQLite render job queue** + local worker (Phase 17)
+- **SQLite render job queue** + one-shot and continuous local worker with retry policy (Phase 17–18)
+- Queue observability: summary API, `make render-queue-status`, integrated into `make render-status`
 - Production tiles served only when flag + catalog gate + cached tile all true
 - Not verified real MRMS — warping prototype only
 
@@ -20,7 +21,7 @@ ENABLE_DECODED_TILES=false
 ENABLE_PRODUCTION_RADAR_TILES=false
 ```
 
-## Render queue (Phase 17)
+## Render queue (Phase 17–18)
 
 ```bash
 # Enqueue a job
@@ -31,16 +32,30 @@ make enqueue-render-job ARGS="--min-zoom 0 --max-zoom 2"
 make render-worker-once
 make render-worker-once ARGS="--json-report"
 
+# Continuous worker (default max 100 jobs, 1s sleep when empty)
+make render-worker
+make render-worker ARGS="--max-jobs 5 --sleep 0.5"
+
+# Queue summary
+make render-queue-status
+make render-queue-status ARGS="--json-report"
+
+# Full render status (includes queue summary)
+make render-status
+
 # Or via API (dev)
 curl -X POST http://127.0.0.1:8000/api/render/jobs -H 'Content-Type: application/json' -d '{"min_zoom":0,"max_zoom":0}'
-curl http://127.0.0.1:8000/api/render/jobs
+curl "http://127.0.0.1:8000/api/render/jobs?status=queued"
+curl http://127.0.0.1:8000/api/render/jobs/summary
+curl -X POST http://127.0.0.1:8000/api/render/jobs/1/retry
+curl -X POST http://127.0.0.1:8000/api/render/jobs/1/cancel
 ```
 
 ## Local test
 
 ```bash
 make test
-make enqueue-render-job
+make render-queue-status
 make render-worker-once
 cd frontend && npm run build
 ```

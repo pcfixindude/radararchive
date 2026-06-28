@@ -21,6 +21,8 @@ TERMINAL_JOB_STATUSES = frozenset(
     {JOB_STATUS_SUCCEEDED, JOB_STATUS_FAILED, JOB_STATUS_CANCELED}
 )
 
+DEFAULT_MAX_ATTEMPTS = 3
+
 
 class RenderJob(Base):
     __tablename__ = "render_jobs"
@@ -35,6 +37,8 @@ class RenderJob(Base):
     mark_catalog: Mapped[bool] = mapped_column(nullable=False, default=False)
     artifact_limit: Mapped[Optional[int]] = mapped_column(nullable=True)
     status: Mapped[str] = mapped_column(String, nullable=False, default=JOB_STATUS_QUEUED, index=True)
+    attempt_count: Mapped[int] = mapped_column(nullable=False, default=0)
+    max_attempts: Mapped[int] = mapped_column(nullable=False, default=DEFAULT_MAX_ATTEMPTS)
     progress_current: Mapped[int] = mapped_column(nullable=False, default=0)
     progress_total: Mapped[int] = mapped_column(nullable=False, default=0)
     tiles_written: Mapped[int] = mapped_column(nullable=False, default=0)
@@ -44,3 +48,6 @@ class RenderJob(Base):
     created_at: Mapped[str] = mapped_column(String, nullable=False)
     started_at: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     finished_at: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    last_error_at: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    next_retry_at: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    canceled_at: Mapped[Optional[str]] = mapped_column(String, nullable=True)

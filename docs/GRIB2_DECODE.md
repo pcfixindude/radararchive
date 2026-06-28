@@ -164,7 +164,7 @@ Benchmark JSON includes: `frames_considered`, `tiles_written`, `tiles_planned`, 
 
 Report: `make render-status` (optional `--sync` to update catalog from artifacts).
 
-## Render queue + worker (Phase 17)
+## Render queue + worker (Phase 17–18)
 
 SQLite-backed job queue for production tile builds (local dev — no Redis/Celery).
 
@@ -173,6 +173,9 @@ make enqueue-render-job
 make enqueue-render-job ARGS="--min-zoom 0 --max-zoom 2"
 make render-worker-once
 make render-worker-once ARGS="--json-report"
+make render-worker ARGS="--max-jobs 5 --sleep 0.5"
+make render-queue-status
+make render-status
 ```
 
 Or via API:
@@ -180,11 +183,18 @@ Or via API:
 ```bash
 curl -X POST http://127.0.0.1:8000/api/render/jobs \
   -H 'Content-Type: application/json' \
-  -d '{"min_zoom":0,"max_zoom":2}'
-curl http://127.0.0.1:8000/api/render/jobs/1
+  -d '{"min_zoom":0,"max_zoom":2,"max_attempts":3}'
+curl "http://127.0.0.1:8000/api/render/jobs?status=queued"
+curl http://127.0.0.1:8000/api/render/jobs/summary
+curl -X POST http://127.0.0.1:8000/api/render/jobs/1/retry
+curl -X POST http://127.0.0.1:8000/api/render/jobs/1/cancel
 ```
 
-Worker calls Phase 16 `build_production_tiles` with idempotent skip/force behavior. Jobs track `progress_current`, `tiles_written`, `output_bytes`, and `error_message`.
+Worker calls Phase 16 `build_production_tiles` with idempotent skip/force behavior. Jobs track `progress_current`, `tiles_written`, `output_bytes`, `error_message`, and retry fields (`attempt_count`, `max_attempts`, `next_retry_at`).
+
+Failed jobs re-queue automatically when attempts remain (1s delay). Explicit retry via API for terminal failed jobs with attempts left. No delete endpoints.
+
+Continuous worker: `make render-worker` loops until `--max-jobs` reached (default 100), sleeping when queue empty.
 
 `--mark-catalog` on enqueue shows a clear warning — prototype only, not verified MRMS.
 
@@ -220,7 +230,7 @@ When no decoder is installed, the script still reports gzip size and GRIB magic 
 - `scripts/build_production_tiles.py` — production tile CLI
 - `backend/app/services/render_queue.py` — render job queue
 - `backend/app/workers/render_worker.py` — local worker
-- `scripts/enqueue_render_job.py`, `scripts/run_render_worker.py`
+- `scripts/enqueue_render_job.py`, `scripts/run_render_worker.py`, `scripts/render_queue_status.py`
 
 ## Non-goals (Phases 11–12)
 

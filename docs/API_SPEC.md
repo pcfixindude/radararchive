@@ -146,7 +146,7 @@ Returns tile serving configuration (dev):
 
 Access plan enforcement uses demo plans only — no real auth, JWT, or Stripe yet.
 
-## Render jobs (Phase 17 — dev/prototype)
+## Render jobs (Phase 17–18 — dev/prototype)
 
 `POST /api/render/jobs` — enqueue a production tile build job (SQLite queue, not verified MRMS).
 
@@ -156,19 +156,26 @@ Access plan enforcement uses demo plans only — no real auth, JWT, or Stripe ye
   "min_zoom": 0,
   "max_zoom": 0,
   "force": false,
-  "mark_catalog": false
+  "mark_catalog": false,
+  "max_attempts": 3
 }
 ```
 
-Response includes `prototype: true`, `verified_mrms: false`, and `status: "queued"`.
+Response includes `prototype: true`, `verified_mrms: false`, `status: "queued"`, and retry fields (`attempt_count`, `max_attempts`, `next_retry_at`, etc.).
 
-`GET /api/render/jobs` — list recent jobs (query `limit`, default 50).
+`GET /api/render/jobs` — list recent jobs (query `limit`, default 50). Optional filters: `status`, `layer`, `timestamp`, `job_type`.
+
+`GET /api/render/jobs/summary` — queue metrics: queued/running/succeeded/failed/canceled counts, `total_tiles_written`, `total_output_bytes`.
 
 `GET /api/render/jobs/{id}` — job status with progress and metrics.
 
+`POST /api/render/jobs/{id}/retry` — re-queue a failed job when `attempt_count < max_attempts` (400 otherwise).
+
+`POST /api/render/jobs/{id}/cancel` — cancel queued or running job (idempotent for terminal jobs).
+
 Job statuses: `queued`, `running`, `succeeded`, `failed`, `canceled`.
 
-No delete/reset endpoints. Process jobs with `make render-worker-once` (local worker).
+No delete/reset endpoints. Process jobs with `make render-worker-once` (one job) or `make render-worker` (continuous loop).
 
 ## MRMS source discovery (Phase 8 — dev/metadata)
 

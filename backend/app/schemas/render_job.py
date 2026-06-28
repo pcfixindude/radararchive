@@ -15,6 +15,7 @@ class RenderJobCreate(BaseModel):
         description="Prototype only — marks catalog production_rendered (fixture/test)",
     )
     artifact_limit: Optional[int] = Field(default=None, ge=1)
+    max_attempts: int = Field(default=3, ge=1, le=10)
 
 
 class RenderJobResponse(BaseModel):
@@ -28,6 +29,8 @@ class RenderJobResponse(BaseModel):
     mark_catalog: bool
     artifact_limit: Optional[int]
     status: str
+    attempt_count: int
+    max_attempts: int
     progress_current: int
     progress_total: int
     tiles_written: int
@@ -37,7 +40,22 @@ class RenderJobResponse(BaseModel):
     created_at: str
     started_at: Optional[str]
     finished_at: Optional[str]
+    last_error_at: Optional[str]
+    next_retry_at: Optional[str]
+    canceled_at: Optional[str]
     prototype: bool = True
     verified_mrms: bool = False
 
     model_config = {"from_attributes": True}
+
+
+class RenderQueueSummaryResponse(BaseModel):
+    queued: int
+    running: int
+    succeeded: int
+    failed: int
+    canceled: int
+    total_tiles_written: int
+    total_output_bytes: int
+    prototype: bool = True
+    verified_mrms: bool = False

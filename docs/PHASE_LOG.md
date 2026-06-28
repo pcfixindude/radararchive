@@ -801,3 +801,44 @@ cd frontend && npm run build
 - Worker processes one job per invocation (`render-worker-once`)
 - No destructive job delete API
 - Production serving gates unchanged; placeholder default unchanged
+
+## Phase 18 - Render Job Observability + Continuous Worker
+
+Improved render job observability, retry policy, queue filtering/summary, and safe continuous local worker loop.
+
+### Backend
+- Extended `RenderJob`: `attempt_count`, `max_attempts`, `last_error_at`, `next_retry_at`, `canceled_at`
+- SQLite migration for existing DBs via `_ensure_render_job_columns`
+- Retry: auto re-queue on failure when `attempt_count < max_attempts` with `next_retry_at` delay
+- `retry_render_job` / `cancel_render_job` service functions
+- `get_queue_summary` — status counts + total tiles/bytes
+- `list_render_jobs` filters: `status`, `layer`, `timestamp`, `job_type`
+- `run_worker_loop` — continuous mode with `max_jobs` and `sleep_seconds`
+- Dev API: `GET /api/render/jobs/summary`, filters on list, `POST .../retry`, `POST .../cancel`
+
+### Scripts / Makefile
+- `scripts/run_render_worker.py` — `--once` or continuous (`--max-jobs`, `--sleep`)
+- `scripts/render_queue_status.py` — queue summary CLI
+- `scripts/render_status.py` — includes queue summary section
+- `make render-worker`, `make render-queue-status`
+
+### Frontend
+- Header hint shows queued/running/failed counts from summary API (prototype wording)
+
+### Run commands
+
+```bash
+make test
+make render-queue-status
+make render-worker-once
+make render-worker ARGS="--max-jobs 1 --sleep 0.1"
+make render-status
+cd frontend && npm run build
+```
+
+### Known limitations
+- Local dev worker only — not cloud deployment or daemon supervision
+- Continuous worker sleeps when queue empty (no exit unless `--max-jobs` reached)
+- No stale `running` job recovery after worker crash
+- Production serving gates unchanged; placeholder default unchanged
+- Not verified real MRMS output

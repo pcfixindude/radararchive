@@ -6,6 +6,7 @@ import argparse
 
 from backend.app.config import settings
 from backend.app.database import get_session_factory, init_db
+from backend.app.services.render_queue import get_queue_summary
 from backend.app.services.render_status import build_render_status_report, sync_catalog_render_metadata
 from backend.app.services.storage import LocalStorage
 
@@ -34,6 +35,7 @@ def main() -> None:
         print(f"Catalog sync: {action} {updated} frame(s).")
 
     report = build_render_status_report(session, storage)
+    queue_summary = get_queue_summary(session)
 
     print("Render status report:")
     print(f"  total_frames: {report.total_frames}")
@@ -46,6 +48,15 @@ def main() -> None:
     print(f"  missing_geo_metadata: {report.missing_geo_metadata}")
     print(f"  ENABLE_DECODED_TILES: {settings.enable_decoded_tiles}")
     print(f"  ENABLE_PRODUCTION_RADAR_TILES: {settings.enable_production_radar_tiles}")
+
+    print("Render queue summary:")
+    print(f"  queued: {queue_summary.queued}")
+    print(f"  running: {queue_summary.running}")
+    print(f"  succeeded: {queue_summary.succeeded}")
+    print(f"  failed: {queue_summary.failed}")
+    print(f"  canceled: {queue_summary.canceled}")
+    print(f"  total_tiles_written: {queue_summary.total_tiles_written}")
+    print(f"  total_output_bytes: {queue_summary.total_output_bytes}")
 
     for note in report.notes:
         print(f"  note: {note}")

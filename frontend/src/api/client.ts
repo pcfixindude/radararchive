@@ -133,6 +133,18 @@ export type RenderJobInfo = {
   verified_mrms: boolean;
 };
 
+export type RenderQueueSummary = {
+  queued: number;
+  running: number;
+  succeeded: number;
+  failed: number;
+  canceled: number;
+  total_tiles_written: number;
+  total_output_bytes: number;
+  prototype: boolean;
+  verified_mrms: boolean;
+};
+
 export async function fetchRenderJobs(limit = 3): Promise<RenderJobInfo[]> {
   try {
     const response = await fetch(`${API_BASE}/api/render/jobs?limit=${limit}`);
@@ -142,6 +154,18 @@ export async function fetchRenderJobs(limit = 3): Promise<RenderJobInfo[]> {
     return response.json() as Promise<RenderJobInfo[]>;
   } catch {
     return [];
+  }
+}
+
+export async function fetchRenderQueueSummary(): Promise<RenderQueueSummary | null> {
+  try {
+    const response = await fetch(`${API_BASE}/api/render/jobs/summary`);
+    if (!response.ok) {
+      return null;
+    }
+    return response.json() as Promise<RenderQueueSummary>;
+  } catch {
+    return null;
   }
 }
 

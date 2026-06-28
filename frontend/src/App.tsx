@@ -6,7 +6,7 @@ import {
   fetchLayers,
   fetchTimes,
   fetchTilesConfig,
-  fetchRenderJobs,
+  fetchRenderQueueSummary,
   type AccessCurrentInfo,
   type DemoPlan,
 } from './api/client';
@@ -145,13 +145,12 @@ export default function App() {
     let cancelled = false;
 
     async function loadRenderJobs() {
-      const jobs = await fetchRenderJobs(1);
-      if (cancelled || jobs.length === 0) {
+      const summary = await fetchRenderQueueSummary();
+      if (cancelled || !summary) {
         return;
       }
-      const latest = jobs[0];
       setRenderJobHint(
-        `Render queue (prototype): job #${latest.id} ${latest.status} ${latest.progress_current}/${latest.progress_total} — not verified MRMS`,
+        `Render queue (prototype): queued ${summary.queued}, running ${summary.running}, failed ${summary.failed} — not verified MRMS`,
       );
     }
 

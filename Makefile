@@ -1,4 +1,4 @@
-.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once discover-mrms download-mrms inspect-grib2 decode-grib2 build-tile-cache build-production-tiles render-status enqueue-render-job render-worker-once
+.PHONY: setup backend frontend test lint dev seed db-reset collect-once process-once discover-mrms download-mrms inspect-grib2 decode-grib2 build-tile-cache build-production-tiles render-status render-queue-status enqueue-render-job render-worker-once render-worker
 
 ARGS ?=
 
@@ -57,4 +57,10 @@ enqueue-render-job:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/enqueue_render_job.py $(ARGS)
 
 render-worker-once:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/run_render_worker.py --once $(ARGS)
+
+render-worker:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/run_render_worker.py $(ARGS)
+
+render-queue-status:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/render_queue_status.py $(ARGS)

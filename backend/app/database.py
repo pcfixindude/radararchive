@@ -46,6 +46,7 @@ def init_db() -> None:
     engine = get_engine()
     Base.metadata.create_all(bind=engine)
     _ensure_radar_file_columns(engine)
+    _ensure_render_job_columns(engine)
 
 
 def _ensure_radar_file_columns(engine) -> None:
@@ -112,6 +113,35 @@ def _ensure_radar_file_columns(engine) -> None:
                 "WHERE processed_status = 'processed'"
             )
         )
+
+
+def _ensure_render_job_columns(engine) -> None:
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(engine)
+    if "render_jobs" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("render_jobs")}
+    statements = []
+    if "attempt_count" not in columns:
+        statements.append(
+            "ALTER TABLE render_jobs ADD COLUMN attempt_count INTEGER NOT NULL DEFAULT 0"
+        )
+    if "max_attempts" not in columns:
+        statements.append(
+            "ALTER TABLE render_jobs ADD COLUMN max_attempts INTEGER NOT NULL DEFAULT 3"
+        )
+    if "last_error_at" not in columns:
+        statements.append("ALTER TABLE render_jobs ADD COLUMN last_error_at VARCHAR")
+    if "next_retry_at" not in columns:
+        statements.append("ALTER TABLE render_jobs ADD COLUMN next_retry_at VARCHAR")
+    if "canceled_at" not in columns:
+        statements.append("ALTER TABLE render_jobs ADD COLUMN canceled_at VARCHAR")
+
+    with engine.begin() as connection:
+        for statement in statements:
+            connection.execute(text(statement))
 
 
 def get_db() -> Generator[Session, None, None]:

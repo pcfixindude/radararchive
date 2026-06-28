@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+import time
 from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from backend.app.models.render_job import JOB_TYPE_PRODUCTION_TILES, RenderJob
+from backend.app.models.render_job import (
+    JOB_STATUS_FAILED,
+    JOB_STATUS_QUEUED,
+    JOB_TYPE_PRODUCTION_TILES,
+    RenderJob,
+)
 from backend.app.services.production_tile_builder import build_production_tiles
 from backend.app.services.render_queue import (
     claim_next_queued_job,
@@ -93,3 +99,24 @@ def process_next_render_job(session: Session, storage: LocalStorage) -> Optional
     if job is None:
         return None
     return run_render_job(session, storage, job)
+
+
+def run_worker_loop(
+    session: Session,
+    storage: LocalStorage,
+    *,
+    max_jobs: Optional[int] = None,
+    sleep_seconds: float = 1.0,
+) -> int:
+    """Process queued jobs in a loop until max_jobs reached. Returns jobs processed."""
+    processed = 0
+    while max_jobs is None or processed < max_jobs:
+        job = process_next_render_job(session, storage)
+        if job is None:
+            time.sleep(sleep_seconds)
+            continue
+        processed += 1
+        if job.status == JOB_STATUS_FAILED and job.attempt_count < job.max_attempts:
+            # Will be picked up again when next_retry_at elapses.
+            continue
+    return processed
