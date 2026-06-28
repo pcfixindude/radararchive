@@ -797,6 +797,64 @@ export type MrmsVisualReviewHintCompact = {
   does_not_enable_production: boolean;
 };
 
+export type MrmsVisualReviewSampleSetContextCompact = {
+  visual_review_regeneration_recommended?: boolean;
+  visual_review_hint_reason?: string | null;
+  stale_visual_review?: boolean;
+  latest_visual_review_comparison_status?: string | null;
+  comparison_available?: boolean;
+};
+
+export type MrmsVisualReviewSampleSetCompact = {
+  available?: boolean;
+  created_at?: string | null;
+  selection_mode?: string | null;
+  entry_count?: number;
+  limit?: number;
+  json_path?: string | null;
+  markdown_path?: string | null;
+  source_visual_review_at?: string | null;
+  source_visual_review_path?: string | null;
+  reason?: string | null;
+  suggested_command?: string | null;
+  context?: MrmsVisualReviewSampleSetContextCompact | null;
+  verified_mrms: boolean;
+  local_sample_set_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  no_external_notifications: boolean;
+};
+
+export type MrmsVisualReviewSampleSetCreateRequest = {
+  selection_mode?: string;
+  limit?: number;
+  timestamps?: string[];
+  notes?: string | null;
+};
+
+export type MrmsVisualReviewSampleSetCreateResponse = {
+  verified_mrms: boolean;
+  local_sample_set_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  sample_set: {
+    entry_count?: number;
+    entries?: Array<{
+      timestamp?: string | null;
+      layer?: string | null;
+      tile_mode?: string | null;
+      primary_artifact_path?: string | null;
+      selection_reason?: string | null;
+      missing_artifacts?: string[];
+    }>;
+    json_path?: string | null;
+    markdown_path?: string | null;
+  };
+  compact: MrmsVisualReviewSampleSetCompact;
+};
+
 export type OperatorWorkflowPresetsCompact = {
   available?: boolean;
   recommended_count?: number;
@@ -1333,6 +1391,7 @@ export type ValidationSummary = {
   mrms_visual_review?: MrmsVisualReviewCompact | null;
   mrms_visual_review_comparison?: MrmsVisualReviewComparisonCompact | null;
   mrms_visual_review_hint?: MrmsVisualReviewHintCompact | null;
+  mrms_visual_review_sample_set?: MrmsVisualReviewSampleSetCompact | null;
   scheduled_operator_status?: ScheduledOperatorStatusCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
@@ -1464,6 +1523,36 @@ export async function submitDiffAcknowledgment(
     return { ok: true, data };
   } catch {
     return { ok: false, error: 'Acknowledgment request failed' };
+  }
+}
+
+export async function submitVisualReviewSampleSet(
+  payload: MrmsVisualReviewSampleSetCreateRequest = {},
+): Promise<
+  { ok: true; data: MrmsVisualReviewSampleSetCreateResponse } | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(`${API_BASE}/api/validation/mrms-visual-review/sample-set`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      let error = `Visual review sample set failed (${response.status})`;
+      try {
+        const body = (await response.json()) as { detail?: string };
+        if (body.detail) {
+          error = body.detail;
+        }
+      } catch {
+        // ignore parse errors
+      }
+      return { ok: false, error };
+    }
+    const data = (await response.json()) as MrmsVisualReviewSampleSetCreateResponse;
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 

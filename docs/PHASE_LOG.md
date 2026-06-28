@@ -2133,3 +2133,31 @@ cd frontend && npm run build
 ### Known limitations
 - Explicit opt-in only — default `make scheduled-validation` unchanged
 - Scheduled visual review inspects existing artifacts — does not download/decode MRMS or enable production rendering
+
+## Phase 60 - Visual Review Sample-Set Selection
+
+Local drilldown sample-set selection from existing visual review manifests for closer manual inspection.
+
+### Backend
+- `mrms_visual_review_sample_set.py` — recommended/explicit selection, JSON/Markdown under `data/dev/`
+- Paths: `mrms_visual_review_sample_set.json`, `mrms_visual_review_sample_set.md`
+- `compact_visual_review_sample_set()` on validation summary
+- API: `GET/POST /api/validation/mrms-visual-review/sample-set`
+- CLI: `scripts/mrms_visual_review_sample_set.py`; `make mrms-visual-review-sample-set`
+
+### Frontend
+- Dev Validation **MRMS Visual Review** nested **Visual review sample set (drilldown)** collapsible
+- Generate recommended sample set button (local only); copy-ready `make mrms-visual-review-sample-set`
+
+### Run commands
+
+```bash
+make test
+make mrms-visual-review-sample-set
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Sample set is local drilldown evidence only — does not verify MRMS, clear alerts, download/decode, or enable production rendering
+- Empty selection when no visual review manifest exists — run `make mrms-visual-review` first
