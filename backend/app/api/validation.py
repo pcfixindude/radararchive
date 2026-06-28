@@ -42,6 +42,9 @@ from backend.app.schemas.validation import (
     MrmsVisualReviewComparisonHistoryResponse,
     MrmsVisualReviewComparisonResponse,
     MrmsVisualReviewHintResponse,
+    MrmsVisualReviewSampleSetCreateRequest,
+    MrmsVisualReviewSampleSetCreateResponse,
+    MrmsVisualReviewSampleSetResponse,
     MrmsVisualReviewResponse,
     OperatorReviewStatusResponse,
     OperatorWorkflowPresetsResponse,
@@ -128,6 +131,10 @@ from backend.app.services.mrms_visual_review_compare import (
     build_visual_review_comparison_payload,
 )
 from backend.app.services.mrms_visual_review_hint import build_visual_review_hint_payload
+from backend.app.services.mrms_visual_review_sample_set import (
+    build_visual_review_sample_set,
+    build_visual_review_sample_set_payload,
+)
 from backend.app.services.operator_review_status import build_operator_review_status_payload
 from backend.app.services.operator_workflow_presets import build_operator_workflow_presets_payload
 from backend.app.services.mrms_proof_report import load_mrms_proof_report
@@ -344,6 +351,44 @@ def validation_operator_workflow_presets() -> OperatorWorkflowPresetsResponse:
     storage = LocalStorage(settings.local_storage_root)
     payload = build_operator_workflow_presets_payload(storage)
     return OperatorWorkflowPresetsResponse(**payload)
+
+
+@router.get("/mrms-visual-review/sample-set", response_model=MrmsVisualReviewSampleSetResponse)
+def validation_mrms_visual_review_sample_set() -> MrmsVisualReviewSampleSetResponse:
+    """Latest MRMS visual review sample set (read-only; local drilldown only)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_visual_review_sample_set_payload(storage)
+    return MrmsVisualReviewSampleSetResponse(**payload)
+
+
+@router.post(
+    "/mrms-visual-review/sample-set",
+    response_model=MrmsVisualReviewSampleSetCreateResponse,
+)
+def validation_mrms_visual_review_sample_set_create(
+    body: MrmsVisualReviewSampleSetCreateRequest,
+) -> MrmsVisualReviewSampleSetCreateResponse:
+    """Dev/local only — build MRMS visual review sample set; does NOT verify MRMS or clear alerts."""
+    storage = LocalStorage(settings.local_storage_root)
+    sample_set = build_visual_review_sample_set(
+        storage,
+        selection_mode=body.selection_mode,
+        limit=body.limit,
+        timestamps=body.timestamps or None,
+        notes=body.notes,
+    )
+    compact = build_visual_review_sample_set_payload(storage)["compact"]
+    return MrmsVisualReviewSampleSetCreateResponse(
+        verified_mrms=False,
+        local_sample_set_only=True,
+        does_not_clear_alerts=True,
+        does_not_enable_production=True,
+        does_not_download_or_decode=True,
+        no_external_notifications=True,
+        production_enabled=settings.enable_production_radar_tiles,
+        sample_set=sample_set,
+        compact=compact,
+    )
 
 
 @router.get("/mrms-visual-review/hint", response_model=MrmsVisualReviewHintResponse)

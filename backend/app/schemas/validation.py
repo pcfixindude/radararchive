@@ -937,6 +937,70 @@ class MrmsVisualReviewHintResponse(BaseModel):
     compact: MrmsVisualReviewHintCompact
 
 
+class MrmsVisualReviewSampleSetContextCompact(BaseModel):
+    visual_review_regeneration_recommended: bool = False
+    visual_review_hint_reason: Optional[str] = None
+    stale_visual_review: bool = False
+    latest_visual_review_comparison_status: Optional[str] = None
+    comparison_available: bool = False
+
+
+class MrmsVisualReviewSampleSetCompact(BaseModel):
+    available: bool = False
+    created_at: Optional[str] = None
+    selection_mode: Optional[str] = None
+    entry_count: int = 0
+    limit: int = 5
+    json_path: Optional[str] = None
+    markdown_path: Optional[str] = None
+    source_visual_review_at: Optional[str] = None
+    source_visual_review_path: Optional[str] = None
+    reason: Optional[str] = None
+    suggested_command: Optional[str] = None
+    context: MrmsVisualReviewSampleSetContextCompact = Field(
+        default_factory=MrmsVisualReviewSampleSetContextCompact
+    )
+    verified_mrms: bool = False
+    local_sample_set_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    no_external_notifications: bool = True
+    prototype: bool = True
+
+
+class MrmsVisualReviewSampleSetResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_sample_set_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    no_external_notifications: bool = True
+    latest: Optional[dict[str, Any]] = None
+    compact: MrmsVisualReviewSampleSetCompact
+
+
+class MrmsVisualReviewSampleSetCreateRequest(BaseModel):
+    selection_mode: str = "recommended"
+    limit: int = 5
+    timestamps: list[str] = Field(default_factory=list)
+    notes: Optional[str] = None
+
+
+class MrmsVisualReviewSampleSetCreateResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_sample_set_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    no_external_notifications: bool = True
+    production_enabled: bool = False
+    sample_set: dict[str, Any] = Field(default_factory=dict)
+    compact: MrmsVisualReviewSampleSetCompact
+
+
 class ScheduledOperatorStatusCompact(BaseModel):
     operator_status_requested: bool = False
     operator_status_generated: bool = False
@@ -1664,6 +1728,7 @@ class ValidationSummaryResponse(BaseModel):
     mrms_visual_review: Optional[MrmsVisualReviewCompact] = None
     mrms_visual_review_comparison: Optional[MrmsVisualReviewComparisonCompact] = None
     mrms_visual_review_hint: Optional[MrmsVisualReviewHintCompact] = None
+    mrms_visual_review_sample_set: Optional[MrmsVisualReviewSampleSetCompact] = None
     scheduled_operator_status: Optional[ScheduledOperatorStatusCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)

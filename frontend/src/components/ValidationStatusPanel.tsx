@@ -4,6 +4,7 @@ import {
   fetchValidationLatest,
   submitSignoff,
   submitReviewSession,
+  submitVisualReviewSampleSet,
   submitDiffAcknowledgment,
   type MrmsProofHistory,
   type MrmsProofRegressionHistory,
@@ -58,6 +59,9 @@ export default function ValidationStatusPanel({
   const [reviewSessionSubmitting, setReviewSessionSubmitting] = useState(false);
   const [reviewSessionMessage, setReviewSessionMessage] = useState<string | null>(null);
   const [reviewSessionError, setReviewSessionError] = useState<string | null>(null);
+  const [sampleSetSubmitting, setSampleSetSubmitting] = useState(false);
+  const [sampleSetMessage, setSampleSetMessage] = useState<string | null>(null);
+  const [sampleSetError, setSampleSetError] = useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -198,6 +202,27 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleSampleSetGenerate() {
+    setSampleSetMessage(null);
+    setSampleSetError(null);
+    setSampleSetSubmitting(true);
+    const result = await submitVisualReviewSampleSet({
+      selection_mode: 'recommended',
+      limit: 5,
+    });
+    setSampleSetSubmitting(false);
+    if (!result.ok) {
+      setSampleSetError(result.error);
+      return;
+    }
+    setSampleSetMessage(
+      `Local sample set saved (${result.data.sample_set.entry_count ?? 0} entries) — does not verify MRMS or enable production rendering.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   if (!summary) {
     return (
       <section className="panel validation-panel">
@@ -262,6 +287,7 @@ export default function ValidationStatusPanel({
   const mrmsVisualReview = summary.mrms_visual_review ?? null;
   const mrmsVisualReviewComparison = summary.mrms_visual_review_comparison ?? null;
   const mrmsVisualReviewHint = summary.mrms_visual_review_hint ?? null;
+  const mrmsVisualReviewSampleSet = summary.mrms_visual_review_sample_set ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -605,6 +631,78 @@ export default function ValidationStatusPanel({
             decoded prototype, and production-gated tile evidence.
           </p>
         )}
+        <CollapsibleSection
+          title="Visual review sample set (drilldown)"
+          className="validation-visual-review-sample-set"
+          summary={
+            <p className="validation-meta">
+              {mrmsVisualReviewSampleSet?.available
+                ? `${mrmsVisualReviewSampleSet.entry_count ?? 0} selected — ${mrmsVisualReviewSampleSet.selection_mode ?? '—'}`
+                : 'No sample set yet — generate a recommended subset for manual inspection'}
+            </p>
+          }
+        >
+          <p className="validation-meta">
+            Local-only visual review sample set. Does not verify MRMS, clear alerts, enable production
+            rendering, or create production tiles.
+          </p>
+          {mrmsVisualReviewSampleSet?.available ? (
+            <>
+              <p className="validation-meta">
+                Created: {formatTimestamp(mrmsVisualReviewSampleSet.created_at)}
+              </p>
+              <p className="validation-meta">
+                Entries: {mrmsVisualReviewSampleSet.entry_count ?? 0} — mode:{' '}
+                {mrmsVisualReviewSampleSet.selection_mode ?? '—'}
+              </p>
+              <p className="validation-meta">
+                Source visual review:{' '}
+                {formatTimestamp(mrmsVisualReviewSampleSet.source_visual_review_at)}
+              </p>
+              <p className="validation-meta">
+                JSON: <code>{mrmsVisualReviewSampleSet.json_path}</code>
+              </p>
+              <p className="validation-meta">
+                Markdown: <code>{mrmsVisualReviewSampleSet.markdown_path}</code>
+              </p>
+              {mrmsVisualReviewSampleSet.context?.visual_review_regeneration_recommended ? (
+                <p className="validation-meta">
+                  Visual review regeneration recommended —{' '}
+                  {mrmsVisualReviewSampleSet.context.visual_review_hint_reason ?? 'stale evidence'}
+                </p>
+              ) : null}
+              {mrmsVisualReviewSampleSet.context?.latest_visual_review_comparison_status ? (
+                <p className="validation-meta">
+                  Comparison status:{' '}
+                  {mrmsVisualReviewSampleSet.context.latest_visual_review_comparison_status}
+                </p>
+              ) : null}
+            </>
+          ) : (
+            <p className="validation-meta">
+              Build a small recommended sample from the latest visual review manifest for closer manual
+              inspection.
+            </p>
+          )}
+          <button
+            type="button"
+            className="validation-refresh"
+            onClick={() => void handleSampleSetGenerate()}
+            disabled={sampleSetSubmitting || !mrmsVisualReview?.available}
+          >
+            {sampleSetSubmitting ? 'Generating…' : 'Generate recommended sample set (local only)'}
+          </button>
+          {sampleSetMessage ? <p className="validation-meta">{sampleSetMessage}</p> : null}
+          {sampleSetError ? <p className="validation-warn">{sampleSetError}</p> : null}
+          <CommandLine
+            command={
+              mrmsVisualReviewSampleSet?.suggested_command ?? 'make mrms-visual-review-sample-set'
+            }
+            label="Suggested sample-set command"
+            manualCopy
+          />
+          <SafetyNote />
+        </CollapsibleSection>
         <CommandLine
           command={
             mrmsVisualReviewHint?.suggested_command ??

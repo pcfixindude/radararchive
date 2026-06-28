@@ -9,10 +9,10 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 59
-- Latest phase: Phase 59 — Scheduled visual review workflow
-- Latest commit: `5b7e90235f37931db00b711baccaf9ff5a2e6782`
-- Latest tag: `phase-59-scheduled-visual-review-workflow`
+- Completed through phase: 60
+- Latest phase: Phase 60 — Visual review artifact drilldown and sample-set selection
+- Latest commit: `b254016`
+- Latest tag: `phase-60-visual-review-sample-sets`
 - Push status: pushed to origin main with tag
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
@@ -24,19 +24,20 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Production rendering: gated/off by default
 - External notifications: **none**
 - MRMS visual review: local-only; does not download/decode MRMS; does not create tiles; does not verify MRMS
+- Visual review sample set: local drilldown only; does not verify MRMS, clear alerts, or enable production rendering
 - Scheduled visual review: explicit opt-in only via `--visual-review` or `make scheduled-proof-bundle-visual-review`
 
 ## Latest phase summary
 
-- Phase: **59**
-- Purpose: Add optional scheduled visual review generation and improve visual review workflow presets.
-- Main command added: `make scheduled-proof-bundle-visual-review`
-- Scheduled validation flag added: `--visual-review`
-- Tests: backend 626 passed; frontend vitest 8 passed; frontend build succeeded
+- Phase: **60**
+- Purpose: Add local visual review sample-set selection for closer manual inspection of a small artifact subset.
+- Main command added: `make mrms-visual-review-sample-set`
+- API added: `GET/POST /api/validation/mrms-visual-review/sample-set`
+- Tests: backend 639 passed; frontend vitest 8 passed; frontend build succeeded
 - Known limitations:
-  - Visual review remains advisory/local-only
-  - Standalone `make mrms-visual-review` is faster when only visual review refresh is needed
-  - Scheduled visual review is explicit opt-in
+  - Sample set is advisory/local-only drilldown evidence
+  - Requires an existing visual review manifest (`make mrms-visual-review`) for non-empty selection
+  - Recommended selection prioritizes missing artifacts and diverse tile modes — not a verification gate
   - `verified_mrms` remains false
 
 ## Current capabilities
@@ -51,6 +52,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Dev Validation UX with collapsible sections, preset filters, and safety wording
 - MRMS visual review manifests, Markdown reports, history, comparison, and stale hints
 - Scheduled proof, review export, operator status, and optional visual review workflows
+- Visual review sample-set JSON/Markdown under `data/dev/` with Dev Validation drilldown UI
 
 ## Current focus
 
@@ -62,10 +64,10 @@ Do **not** promote to verified MRMS yet.
 
 ## Next recommended phase
 
-- Phase number: **60**
-- Phase title: Visual review artifact drilldown and sample-set selection
-- Goal: Let operators choose a small local sample set of visual review frames/artifacts for closer manual inspection without enabling production rendering.
-- Why this is next: Phases 56–59 created visual review generation, comparison, stale hints, recommendations, and scheduled tie-ins. The next useful step is to make visual artifacts easier to inspect and organize into a candidate sample set.
+- Phase number: **61**
+- Phase title: Visual sample-set review annotations and candidate readiness scoring
+- Goal: Allow operators to add local notes/status to selected visual review samples and summarize whether the sample set is ready for a later gated real MRMS rendering candidate path.
+- Why this is next: Phase 60 organizes a small drilldown sample set; Phase 61 adds operator annotations and a local readiness summary before any gated rendering candidate workflow.
 - Safety boundaries:
   - local-only
   - no MRMS verification claim
@@ -91,13 +93,13 @@ Read first:
 - docs/VERIFIED_MRMS_CRITERIA.md
 - docs/GRIB2_DECODE.md
 
-Task: Implement Phase 60 only.
+Task: Implement Phase 61 only.
 
-Goal: Add local visual review sample-set selection so operators can pick a small set of frames/artifacts for closer manual inspection.
+Goal: Allow operators to add local notes/status to selected visual review samples and summarize whether the sample set is ready for a later gated real MRMS rendering candidate path.
 
 Requirements (summary):
-- Persist local sample-set JSON/Markdown under data/dev/ (gitignored)
-- Expose read-only API/status and Dev Validation UI
+- Persist local annotation/readiness JSON/Markdown under data/dev/ (gitignored)
+- Expose read-only API/status and Dev Validation UI for annotations and readiness summary
 - Keep verified_mrms false and production rendering gated
 - Do not download/decode MRMS, clear alerts, or mutate catalog/render gates
 - Update docs/CHATGPT_REVIEW.md before final commit/tag/push
@@ -108,7 +110,7 @@ Run make test, frontend tests, and frontend build before commit.
 ## Key docs (read order for new work)
 
 1. `docs/CHATGPT_REVIEW.md` (this file)
-2. `docs/PHASE_WORKFLOW_RULES.md`
-3. `docs/PROJECT_STATE.md`
-4. `docs/NEXT_STEPS.md`
+2. `docs/PROJECT_STATE.md`
+3. `docs/NEXT_STEPS.md`
+4. `docs/PHASE_LOG.md`
 5. `docs/RUNBOOK_REAL_MRMS_VALIDATION.md`
