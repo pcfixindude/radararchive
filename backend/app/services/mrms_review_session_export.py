@@ -422,6 +422,28 @@ def build_review_export_regeneration_hint(storage: LocalStorage) -> dict[str, An
     }
 
 
+def compact_scheduled_review_export(
+    scheduled: Optional[dict[str, Any]],
+) -> Optional[dict[str, Any]]:
+    """Compact review export step status from the latest scheduled validation report."""
+    if scheduled is None:
+        return None
+    return {
+        "review_export_requested": bool(scheduled.get("review_export_requested")),
+        "review_export_generated": bool(scheduled.get("review_export_generated")),
+        "review_export_path": scheduled.get("review_export_path"),
+        "review_export_metadata_path": scheduled.get("review_export_metadata_path"),
+        "review_export_reason": scheduled.get("review_export_reason"),
+        "review_export_elapsed_seconds": scheduled.get("review_export_elapsed_seconds"),
+        "verified_mrms": False,
+        "local_export_only": True,
+        "does_not_clear_alerts": True,
+        "does_not_enable_production": True,
+        "no_external_notifications": True,
+        "prototype": True,
+    }
+
+
 def build_review_session_export_payload(storage: LocalStorage) -> dict[str, Any]:
     latest = load_latest_review_session_export_metadata(storage)
     history = _load_export_history(storage)[:MAX_EXPORT_HISTORY]

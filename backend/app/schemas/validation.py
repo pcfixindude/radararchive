@@ -1071,6 +1071,21 @@ class ScheduledDigestCompact(BaseModel):
     prototype: bool = True
 
 
+class ScheduledReviewExportCompact(BaseModel):
+    review_export_requested: bool = False
+    review_export_generated: bool = False
+    review_export_path: Optional[str] = None
+    review_export_metadata_path: Optional[str] = None
+    review_export_reason: Optional[str] = None
+    review_export_elapsed_seconds: Optional[float] = None
+    verified_mrms: bool = False
+    local_export_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    prototype: bool = True
+
+
 class OperatorHandoffCompact(BaseModel):
     available: bool = False
     created_at: Optional[str] = None
@@ -1146,6 +1161,7 @@ class ValidationSummaryResponse(BaseModel):
     scheduled_validation: Optional[ScheduledValidationCompact] = None
     scheduled_proof_bundle: Optional[ScheduledProofBundleCompact] = None
     scheduled_digest: Optional[ScheduledDigestCompact] = None
+    scheduled_review_export: Optional[ScheduledReviewExportCompact] = None
     validation_failures_count: int = 0
     validation_failures_recent: list[ValidationFailureCompact] = Field(default_factory=list)
     validation_alert: Optional[ValidationAlertCompact] = None

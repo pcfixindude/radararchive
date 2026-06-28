@@ -215,6 +215,7 @@ export default function ValidationStatusPanel({
   const signoffSummary = summary.mrms_signoff ?? null;
   const scheduledProofBundle = summary.scheduled_proof_bundle ?? null;
   const scheduledDigest = summary.scheduled_digest ?? null;
+  const scheduledReviewExport = summary.scheduled_review_export ?? null;
   const proofBundle = summary.mrms_proof_bundle ?? null;
   const proofBundleDiff = summary.mrms_proof_bundle_diff ?? null;
   const operatorHandoff = summary.operator_handoff ?? null;
@@ -427,6 +428,27 @@ export default function ValidationStatusPanel({
                 <p className="validation-meta">
                   Local digest only — does not notify externally — does not verify MRMS — does not
                   enable production rendering — does not clear alerts
+                </p>
+              </>
+            ) : null}
+            {scheduledReviewExport?.review_export_requested ? (
+              <>
+                <p className="validation-meta">
+                  Scheduled review export:{' '}
+                  {scheduledReviewExport.review_export_generated ? 'generated' : 'skipped'}
+                  {scheduledReviewExport.review_export_reason
+                    ? ` — ${scheduledReviewExport.review_export_reason}`
+                    : ''}
+                  {scheduledReviewExport.review_export_path
+                    ? ` — ${scheduledReviewExport.review_export_path}`
+                    : ''}
+                  {scheduledReviewExport.review_export_elapsed_seconds != null
+                    ? ` (${scheduledReviewExport.review_export_elapsed_seconds.toFixed(2)}s)`
+                    : ''}
+                </p>
+                <p className="validation-meta">
+                  Local export only — does not notify externally — does not verify MRMS — does not
+                  clear alerts — does not enable production rendering
                 </p>
               </>
             ) : null}

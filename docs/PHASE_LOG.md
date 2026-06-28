@@ -1671,3 +1671,34 @@ cd frontend && npm run build
 - Export is local/dev review tooling only — not verified MRMS
 - Does not clear alerts or mutate production/catalog/render gates
 - `verified_mrms` always false
+
+## Phase 44 - Scheduled Review Session Export
+
+Optional scheduled validation step to export review session Markdown after digest/handoff.
+
+### Backend
+- `run_scheduled_validation(..., review_export_requested=True)` — step `review_session_export`
+- `compact_scheduled_review_export()` — summary compact
+- Skips with `skipped_no_review_session` without failing run
+- Summary: `scheduled_review_export` + existing export/regeneration compacts
+
+### Scripts / Makefile
+- `--review-export` / `--export-review` on `run_scheduled_validation.py`
+- `make scheduled-proof-bundle-review-export`
+
+### Frontend
+- Dev Validation: scheduled review export status in proof bundle section
+
+### Run commands
+
+```bash
+make test
+make scheduled-proof-bundle-review-export
+cd frontend && npm run build
+```
+
+### Known limitations
+- Requires review session for generated export (`skipped_no_review_session` otherwise)
+- Default `make scheduled-validation` unchanged
+- Does not clear alerts or mutate production/catalog/render gates
+- `verified_mrms` always false

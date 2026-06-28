@@ -81,6 +81,17 @@ def _print_report(report) -> None:
             print(f"  digest metadata path: {report.digest_metadata_path}")
         if report.digest_elapsed_seconds is not None:
             print(f"  digest elapsed_seconds: {report.digest_elapsed_seconds:.4f}")
+    if report.review_export_requested:
+        print(
+            f"  review session export: requested=yes generated={report.review_export_generated} "
+            f"reason={report.review_export_reason}"
+        )
+        if report.review_export_path:
+            print(f"  review export path: {report.review_export_path}")
+        if report.review_export_metadata_path:
+            print(f"  review export metadata path: {report.review_export_metadata_path}")
+        if report.review_export_elapsed_seconds is not None:
+            print(f"  review export elapsed_seconds: {report.review_export_elapsed_seconds:.4f}")
     print(f"  verified_mrms: {report.verified_mrms}")
     for warning in report.warnings:
         print(f"  warning: {warning}")
@@ -138,6 +149,13 @@ def main() -> None:
         action="store_true",
         help="After diff/escalation, export local escalation digest and refresh operator checklist",
     )
+    parser.add_argument(
+        "--review-export",
+        "--export-review",
+        dest="review_export",
+        action="store_true",
+        help="After digest/handoff steps, export latest review session Markdown (local only)",
+    )
     args = parser.parse_args()
 
     print(
@@ -173,6 +191,7 @@ def main() -> None:
             handoff_requested=args.handoff,
             notify_stdout=args.notify_stdout,
             digest_requested=args.digest,
+            review_export_requested=args.review_export,
             command_context="make scheduled-validation",
         )
     finally:

@@ -288,6 +288,10 @@ Summary additions (Phase 43): `mrms_review_session_export` compact (`created_at`
 
 Endpoints (Phase 43): `GET /api/validation/review-sessions/export`, `GET /api/validation/review-sessions/export/history` (read-only; `verified_mrms: false`, `local_export_only: true`).
 
+Summary additions (Phase 44): `scheduled_review_export` compact (`review_export_requested`, `review_export_generated`, `review_export_path`, `review_export_reason`, `review_export_elapsed_seconds`).
+
+Scheduled validation report additions (Phase 44): `review_export_requested`, `review_export_generated`, `review_export_path`, `review_export_metadata_path`, `review_export_reason`, `review_export_elapsed_seconds`; step `review_session_export` when `--review-export` / `--export-review` passed. Skips with `skipped_no_review_session` without failing the run.
+
 Scheduled validation report additions (Phase 32): `bundle_requested`, `diff_bundle_requested`, `mrms_proof_bundle`, `mrms_proof_bundle_diff`; steps `proof_report`, `proof_regression`, `proof_bundle_export`, `proof_bundle_diff`.
 
 `GET /api/validation/proof-bundle-diff` — latest proof bundle diff report (`?refresh=true` rebuilds). `verified_mrms: false`, `local_diff_only: true`.

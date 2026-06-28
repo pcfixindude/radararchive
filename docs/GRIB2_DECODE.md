@@ -363,7 +363,7 @@ Sign-off via `make mrms-signoff` or dev-only `POST /api/validation/signoffs` is 
 
 `make proof-bundle-diff-escalation-digest-history` shows bounded digest export history. `make proof-bundle-diff-escalation-digest-diff` compares consecutive digest exports and surfaces regeneration hints — local review only, not a notification system.
 
-`make mrms-review-session` records a local MRMS proof review session linking escalation, digest, handoff, diff, and bundle evidence. `make mrms-review-sessions` lists bounded session history. `make mrms-review-session-compare` compares the latest session against the previous one. `make mrms-review-session-export` writes a local Markdown export with comparison, guidance, and digest hints. Review sessions, comparison, and export do not verify MRMS or enable production rendering.
+`make mrms-review-session` records a local MRMS proof review session linking escalation, digest, handoff, diff, and bundle evidence. `make mrms-review-sessions` lists bounded session history. `make mrms-review-session-compare` compares the latest session against the previous one. `make mrms-review-session-export` writes a local Markdown export with comparison, guidance, and digest hints. `make scheduled-proof-bundle-review-export` runs proof → bundle → diff → handoff → digest → review export in one local sequence (skips export safely when no review session exists). Review sessions, comparison, export, and scheduled export do not verify MRMS or enable production rendering.
 
 ## Inspection CLI
 

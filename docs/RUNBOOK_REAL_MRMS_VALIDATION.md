@@ -493,6 +493,28 @@ curl http://127.0.0.1:8000/api/validation/review-sessions/export/history
 
 **Warnings:** Export does **not** verify MRMS, clear alerts, enable production rendering, or send external notifications.
 
+## Scheduled review session export (Phase 44)
+
+Optional scheduled validation step exports the latest review session Markdown after digest/handoff — **local scheduled review only**.
+
+```bash
+make scheduled-proof-bundle-review-export
+make scheduled-proof-bundle-review-export ARGS="--json-report"
+make scheduled-validation ARGS="--proof --bundle --diff-bundle --handoff --digest --review-export"
+```
+
+**When to use:** After you have recorded at least one local review session (`make mrms-review-session`) and want proof → bundle → diff → handoff → digest → review export in one explicit local sequence.
+
+**What gets exported:** Same Markdown as `make mrms-review-session-export` — session summary, comparison vs previous session, open attention guidance, digest regeneration hint, and safety warnings.
+
+**`skipped_no_review_session`:** Scheduled run continues successfully but `review_export_generated: false` when no review session exists yet. Record a review session first, then re-run export or the scheduled sequence.
+
+**Default behavior:** `make scheduled-validation` is unchanged (no review export unless `--review-export` / `make scheduled-proof-bundle-review-export`).
+
+Summary API adds `scheduled_review_export` compact (`review_export_requested`, `review_export_generated`, `review_export_path`, `review_export_reason`, …) alongside existing `mrms_review_session_export` and `review_export_regeneration_hint`.
+
+**Warnings:** Scheduled review export does **not** verify MRMS, clear alerts, enable production rendering, or send external notifications.
+
 ## Proof bundle diff alert escalation (Phase 36)
 
 Escalation hints combine trend summary, diff alert history, and acknowledgment state — **local operator guidance only**. Escalation does **not** verify MRMS, clear alerts, enable production rendering, or mutate catalog gates.

@@ -182,6 +182,10 @@ Review session comparison (`make mrms-review-session-compare`, `GET /api/validat
 
 Review session Markdown export (`make mrms-review-session-export`, `GET /api/validation/review-sessions/export`) and export regeneration hints (`review_export_regeneration_hint` in summary) are **supporting local review aids only**. They help operators keep a readable local summary of the latest review session, comparison, and runbook guidance. They do **not** verify MRMS, clear alerts, enable production rendering, or satisfy any verified-MRMS criterion.
 
+## Scheduled review session export (Phase 44)
+
+Scheduled review session export (`make scheduled-proof-bundle-review-export`, `--review-export` on scheduled validation) is **supporting local review evidence only**. It optionally exports the latest review session Markdown after digest/handoff steps in one local sequence. `skipped_no_review_session` means no session was recorded yet — the scheduled run does not fail. This does **not** verify MRMS, clear alerts, enable production rendering, or satisfy any verified-MRMS criterion.
+
 ## Scheduled proof bundle monitoring (Phase 32)
 
 `make scheduled-proof-bundle` runs scheduled validation with `--proof --bundle --diff-bundle`. This is **local evidence monitoring only** — it does not verify MRMS or enable production rendering. Alerts may flag `worsened` or `mixed` diff status for operator review.

@@ -68,6 +68,7 @@ from backend.app.services.mrms_review_session import (
 from backend.app.services.mrms_review_session_export import (
     build_review_export_regeneration_hint,
     compact_review_session_export_summary,
+    compact_scheduled_review_export,
 )
 from backend.app.services.render_queue import get_queue_summary
 from backend.app.services.storage import LocalStorage
@@ -134,6 +135,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "scheduled_validation": _compact_scheduled_validation(scheduled),
         "scheduled_proof_bundle": compact_scheduled_proof_bundle(scheduled),
         "scheduled_digest": compact_scheduled_digest(scheduled),
+        "scheduled_review_export": compact_scheduled_review_export(scheduled),
         "validation_failures_count": count_validation_failures(storage),
         "validation_failures_recent": [compact_failure(item) for item in recent_failures],
         "validation_alert": compact_validation_alert(alert),

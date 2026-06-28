@@ -857,6 +857,21 @@ export type ScheduledDigestCompact = {
   prototype: boolean;
 };
 
+export type ScheduledReviewExportCompact = {
+  review_export_requested: boolean;
+  review_export_generated: boolean;
+  review_export_path?: string | null;
+  review_export_metadata_path?: string | null;
+  review_export_reason?: string | null;
+  review_export_elapsed_seconds?: number | null;
+  verified_mrms: boolean;
+  local_export_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  no_external_notifications: boolean;
+  prototype: boolean;
+};
+
 export type OperatorHandoffCompact = {
   available: boolean;
   created_at?: string | null;
@@ -985,6 +1000,7 @@ export type ValidationSummary = {
   scheduled_validation?: ScheduledValidationCompact | null;
   scheduled_proof_bundle?: ScheduledProofBundleCompact | null;
   scheduled_digest?: ScheduledDigestCompact | null;
+  scheduled_review_export?: ScheduledReviewExportCompact | null;
   validation_failures_count?: number;
   validation_failures_recent?: ValidationFailureCompact[];
   validation_alert?: ValidationAlertCompact | null;

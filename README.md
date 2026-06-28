@@ -124,6 +124,7 @@ make scheduled-validation
 make scheduled-proof-bundle
 make scheduled-proof-bundle-handoff
 make scheduled-proof-bundle-digest
+make scheduled-proof-bundle-review-export
 make proof-bundle-diff-alert-history
 make proof-bundle-diff-alert-trend
 make proof-bundle-diff-escalation
@@ -212,6 +213,7 @@ Limitations:
 - `make scheduled-proof-bundle` runs scheduled validation with proof report, bundle export, and diff (local monitoring only)
 - `make scheduled-proof-bundle-handoff` adds optional operator handoff auto-regeneration when diff is worsened/mixed (does not verify MRMS)
 - `make scheduled-proof-bundle-digest` runs proof bundle pipeline with escalation digest export and extended operator review checklist (local only; does not verify MRMS or notify externally)
+- `make scheduled-proof-bundle-review-export` runs the digest sequence plus review session Markdown export (`--review-export`; skips safely when no review session exists)
 - `make proof-bundle-diff-alert-history` shows bounded diff alert timeline (local evidence monitoring only)
 - `make proof-bundle-diff-alert-trend` summarizes worsening/improving/mixed/stable trend over recent history
 - `make proof-bundle-diff-escalation` shows escalation level and runbook guidance for worsening/stale-ack trends (local only)

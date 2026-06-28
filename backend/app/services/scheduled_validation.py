@@ -113,6 +113,12 @@ class ScheduledValidationReport:
     digest_metadata_path: Optional[str] = None
     digest_reason: Optional[str] = None
     digest_elapsed_seconds: Optional[float] = None
+    review_export_requested: bool = False
+    review_export_generated: bool = False
+    review_export_path: Optional[str] = None
+    review_export_metadata_path: Optional[str] = None
+    review_export_reason: Optional[str] = None
+    review_export_elapsed_seconds: Optional[float] = None
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     elapsed_seconds: float = 0.0
@@ -159,6 +165,12 @@ class ScheduledValidationReport:
             "digest_metadata_path": self.digest_metadata_path,
             "digest_reason": self.digest_reason,
             "digest_elapsed_seconds": self.digest_elapsed_seconds,
+            "review_export_requested": self.review_export_requested,
+            "review_export_generated": self.review_export_generated,
+            "review_export_path": self.review_export_path,
+            "review_export_metadata_path": self.review_export_metadata_path,
+            "review_export_reason": self.review_export_reason,
+            "review_export_elapsed_seconds": self.review_export_elapsed_seconds,
             "warnings": list(self.warnings),
             "errors": list(self.errors),
             "elapsed_seconds": round(self.elapsed_seconds, 4),
@@ -279,6 +291,7 @@ def run_scheduled_validation(
     handoff_requested: bool = False,
     notify_stdout: bool = False,
     digest_requested: bool = False,
+    review_export_requested: bool = False,
     persist: bool = True,
     command_context: Optional[str] = None,
     batch_fn: Optional[Callable[..., BatchValidationReport]] = None,
@@ -306,6 +319,7 @@ def run_scheduled_validation(
     report.handoff_requested = handoff_requested
     report.notify_stdout_requested = notify_stdout
     report.digest_requested = digest_requested
+    report.review_export_requested = review_export_requested
     report.warnings.append(
         "Scheduled validation is local dev/prototype tooling — not verified MRMS production"
     )
@@ -756,6 +770,64 @@ def run_scheduled_validation(
             source_mode=mode,
             command_context=command_context,
             step=digest_step,
+        )
+
+    if review_export_requested:
+        review_export_step = ScheduledValidationStep(
+            name="review_session_export",
+            started_at=_utc_now(),
+        )
+        review_start = time.perf_counter()
+        try:
+            from backend.app.services.mrms_review_session import load_review_sessions
+            from backend.app.services.mrms_review_session_export import (
+                export_latest_review_session,
+            )
+
+            sessions = load_review_sessions(storage)
+            if not sessions:
+                report.review_export_generated = False
+                report.review_export_reason = "skipped_no_review_session"
+                review_export_step.status = STEP_SKIPPED
+                review_export_step.summary = {
+                    "review_export_generated": False,
+                    "review_export_reason": report.review_export_reason,
+                    "verified_mrms": False,
+                    "local_export_only": True,
+                }
+            else:
+                metadata = export_latest_review_session(storage)
+                report.review_export_generated = True
+                report.review_export_path = metadata.get("export_path")
+                report.review_export_metadata_path = metadata.get("metadata_path")
+                report.review_export_reason = "generated"
+                review_export_step.summary = {
+                    "review_export_generated": True,
+                    "review_export_path": report.review_export_path,
+                    "review_export_metadata_path": report.review_export_metadata_path,
+                    "review_export_reason": report.review_export_reason,
+                    "session_id": metadata.get("session_id"),
+                    "verified_mrms": False,
+                    "local_export_only": True,
+                }
+                report.warnings.append(
+                    "Review session export generated (local review only — does NOT verify MRMS)"
+                )
+        except Exception as exc:  # noqa: BLE001
+            report.review_export_generated = False
+            report.review_export_reason = "generation_failed"
+            review_export_step.errors.append(str(exc))
+        review_export_step.elapsed_seconds = time.perf_counter() - review_start
+        report.review_export_elapsed_seconds = round(review_export_step.elapsed_seconds, 4)
+        review_export_step.finished_at = _utc_now()
+        _finalize_step_status(review_export_step)
+        report.steps.append(review_export_step)
+        _log_step_failures(
+            storage,
+            phase="scheduled_validation",
+            source_mode=mode,
+            command_context=command_context,
+            step=review_export_step,
         )
 
     report.success = not report.errors and all(

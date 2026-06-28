@@ -504,6 +504,12 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - Summary: `mrms_review_session_export`, `review_export_regeneration_hint`
 - Gitignored: `mrms_review_session_export_latest.md`, `.json`, `..._history.json`
 
+### Scheduled review session export (Phase 44)
+- `run_scheduled_validation(..., review_export_requested=True)` — step `review_session_export` after digest
+- `compact_scheduled_review_export()` — summary compact from latest scheduled report
+- `make scheduled-proof-bundle-review-export` — `--proof --bundle --diff-bundle --handoff --digest --review-export`
+- Summary: `scheduled_review_export` compact; skips with `skipped_no_review_session` when no session exists
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4
