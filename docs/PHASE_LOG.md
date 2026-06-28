@@ -1702,3 +1702,41 @@ cd frontend && npm run build
 - Default `make scheduled-validation` unchanged
 - Does not clear alerts or mutate production/catalog/render gates
 - `verified_mrms` always false
+
+## Phase 45 - Review Export Diff + Auto-Export After Create
+
+Diff metadata between consecutive review session Markdown exports; optional export immediately after session create.
+
+### Backend
+- `mrms_review_session_export_diff.py` — compare latest vs previous export snapshots
+- Persist: `mrms_review_session_export_diff_latest.json` + bounded history (max 25, gitignored)
+- Record diff whenever `export_latest_review_session()` runs (manual, auto-export, scheduled)
+- `GET /api/validation/review-sessions/export/diff`, `GET .../export/diff/history`
+- Summary: `mrms_review_session_export_diff`
+- `POST /api/validation/review-sessions` optional `export_after_create`; `try_export_after_review_session_create()` — no session rollback on export failure
+- Export metadata enriched with `escalation_level`, `proof_bundle_diff_status`, `acknowledgment_id`
+
+### Scripts / Makefile
+- `make mrms-review-session-export-diff` (`--json`, `--limit`)
+- `make mrms-review-session-export-diff-history` (`--history`, `--json`)
+- `make mrms-review-session ARGS="... --export-after-create"` / `--export`
+
+### Frontend
+- Dev Validation: export diff status, timestamps, session changed, count change, improvements/regressions
+- Review session form checkbox: “Export Markdown after creating this session”
+
+### Run commands
+
+```bash
+make test
+make mrms-review-session ARGS="--operator TEST --notes 'local test' --accepted-limitations --export-after-create"
+make mrms-review-session-export-diff
+make mrms-review-session-export-diff-history
+cd frontend && npm run build
+```
+
+### Known limitations
+- Export diff requires at least two exports for baseline comparison (`no_baseline` otherwise)
+- Local/dev review tooling only — not verified MRMS
+- Does not clear alerts or mutate production/catalog/render gates
+- `verified_mrms` always false

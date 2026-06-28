@@ -147,7 +147,9 @@ make mrms-review-sessions
 make mrms-review-session-compare
 make mrms-review-session-export
 make mrms-review-session-exports
-make mrms-signoff
+make mrms-review-session-export-diff
+make mrms-review-session-export-diff-history
+make mrms-review-session ARGS="--operator OP --notes 'local review only' --accepted-limitations --export-after-create"
 make real-mrms-smoke-test
 make scheduled-validation ARGS="--proof"
 make scheduled-validation ARGS="--json-report"
@@ -237,6 +239,9 @@ Limitations:
 - `make mrms-review-session-compare` compares latest vs previous review session (local comparison only; does not verify MRMS)
 - `make mrms-review-session-export` exports latest review session to local Markdown + JSON metadata (does not verify MRMS)
 - `make mrms-review-session-exports` lists bounded review session export history (read-only)
+- `make mrms-review-session-export-diff` shows latest export diff vs previous export (local review only; `improved`/`worsened`/`mixed`/`unchanged`/`no_baseline`)
+- `make mrms-review-session-export-diff-history` lists bounded export diff history (`--json`, `--limit`)
+- `make mrms-review-session ARGS="... --export-after-create"` creates a session and immediately exports Markdown (session is kept if export fails)
 - `make mrms-signoff` records local operator sign-off (does not set verified_mrms)
 - `POST /api/validation/signoffs` — dev-only sign-off API (same validation as CLI; does not verify MRMS)
 - Dev Validation **Show proof review** includes sign-off form + scheduled proof-step compact status

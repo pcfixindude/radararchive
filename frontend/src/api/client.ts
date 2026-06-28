@@ -711,6 +711,7 @@ export type MrmsReviewSessionCreateRequest = {
   checklist_items_reviewed?: string[];
   accepted_limitations?: boolean;
   accepted_limitations_text?: string;
+  export_after_create?: boolean;
 };
 
 export type MrmsReviewSessionCreateResponse = {
@@ -720,6 +721,30 @@ export type MrmsReviewSessionCreateResponse = {
   does_not_enable_production: boolean;
   production_enabled: boolean;
   review_session: Record<string, unknown>;
+  export_after_create_requested?: boolean;
+  export_generated?: boolean;
+  export_path?: string | null;
+  export_metadata_path?: string | null;
+  export_error?: string | null;
+  export_compact?: MrmsReviewSessionExportCompact | null;
+};
+
+export type MrmsReviewSessionExportDiffCompact = {
+  available: boolean;
+  overall_export_diff_status?: string | null;
+  compared_at?: string | null;
+  latest_export_created_at?: string | null;
+  baseline_export_created_at?: string | null;
+  session_changed: boolean;
+  open_attention_count_change?: { baseline?: number; latest?: number } | null;
+  improvements?: string[];
+  regressions?: string[];
+  history_count?: number;
+  verified_mrms: boolean;
+  local_export_diff_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  prototype: boolean;
 };
 
 export type ProofBundleDiffAcknowledgmentCreateRequest = {
@@ -1027,6 +1052,7 @@ export type ValidationSummary = {
   digest_regeneration_hint?: DigestRegenerationHintCompact | null;
   mrms_review_session?: MrmsReviewSessionSummaryCompact | null;
   mrms_review_session_export?: MrmsReviewSessionExportCompact | null;
+  mrms_review_session_export_diff?: MrmsReviewSessionExportDiffCompact | null;
   review_export_regeneration_hint?: ReviewExportRegenerationHintCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];

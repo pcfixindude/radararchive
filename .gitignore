@@ -41,3 +41,5 @@ data/dev/mrms_review_session_comparison_history.json
 data/dev/mrms_review_session_export_latest.md
 data/dev/mrms_review_session_export_latest.json
 data/dev/mrms_review_session_export_history.json
+data/dev/mrms_review_session_export_diff_latest.json
+data/dev/mrms_review_session_export_diff_history.json

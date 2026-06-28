@@ -510,6 +510,14 @@ Frontend: Dev Validation **Show proof review** section (mobile-friendly toggle).
 - `make scheduled-proof-bundle-review-export` — `--proof --bundle --diff-bundle --handoff --digest --review-export`
 - Summary: `scheduled_review_export` compact; skips with `skipped_no_review_session` when no session exists
 
+### Review session export diff + auto-export (Phase 45)
+- `mrms_review_session_export_diff.py` — diff latest vs previous export metadata; bounded history (max 25)
+- Recorded on every `export_latest_review_session()` (manual, auto-export, scheduled)
+- `GET /api/validation/review-sessions/export/diff`, `GET .../export/diff/history` (before `/export` routes)
+- Summary: `mrms_review_session_export_diff` compact
+- `try_export_after_review_session_create()` — optional `export_after_create` on session create; no rollback on export failure
+- Gitignored: `mrms_review_session_export_diff_latest.json`, `..._history.json`
+
 Safe defaults:
 - `--min-zoom 0 --max-zoom 0` (single zoom level)
 - Max zoom capped at z4

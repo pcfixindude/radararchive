@@ -292,6 +292,14 @@ Summary additions (Phase 44): `scheduled_review_export` compact (`review_export_
 
 Scheduled validation report additions (Phase 44): `review_export_requested`, `review_export_generated`, `review_export_path`, `review_export_metadata_path`, `review_export_reason`, `review_export_elapsed_seconds`; step `review_session_export` when `--review-export` / `--export-review` passed. Skips with `skipped_no_review_session` without failing the run.
 
+Summary additions (Phase 45): `mrms_review_session_export_diff` compact (`overall_export_diff_status`, `latest_export_created_at`, `baseline_export_created_at`, `session_changed`, `open_attention_count_change`, `improvements`, `regressions`).
+
+Endpoints (Phase 45): `GET /api/validation/review-sessions/export/diff`, `GET /api/validation/review-sessions/export/diff/history` (read-only; register before `/review-sessions/export`; `verified_mrms: false`, `local_export_diff_only: true`).
+
+`POST /api/validation/review-sessions` additions (Phase 45): optional `export_after_create: true` — creates session, runs comparison as normal, exports Markdown, records export diff; response includes `export_generated`, `export_path`, `export_error` (session is **not** rolled back on export failure).
+
+Export diff `overall_export_diff_status`: `no_baseline` (first export), `unchanged`, `improved`, `worsened`, `mixed`, `unknown`. Persisted under gitignored `data/dev/mrms_review_session_export_diff_latest.json` + bounded history (max 25).
+
 Scheduled validation report additions (Phase 32): `bundle_requested`, `diff_bundle_requested`, `mrms_proof_bundle`, `mrms_proof_bundle_diff`; steps `proof_report`, `proof_regression`, `proof_bundle_export`, `proof_bundle_diff`.
 
 `GET /api/validation/proof-bundle-diff` — latest proof bundle diff report (`?refresh=true` rebuilds). `verified_mrms: false`, `local_diff_only: true`.

@@ -262,7 +262,10 @@ def build_export_history_entry(metadata: dict[str, Any]) -> dict[str, Any]:
         "operator": metadata.get("operator"),
         "comparison_status": metadata.get("comparison_status"),
         "open_attention_count": int(metadata.get("open_attention_count", 0)),
+        "escalation_level": metadata.get("escalation_level"),
         "digest_regeneration_recommended": bool(metadata.get("digest_regeneration_recommended")),
+        "proof_bundle_diff_status": metadata.get("proof_bundle_diff_status"),
+        "acknowledgment_id": metadata.get("acknowledgment_id"),
         "verified_mrms": False,
         "local_export_only": True,
         "does_not_clear_alerts": True,
@@ -312,7 +315,10 @@ def export_latest_review_session(
         "comparison_status": (comparison or {}).get("overall_review_diff_status"),
         "comparison_compared_at": (comparison or {}).get("compared_at"),
         "open_attention_count": int(latest.get("open_attention_count", 0)),
+        "escalation_level": latest.get("latest_escalation_level"),
         "digest_regeneration_recommended": bool(digest_hint.get("digest_regeneration_recommended")),
+        "proof_bundle_diff_status": latest.get("latest_proof_bundle_diff_status"),
+        "acknowledgment_id": latest.get("latest_acknowledgment_id"),
         "verified_mrms": False,
         "local_export_only": True,
         "does_not_clear_alerts": True,
@@ -325,10 +331,46 @@ def export_latest_review_session(
         encoding="utf-8",
     )
 
+    from backend.app.services.mrms_review_session_export_diff import record_export_diff_metadata
+
     history = _load_export_history(storage)
-    history.insert(0, build_export_history_entry(metadata))
+    baseline_entry = history[0] if history else None
+    history_entry = build_export_history_entry(metadata)
+    history.insert(0, history_entry)
     _save_export_history(storage, history)
+    record_export_diff_metadata(storage, history_entry, baseline_history_entry=baseline_entry)
     return metadata
+
+
+def try_export_after_review_session_create(
+    storage: LocalStorage,
+    record: dict[str, Any],
+) -> dict[str, Any]:
+    """Export Markdown for a newly created session; never rolls back the session."""
+    base: dict[str, Any] = {
+        "export_after_create_requested": True,
+        "export_generated": False,
+        "export_path": None,
+        "export_metadata_path": None,
+        "export_error": None,
+        "verified_mrms": False,
+        "local_export_only": True,
+        "does_not_clear_alerts": True,
+        "does_not_enable_production": True,
+        "no_external_notifications": True,
+        "prototype": True,
+    }
+    try:
+        metadata = export_latest_review_session(storage, session=record)
+        return {
+            **base,
+            "export_generated": True,
+            "export_path": metadata.get("export_path"),
+            "export_metadata_path": metadata.get("metadata_path"),
+            "export_compact": compact_review_session_export_summary(storage),
+        }
+    except Exception as exc:
+        return {**base, "export_error": str(exc)}
 
 
 def compact_review_session_export_summary(storage: LocalStorage) -> dict[str, Any]:

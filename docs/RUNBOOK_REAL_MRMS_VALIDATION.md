@@ -493,6 +493,35 @@ curl http://127.0.0.1:8000/api/validation/review-sessions/export/history
 
 **Warnings:** Export does **not** verify MRMS, clear alerts, enable production rendering, or send external notifications.
 
+## Review session export diff + auto-export (Phase 45)
+
+Compare consecutive review session Markdown exports and optionally export immediately after creating a session — **local review only**.
+
+```bash
+make mrms-review-session-export-diff
+make mrms-review-session-export-diff ARGS="--json"
+make mrms-review-session-export-diff-history
+make mrms-review-session-export-diff-history ARGS="--json --limit 10"
+make mrms-review-session ARGS="--operator OP --notes 'local review' --accepted-limitations --export-after-create"
+curl http://127.0.0.1:8000/api/validation/review-sessions/export/diff
+curl http://127.0.0.1:8000/api/validation/review-sessions/export/diff/history
+```
+
+**POST review session with auto-export:** `export_after_create: true` creates the session, runs comparison as normal, exports Markdown, and records export diff. If export fails, the session remains; response includes `export_error`.
+
+**Interpreting `overall_export_diff_status`:**
+- `no_baseline` — first export recorded (nothing to compare)
+- `unchanged` — export snapshot signals unchanged vs previous export
+- `improved` — net positive change (e.g. lower open attention count, better comparison/diff status)
+- `worsened` — net negative change
+- `mixed` — conflicting signals (some improved, some worsened)
+
+**Persistence:** `data/dev/mrms_review_session_export_diff_latest.json` + bounded history (max 25, gitignored).
+
+**Dev Validation UI:** Export diff status, latest/baseline export timestamps, session changed, open attention count change, improvements/regressions; review session form checkbox for export-after-create.
+
+**Warnings:** Export diff does **not** verify MRMS, clear alerts, notify externally, or enable production rendering.
+
 ## Scheduled review session export (Phase 44)
 
 Optional scheduled validation step exports the latest review session Markdown after digest/handoff — **local scheduled review only**.

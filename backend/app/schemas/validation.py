@@ -692,6 +692,7 @@ class MrmsReviewSessionCreateRequest(BaseModel):
     checklist_items_reviewed: list[str] = Field(default_factory=list)
     accepted_limitations: bool = False
     accepted_limitations_text: Optional[str] = None
+    export_after_create: bool = False
 
 
 class MrmsReviewSessionCreateResponse(BaseModel):
@@ -702,6 +703,12 @@ class MrmsReviewSessionCreateResponse(BaseModel):
     does_not_enable_production: bool = True
     production_enabled: bool = False
     review_session: dict[str, Any]
+    export_after_create_requested: bool = False
+    export_generated: bool = False
+    export_path: Optional[str] = None
+    export_metadata_path: Optional[str] = None
+    export_error: Optional[str] = None
+    export_compact: Optional[dict[str, Any]] = None
 
 
 class MrmsReviewSessionExportCompact(BaseModel):
@@ -767,6 +774,52 @@ class MrmsReviewSessionExportHistoryResponse(BaseModel):
     entries: list[dict[str, Any]] = Field(default_factory=list)
     compact: MrmsReviewSessionExportCompact
     regeneration_hint: ReviewExportRegenerationHintCompact
+
+
+class MrmsReviewSessionExportDiffCompact(BaseModel):
+    available: bool = False
+    overall_export_diff_status: Optional[str] = None
+    compared_at: Optional[str] = None
+    latest_export_created_at: Optional[str] = None
+    baseline_export_created_at: Optional[str] = None
+    session_changed: bool = False
+    open_attention_count_change: Optional[dict[str, Any]] = None
+    improvements: list[str] = Field(default_factory=list)
+    regressions: list[str] = Field(default_factory=list)
+    history_count: int = 0
+    verified_mrms: bool = False
+    local_export_diff_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    prototype: bool = True
+
+
+class MrmsReviewSessionExportDiffResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_export_diff_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    latest: Optional[dict[str, Any]] = None
+    count: int = 0
+    max_entries: int = 25
+    entries: list[dict[str, Any]] = Field(default_factory=list)
+    compact: MrmsReviewSessionExportDiffCompact
+
+
+class MrmsReviewSessionExportDiffHistoryResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_export_diff_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    no_external_notifications: bool = True
+    count: int = 0
+    max_entries: int = 25
+    latest: Optional[dict[str, Any]] = None
+    entries: list[dict[str, Any]] = Field(default_factory=list)
+    compact: MrmsReviewSessionExportDiffCompact
 
 
 class MrmsProofHistoryEntryCompact(BaseModel):
@@ -1194,6 +1247,7 @@ class ValidationSummaryResponse(BaseModel):
     digest_regeneration_hint: Optional[DigestRegenerationHintCompact] = None
     mrms_review_session: Optional[MrmsReviewSessionSummaryCompact] = None
     mrms_review_session_export: Optional[MrmsReviewSessionExportCompact] = None
+    mrms_review_session_export_diff: Optional[MrmsReviewSessionExportDiffCompact] = None
     review_export_regeneration_hint: Optional[ReviewExportRegenerationHintCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)

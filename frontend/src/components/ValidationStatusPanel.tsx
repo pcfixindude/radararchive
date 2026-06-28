@@ -60,6 +60,7 @@ export default function ValidationStatusPanel({
   const [reviewSessionOperator, setReviewSessionOperator] = useState('');
   const [reviewSessionNotes, setReviewSessionNotes] = useState('');
   const [reviewSessionAcceptedLimitations, setReviewSessionAcceptedLimitations] = useState(false);
+  const [reviewSessionExportAfterCreate, setReviewSessionExportAfterCreate] = useState(false);
   const [reviewSessionSubmitting, setReviewSessionSubmitting] = useState(false);
   const [reviewSessionMessage, setReviewSessionMessage] = useState<string | null>(null);
   const [reviewSessionError, setReviewSessionError] = useState<string | null>(null);
@@ -166,18 +167,27 @@ export default function ValidationStatusPanel({
       accepted_limitations_text: reviewSessionAcceptedLimitations
         ? 'Accepted known prototype limitations (local review session only).'
         : undefined,
+      export_after_create: reviewSessionExportAfterCreate,
     });
     setReviewSessionSubmitting(false);
     if (!result.ok) {
       setReviewSessionError(result.error);
       return;
     }
-    setReviewSessionMessage(
-      'Local review session recorded — does not verify MRMS, clear alerts, or enable production rendering.',
-    );
+    let message =
+      'Local review session recorded — does not verify MRMS, clear alerts, or enable production rendering.';
+    if (result.data.export_after_create_requested) {
+      if (result.data.export_generated) {
+        message += ` Markdown export written to ${result.data.export_path ?? '—'}.`;
+      } else if (result.data.export_error) {
+        message += ` Export after create failed: ${result.data.export_error}`;
+      }
+    }
+    setReviewSessionMessage(message);
     setReviewSessionOperator('');
     setReviewSessionNotes('');
     setReviewSessionAcceptedLimitations(false);
+    setReviewSessionExportAfterCreate(false);
     if (onRefresh) {
       await onRefresh();
     }
@@ -236,6 +246,7 @@ export default function ValidationStatusPanel({
   const reviewSessionComparison = reviewSessionSummary?.comparison ?? null;
   const openAttentionGuidance = reviewSessionSummary?.open_attention_guidance ?? [];
   const reviewSessionExport = summary.mrms_review_session_export ?? null;
+  const reviewSessionExportDiff = summary.mrms_review_session_export_diff ?? null;
   const reviewExportRegenerationHint = summary.review_export_regeneration_hint ?? null;
   const runbookReferences = summary.runbook_references ?? [];
   const scheduledProofStep = scheduled?.proof_step ?? null;
@@ -960,6 +971,45 @@ export default function ValidationStatusPanel({
           Local export only — does not verify MRMS, clear alerts, notify externally, or enable
           production rendering
         </p>
+        {reviewSessionExportDiff?.available ? (
+          <>
+            <p className="validation-meta">
+              Export diff: {reviewSessionExportDiff.overall_export_diff_status ?? 'unknown'}
+              {reviewSessionExportDiff.compared_at
+                ? ` (${formatTimestamp(reviewSessionExportDiff.compared_at)})`
+                : ''}
+              — latest export {formatTimestamp(reviewSessionExportDiff.latest_export_created_at)} — baseline{' '}
+              {formatTimestamp(reviewSessionExportDiff.baseline_export_created_at)} — session changed{' '}
+              {reviewSessionExportDiff.session_changed ? 'yes' : 'no'}
+            </p>
+            {reviewSessionExportDiff.open_attention_count_change ? (
+              <p className="validation-meta">
+                Open attention count change: baseline{' '}
+                {reviewSessionExportDiff.open_attention_count_change.baseline ?? '—'} → latest{' '}
+                {reviewSessionExportDiff.open_attention_count_change.latest ?? '—'}
+              </p>
+            ) : null}
+            {(reviewSessionExportDiff.improvements?.length ?? 0) > 0 ? (
+              <p className="validation-meta">
+                Export diff improvements: {reviewSessionExportDiff.improvements?.join(', ')}
+              </p>
+            ) : null}
+            {(reviewSessionExportDiff.regressions?.length ?? 0) > 0 ? (
+              <p className="validation-warn">
+                Export diff regressions: {reviewSessionExportDiff.regressions?.join(', ')}
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            No review export diff — run make mrms-review-session-export twice or use export-after-create
+            (local only).
+          </p>
+        )}
+        <p className="validation-meta">
+          Export diff is local-only review evidence — does not verify MRMS, clear alerts, notify
+          externally, or enable production rendering
+        </p>
         {showReviewSessionForm ? (
           <form className="validation-signoff-form" onSubmit={(event) => void handleReviewSessionSubmit(event)}>
             <p className="validation-warn">
@@ -990,6 +1040,14 @@ export default function ValidationStatusPanel({
                 onChange={(event) => setReviewSessionAcceptedLimitations(event.target.checked)}
               />{' '}
               I accept this review session does not verify MRMS (required)
+            </label>
+            <label className="validation-meta">
+              <input
+                type="checkbox"
+                checked={reviewSessionExportAfterCreate}
+                onChange={(event) => setReviewSessionExportAfterCreate(event.target.checked)}
+              />{' '}
+              Export Markdown after creating this session
             </label>
             <button type="submit" className="validation-refresh" disabled={reviewSessionSubmitting}>
               {reviewSessionSubmitting ? 'Submitting…' : 'Submit local review session'}

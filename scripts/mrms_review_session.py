@@ -11,6 +11,7 @@ from backend.app.services.mrms_review_session import (
     ReviewSessionValidationError,
     create_review_session_record,
 )
+from backend.app.services.mrms_review_session_export import try_export_after_review_session_create
 from backend.app.services.storage import LocalStorage
 
 
@@ -31,6 +32,13 @@ def main() -> None:
         help="Acknowledge this does not verify MRMS (required)",
     )
     parser.add_argument("--limitations-text", help="Optional accepted limitations text")
+    parser.add_argument(
+        "--export-after-create",
+        "--export",
+        dest="export_after_create",
+        action="store_true",
+        help="Export Markdown summary immediately after creating this session",
+    )
     parser.add_argument("--json", action="store_true", help="Print JSON record")
     args = parser.parse_args()
 
@@ -59,8 +67,13 @@ def main() -> None:
         print(f"Error: {exc}", file=sys.stderr)
         raise SystemExit(1) from exc
 
+    export_status: dict = {}
+    if args.export_after_create:
+        export_status = try_export_after_review_session_create(storage, record)
+
     if args.json:
-        print(json.dumps(record, indent=2, sort_keys=True))
+        output = {"review_session": record, **export_status}
+        print(json.dumps(output, indent=2, sort_keys=True))
         return
 
     print("MRMS proof review session recorded (local review only — NOT verified MRMS):")
@@ -70,6 +83,12 @@ def main() -> None:
     print(f"  escalation_level: {record.get('latest_escalation_level')}")
     print(f"  open_attention_count: {record.get('open_attention_count', 0)}")
     print(f"  verified_mrms: {record.get('verified_mrms')}")
+    if args.export_after_create:
+        if export_status.get("export_generated"):
+            print(f"  export_path: {export_status.get('export_path')}")
+            print(f"  export_metadata_path: {export_status.get('export_metadata_path')}")
+        elif export_status.get("export_error"):
+            print(f"  export_error: {export_status.get('export_error')}", file=sys.stderr)
 
 
 if __name__ == "__main__":

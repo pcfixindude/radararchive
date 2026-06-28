@@ -34,6 +34,8 @@ from backend.app.schemas.validation import (
     MrmsReviewSessionComparisonHistoryResponse,
     MrmsReviewSessionExportResponse,
     MrmsReviewSessionExportHistoryResponse,
+    MrmsReviewSessionExportDiffResponse,
+    MrmsReviewSessionExportDiffHistoryResponse,
     QueueBenchmarkHistoryResponse,
     ScheduledValidationHistoryResponse,
     ValidationAlertsResponse,
@@ -97,6 +99,10 @@ from backend.app.services.mrms_review_session_compare import (
 )
 from backend.app.services.mrms_review_session_export import (
     build_review_session_export_payload,
+    try_export_after_review_session_create,
+)
+from backend.app.services.mrms_review_session_export_diff import (
+    build_review_session_export_diff_payload,
 )
 from backend.app.services.mrms_proof_report import load_mrms_proof_report
 from backend.app.services.validation_alerts import (
@@ -299,6 +305,28 @@ def validation_signoffs_create(body: MrmsSignoffCreateRequest) -> MrmsSignoffCre
 
 
 @router.get(
+    "/review-sessions/export/diff/history",
+    response_model=MrmsReviewSessionExportDiffHistoryResponse,
+)
+def validation_review_sessions_export_diff_history() -> MrmsReviewSessionExportDiffHistoryResponse:
+    """Bounded review session export diff history (read-only; local review only)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_review_session_export_diff_payload(storage)
+    return MrmsReviewSessionExportDiffHistoryResponse(**payload)
+
+
+@router.get(
+    "/review-sessions/export/diff",
+    response_model=MrmsReviewSessionExportDiffResponse,
+)
+def validation_review_sessions_export_diff() -> MrmsReviewSessionExportDiffResponse:
+    """Latest review session export diff metadata (read-only; local review only)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_review_session_export_diff_payload(storage)
+    return MrmsReviewSessionExportDiffResponse(**payload)
+
+
+@router.get(
     "/review-sessions/export/history",
     response_model=MrmsReviewSessionExportHistoryResponse,
 )
@@ -382,6 +410,10 @@ def validation_review_sessions_create(
     except ReviewSessionValidationError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
+    export_status: dict = {}
+    if body.export_after_create:
+        export_status = try_export_after_review_session_create(storage, record)
+
     return MrmsReviewSessionCreateResponse(
         verified_mrms=False,
         local_review_only=True,
@@ -389,6 +421,12 @@ def validation_review_sessions_create(
         does_not_enable_production=True,
         production_enabled=settings.enable_production_radar_tiles,
         review_session=record,
+        export_after_create_requested=bool(export_status.get("export_after_create_requested")),
+        export_generated=bool(export_status.get("export_generated")),
+        export_path=export_status.get("export_path"),
+        export_metadata_path=export_status.get("export_metadata_path"),
+        export_error=export_status.get("export_error"),
+        export_compact=export_status.get("export_compact"),
     )
 
 
