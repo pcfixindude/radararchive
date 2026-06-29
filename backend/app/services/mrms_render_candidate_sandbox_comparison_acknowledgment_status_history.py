@@ -33,8 +33,8 @@ COVERAGE_MIXED = "mixed"
 COVERAGE_NO_BASELINE = "no_baseline"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 80 — Gated candidate sandbox comparison acknowledgment status trend review acknowledgment status "
-    "trend review acknowledgment status trend hints (local advisory trend hints derived from status history "
+    "Phase 81 — Gated candidate sandbox comparison acknowledgment status trend review acknowledgment status "
+    "trend review acknowledgment status trend review acknowledgment (local acknowledgment of reviewed trend hints "
     "without production authorization)"
 )
 
