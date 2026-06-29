@@ -1697,6 +1697,40 @@ export type MrmsRenderCandidateTrendHintAckStatusHistoryCompact = {
   does_not_authorize_production_use: boolean;
 };
 
+export type MrmsRenderCandidateTrendHintReviewDigestCompact = {
+  available?: boolean;
+  digest_status?: string | null;
+  digest_reason?: string | null;
+  rollup_status?: string | null;
+  acknowledgment_status?: string | null;
+  history_count?: number | null;
+  latest_coverage_change?: string | null;
+  worsened_count?: number | null;
+  improved_count?: number | null;
+  trend_review_recommended?: boolean;
+  stale_acknowledgment?: boolean;
+  blockers?: string[];
+  warnings?: string[];
+  suggested_action?: string | null;
+  suggested_command?: string | null;
+  schema_version?: string | null;
+  json_path?: string | null;
+  markdown_path?: string | null;
+  next_phase_recommendation?: string | null;
+  verified_mrms: boolean;
+  local_digest_only: boolean;
+  advisory_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  does_not_create_production_tiles: boolean;
+  does_not_serve_production_tiles: boolean;
+  does_not_delete_by_default: boolean;
+  binary_artifacts_included: boolean;
+  no_external_notifications: boolean;
+  does_not_authorize_production_use: boolean;
+};
+
 export type MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentCreateRequest = {
   operator_name?: string;
   operator_initials?: string;
@@ -2275,6 +2309,7 @@ export type ValidationSummary = {
   mrms_render_candidate_trend_hint_review_acknowledgment?: MrmsRenderCandidateTrendHintReviewAcknowledgmentCompact | null;
   mrms_render_candidate_trend_hint_ack_status?: MrmsRenderCandidateTrendHintAckStatusCompact | null;
   mrms_render_candidate_trend_hint_ack_status_history?: MrmsRenderCandidateTrendHintAckStatusHistoryCompact | null;
+  mrms_render_candidate_trend_hint_review_digest?: MrmsRenderCandidateTrendHintReviewDigestCompact | null;
   scheduled_operator_status?: ScheduledOperatorStatusCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
@@ -3001,6 +3036,35 @@ export async function refreshRenderCandidateTrendHintAckStatusHistory(): Promise
     }
     const data = (await response.json()) as {
       compact: MrmsRenderCandidateTrendHintAckStatusHistoryCompact;
+    };
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function refreshRenderCandidateTrendHintReviewDigest(): Promise<
+  | {
+      ok: true;
+      data: {
+        compact: MrmsRenderCandidateTrendHintReviewDigestCompact;
+      };
+    }
+  | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/validation/mrms-render-candidate/sandbox/trend-hint-review-digest`,
+      { method: 'POST' },
+    );
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: `Candidate trend-hint review digest refresh failed (${response.status})`,
+      };
+    }
+    const data = (await response.json()) as {
+      compact: MrmsRenderCandidateTrendHintReviewDigestCompact;
     };
     return { ok: true, data };
   } catch (error) {

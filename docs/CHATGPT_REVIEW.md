@@ -9,11 +9,11 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 83
-- Latest phase: Phase 83 — Candidate trend-hint acknowledgment status history
-- Latest commit: `512d599`
-- Latest tag: `phase-83-candidate-trend-hint-ack-status-history`
-- Push status: pushed
+- Completed through phase: 84
+- Latest phase: Phase 84 — Candidate trend-hint review chain digest
+- Latest commit: TBD
+- Latest tag: `phase-84-candidate-trend-hint-review-digest`
+- Push status: pending
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
@@ -22,6 +22,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - `ENABLE_PRODUCTION_RADAR_TILES`: **false** by default
 - Placeholder tiles default: **true**
 - Production rendering: gated/off by default
+- Candidate trend-hint review chain digest: local advisory only
 - Candidate trend-hint acknowledgment status history: local advisory only
 - Candidate trend-hint acknowledgment status rollup: local advisory only
 - Candidate trend-hint review acknowledgments: local acknowledgment only
@@ -30,32 +31,32 @@ Do not treat this file as verified MRMS proof or production authorization.
 
 ## Latest phase summary
 
-- Phase: **83**
-- Purpose: Add local bounded history of trend-hint acknowledgment status rollups so operators can track coverage changes over time without production authorization.
-- Main command added: `make mrms-render-candidate-trend-hint-ack-status-history`
-- API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/trend-hint-ack-status/history`
-- Tests: backend 957 passed; frontend vitest 8 passed; frontend build OK
+- Phase: **84**
+- Purpose: Add local digest combining trend-hint acknowledgment status rollup and history so operators can see one coverage summary without production authorization.
+- Main command added: `make mrms-render-candidate-trend-hint-review-digest`
+- API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/trend-hint-review-digest`
+- Tests: TBD
 - Known limitations:
-  - History does not clear alerts or mutate rollups or acknowledgments
-  - History appends on status rollup refresh only
+  - Digest does not clear alerts or mutate rollups, history, or acknowledgments
+  - Digest is advisory metadata only — not production authorization
   - `verified_mrms` remains false
 
 ## Current focus
 
-Local visual evidence review block with full candidate sandbox review chain (rollup, history, trend hints, acknowledgments) before any real MRMS rendering candidate attempt.
+Local visual evidence review block with full candidate sandbox review chain (rollup, history, digest, trend hints, acknowledgments) before any real MRMS rendering candidate attempt.
 
-Next direction: candidate trend-hint review chain digest.
+Next direction: candidate trend-hint review digest history.
 
 Do **not** promote to verified MRMS yet.
 
 ## Next recommended phase
 
-- Phase number: **84**
-- Phase title: Candidate trend-hint review chain digest
-- Goal: Add local digest combining trend-hint acknowledgment status rollup and history so operators can see a single coverage summary without production authorization.
-- Why this is next: Phase 83 completes bounded history; Phase 84 should summarize rollup + history locally.
+- Phase number: **85**
+- Phase title: Candidate trend-hint review digest history
+- Goal: Add local bounded history of trend-hint review digests so operators can track digest changes over time without production authorization.
+- Why this is next: Phase 84 adds the review chain digest; Phase 85 should persist bounded history on digest refresh.
 - Safety boundaries:
-  - local-only digest by default
+  - local-only history by default
   - no MRMS verification claim
   - no production rendering or tile serving
   - no alert clearing
@@ -65,7 +66,7 @@ Do **not** promote to verified MRMS yet.
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 84 only.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 85 only.
 ```
 
 ## Key docs (read order for new work)

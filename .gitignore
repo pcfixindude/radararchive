@@ -97,3 +97,5 @@ data/dev/mrms_render_candidate_trend_hint_ack_status.json
 data/dev/mrms_render_candidate_trend_hint_ack_status.md
 data/dev/mrms_render_candidate_trend_hint_ack_status_history.json
 data/dev/mrms_render_candidate_trend_hint_ack_status_history.md
+data/dev/mrms_render_candidate_trend_hint_review_digest.json
+data/dev/mrms_render_candidate_trend_hint_review_digest.md

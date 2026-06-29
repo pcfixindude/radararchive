@@ -2166,6 +2166,59 @@ class MrmsRenderCandidateTrendHintAckStatusHistoryResponse(BaseModel):
     max_entries: int = 25
 
 
+class MrmsRenderCandidateTrendHintReviewDigestCompact(BaseModel):
+    available: bool = False
+    digest_status: Optional[str] = None
+    digest_reason: Optional[str] = None
+    rollup_status: Optional[str] = None
+    acknowledgment_status: Optional[str] = None
+    history_count: Optional[int] = None
+    latest_coverage_change: Optional[str] = None
+    worsened_count: Optional[int] = None
+    improved_count: Optional[int] = None
+    trend_review_recommended: bool = False
+    stale_acknowledgment: bool = False
+    blockers: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    suggested_action: Optional[str] = None
+    suggested_command: Optional[str] = None
+    schema_version: Optional[str] = None
+    json_path: Optional[str] = None
+    markdown_path: Optional[str] = None
+    next_phase_recommendation: Optional[str] = None
+    verified_mrms: bool = False
+    local_digest_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    prototype: bool = True
+
+
+class MrmsRenderCandidateTrendHintReviewDigestResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_digest_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    latest: dict[str, Any] = Field(default_factory=dict)
+    compact: MrmsRenderCandidateTrendHintReviewDigestCompact
+
+
 class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusCompact(BaseModel):
     available: bool = False
     rollup_status: Optional[str] = None
@@ -3107,6 +3160,9 @@ class ValidationSummaryResponse(BaseModel):
     mrms_render_candidate_trend_hint_ack_status: Optional[MrmsRenderCandidateTrendHintAckStatusCompact] = None
     mrms_render_candidate_trend_hint_ack_status_history: Optional[
         MrmsRenderCandidateTrendHintAckStatusHistoryCompact
+    ] = None
+    mrms_render_candidate_trend_hint_review_digest: Optional[
+        MrmsRenderCandidateTrendHintReviewDigestCompact
     ] = None
     scheduled_operator_status: Optional[ScheduledOperatorStatusCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
