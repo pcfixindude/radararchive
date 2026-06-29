@@ -200,6 +200,9 @@ mrms-render-candidate-sandbox-comparison-review-acknowledgment:
 mrms-render-candidate-sandbox-comparison-acknowledgment-status:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_sandbox_comparison_acknowledgment_status.py $(ARGS)
 
+mrms-render-candidate-sandbox-comparison-acknowledgment-status-history:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_sandbox_comparison_acknowledgment_status_history.py $(ARGS)
+
 mrms-proof-history:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_proof_history.py $(ARGS)
 

@@ -17,6 +17,7 @@ import {
   refreshRenderCandidateSandboxComparisonTrendHint,
   submitSandboxComparisonReviewAcknowledgment,
   refreshRenderCandidateSandboxComparisonAcknowledgmentStatus,
+  refreshRenderCandidateSandboxComparisonAcknowledgmentStatusHistory,
   submitDiffAcknowledgment,
   type MrmsProofHistory,
   type MrmsProofRegressionHistory,
@@ -113,6 +114,9 @@ export default function ValidationStatusPanel({
   const [ackStatusRefreshing, setAckStatusRefreshing] = useState(false);
   const [ackStatusMessage, setAckStatusMessage] = useState<string | null>(null);
   const [ackStatusError, setAckStatusError] = useState<string | null>(null);
+  const [ackStatusHistoryRefreshing, setAckStatusHistoryRefreshing] = useState(false);
+  const [ackStatusHistoryMessage, setAckStatusHistoryMessage] = useState<string | null>(null);
+  const [ackStatusHistoryError, setAckStatusHistoryError] = useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -526,6 +530,24 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleAckStatusHistoryRefresh() {
+    setAckStatusHistoryMessage(null);
+    setAckStatusHistoryError(null);
+    setAckStatusHistoryRefreshing(true);
+    const result = await refreshRenderCandidateSandboxComparisonAcknowledgmentStatusHistory();
+    setAckStatusHistoryRefreshing(false);
+    if (!result.ok) {
+      setAckStatusHistoryError(result.error);
+      return;
+    }
+    setAckStatusHistoryMessage(
+      `Status history refreshed — ${result.data.compact.history_count ?? 0} entries, latest coverage ${result.data.compact.latest_coverage_change ?? '—'}.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   if (!summary) {
     return (
       <section className="panel validation-panel">
@@ -606,6 +628,8 @@ export default function ValidationStatusPanel({
     summary.mrms_render_candidate_sandbox_comparison_review_acknowledgment ?? null;
   const mrmsRenderCandidateSandboxComparisonAcknowledgmentStatus =
     summary.mrms_render_candidate_sandbox_comparison_acknowledgment_status ?? null;
+  const mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistory =
+    summary.mrms_render_candidate_sandbox_comparison_acknowledgment_status_history ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -2114,6 +2138,94 @@ export default function ValidationStatusPanel({
             'make mrms-render-candidate-sandbox-comparison-acknowledgment-status --refresh'
           }
           label="Suggested acknowledgment status command"
+          manualCopy
+        />
+        <SafetyNote />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="MRMS render candidate sandbox comparison acknowledgment status history"
+        className="validation-render-candidate-sandbox-comparison-acknowledgment-status-history"
+        summary={
+          <p className="validation-meta">
+            {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistory?.available
+              ? `${mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistory.history_count ?? 0} entries — latest coverage ${mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistory.latest_coverage_change ?? '—'}`
+              : 'No acknowledgment status history yet — refresh acknowledgment status first'}
+          </p>
+        }
+      >
+        <p className="validation-warn">
+          Local bounded history of acknowledgment status rollups only. Does not verify MRMS, enable
+          production rendering, download/decode/render, create or serve production tiles, clear alerts,
+          or authorize production use.
+        </p>
+        {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistory?.available ? (
+          <>
+            <p className="validation-meta">
+              Latest rollup:{' '}
+              {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistory.latest_rollup_status ??
+                '—'}{' '}
+              — acknowledgment:{' '}
+              {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistory.latest_acknowledgment_status ??
+                '—'}
+            </p>
+            <p className="validation-meta">
+              Latest coverage change:{' '}
+              {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistory.latest_coverage_change ??
+                '—'}{' '}
+              — recorded:{' '}
+              {formatTimestamp(
+                mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistory.latest_recorded_at,
+              )}
+            </p>
+            {(mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistory.recent_entries ?? [])
+              .length > 0 ? (
+              <div className="validation-meta">
+                <strong>Recent entries</strong>
+                <ul>
+                  {(
+                    mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistory.recent_entries ??
+                    []
+                  ).map((item) => (
+                    <li key={`${item.recorded_at}-${item.rollup_status}`}>
+                      {item.recorded_at} — rollup {item.rollup_status} (ack {item.acknowledgment_status}
+                      ) — coverage {item.coverage_change}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistory.json_path ? (
+              <p className="validation-meta">
+                JSON:{' '}
+                <code>{mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistory.json_path}</code>
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            Run{' '}
+            <code>make mrms-render-candidate-sandbox-comparison-acknowledgment-status --refresh</code>{' '}
+            to seed history entries.
+          </p>
+        )}
+        <button
+          type="button"
+          className="validation-action"
+          disabled={ackStatusHistoryRefreshing}
+          onClick={() => void handleAckStatusHistoryRefresh()}
+        >
+          {ackStatusHistoryRefreshing
+            ? 'Refreshing status history…'
+            : 'Refresh acknowledgment status history report (local only)'}
+        </button>
+        {ackStatusHistoryMessage ? <p className="validation-meta">{ackStatusHistoryMessage}</p> : null}
+        {ackStatusHistoryError ? <p className="validation-warn">{ackStatusHistoryError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistory?.suggested_command ??
+            'make mrms-render-candidate-sandbox-comparison-acknowledgment-status-history --refresh'
+          }
+          label="Suggested acknowledgment status history command"
           manualCopy
         />
         <SafetyNote />

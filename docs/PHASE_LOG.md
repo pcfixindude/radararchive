@@ -2433,3 +2433,31 @@ cd frontend && npm run build
 - Status rollup is advisory only — does not clear alerts
 - Stale when trend hint snapshot changes after last acknowledgment
 
+## Phase 71 - Gated Candidate Sandbox Comparison Acknowledgment Status History
+
+Bounded local history of acknowledgment status rollups with coverage-change classification.
+
+### Backend
+- `mrms_render_candidate_sandbox_comparison_acknowledgment_status_history.py` — append on status refresh, max 25 entries, coverage `unchanged` / `improved` / `worsened` / `mixed` / `no_baseline`
+- Paths: `mrms_render_candidate_sandbox_comparison_acknowledgment_status_history.json`, `.md`
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/history`
+- CLI: `scripts/mrms_render_candidate_sandbox_comparison_acknowledgment_status_history.py`; `make mrms-render-candidate-sandbox-comparison-acknowledgment-status-history`
+- Status save hook appends history entry and refreshes history report
+
+### Frontend
+- Dev Validation **MRMS render candidate sandbox comparison acknowledgment status history** collapsible
+
+### Run commands
+
+```bash
+make test
+make mrms-render-candidate-sandbox-comparison-acknowledgment-status --refresh
+make mrms-render-candidate-sandbox-comparison-acknowledgment-status-history --refresh
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- History appends on status refresh only
+- Coverage change is rollup-rank advisory — does not clear alerts
+

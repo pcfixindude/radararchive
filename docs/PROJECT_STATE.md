@@ -1,10 +1,11 @@
 # Project State
 
-Current phase: Phase 70 complete
+Current phase: Phase 71 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
+- **Render candidate sandbox comparison acknowledgment status history** — bounded local history of status rollups with coverage-change classification
 - **Render candidate sandbox comparison acknowledgment status** — local rollup linking trend hints to acknowledgments
 - **Render candidate sandbox comparison review acknowledgment** — local operator acknowledgment of reviewed trend hints
 - **Render candidate sandbox comparison trend hints** — local advisory trend analysis from comparison history
@@ -13,17 +14,18 @@ Current status:
 - **Default tile serving: placeholder**
 - Not verified real MRMS
 
-## Operator commands (Phase 70)
+## Operator commands (Phase 71)
 
 ```bash
 make mrms-render-candidate-sandbox-comparison-trend-hint --refresh
 make mrms-render-candidate-sandbox-comparison-review-acknowledgment --operator OP --note "Reviewed locally"
 make mrms-render-candidate-sandbox-comparison-acknowledgment-status --refresh
+make mrms-render-candidate-sandbox-comparison-acknowledgment-status-history --refresh
 ```
 
 ## Dev API
 
-`mrms_render_candidate_sandbox_comparison_acknowledgment_status` compact on validation summary; `GET/POST /api/validation/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status` for local status rollup (does not clear alerts).
+`mrms_render_candidate_sandbox_comparison_acknowledgment_status_history` compact on validation summary; `GET/POST /api/validation/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/history` for local status history (does not clear alerts). History entries append when acknowledgment status is refreshed.
 
 ## Verified MRMS
 

@@ -41,8 +41,8 @@ HINT_NEEDS_REVIEW = "needs_review"
 HINT_BLOCKED = "blocked"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 71 — Gated candidate sandbox comparison acknowledgment status history "
-    "(bounded local history of acknowledgment status rollups without production authorization)"
+    "Phase 72 — Gated candidate sandbox comparison acknowledgment status trend hints "
+    "(local advisory hints derived from acknowledgment status history without production authorization)"
 )
 
 
