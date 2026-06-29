@@ -76,6 +76,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHintResponse,
     MrmsRenderCandidateTrendHintAckStatusHistoryResponse,
     MrmsRenderCandidateTrendHintAckStatusResponse,
+    MrmsRenderCandidateTrendHintReviewDigestHistoryResponse,
     MrmsRenderCandidateTrendHintReviewDigestResponse,
     MrmsRenderCandidateTrendHintReviewAcknowledgmentCreateRequest,
     MrmsRenderCandidateTrendHintReviewAcknowledgmentCreateResponse,
@@ -260,6 +261,10 @@ from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgmen
     build_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint,
     build_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint_payload,
     refresh_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint,
+)
+from backend.app.services.mrms_render_candidate_trend_hint_review_digest_history import (
+    build_trend_hint_review_digest_history_payload,
+    refresh_trend_hint_review_digest_history_report,
 )
 from backend.app.services.mrms_render_candidate_trend_hint_review_digest import (
     build_trend_hint_review_digest_payload,
@@ -1239,6 +1244,33 @@ def validation_mrms_render_candidate_trend_hint_review_digest_refresh() -> (
     refresh_trend_hint_review_digest(storage)
     payload = build_trend_hint_review_digest_payload(storage)
     return MrmsRenderCandidateTrendHintReviewDigestResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/trend-hint-review-digest/history",
+    response_model=MrmsRenderCandidateTrendHintReviewDigestHistoryResponse,
+)
+def validation_mrms_render_candidate_trend_hint_review_digest_history() -> (
+    MrmsRenderCandidateTrendHintReviewDigestHistoryResponse
+):
+    """Bounded local candidate trend-hint review digest history (does not clear alerts)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_trend_hint_review_digest_history_payload(storage)
+    return MrmsRenderCandidateTrendHintReviewDigestHistoryResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/trend-hint-review-digest/history",
+    response_model=MrmsRenderCandidateTrendHintReviewDigestHistoryResponse,
+)
+def validation_mrms_render_candidate_trend_hint_review_digest_history_refresh() -> (
+    MrmsRenderCandidateTrendHintReviewDigestHistoryResponse
+):
+    """Dev/local only — refresh trend-hint review digest history report; does NOT clear alerts."""
+    storage = LocalStorage(settings.local_storage_root)
+    refresh_trend_hint_review_digest_history_report(storage)
+    payload = build_trend_hint_review_digest_history_payload(storage)
+    return MrmsRenderCandidateTrendHintReviewDigestHistoryResponse(**payload)
 
 
 @router.get(

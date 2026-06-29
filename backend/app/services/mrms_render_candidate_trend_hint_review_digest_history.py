@@ -1,4 +1,4 @@
-"""Local candidate trend-hint acknowledgment status history — does NOT clear alerts or verify MRMS."""
+"""Local candidate trend-hint review digest history — does NOT clear alerts or verify MRMS."""
 
 from __future__ import annotations
 
@@ -8,21 +8,20 @@ from typing import Any, Optional
 from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint import (
     SCHEMA_VERSION,
 )
-from backend.app.services.mrms_render_candidate_trend_hint_ack_status import (
-    ROLLUP_BLOCKED,
-    ROLLUP_CURRENT,
-    ROLLUP_MISSING,
-    ROLLUP_NEEDS_ACKNOWLEDGMENT,
-    ROLLUP_NOT_NEEDED,
-    ROLLUP_STALE,
+from backend.app.services.mrms_render_candidate_trend_hint_review_digest import (
+    DIGEST_BLOCKED,
+    DIGEST_CURRENT,
+    DIGEST_MISSING,
+    DIGEST_NEEDS_ATTENTION,
+    DIGEST_STABLE,
 )
 from backend.app.services.storage import LocalStorage
 
-HISTORY_JSON = "dev/mrms_render_candidate_trend_hint_ack_status_history.json"
-HISTORY_MD = "dev/mrms_render_candidate_trend_hint_ack_status_history.md"
+HISTORY_JSON = "dev/mrms_render_candidate_trend_hint_review_digest_history.json"
+HISTORY_MD = "dev/mrms_render_candidate_trend_hint_review_digest_history.md"
 
 MAX_HISTORY_ENTRIES = 25
-SUGGESTED_COMMAND = "make mrms-render-candidate-trend-hint-ack-status-history"
+SUGGESTED_COMMAND = "make mrms-render-candidate-trend-hint-review-digest-history"
 
 COVERAGE_UNCHANGED = "unchanged"
 COVERAGE_IMPROVED = "improved"
@@ -35,13 +34,12 @@ NEXT_PHASE_RECOMMENDATION = (
     "(local diff between consecutive review digests without production authorization)"
 )
 
-ROLLUP_COVERAGE_RANK = {
-    ROLLUP_BLOCKED: 0,
-    ROLLUP_MISSING: 1,
-    ROLLUP_NEEDS_ACKNOWLEDGMENT: 2,
-    ROLLUP_STALE: 3,
-    ROLLUP_NOT_NEEDED: 4,
-    ROLLUP_CURRENT: 5,
+DIGEST_COVERAGE_RANK = {
+    DIGEST_BLOCKED: 0,
+    DIGEST_MISSING: 1,
+    DIGEST_NEEDS_ATTENTION: 2,
+    DIGEST_STABLE: 3,
+    DIGEST_CURRENT: 4,
 }
 
 
@@ -54,7 +52,7 @@ def _utc_now() -> str:
 def _safety_fields() -> dict[str, Any]:
     return {
         "verified_mrms": False,
-        "local_status_history_only": True,
+        "local_digest_history_only": True,
         "advisory_only": True,
         "does_not_clear_alerts": True,
         "does_not_enable_production": True,
@@ -77,7 +75,7 @@ def _history_md_path(storage: LocalStorage) -> str:
     return storage.normalize_path(HISTORY_MD)
 
 
-def load_trend_hint_ack_status_history(
+def load_trend_hint_review_digest_history(
     storage: LocalStorage,
     *,
     limit: int = MAX_HISTORY_ENTRIES,
@@ -95,7 +93,7 @@ def load_trend_hint_ack_status_history(
     return []
 
 
-def _save_trend_hint_ack_status_history(storage: LocalStorage, entries: list[dict[str, Any]]) -> None:
+def _save_trend_hint_review_digest_history(storage: LocalStorage, entries: list[dict[str, Any]]) -> None:
     repo_path = _history_json_path(storage)
     storage.ensure_directories(repo_path.rsplit("/", 1)[0])
     storage.absolute_path(repo_path).write_text(
@@ -104,16 +102,16 @@ def _save_trend_hint_ack_status_history(storage: LocalStorage, entries: list[dic
     )
 
 
-def _coverage_change_for_rollup(
-    baseline_rollup: Optional[str],
-    latest_rollup: Optional[str],
+def _coverage_change_for_digest(
+    baseline_digest: Optional[str],
+    latest_digest: Optional[str],
 ) -> str:
-    if not baseline_rollup:
+    if not baseline_digest:
         return COVERAGE_NO_BASELINE
-    if baseline_rollup == latest_rollup:
+    if baseline_digest == latest_digest:
         return COVERAGE_UNCHANGED
-    base_rank = ROLLUP_COVERAGE_RANK.get(str(baseline_rollup), 0)
-    latest_rank = ROLLUP_COVERAGE_RANK.get(str(latest_rollup), 0)
+    base_rank = DIGEST_COVERAGE_RANK.get(str(baseline_digest), 0)
+    latest_rank = DIGEST_COVERAGE_RANK.get(str(latest_digest), 0)
     if latest_rank > base_rank:
         return COVERAGE_IMPROVED
     if latest_rank < base_rank:
@@ -121,66 +119,64 @@ def _coverage_change_for_rollup(
     return COVERAGE_MIXED
 
 
-def build_trend_hint_ack_status_history_entry(
-    status: dict[str, Any],
+def build_trend_hint_review_digest_history_entry(
+    digest: dict[str, Any],
     *,
     previous_entry: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
+    baseline_digest = (previous_entry or {}).get("digest_status")
     baseline_rollup = (previous_entry or {}).get("rollup_status")
-    baseline_ack = (previous_entry or {}).get("acknowledgment_status")
-    latest_rollup = status.get("rollup_status")
-    latest_ack = status.get("acknowledgment_status")
+    latest_digest = digest.get("digest_status")
+    latest_rollup = digest.get("rollup_status")
     return {
-        "recorded_at": status.get("generated_at") or _utc_now(),
+        "recorded_at": digest.get("generated_at") or _utc_now(),
+        "digest_status": latest_digest,
+        "digest_reason": digest.get("digest_reason"),
         "rollup_status": latest_rollup,
-        "acknowledgment_status": latest_ack,
-        "status_reason": status.get("status_reason"),
-        "stale_acknowledgment": bool(status.get("stale_acknowledgment")),
-        "trend": status.get("trend"),
-        "hint_status": status.get("hint_status"),
-        "trend_review_recommended": bool(status.get("trend_review_recommended")),
-        "acknowledgment_count": status.get("acknowledgment_count"),
+        "acknowledgment_status": digest.get("acknowledgment_status"),
+        "history_count": digest.get("history_count"),
+        "latest_coverage_change": digest.get("latest_coverage_change"),
+        "digest_status_change": {
+            "baseline": baseline_digest,
+            "latest": latest_digest,
+        },
         "rollup_status_change": {
             "baseline": baseline_rollup,
             "latest": latest_rollup,
         },
-        "acknowledgment_status_change": {
-            "baseline": baseline_ack,
-            "latest": latest_ack,
-        },
-        "coverage_change": _coverage_change_for_rollup(baseline_rollup, latest_rollup),
-        "schema_version": status.get("schema_version") or SCHEMA_VERSION,
+        "coverage_change": _coverage_change_for_digest(baseline_digest, latest_digest),
+        "schema_version": digest.get("schema_version") or SCHEMA_VERSION,
         **_safety_fields(),
     }
 
 
-def append_trend_hint_ack_status_history_entry(
+def append_trend_hint_review_digest_history_entry(
     storage: LocalStorage,
-    status: dict[str, Any],
+    digest: dict[str, Any],
 ) -> dict[str, Any]:
-    history = load_trend_hint_ack_status_history(storage, limit=MAX_HISTORY_ENTRIES)
+    history = load_trend_hint_review_digest_history(storage, limit=MAX_HISTORY_ENTRIES)
     previous = history[0] if history else None
-    entry = build_trend_hint_ack_status_history_entry(status, previous_entry=previous)
+    entry = build_trend_hint_review_digest_history_entry(digest, previous_entry=previous)
     history.insert(0, entry)
-    _save_trend_hint_ack_status_history(storage, history)
+    _save_trend_hint_review_digest_history(storage, history)
     return entry
 
 
-def build_trend_hint_ack_status_history_markdown(
+def build_trend_hint_review_digest_history_markdown(
     history: list[dict[str, Any]],
     latest: dict[str, Any],
 ) -> str:
     lines = [
-        "# Candidate Trend-Hint Acknowledgment Status History",
+        "# Candidate Trend-Hint Review Digest History",
         "",
         f"Generated at: {_utc_now()}",
         "",
-        "> **WARNING:** Local trend-hint acknowledgment status history only. Advisory metadata — does **NOT** "
+        "> **WARNING:** Local trend-hint review digest history only. Advisory metadata — does **NOT** "
         "verify MRMS, enable production rendering, download/decode/render, create or serve production "
         "tiles, clear alerts, or authorize production use.",
         "",
         f"- History count: {latest.get('history_count', len(history))}",
-        f"- Latest rollup status: {latest.get('latest_rollup_status')}",
+        f"- Latest digest status: {latest.get('latest_digest_status')}",
         f"- Latest coverage change: {latest.get('latest_coverage_change')}",
         "",
         "## Recent entries",
@@ -191,21 +187,20 @@ def build_trend_hint_ack_status_history_markdown(
     else:
         for item in history[:10]:
             lines.append(
-                f"- {item.get('recorded_at')} — rollup={item.get('rollup_status')} "
-                f"ack={item.get('acknowledgment_status')} "
-                f"coverage={item.get('coverage_change')}"
+                f"- {item.get('recorded_at')} — digest={item.get('digest_status')} "
+                f"rollup={item.get('rollup_status')} coverage={item.get('coverage_change')}"
             )
     return "\n".join(lines) + "\n"
 
 
-def refresh_trend_hint_ack_status_history_report(storage: LocalStorage) -> dict[str, Any]:
-    history = load_trend_hint_ack_status_history(storage, limit=MAX_HISTORY_ENTRIES)
+def refresh_trend_hint_review_digest_history_report(storage: LocalStorage) -> dict[str, Any]:
+    history = load_trend_hint_review_digest_history(storage, limit=MAX_HISTORY_ENTRIES)
     latest_entry = history[0] if history else None
     body = {
         "generated_at": _utc_now(),
         "history_count": len(history),
+        "latest_digest_status": (latest_entry or {}).get("digest_status"),
         "latest_rollup_status": (latest_entry or {}).get("rollup_status"),
-        "latest_acknowledgment_status": (latest_entry or {}).get("acknowledgment_status"),
         "latest_coverage_change": (latest_entry or {}).get("coverage_change"),
         "latest_entry": latest_entry,
         "recent_entries": history[:10],
@@ -218,29 +213,28 @@ def refresh_trend_hint_ack_status_history_report(storage: LocalStorage) -> dict[
     }
     storage.ensure_directories(_history_json_path(storage).rsplit("/", 1)[0])
     storage.absolute_path(_history_md_path(storage)).write_text(
-        build_trend_hint_ack_status_history_markdown(history, body),
+        build_trend_hint_review_digest_history_markdown(history, body),
         encoding="utf-8",
     )
     return body
 
 
-def compact_trend_hint_ack_status_history(storage: LocalStorage) -> dict[str, Any]:
-    history = load_trend_hint_ack_status_history(storage, limit=10)
+def compact_trend_hint_review_digest_history(storage: LocalStorage) -> dict[str, Any]:
+    history = load_trend_hint_review_digest_history(storage, limit=10)
     latest_entry = history[0] if history else None
     return {
         "available": bool(history),
-        "history_count": len(load_trend_hint_ack_status_history(storage)),
+        "history_count": len(load_trend_hint_review_digest_history(storage)),
+        "latest_digest_status": (latest_entry or {}).get("digest_status"),
         "latest_rollup_status": (latest_entry or {}).get("rollup_status"),
-        "latest_acknowledgment_status": (latest_entry or {}).get("acknowledgment_status"),
         "latest_coverage_change": (latest_entry or {}).get("coverage_change"),
         "latest_recorded_at": (latest_entry or {}).get("recorded_at"),
         "recent_entries": [
             {
                 "recorded_at": item.get("recorded_at"),
+                "digest_status": item.get("digest_status"),
                 "rollup_status": item.get("rollup_status"),
-                "acknowledgment_status": item.get("acknowledgment_status"),
                 "coverage_change": item.get("coverage_change"),
-                "stale_acknowledgment": item.get("stale_acknowledgment"),
             }
             for item in history[:5]
         ],
@@ -252,16 +246,16 @@ def compact_trend_hint_ack_status_history(storage: LocalStorage) -> dict[str, An
     }
 
 
-def build_trend_hint_ack_status_history_payload(storage: LocalStorage) -> dict[str, Any]:
-    history = load_trend_hint_ack_status_history(storage)
+def build_trend_hint_review_digest_history_payload(storage: LocalStorage) -> dict[str, Any]:
+    history = load_trend_hint_review_digest_history(storage)
     body = (
-        refresh_trend_hint_ack_status_history_report(storage)
+        refresh_trend_hint_review_digest_history_report(storage)
         if history
         else {
             "generated_at": _utc_now(),
             "history_count": 0,
+            "latest_digest_status": None,
             "latest_rollup_status": None,
-            "latest_acknowledgment_status": None,
             "latest_coverage_change": None,
             "latest_entry": None,
             "recent_entries": [],
@@ -276,7 +270,7 @@ def build_trend_hint_ack_status_history_payload(storage: LocalStorage) -> dict[s
     return {
         **_safety_fields(),
         "latest": body,
-        "compact": compact_trend_hint_ack_status_history(storage),
+        "compact": compact_trend_hint_review_digest_history(storage),
         "entries": history,
         "count": len(history),
         "max_entries": MAX_HISTORY_ENTRIES,

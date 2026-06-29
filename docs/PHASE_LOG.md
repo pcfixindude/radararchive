@@ -2804,3 +2804,31 @@ cd frontend && npm run build
 - Digest does not clear alerts or mutate rollups, history, or acknowledgments
 - Digest is advisory metadata only — not production authorization
 
+## Phase 85 - Candidate Trend-Hint Review Digest History
+
+Bounded local history of trend-hint review digests without production authorization.
+
+### Backend
+- `mrms_render_candidate_trend_hint_review_digest_history.py` — bounded JSON list, digest coverage change tracking, Markdown report
+- Paths: `mrms_render_candidate_trend_hint_review_digest_history.json`, `mrms_render_candidate_trend_hint_review_digest_history.md`
+- Phase 84 `save_trend_hint_review_digest` appends history on digest refresh
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/trend-hint-review-digest/history`
+- CLI: `scripts/mrms_render_candidate_trend_hint_review_digest_history.py`; `make mrms-render-candidate-trend-hint-review-digest-history`
+
+### Frontend
+- Dev Validation **Candidate trend-hint review digest history** collapsible with refresh button
+
+### Run commands
+
+```bash
+make test
+make mrms-render-candidate-trend-hint-review-digest --refresh
+make mrms-render-candidate-trend-hint-review-digest-history --refresh
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- History does not clear alerts or mutate digests, rollups, or acknowledgments
+- History appends on review digest refresh only
+

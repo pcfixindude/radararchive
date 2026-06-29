@@ -29,6 +29,7 @@ import {
   refreshRenderCandidateTrendHintAckStatus,
   refreshRenderCandidateTrendHintAckStatusHistory,
   refreshRenderCandidateTrendHintReviewDigest,
+  refreshRenderCandidateTrendHintReviewDigestHistory,
   submitAckStatusTrendReviewAckStatusTrendReviewAcknowledgment,
   submitAckStatusTrendReviewAcknowledgment,
   submitDiffAcknowledgment,
@@ -225,6 +226,14 @@ export default function ValidationStatusPanel({
   const [trendHintReviewDigestRefreshing, setTrendHintReviewDigestRefreshing] = useState(false);
   const [trendHintReviewDigestMessage, setTrendHintReviewDigestMessage] = useState<string | null>(null);
   const [trendHintReviewDigestError, setTrendHintReviewDigestError] = useState<string | null>(null);
+  const [trendHintReviewDigestHistoryRefreshing, setTrendHintReviewDigestHistoryRefreshing] =
+    useState(false);
+  const [trendHintReviewDigestHistoryMessage, setTrendHintReviewDigestHistoryMessage] = useState<
+    string | null
+  >(null);
+  const [trendHintReviewDigestHistoryError, setTrendHintReviewDigestHistoryError] = useState<
+    string | null
+  >(null);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -857,6 +866,24 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleTrendHintReviewDigestHistoryRefresh() {
+    setTrendHintReviewDigestHistoryMessage(null);
+    setTrendHintReviewDigestHistoryError(null);
+    setTrendHintReviewDigestHistoryRefreshing(true);
+    const result = await refreshRenderCandidateTrendHintReviewDigestHistory();
+    setTrendHintReviewDigestHistoryRefreshing(false);
+    if (!result.ok) {
+      setTrendHintReviewDigestHistoryError(result.error);
+      return;
+    }
+    setTrendHintReviewDigestHistoryMessage(
+      `Trend-hint review digest history refreshed — ${result.data.compact.history_count ?? 0} entries.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   async function handleTrendHintAckStatusHistoryRefresh() {
     setTrendHintAckStatusHistoryMessage(null);
     setTrendHintAckStatusHistoryError(null);
@@ -1032,6 +1059,8 @@ export default function ValidationStatusPanel({
   const trendHintAckStatus = summary.mrms_render_candidate_trend_hint_ack_status ?? null;
   const trendHintAckStatusHistory = summary.mrms_render_candidate_trend_hint_ack_status_history ?? null;
   const trendHintReviewDigest = summary.mrms_render_candidate_trend_hint_review_digest ?? null;
+  const trendHintReviewDigestHistory =
+    summary.mrms_render_candidate_trend_hint_review_digest_history ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -3892,6 +3921,83 @@ export default function ValidationStatusPanel({
             'make mrms-render-candidate-trend-hint-review-digest --refresh'
           }
           label="Suggested trend-hint review digest command"
+          manualCopy
+        />
+        <SafetyNote />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Candidate trend-hint review digest history"
+        className="validation-render-candidate-trend-hint-review-digest-history"
+        summary={
+          <p className="validation-meta">
+            {trendHintReviewDigestHistory?.available
+              ? `${trendHintReviewDigestHistory.history_count ?? 0} entries — latest coverage ${trendHintReviewDigestHistory.latest_coverage_change ?? '—'}`
+              : 'No trend-hint review digest history yet — refresh review digest first'}
+          </p>
+        }
+      >
+        <p className="validation-warn">
+          Local bounded history of trend-hint review digests only. Does not verify MRMS, enable
+          production rendering, download/decode/render, create or serve production tiles, clear alerts,
+          or authorize production use.
+        </p>
+        {trendHintReviewDigestHistory?.available ? (
+          <>
+            <p className="validation-meta">
+              Latest digest: {trendHintReviewDigestHistory.latest_digest_status ?? '—'} — rollup:{' '}
+              {trendHintReviewDigestHistory.latest_rollup_status ?? '—'}
+            </p>
+            <p className="validation-meta">
+              Latest coverage change: {trendHintReviewDigestHistory.latest_coverage_change ?? '—'} —
+              recorded: {formatTimestamp(trendHintReviewDigestHistory.latest_recorded_at)}
+            </p>
+            {(trendHintReviewDigestHistory.recent_entries ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Recent entries</strong>
+                <ul>
+                  {(trendHintReviewDigestHistory.recent_entries ?? []).map((item) => (
+                    <li key={`${item.recorded_at}-${item.digest_status}`}>
+                      {item.recorded_at} — digest {item.digest_status} (rollup {item.rollup_status})
+                      — coverage {item.coverage_change}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {trendHintReviewDigestHistory.json_path ? (
+              <p className="validation-meta">
+                JSON: <code>{trendHintReviewDigestHistory.json_path}</code>
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            Refresh review digest first, then run{' '}
+            <code>make mrms-render-candidate-trend-hint-review-digest-history --refresh</code>.
+          </p>
+        )}
+        <button
+          type="button"
+          className="validation-action"
+          disabled={trendHintReviewDigestHistoryRefreshing}
+          onClick={() => void handleTrendHintReviewDigestHistoryRefresh()}
+        >
+          {trendHintReviewDigestHistoryRefreshing
+            ? 'Refreshing trend-hint review digest history…'
+            : 'Refresh trend-hint review digest history (local only)'}
+        </button>
+        {trendHintReviewDigestHistoryMessage ? (
+          <p className="validation-meta">{trendHintReviewDigestHistoryMessage}</p>
+        ) : null}
+        {trendHintReviewDigestHistoryError ? (
+          <p className="validation-warn">{trendHintReviewDigestHistoryError}</p>
+        ) : null}
+        <CommandLine
+          command={
+            trendHintReviewDigestHistory?.suggested_command ??
+            'make mrms-render-candidate-trend-hint-review-digest-history --refresh'
+          }
+          label="Suggested trend-hint review digest history command"
           manualCopy
         />
         <SafetyNote />

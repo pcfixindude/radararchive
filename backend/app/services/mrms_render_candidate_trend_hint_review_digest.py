@@ -40,8 +40,8 @@ DIGEST_STABLE = "stable"
 DIGEST_CURRENT = "current"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 85 — candidate trend-hint review digest history "
-    "(local bounded history of review digests without production authorization)"
+    "Phase 86 — candidate trend-hint review digest diff "
+    "(local diff between consecutive review digests without production authorization)"
 )
 
 
@@ -254,6 +254,11 @@ def build_trend_hint_review_digest_markdown(digest: dict[str, Any]) -> str:
 
 
 def save_trend_hint_review_digest(storage: LocalStorage, digest: dict[str, Any]) -> dict[str, Any]:
+    from backend.app.services.mrms_render_candidate_trend_hint_review_digest_history import (
+        append_trend_hint_review_digest_history_entry,
+        refresh_trend_hint_review_digest_history_report,
+    )
+
     json_path = _digest_json_path(storage)
     md_path = _digest_md_path(storage)
     storage.ensure_directories(json_path.rsplit("/", 1)[0])
@@ -272,6 +277,8 @@ def save_trend_hint_review_digest(storage: LocalStorage, digest: dict[str, Any])
         build_trend_hint_review_digest_markdown(digest),
         encoding="utf-8",
     )
+    append_trend_hint_review_digest_history_entry(storage, digest)
+    refresh_trend_hint_review_digest_history_report(storage)
     return digest
 
 

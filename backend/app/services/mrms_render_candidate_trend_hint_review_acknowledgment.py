@@ -19,8 +19,8 @@ MAX_ACKNOWLEDGMENTS = 50
 SUGGESTED_COMMAND = "make mrms-render-candidate-trend-hint-review-acknowledgment"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 85 — candidate trend-hint review digest history "
-    "(local bounded history of review digests without production authorization)"
+    "Phase 86 — candidate trend-hint review digest diff "
+    "(local diff between consecutive review digests without production authorization)"
 )
 
 
