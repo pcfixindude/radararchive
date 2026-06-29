@@ -9,12 +9,12 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 71
-- Latest phase: Phase 71 — Gated candidate sandbox comparison acknowledgment status history
-- Latest commit: `fb180ea`
-- Latest tag: `phase-71-sandbox-comparison-acknowledgment-status-history`
-- Push status: pushed
-- Final git status: source clean after commit; only local `data/dev/` runtime artifacts modified
+- Completed through phase: 72
+- Latest phase: Phase 72 — Gated candidate sandbox comparison acknowledgment status trend hints
+- Latest commit: (pending Phase 72 commit)
+- Latest tag: `phase-72-sandbox-acknowledgment-status-trend-hints`
+- Push status: pending
+- Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
 
@@ -22,7 +22,8 @@ Do not treat this file as verified MRMS proof or production authorization.
 - `ENABLE_PRODUCTION_RADAR_TILES`: **false** by default
 - Placeholder tiles default: **true**
 - Production rendering: gated/off by default
-- Render candidate sandbox comparison acknowledgment status history: local bounded history only; does not clear alerts
+- Render candidate sandbox comparison acknowledgment status trend hints: local advisory only
+- Render candidate sandbox comparison acknowledgment status history: local bounded history only
 - Render candidate sandbox comparison acknowledgment status: local rollup only
 - Render candidate sandbox comparison review acknowledgment: local only
 - Render candidate sandbox comparison trend hints: local advisory only
@@ -31,32 +32,32 @@ Do not treat this file as verified MRMS proof or production authorization.
 
 ## Latest phase summary
 
-- Phase: **71**
-- Purpose: Persist bounded local history of acknowledgment status rollups when status is refreshed so operators can track coverage changes over time.
-- Main command added: `make mrms-render-candidate-sandbox-comparison-acknowledgment-status-history`
-- API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/history`
-- Tests: backend 816 passed; frontend vitest 8 passed; frontend build OK
+- Phase: **72**
+- Purpose: Add local advisory trend hints derived from acknowledgment status history so operators can see recurring coverage patterns.
+- Main command added: `make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-hint`
+- API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/trend-hint`
+- Tests: backend 828 passed; frontend vitest 8 passed; frontend build OK
 - Known limitations:
-  - History appends on status refresh only — read-only compact does not append
-  - Max 25 entries; coverage change is rollup-rank advisory only
+  - Trend hints are advisory metadata only — derived from acknowledgment status history
+  - Conservative `needs_review` when worsened/stale streaks detected
   - `verified_mrms` remains false
 
 ## Current focus
 
-Local visual evidence review block with sandbox import/export, comparison history, trend hints, review acknowledgment, acknowledgment status, and acknowledgment status history before any real MRMS rendering candidate attempt.
+Local visual evidence review block with sandbox import/export, comparison history, trend hints, review acknowledgment, acknowledgment status, status history, and status trend hints before any real MRMS rendering candidate attempt.
 
-Next direction: acknowledgment status trend hints derived from history.
+Next direction: status trend review acknowledgment.
 
 Do **not** promote to verified MRMS yet.
 
 ## Next recommended phase
 
-- Phase number: **72**
-- Phase title: Gated candidate sandbox comparison acknowledgment status trend hints
-- Goal: Add local advisory trend hints derived from acknowledgment status history so operators can see recurring coverage patterns without clearing alerts or authorizing production use.
-- Why this is next: Phase 71 adds bounded status history; Phase 72 should surface trend hints from that history for operator review.
+- Phase number: **73**
+- Phase title: Gated candidate sandbox comparison acknowledgment status trend review acknowledgment
+- Goal: Add local acknowledgment of reviewed acknowledgment status trend hints so operators can record review without clearing validation alerts or verifying MRMS.
+- Why this is next: Phase 72 adds status trend hints; Phase 73 should let operators acknowledge reviewed hints locally without production side effects.
 - Safety boundaries:
-  - local-only hints by default
+  - local-only acknowledgment by default
   - no MRMS verification claim
   - no production rendering or tile serving
   - no alert clearing
@@ -66,7 +67,7 @@ Do **not** promote to verified MRMS yet.
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 72 only.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 73 only.
 ```
 
 ## Key docs (read order for new work)

@@ -1,31 +1,27 @@
 # Project State
 
-Current phase: Phase 71 complete
+Current phase: Phase 72 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
-- **Render candidate sandbox comparison acknowledgment status history** — bounded local history of status rollups with coverage-change classification
+- **Render candidate sandbox comparison acknowledgment status trend hints** — local advisory trends from status history
+- **Render candidate sandbox comparison acknowledgment status history** — bounded local history of status rollups
 - **Render candidate sandbox comparison acknowledgment status** — local rollup linking trend hints to acknowledgments
 - **Render candidate sandbox comparison review acknowledgment** — local operator acknowledgment of reviewed trend hints
-- **Render candidate sandbox comparison trend hints** — local advisory trend analysis from comparison history
-- **Render candidate sandbox comparison history** — bounded local history JSON/Markdown
-- **Render candidate sandbox import/export** — local metadata export/import
 - **Default tile serving: placeholder**
 - Not verified real MRMS
 
-## Operator commands (Phase 71)
+## Operator commands (Phase 72)
 
 ```bash
-make mrms-render-candidate-sandbox-comparison-trend-hint --refresh
-make mrms-render-candidate-sandbox-comparison-review-acknowledgment --operator OP --note "Reviewed locally"
 make mrms-render-candidate-sandbox-comparison-acknowledgment-status --refresh
-make mrms-render-candidate-sandbox-comparison-acknowledgment-status-history --refresh
+make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-hint --refresh
 ```
 
 ## Dev API
 
-`mrms_render_candidate_sandbox_comparison_acknowledgment_status_history` compact on validation summary; `GET/POST /api/validation/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/history` for local status history (does not clear alerts). History entries append when acknowledgment status is refreshed.
+`mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_hint` compact on validation summary; `GET/POST /api/validation/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/trend-hint` for local trend hints (`needs_review` is not production authorization).
 
 ## Verified MRMS
 

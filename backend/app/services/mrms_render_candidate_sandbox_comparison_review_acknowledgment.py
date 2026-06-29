@@ -19,8 +19,8 @@ MAX_ACKNOWLEDGMENTS = 50
 SUGGESTED_COMMAND = "make mrms-render-candidate-sandbox-comparison-review-acknowledgment"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 72 — Gated candidate sandbox comparison acknowledgment status trend hints "
-    "(local advisory hints derived from acknowledgment status history without production authorization)"
+    "Phase 73 — Gated candidate sandbox comparison acknowledgment status trend review acknowledgment "
+    "(local acknowledgment of reviewed status trend hints without clearing alerts)"
 )
 
 

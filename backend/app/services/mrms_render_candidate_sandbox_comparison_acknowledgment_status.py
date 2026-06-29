@@ -42,8 +42,8 @@ ROLLUP_STALE = "stale"
 ROLLUP_BLOCKED = "blocked"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 72 — Gated candidate sandbox comparison acknowledgment status trend hints "
-    "(local advisory hints derived from acknowledgment status history without production authorization)"
+    "Phase 73 — Gated candidate sandbox comparison acknowledgment status trend review acknowledgment "
+    "(local acknowledgment of reviewed status trend hints without clearing alerts)"
 )
 
 

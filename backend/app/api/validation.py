@@ -61,6 +61,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentsResponse,
     MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusResponse,
     MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistoryResponse,
+    MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendHintResponse,
     MrmsVisualReviewResponse,
     OperatorReviewStatusResponse,
     OperatorWorkflowPresetsResponse,
@@ -200,6 +201,10 @@ from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgmen
 from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_history import (
     build_ack_status_history_payload,
     refresh_ack_status_history_report,
+)
+from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_hint import (
+    build_ack_status_trend_hint_payload,
+    refresh_ack_status_trend_hint,
 )
 from backend.app.services.operator_review_status import build_operator_review_status_payload
 from backend.app.services.operator_workflow_presets import build_operator_workflow_presets_payload
@@ -700,6 +705,33 @@ def validation_mrms_render_candidate_sandbox_comparison_acknowledgment_status_hi
     refresh_ack_status_history_report(storage)
     payload = build_ack_status_history_payload(storage)
     return MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistoryResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/trend-hint",
+    response_model=MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendHintResponse,
+)
+def validation_mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_hint() -> (
+    MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendHintResponse
+):
+    """Local sandbox comparison acknowledgment status trend hint (read-only advisory)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_ack_status_trend_hint_payload(storage)
+    return MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendHintResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/trend-hint",
+    response_model=MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendHintResponse,
+)
+def validation_mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_hint_refresh() -> (
+    MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendHintResponse
+):
+    """Dev/local only — refresh sandbox comparison acknowledgment status trend hint."""
+    storage = LocalStorage(settings.local_storage_root)
+    refresh_ack_status_trend_hint(storage)
+    payload = build_ack_status_trend_hint_payload(storage)
+    return MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendHintResponse(**payload)
 
 
 @router.get(

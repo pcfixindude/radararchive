@@ -1,4 +1,4 @@
-"""MRMS render candidate sandbox comparison trend hints — local advisory only."""
+"""MRMS render candidate sandbox acknowledgment status trend hints — local advisory only."""
 
 from __future__ import annotations
 
@@ -6,26 +6,28 @@ import json
 from typing import Any, Callable, Optional
 
 from backend.app.config import settings
-from backend.app.services.mrms_render_candidate_sandbox_comparison_history import (
-    COMPARISON_BLOCKED,
-    COMPARISON_CHANGED,
-    COMPARISON_UNCHANGED,
-    HISTORY_MISSING,
-    SCHEMA_VERSION,
-    evaluate_comparison_history_status,
-    load_comparison_history,
+from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status import (
+    ROLLUP_BLOCKED,
+    ROLLUP_NEEDS_ACKNOWLEDGMENT,
+    ROLLUP_STALE,
+    SUGGESTED_COMMAND as SUGGESTED_STATUS_COMMAND,
 )
-from backend.app.services.mrms_render_candidate_sandbox_import_export import (
-    SUGGESTED_IMPORT_EXPORT_COMMAND,
-    load_import_export_status,
+from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_history import (
+    COVERAGE_IMPROVED,
+    COVERAGE_UNCHANGED,
+    COVERAGE_WORSENED,
+    load_ack_status_history,
 )
+from backend.app.services.mrms_render_candidate_sandbox_comparison_trend_hint import SCHEMA_VERSION
 from backend.app.services.storage import LocalStorage
 
-HINT_JSON = "dev/mrms_render_candidate_sandbox_comparison_trend_hint.json"
-HINT_MD = "dev/mrms_render_candidate_sandbox_comparison_trend_hint.md"
+HINT_JSON = "dev/mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_hint.json"
+HINT_MD = "dev/mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_hint.md"
 
-SUGGESTED_COMMAND = "make mrms-render-candidate-sandbox-comparison-trend-hint"
-SUGGESTED_HISTORY_COMMAND = "make mrms-render-candidate-sandbox-comparison-history --refresh"
+SUGGESTED_COMMAND = "make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-hint"
+SUGGESTED_HISTORY_COMMAND = (
+    "make mrms-render-candidate-sandbox-comparison-acknowledgment-status-history --refresh"
+)
 
 DEFAULT_TREND_WINDOW = 10
 
@@ -89,13 +91,12 @@ def _hint_md_path(storage: LocalStorage) -> str:
     return storage.normalize_path(HINT_MD)
 
 
-def _entry_status(entry: dict[str, Any]) -> str:
-    return str(entry.get("comparison_status") or "")
+def _rollup_status(entry: dict[str, Any]) -> str:
+    return str(entry.get("rollup_status") or "")
 
 
-def _comparison(entry: dict[str, Any]) -> dict[str, Any]:
-    data = entry.get("comparison")
-    return data if isinstance(data, dict) else {}
+def _coverage_change(entry: dict[str, Any]) -> str:
+    return str(entry.get("coverage_change") or "")
 
 
 def _streak_from_latest(
@@ -119,22 +120,21 @@ def _count_entries(entries: list[dict[str, Any]], predicate: Callable[[dict[str,
 def _classify_trend(
     recent: list[dict[str, Any]],
     *,
-    changed_count: int,
+    worsened_count: int,
+    improved_count: int,
     unchanged_count: int,
-    blocked_count: int,
-    changed_streak: int,
+    needs_ack_streak: int,
+    stale_streak: int,
 ) -> str:
     if not recent:
         return TREND_NO_DATA
-    if blocked_count > 0 and changed_count == 0:
-        return TREND_BLOCKED
-    if changed_streak >= 2:
+    if needs_ack_streak >= 2 or stale_streak >= 2 or worsened_count >= 2:
         return TREND_CHANGING
-    if changed_count >= 2 and unchanged_count >= 1:
+    if worsened_count >= 1 and improved_count >= 1:
         return TREND_MIXED
-    if changed_count >= 1:
+    if worsened_count >= 1 or stale_streak >= 1:
         return TREND_CHANGING
-    if unchanged_count >= max(1, len(recent)):
+    if unchanged_count >= max(1, len(recent)) or improved_count >= max(1, len(recent)):
         return TREND_STABLE
     return TREND_MIXED
 
@@ -142,68 +142,63 @@ def _classify_trend(
 def _suggested_action_for_trend(trend: str, *, review_recommended: bool) -> str:
     if trend == TREND_NO_DATA:
         return (
-            "Run make mrms-render-candidate-sandbox-import-export to seed comparison history "
-            "before trend hints are available."
+            "Refresh acknowledgment status to seed history before status trend hints are available."
         )
     if trend == TREND_BLOCKED:
-        return "Resolve blocked comparison history safety gates before relying on trend hints."
+        return "Resolve blocked acknowledgment status safety gates before relying on trend hints."
     if review_recommended or trend == TREND_CHANGING:
         return (
-            "Review recurring sandbox comparison changes — inspect latest import/export manifests "
-            "(local advisory only; does not verify MRMS or clear alerts)."
+            "Review recurring acknowledgment status coverage changes — refresh status and record "
+            "review acknowledgment (local advisory only; does not verify MRMS or clear alerts)."
         )
     if trend == TREND_MIXED:
         return (
-            "Monitor mixed sandbox comparison trend — some entries changed and some remained stable."
+            "Monitor mixed acknowledgment status trend — some entries improved and some worsened."
         )
-    return "Sandbox comparison trend stable — local monitoring only; does not verify MRMS."
+    return "Acknowledgment status trend stable — local monitoring only; does not verify MRMS."
 
 
-def build_sandbox_comparison_trend_hint(
+def build_ack_status_trend_hint(
     storage: LocalStorage,
     *,
     window: int = DEFAULT_TREND_WINDOW,
 ) -> dict[str, Any]:
-    history_eval = evaluate_comparison_history_status(storage)
-    history = load_comparison_history(storage, limit=window)
+    history = load_ack_status_history(storage, limit=window)
     recent = history[:window]
-    import_export = load_import_export_status(storage) or {}
 
-    changed_count = _count_entries(recent, lambda e: _entry_status(e) == COMPARISON_CHANGED)
-    unchanged_count = _count_entries(recent, lambda e: _entry_status(e) == COMPARISON_UNCHANGED)
-    blocked_count = _count_entries(recent, lambda e: _entry_status(e) == COMPARISON_BLOCKED)
-    changed_streak = _streak_from_latest(
+    worsened_count = _count_entries(recent, lambda e: _coverage_change(e) == COVERAGE_WORSENED)
+    improved_count = _count_entries(recent, lambda e: _coverage_change(e) == COVERAGE_IMPROVED)
+    unchanged_count = _count_entries(recent, lambda e: _coverage_change(e) == COVERAGE_UNCHANGED)
+    needs_ack_count = _count_entries(recent, lambda e: _rollup_status(e) == ROLLUP_NEEDS_ACKNOWLEDGMENT)
+    stale_count = _count_entries(recent, lambda e: _rollup_status(e) == ROLLUP_STALE)
+    stale_ack_count = _count_entries(recent, lambda e: bool(e.get("stale_acknowledgment")))
+    needs_ack_streak = _streak_from_latest(
         recent,
-        predicate=lambda e: _entry_status(e) == COMPARISON_CHANGED,
+        predicate=lambda e: _rollup_status(e) == ROLLUP_NEEDS_ACKNOWLEDGMENT,
     )
-    sandbox_status_changes = _count_entries(
+    stale_streak = _streak_from_latest(
         recent,
-        predicate=lambda e: bool(_comparison(e).get("changed_sandbox_status")),
-    )
-    safety_gate_changes = _count_entries(
-        recent,
-        predicate=lambda e: bool(_comparison(e).get("changed_safety_gate_summary")),
-    )
-    file_count_changes = _count_entries(
-        recent,
-        predicate=lambda e: bool(_comparison(e).get("changed_file_counts")),
+        predicate=lambda e: _rollup_status(e) == ROLLUP_STALE,
     )
 
     trend = _classify_trend(
         recent,
-        changed_count=changed_count,
+        worsened_count=worsened_count,
+        improved_count=improved_count,
         unchanged_count=unchanged_count,
-        blocked_count=blocked_count,
-        changed_streak=changed_streak,
+        needs_ack_streak=needs_ack_streak,
+        stale_streak=stale_streak,
     )
 
-    blockers: list[str] = list(history_eval.get("blockers") or [])
-    warnings: list[str] = list(history_eval.get("warnings") or [])
+    blockers: list[str] = []
+    warnings: list[str] = []
     safety = _current_safety_state()
     if bool(safety.get("verified_mrms")):
         blockers.append("verified_mrms must remain false")
     if bool(safety.get("enable_production_radar_tiles")):
         blockers.append("production rendering must remain disabled")
+    if not history:
+        warnings.append("run acknowledgment status refresh to seed history")
 
     review_recommended = False
     reason: Optional[str] = None
@@ -211,25 +206,25 @@ def build_sandbox_comparison_trend_hint(
         trend = TREND_BLOCKED
         reason = "safety_gate_failure"
     elif trend == TREND_NO_DATA:
-        reason = "no_comparison_history"
-    elif changed_streak >= 2:
+        reason = "no_ack_status_history"
+    elif needs_ack_streak >= 2:
         review_recommended = True
-        reason = "comparison_changed_streak"
-    elif sandbox_status_changes >= 2:
+        reason = "needs_acknowledgment_streak"
+    elif stale_streak >= 2:
         review_recommended = True
-        reason = "recurring_sandbox_status_changes"
-    elif safety_gate_changes >= 2:
+        reason = "stale_acknowledgment_streak"
+    elif worsened_count >= 2:
         review_recommended = True
-        reason = "recurring_safety_gate_changes"
+        reason = "recurring_coverage_worsened"
     elif trend == TREND_CHANGING:
         review_recommended = True
-        reason = "recent_comparison_changes"
+        reason = "recent_coverage_changes"
     elif trend == TREND_MIXED:
-        reason = "mixed_comparison_trend"
+        reason = "mixed_coverage_trend"
     elif trend == TREND_STABLE:
-        reason = "stable_comparison_trend"
+        reason = "stable_coverage_trend"
 
-    if history_eval.get("history_status") == HISTORY_MISSING and trend == TREND_NO_DATA:
+    if not history and trend == TREND_NO_DATA:
         hint_status = HINT_MISSING
     elif blockers or trend == TREND_BLOCKED:
         hint_status = HINT_BLOCKED
@@ -239,18 +234,18 @@ def build_sandbox_comparison_trend_hint(
         hint_status = HINT_READY
 
     suggested_command = None
-    if review_recommended:
-        suggested_command = SUGGESTED_IMPORT_EXPORT_COMMAND
-    elif trend == TREND_NO_DATA:
-        suggested_command = SUGGESTED_IMPORT_EXPORT_COMMAND
+    if review_recommended or trend == TREND_NO_DATA:
+        suggested_command = SUGGESTED_STATUS_COMMAND
 
     recurring_signals: list[str] = []
-    if sandbox_status_changes >= 2:
-        recurring_signals.append("sandbox_status_changes")
-    if safety_gate_changes >= 2:
-        recurring_signals.append("safety_gate_changes")
-    if file_count_changes >= 2:
-        recurring_signals.append("file_count_changes")
+    if needs_ack_count >= 2:
+        recurring_signals.append("needs_acknowledgment_entries")
+    if stale_count >= 2 or stale_ack_count >= 2:
+        recurring_signals.append("stale_acknowledgment_entries")
+    if worsened_count >= 2:
+        recurring_signals.append("coverage_worsened_entries")
+
+    latest_rollup = (recent[0] or {}).get("rollup_status") if recent else None
 
     return {
         "generated_at": _utc_now(),
@@ -261,19 +256,19 @@ def build_sandbox_comparison_trend_hint(
         "trend_review_recommended": review_recommended,
         "trend_window": window,
         "history_count": len(history),
-        "changed_count": changed_count,
+        "worsened_count": worsened_count,
+        "improved_count": improved_count,
         "unchanged_count": unchanged_count,
-        "blocked_count": blocked_count,
-        "current_changed_streak": changed_streak,
-        "sandbox_status_change_count": sandbox_status_changes,
-        "safety_gate_change_count": safety_gate_changes,
-        "file_count_change_count": file_count_changes,
+        "needs_acknowledgment_count": needs_ack_count,
+        "stale_rollup_count": stale_count,
+        "stale_acknowledgment_count": stale_ack_count,
+        "current_needs_ack_streak": needs_ack_streak,
+        "current_stale_streak": stale_streak,
+        "latest_rollup_status": latest_rollup,
         "recurring_signals": recurring_signals,
         "blockers": blockers,
         "warnings": warnings,
         "safety_state": safety,
-        "history_status": history_eval.get("history_status"),
-        "latest_import_export_status": import_export.get("import_export_status"),
         "suggested_action": _suggested_action_for_trend(trend, review_recommended=review_recommended),
         "suggested_command": suggested_command,
         "suggested_history_command": SUGGESTED_HISTORY_COMMAND,
@@ -282,15 +277,15 @@ def build_sandbox_comparison_trend_hint(
     }
 
 
-def build_trend_hint_markdown(hint: dict[str, Any]) -> str:
+def build_ack_status_trend_hint_markdown(hint: dict[str, Any]) -> str:
     lines = [
-        "# MRMS Render Candidate Sandbox Comparison Trend Hint",
+        "# MRMS Render Candidate Sandbox Acknowledgment Status Trend Hint",
         "",
         f"Generated at: {hint.get('generated_at')}",
         "",
-        "> **WARNING:** Local trend hints only. Advisory metadata — does **NOT** verify MRMS, "
-        "enable production rendering, download/decode/render, create or serve production tiles, "
-        "clear alerts, or authorize production use.",
+        "> **WARNING:** Local acknowledgment status trend hints only. Advisory metadata — does **NOT** "
+        "verify MRMS, enable production rendering, download/decode/render, create or serve production "
+        "tiles, clear alerts, or authorize production use.",
         "",
         f"- Hint status: **{hint.get('hint_status')}**",
         f"- Trend: **{hint.get('trend')}**",
@@ -300,11 +295,11 @@ def build_trend_hint_markdown(hint: dict[str, Any]) -> str:
         "## Trend summary",
         "",
         f"- Window: {hint.get('trend_window')} entries",
-        f"- Changed: {hint.get('changed_count')}",
+        f"- Worsened: {hint.get('worsened_count')}",
+        f"- Improved: {hint.get('improved_count')}",
         f"- Unchanged: {hint.get('unchanged_count')}",
-        f"- Current changed streak: {hint.get('current_changed_streak')}",
-        f"- Sandbox status changes: {hint.get('sandbox_status_change_count')}",
-        f"- Safety gate changes: {hint.get('safety_gate_change_count')}",
+        f"- Needs acknowledgment streak: {hint.get('current_needs_ack_streak')}",
+        f"- Stale streak: {hint.get('current_stale_streak')}",
         "",
         "## Suggested action",
         "",
@@ -320,7 +315,7 @@ def build_trend_hint_markdown(hint: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def save_sandbox_comparison_trend_hint(storage: LocalStorage, hint: dict[str, Any]) -> dict[str, Any]:
+def save_ack_status_trend_hint(storage: LocalStorage, hint: dict[str, Any]) -> dict[str, Any]:
     json_path = _hint_json_path(storage)
     md_path = _hint_md_path(storage)
     storage.ensure_directories(json_path.rsplit("/", 1)[0])
@@ -335,11 +330,11 @@ def save_sandbox_comparison_trend_hint(storage: LocalStorage, hint: dict[str, An
         json.dumps(hint, indent=2, sort_keys=True),
         encoding="utf-8",
     )
-    storage.absolute_path(md_path).write_text(build_trend_hint_markdown(hint), encoding="utf-8")
+    storage.absolute_path(md_path).write_text(build_ack_status_trend_hint_markdown(hint), encoding="utf-8")
     return hint
 
 
-def load_sandbox_comparison_trend_hint(storage: LocalStorage) -> Optional[dict[str, Any]]:
+def load_ack_status_trend_hint(storage: LocalStorage) -> Optional[dict[str, Any]]:
     abs_path = storage.absolute_path(_hint_json_path(storage))
     if not abs_path.is_file():
         return None
@@ -352,25 +347,28 @@ def load_sandbox_comparison_trend_hint(storage: LocalStorage) -> Optional[dict[s
     return None
 
 
-def refresh_sandbox_comparison_trend_hint(storage: LocalStorage) -> dict[str, Any]:
-    hint = build_sandbox_comparison_trend_hint(storage)
-    return save_sandbox_comparison_trend_hint(storage, hint)
+def refresh_ack_status_trend_hint(storage: LocalStorage) -> dict[str, Any]:
+    hint = build_ack_status_trend_hint(storage)
+    return save_ack_status_trend_hint(storage, hint)
 
 
-def compact_sandbox_comparison_trend_hint(storage: LocalStorage) -> dict[str, Any]:
-    latest = load_sandbox_comparison_trend_hint(storage)
+def compact_ack_status_trend_hint(storage: LocalStorage) -> dict[str, Any]:
+    latest = load_ack_status_trend_hint(storage)
     if latest is None:
-        latest = build_sandbox_comparison_trend_hint(storage)
+        latest = build_ack_status_trend_hint(storage)
     return {
-        "available": load_sandbox_comparison_trend_hint(storage) is not None,
+        "available": load_ack_status_trend_hint(storage) is not None,
         "hint_status": latest.get("hint_status"),
         "hint_reason": latest.get("hint_reason"),
         "trend": latest.get("trend"),
         "trend_review_recommended": bool(latest.get("trend_review_recommended")),
         "history_count": latest.get("history_count"),
-        "changed_count": latest.get("changed_count"),
+        "worsened_count": latest.get("worsened_count"),
+        "improved_count": latest.get("improved_count"),
         "unchanged_count": latest.get("unchanged_count"),
-        "current_changed_streak": latest.get("current_changed_streak"),
+        "current_needs_ack_streak": latest.get("current_needs_ack_streak"),
+        "current_stale_streak": latest.get("current_stale_streak"),
+        "latest_rollup_status": latest.get("latest_rollup_status"),
         "recurring_signals": latest.get("recurring_signals") or [],
         "blockers": latest.get("blockers") or [],
         "warnings": latest.get("warnings") or [],
@@ -384,12 +382,12 @@ def compact_sandbox_comparison_trend_hint(storage: LocalStorage) -> dict[str, An
     }
 
 
-def build_sandbox_comparison_trend_hint_payload(storage: LocalStorage) -> dict[str, Any]:
-    latest = load_sandbox_comparison_trend_hint(storage)
+def build_ack_status_trend_hint_payload(storage: LocalStorage) -> dict[str, Any]:
+    latest = load_ack_status_trend_hint(storage)
     if latest is None:
-        latest = build_sandbox_comparison_trend_hint(storage)
+        latest = build_ack_status_trend_hint(storage)
     return {
         **_safety_fields(),
         "latest": latest,
-        "compact": compact_sandbox_comparison_trend_hint(storage),
+        "compact": compact_ack_status_trend_hint(storage),
     }
