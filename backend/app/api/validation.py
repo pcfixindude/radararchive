@@ -50,6 +50,7 @@ from backend.app.schemas.validation import (
     MrmsVisualReviewSampleAnnotationUpsertResponse,
     MrmsRenderCandidatePreflightResponse,
     MrmsRenderCandidateDryRunPlanResponse,
+    MrmsRenderCandidateScaffoldResponse,
     MrmsVisualReviewResponse,
     OperatorReviewStatusResponse,
     OperatorWorkflowPresetsResponse,
@@ -154,6 +155,10 @@ from backend.app.services.mrms_render_candidate_preflight import (
 from backend.app.services.mrms_render_candidate_dry_run_plan import (
     build_render_candidate_dry_run_plan_payload,
     generate_render_candidate_dry_run_plan,
+)
+from backend.app.services.mrms_render_candidate_scaffold import (
+    build_render_candidate_scaffold_payload,
+    generate_render_candidate_scaffold,
 )
 from backend.app.services.operator_review_status import build_operator_review_status_payload
 from backend.app.services.operator_workflow_presets import build_operator_workflow_presets_payload
@@ -411,6 +416,29 @@ def validation_mrms_render_candidate_dry_run_plan_refresh() -> MrmsRenderCandida
     generate_render_candidate_dry_run_plan(storage)
     payload = build_render_candidate_dry_run_plan_payload(storage)
     return MrmsRenderCandidateDryRunPlanResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/scaffold",
+    response_model=MrmsRenderCandidateScaffoldResponse,
+)
+def validation_mrms_render_candidate_scaffold() -> MrmsRenderCandidateScaffoldResponse:
+    """Local MRMS render candidate scaffold (read-only advisory; disabled by default)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_render_candidate_scaffold_payload(storage)
+    return MrmsRenderCandidateScaffoldResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/scaffold",
+    response_model=MrmsRenderCandidateScaffoldResponse,
+)
+def validation_mrms_render_candidate_scaffold_refresh() -> MrmsRenderCandidateScaffoldResponse:
+    """Dev/local only — regenerate render candidate scaffold; does NOT download/decode/render."""
+    storage = LocalStorage(settings.local_storage_root)
+    generate_render_candidate_scaffold(storage)
+    payload = build_render_candidate_scaffold_payload(storage)
+    return MrmsRenderCandidateScaffoldResponse(**payload)
 
 
 @router.get(

@@ -9,6 +9,7 @@ import {
   refreshVisualReviewSampleReadiness,
   refreshRenderCandidatePreflight,
   refreshRenderCandidateDryRunPlan,
+  refreshRenderCandidateScaffold,
   submitDiffAcknowledgment,
   type MrmsProofHistory,
   type MrmsProofRegressionHistory,
@@ -80,6 +81,9 @@ export default function ValidationStatusPanel({
   const [dryRunPlanRefreshing, setDryRunPlanRefreshing] = useState(false);
   const [dryRunPlanMessage, setDryRunPlanMessage] = useState<string | null>(null);
   const [dryRunPlanError, setDryRunPlanError] = useState<string | null>(null);
+  const [scaffoldRefreshing, setScaffoldRefreshing] = useState(false);
+  const [scaffoldMessage, setScaffoldMessage] = useState<string | null>(null);
+  const [scaffoldError, setScaffoldError] = useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -341,6 +345,24 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleScaffoldRefresh() {
+    setScaffoldMessage(null);
+    setScaffoldError(null);
+    setScaffoldRefreshing(true);
+    const result = await refreshRenderCandidateScaffold();
+    setScaffoldRefreshing(false);
+    if (!result.ok) {
+      setScaffoldError(result.error);
+      return;
+    }
+    setScaffoldMessage(
+      `Scaffold refreshed (${result.data.compact.scaffold_status ?? '—'}) — disabled-by-default local scaffold; no side effects.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   if (!summary) {
     return (
       <section className="panel validation-panel">
@@ -409,6 +431,7 @@ export default function ValidationStatusPanel({
   const mrmsVisualReviewSampleReadiness = summary.mrms_visual_review_sample_readiness ?? null;
   const mrmsRenderCandidatePreflight = summary.mrms_render_candidate_preflight ?? null;
   const mrmsRenderCandidateDryRunPlan = summary.mrms_render_candidate_dry_run_plan ?? null;
+  const mrmsRenderCandidateScaffold = summary.mrms_render_candidate_scaffold ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -1171,6 +1194,122 @@ export default function ValidationStatusPanel({
             'make mrms-render-candidate-dry-run-plan --refresh'
           }
           label="Suggested dry-run plan command"
+          manualCopy
+        />
+        <SafetyNote />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="MRMS render candidate command scaffold"
+        className="validation-render-candidate-scaffold"
+        summary={
+          <p className="validation-meta">
+            {mrmsRenderCandidateScaffold?.scaffold_status
+              ? `Advisory ${mrmsRenderCandidateScaffold.scaffold_status} — ${mrmsRenderCandidateScaffold.blocking_items?.length ?? 0} blocking`
+              : 'No scaffold report yet — run make mrms-render-candidate-scaffold --refresh'}
+          </p>
+        }
+      >
+        <p className="validation-warn">
+          This is a disabled-by-default local scaffold. It does not verify MRMS, enable production
+          rendering, download/decode/render by default, create or serve production tiles, clear
+          alerts, or authorize production use. Future candidate commands listed below are not executed
+          by default.
+        </p>
+        {mrmsRenderCandidateScaffold ? (
+          <>
+            <p className="validation-meta">
+              Scaffold status: {mrmsRenderCandidateScaffold.scaffold_status ?? '—'} — reason:{' '}
+              {mrmsRenderCandidateScaffold.scaffold_reason ?? '—'}
+            </p>
+            <p className="validation-meta">
+              Dry-run/no-op mode: {mrmsRenderCandidateScaffold.dry_run_mode ? 'yes' : 'no'} — execute
+              performed: {mrmsRenderCandidateScaffold.execute_performed ? 'yes' : 'no'}
+            </p>
+            {(mrmsRenderCandidateScaffold.blocking_items ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Blockers</strong>
+                <ul>
+                  {(mrmsRenderCandidateScaffold.blocking_items ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="validation-meta">Blockers: none</p>
+            )}
+            {(mrmsRenderCandidateScaffold.warnings ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Warnings</strong>
+                <ul>
+                  {(mrmsRenderCandidateScaffold.warnings ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {(mrmsRenderCandidateScaffold.safety_gates ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Safety gates</strong>
+                <ul>
+                  {(mrmsRenderCandidateScaffold.safety_gates ?? []).slice(0, 8).map((gate) => (
+                    <li key={gate.id ?? gate.message}>
+                      {gate.id ?? 'gate'}: {gate.passed ? 'passed' : 'failed'} — {gate.message}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {(mrmsRenderCandidateScaffold.future_candidate_commands ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Future candidate commands (not executed by default)</strong>
+                <ul>
+                  {(mrmsRenderCandidateScaffold.future_candidate_commands ?? []).map((item) => (
+                    <li key={item.command}>
+                      <code>{item.command}</code> — executed_by_scaffold={item.executed_by_scaffold}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {mrmsRenderCandidateScaffold.json_path ? (
+              <p className="validation-meta">
+                JSON: <code>{mrmsRenderCandidateScaffold.json_path}</code>
+              </p>
+            ) : null}
+            {mrmsRenderCandidateScaffold.markdown_path ? (
+              <p className="validation-meta">
+                Markdown: <code>{mrmsRenderCandidateScaffold.markdown_path}</code>
+              </p>
+            ) : null}
+            {mrmsRenderCandidateScaffold.next_phase_recommendation ? (
+              <p className="validation-meta">
+                Next phase: {mrmsRenderCandidateScaffold.next_phase_recommendation}
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            No scaffold report yet. Run{' '}
+            <code>make mrms-render-candidate-scaffold --refresh</code> after preflight and dry-run
+            plan are ready.
+          </p>
+        )}
+        <button
+          type="button"
+          className="validation-action"
+          disabled={scaffoldRefreshing}
+          onClick={() => void handleScaffoldRefresh()}
+        >
+          {scaffoldRefreshing ? 'Refreshing scaffold…' : 'Refresh scaffold report (local only)'}
+        </button>
+        {scaffoldMessage ? <p className="validation-meta">{scaffoldMessage}</p> : null}
+        {scaffoldError ? <p className="validation-warn">{scaffoldError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateScaffold?.suggested_command ??
+            'make mrms-render-candidate-scaffold --refresh'
+          }
+          label="Suggested scaffold command"
           manualCopy
         />
         <SafetyNote />

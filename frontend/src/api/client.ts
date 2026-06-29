@@ -972,6 +972,39 @@ export type MrmsRenderCandidateDryRunPlanCompact = {
   does_not_authorize_production_use: boolean;
 };
 
+export type MrmsRenderCandidateScaffoldCompact = {
+  available?: boolean;
+  scaffold_status?: string | null;
+  scaffold_reason?: string | null;
+  blocking_items?: string[];
+  warnings?: string[];
+  dry_run_mode?: boolean;
+  execute_performed?: boolean;
+  created_at?: string | null;
+  json_path?: string | null;
+  markdown_path?: string | null;
+  suggested_command?: string | null;
+  safety_gates?: Array<{ id?: string; passed?: boolean; message?: string }>;
+  future_candidate_commands?: Array<{
+    command?: string;
+    phase?: string;
+    executed_by_scaffold?: string;
+    requires_opt_in?: string;
+  }>;
+  next_phase_recommendation?: string | null;
+  verified_mrms: boolean;
+  local_scaffold_only: boolean;
+  disabled_by_default: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  does_not_create_production_tiles: boolean;
+  does_not_serve_production_tiles: boolean;
+  does_not_execute_by_default: boolean;
+  no_external_notifications: boolean;
+  does_not_authorize_production_use: boolean;
+};
+
 export type OperatorWorkflowPresetsCompact = {
   available?: boolean;
   recommended_count?: number;
@@ -1512,6 +1545,7 @@ export type ValidationSummary = {
   mrms_visual_review_sample_readiness?: MrmsVisualReviewSampleReadinessCompact | null;
   mrms_render_candidate_preflight?: MrmsRenderCandidatePreflightCompact | null;
   mrms_render_candidate_dry_run_plan?: MrmsRenderCandidateDryRunPlanCompact | null;
+  mrms_render_candidate_scaffold?: MrmsRenderCandidateScaffoldCompact | null;
   scheduled_operator_status?: ScheduledOperatorStatusCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
@@ -1754,6 +1788,24 @@ export async function refreshRenderCandidateDryRunPlan(): Promise<
       return { ok: false, error: `Render candidate dry-run plan refresh failed (${response.status})` };
     }
     const data = (await response.json()) as { compact: MrmsRenderCandidateDryRunPlanCompact };
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function refreshRenderCandidateScaffold(): Promise<
+  | { ok: true; data: { compact: MrmsRenderCandidateScaffoldCompact } }
+  | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(`${API_BASE}/api/validation/mrms-render-candidate/scaffold`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      return { ok: false, error: `Render candidate scaffold refresh failed (${response.status})` };
+    }
+    const data = (await response.json()) as { compact: MrmsRenderCandidateScaffoldCompact };
     return { ok: true, data };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };

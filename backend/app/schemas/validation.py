@@ -1167,6 +1167,52 @@ class MrmsRenderCandidateDryRunPlanResponse(BaseModel):
     compact: MrmsRenderCandidateDryRunPlanCompact
 
 
+class MrmsRenderCandidateScaffoldCompact(BaseModel):
+    available: bool = False
+    scaffold_status: Optional[str] = None
+    scaffold_reason: Optional[str] = None
+    blocking_items: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    dry_run_mode: bool = True
+    execute_performed: bool = False
+    created_at: Optional[str] = None
+    json_path: Optional[str] = None
+    markdown_path: Optional[str] = None
+    suggested_command: Optional[str] = None
+    safety_gates: list[dict[str, Any]] = Field(default_factory=list)
+    future_candidate_commands: list[dict[str, str]] = Field(default_factory=list)
+    next_phase_recommendation: Optional[str] = None
+    verified_mrms: bool = False
+    local_scaffold_only: bool = True
+    disabled_by_default: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_execute_by_default: bool = True
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    prototype: bool = True
+
+
+class MrmsRenderCandidateScaffoldResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_scaffold_only: bool = True
+    disabled_by_default: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_execute_by_default: bool = True
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    latest: dict[str, Any] = Field(default_factory=dict)
+    compact: MrmsRenderCandidateScaffoldCompact
+
+
 class ScheduledOperatorStatusCompact(BaseModel):
     operator_status_requested: bool = False
     operator_status_generated: bool = False
@@ -1898,6 +1944,7 @@ class ValidationSummaryResponse(BaseModel):
     mrms_visual_review_sample_readiness: Optional[MrmsVisualReviewSampleReadinessCompact] = None
     mrms_render_candidate_preflight: Optional[MrmsRenderCandidatePreflightCompact] = None
     mrms_render_candidate_dry_run_plan: Optional[MrmsRenderCandidateDryRunPlanCompact] = None
+    mrms_render_candidate_scaffold: Optional[MrmsRenderCandidateScaffoldCompact] = None
     scheduled_operator_status: Optional[ScheduledOperatorStatusCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)

@@ -1,19 +1,19 @@
 # Next Steps
 
-## Phase 64 - TBD (Draft)
+## Phase 65 - TBD (Draft)
 
-Goal: Gated real MRMS rendering candidate command scaffold — explicitly disabled-by-default command scaffold with hard safety gates, dry-run-only default behavior, and no production tile serving.
+Goal: Gated candidate artifact sandbox layout — local sandbox directory layout and cleanup/reporting workflow for future real MRMS candidate artifacts, isolated from production tile serving and disabled by default.
 
 Do not start yet:
 - Stripe, real auth, HRRR, WPC, native Android
 - Redis/Celery, cloud deployment, email/Slack/webhooks
 - Setting `verified_mrms=true` or production promotion
 
-## Phase 63 verification commands
+## Phase 64 verification commands
 
 ```bash
 make test
-make mrms-render-candidate-dry-run-plan --refresh
+make mrms-render-candidate-scaffold --refresh
 cd frontend && npm test
 cd frontend && npm run build
 ```

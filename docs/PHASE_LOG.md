@@ -2243,3 +2243,30 @@ cd frontend && npm run build
 ### Known limitations
 - Dry-run plan is advisory only — does not download/decode/render or execute listed candidate commands
 - `dry_run_plan_ready` is not production authorization
+
+## Phase 64 - Gated Real MRMS Rendering Candidate Command Scaffold
+
+Disabled-by-default local scaffold for a future real MRMS rendering candidate attempt, with hard safety gates and dry-run/no-op default behavior.
+
+### Backend
+- `mrms_render_candidate_scaffold.py` — scaffold generation, conservative `blocked` / `dry_run_only` / `scaffold_ready` status
+- Paths: `mrms_render_candidate_scaffold.json`, `mrms_render_candidate_scaffold.md`
+- `compact_render_candidate_scaffold()` on validation summary
+- API: `GET/POST /api/validation/mrms-render-candidate/scaffold`
+- CLI: `scripts/mrms_render_candidate_scaffold.py`; `make mrms-render-candidate-scaffold`
+
+### Frontend
+- Dev Validation **MRMS render candidate command scaffold** collapsible with blockers, warnings, safety gates, future commands (not executed by default)
+
+### Run commands
+
+```bash
+make test
+make mrms-render-candidate-scaffold --refresh
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Scaffold is disabled-by-default — does not download/decode/render, serve production tiles, clear alerts, or mutate gates
+- `scaffold_ready` is not production authorization
