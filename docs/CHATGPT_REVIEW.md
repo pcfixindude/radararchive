@@ -9,10 +9,10 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 65
-- Latest phase: Phase 65 — Gated candidate artifact sandbox layout
-- Latest commit: `f241370`
-- Latest tag: `phase-65-candidate-artifact-sandbox`
+- Completed through phase: 66
+- Latest phase: Phase 66 — Gated candidate sandbox manifest import/export
+- Latest commit: `95e6f04`
+- Latest tag: `phase-66-sandbox-manifest-import-export`
 - Push status: pushed to origin main with tag
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
@@ -23,63 +23,40 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Placeholder tiles default: **true**
 - Production rendering: gated/off by default
 - External notifications: **none**
-- MRMS visual review: local-only; does not download/decode MRMS; does not create tiles; does not verify MRMS
-- Visual review sample set: local drilldown only; does not verify MRMS, clear alerts, or enable production rendering
-- Sample-set annotations/readiness: local advisory only; `candidate_ready` is **not** production authorization
-- Render candidate preflight: local advisory only; `candidate_preflight_ready` is **not** production authorization
-- Render candidate dry-run plan: local advisory only; does not download/decode/render by default; `dry_run_plan_ready` is **not** production authorization
-- Render candidate scaffold: disabled-by-default local scaffold; dry-run/no-op only; `scaffold_ready` is **not** production authorization
-- Render candidate sandbox: local-only artifact layout under `data/dev/`; cleanup report-only by default; `ready` is **not** production authorization
+- Render candidate sandbox import/export: local metadata/report-only; no binary artifacts by default; `imported` is **not** production authorization
+- Render candidate sandbox: local-only artifact layout under `data/dev/`; cleanup report-only by default
+- Render candidate scaffold: disabled-by-default local scaffold; dry-run/no-op only
 - Scheduled visual review: explicit opt-in only via `--visual-review` or `make scheduled-proof-bundle-visual-review`
 
 ## Latest phase summary
 
-- Phase: **65**
-- Purpose: Add a local sandbox directory layout and cleanup/reporting workflow for future real MRMS candidate artifacts, isolated from production tile serving and disabled by default.
-- Main command added: `make mrms-render-candidate-sandbox`
-- API added: `GET/POST /api/validation/mrms-render-candidate/sandbox`
-- Tests: backend 727 passed; frontend vitest 8 passed; frontend build succeeded
+- Phase: **66**
+- Purpose: Add local import/export support for candidate sandbox manifests and reports for review/archive/compare without touching production tile serving.
+- Main commands added: `make mrms-render-candidate-sandbox-export`, `make mrms-render-candidate-sandbox-import-export`
+- API added: `GET /api/validation/mrms-render-candidate/sandbox/import-export`, `POST .../export`, `POST .../import`
+- Tests: backend 751 passed; frontend vitest 8 passed; frontend build succeeded
 - Known limitations:
-  - Sandbox is local-only under `data/dev/mrms_render_candidate_sandbox/`
-  - Cleanup is report-only — no file deletion in Phase 65 even with `--confirm-delete-dev-sandbox`
-  - Conservative blocking when sandbox path escapes `data/dev/` or overlaps production tile paths
+  - Import/export is metadata/report-only — no binary artifacts, no production tile paths
+  - Conservative blocking on verified_mrms claims, production rendering claims, path traversal, or paths outside `data/dev/`
+  - Advisory comparison between current sandbox manifest and imported manifest
   - `verified_mrms` remains false
-
-## Current capabilities
-
-- Local radar archive app with placeholder-first tile serving
-- MRMS discovery, download, inspection, and decode prototype history
-- Render queue/status and Dev Validation dashboard
-- Proof reports, proof history, regression checks, proof bundles, and proof bundle diffs
-- Operator handoff, validation alerts, escalation, digest, and acknowledgments
-- Review sessions, comparisons, Markdown exports, export diffs/trends/hints
-- Operator Review Status and grouped workflow presets with copy-ready commands
-- Dev Validation UX with collapsible sections, preset filters, and safety wording
-- MRMS visual review manifests, Markdown reports, history, comparison, and stale hints
-- Scheduled proof, review export, operator status, and optional visual review workflows
-- Visual review sample-set JSON/Markdown with drilldown UI
-- Sample-set annotations JSON, readiness Markdown, and Dev Validation annotation/readiness UI
-- Render candidate preflight JSON/Markdown with Dev Validation preflight UI
-- Render candidate dry-run plan JSON/Markdown with Dev Validation dry-run plan UI
-- Render candidate command scaffold JSON/Markdown with Dev Validation scaffold UI
-- Render candidate artifact sandbox layout/manifest/report with Dev Validation sandbox UI
 
 ## Current focus
 
-The project is in the **local visual evidence review** block with gated preflight, dry-run planning, disabled-by-default scaffold, and local artifact sandbox before any real MRMS rendering candidate attempt.
+The project is in the **local visual evidence review** block with gated preflight, dry-run planning, disabled-by-default scaffold, local artifact sandbox, and manifest import/export before any real MRMS rendering candidate attempt.
 
-The next major direction should add local import/export for candidate sandbox manifests and reports.
+The next major direction should add comparison history for sandbox exports/imports.
 
 Do **not** promote to verified MRMS yet.
 
 ## Next recommended phase
 
-- Phase number: **66**
-- Phase title: Gated candidate sandbox manifest import/export
-- Goal: Add local import/export support for candidate sandbox manifests and reports so future candidate artifacts can be reviewed, archived, and compared without touching production tile serving or verifying MRMS.
-- Why this is next: Phase 65 defines the isolated sandbox layout; Phase 66 should add manifest import/export for review/archive/compare workflows.
+- Phase number: **67**
+- Phase title: Gated candidate sandbox manifest comparison history
+- Goal: Add local comparison history for candidate sandbox exports/imports so operators can review changes across candidate artifact reports without touching production tile serving or verifying MRMS.
+- Why this is next: Phase 66 adds manifest import/export; Phase 67 should persist comparison history across exports/imports for operator review.
 - Safety boundaries:
-  - local-only import/export by default
+  - local-only comparison history by default
   - no MRMS verification claim
   - no production rendering or tile serving
   - no download/decode/render execution unless explicitly gated and disabled by default
@@ -103,12 +80,12 @@ Read first:
 - docs/VERIFIED_MRMS_CRITERIA.md
 - docs/GRIB2_DECODE.md
 
-Task: Implement Phase 66 only.
+Task: Implement Phase 67 only.
 
-Goal: Add local import/export support for candidate sandbox manifests and reports so future candidate artifacts can be reviewed, archived, and compared without touching production tile serving or verifying MRMS.
+Goal: Add local comparison history for candidate sandbox exports/imports so operators can review changes across candidate artifact reports without touching production tile serving or verifying MRMS.
 
 Requirements (summary):
-- Persist local import/export JSON/Markdown under data/dev/ (gitignored)
+- Persist local comparison history JSON/Markdown under data/dev/ (gitignored)
 - Expose read-only API/status and Dev Validation UI
 - Keep verified_mrms false and production rendering gated
 - Do not download/decode/render by default, clear alerts, or mutate catalog/render gates

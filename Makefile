@@ -182,6 +182,12 @@ mrms-render-candidate-scaffold:
 mrms-render-candidate-sandbox:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_sandbox.py $(ARGS)
 
+mrms-render-candidate-sandbox-export:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_sandbox_import_export.py --export $(ARGS)
+
+mrms-render-candidate-sandbox-import-export:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_sandbox_import_export.py --export --import $(ARGS)
+
 mrms-proof-history:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_proof_history.py $(ARGS)
 

@@ -52,6 +52,8 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateDryRunPlanResponse,
     MrmsRenderCandidateScaffoldResponse,
     MrmsRenderCandidateSandboxResponse,
+    MrmsRenderCandidateSandboxImportExportResponse,
+    MrmsRenderCandidateSandboxImportRequest,
     MrmsVisualReviewResponse,
     OperatorReviewStatusResponse,
     OperatorWorkflowPresetsResponse,
@@ -164,6 +166,11 @@ from backend.app.services.mrms_render_candidate_scaffold import (
 from backend.app.services.mrms_render_candidate_sandbox import (
     build_render_candidate_sandbox_payload,
     generate_render_candidate_sandbox,
+)
+from backend.app.services.mrms_render_candidate_sandbox_import_export import (
+    build_render_candidate_sandbox_import_export_payload,
+    export_candidate_sandbox_manifest,
+    import_candidate_sandbox_manifest,
 )
 from backend.app.services.operator_review_status import build_operator_review_status_payload
 from backend.app.services.operator_workflow_presets import build_operator_workflow_presets_payload
@@ -467,6 +474,44 @@ def validation_mrms_render_candidate_sandbox_refresh() -> MrmsRenderCandidateSan
     generate_render_candidate_sandbox(storage)
     payload = build_render_candidate_sandbox_payload(storage)
     return MrmsRenderCandidateSandboxResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/import-export",
+    response_model=MrmsRenderCandidateSandboxImportExportResponse,
+)
+def validation_mrms_render_candidate_sandbox_import_export() -> MrmsRenderCandidateSandboxImportExportResponse:
+    """Local MRMS render candidate sandbox import/export status (read-only advisory)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_render_candidate_sandbox_import_export_payload(storage)
+    return MrmsRenderCandidateSandboxImportExportResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/import-export/export",
+    response_model=MrmsRenderCandidateSandboxImportExportResponse,
+)
+def validation_mrms_render_candidate_sandbox_export() -> MrmsRenderCandidateSandboxImportExportResponse:
+    """Dev/local only — export sandbox manifest metadata; does NOT include binary artifacts."""
+    storage = LocalStorage(settings.local_storage_root)
+    export_candidate_sandbox_manifest(storage)
+    payload = build_render_candidate_sandbox_import_export_payload(storage)
+    return MrmsRenderCandidateSandboxImportExportResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/import-export/import",
+    response_model=MrmsRenderCandidateSandboxImportExportResponse,
+)
+def validation_mrms_render_candidate_sandbox_import(
+    request: MrmsRenderCandidateSandboxImportRequest = MrmsRenderCandidateSandboxImportRequest(),
+) -> MrmsRenderCandidateSandboxImportExportResponse:
+    """Dev/local only — validate/import exported sandbox manifest metadata."""
+    storage = LocalStorage(settings.local_storage_root)
+    import_path = request.import_json_path
+    import_candidate_sandbox_manifest(storage, source_json_path=import_path)
+    payload = build_render_candidate_sandbox_import_export_payload(storage)
+    return MrmsRenderCandidateSandboxImportExportResponse(**payload)
 
 
 @router.get(

@@ -1266,6 +1266,62 @@ class MrmsRenderCandidateSandboxResponse(BaseModel):
     compact: MrmsRenderCandidateSandboxCompact
 
 
+class MrmsRenderCandidateSandboxImportExportCompact(BaseModel):
+    available: bool = False
+    import_export_status: Optional[str] = None
+    import_export_reason: Optional[str] = None
+    schema_version: Optional[str] = None
+    blockers: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    included_reports: list[dict[str, Any]] = Field(default_factory=list)
+    missing_inputs: list[str] = Field(default_factory=list)
+    latest_export_json_path: Optional[str] = None
+    latest_export_markdown_path: Optional[str] = None
+    latest_import_json_path: Optional[str] = None
+    latest_import_markdown_path: Optional[str] = None
+    comparison: dict[str, Any] = Field(default_factory=dict)
+    status_json_path: Optional[str] = None
+    status_markdown_path: Optional[str] = None
+    suggested_export_command: Optional[str] = None
+    suggested_import_export_command: Optional[str] = None
+    next_phase_recommendation: Optional[str] = None
+    verified_mrms: bool = False
+    local_import_export_only: bool = True
+    metadata_report_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    prototype: bool = True
+
+
+class MrmsRenderCandidateSandboxImportExportResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_import_export_only: bool = True
+    metadata_report_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    latest: dict[str, Any] = Field(default_factory=dict)
+    compact: MrmsRenderCandidateSandboxImportExportCompact
+
+
+class MrmsRenderCandidateSandboxImportRequest(BaseModel):
+    import_json_path: Optional[str] = None
+
+
 class ScheduledOperatorStatusCompact(BaseModel):
     operator_status_requested: bool = False
     operator_status_generated: bool = False
@@ -1999,6 +2055,9 @@ class ValidationSummaryResponse(BaseModel):
     mrms_render_candidate_dry_run_plan: Optional[MrmsRenderCandidateDryRunPlanCompact] = None
     mrms_render_candidate_scaffold: Optional[MrmsRenderCandidateScaffoldCompact] = None
     mrms_render_candidate_sandbox: Optional[MrmsRenderCandidateSandboxCompact] = None
+    mrms_render_candidate_sandbox_import_export: Optional[
+        MrmsRenderCandidateSandboxImportExportCompact
+    ] = None
     scheduled_operator_status: Optional[ScheduledOperatorStatusCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
     frame_summaries: list[FrameTileMetricsCompact] = Field(default_factory=list)

@@ -11,6 +11,8 @@ import {
   refreshRenderCandidateDryRunPlan,
   refreshRenderCandidateScaffold,
   refreshRenderCandidateSandbox,
+  exportRenderCandidateSandbox,
+  importRenderCandidateSandbox,
   submitDiffAcknowledgment,
   type MrmsProofHistory,
   type MrmsProofRegressionHistory,
@@ -88,6 +90,10 @@ export default function ValidationStatusPanel({
   const [sandboxRefreshing, setSandboxRefreshing] = useState(false);
   const [sandboxMessage, setSandboxMessage] = useState<string | null>(null);
   const [sandboxError, setSandboxError] = useState<string | null>(null);
+  const [importExportExporting, setImportExportExporting] = useState(false);
+  const [importExportImporting, setImportExportImporting] = useState(false);
+  const [importExportMessage, setImportExportMessage] = useState<string | null>(null);
+  const [importExportError, setImportExportError] = useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -385,6 +391,42 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleImportExportExport() {
+    setImportExportMessage(null);
+    setImportExportError(null);
+    setImportExportExporting(true);
+    const result = await exportRenderCandidateSandbox();
+    setImportExportExporting(false);
+    if (!result.ok) {
+      setImportExportError(result.error);
+      return;
+    }
+    setImportExportMessage(
+      `Export generated (${result.data.compact.import_export_status ?? '—'}) — metadata/report-only.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
+  async function handleImportExportImport() {
+    setImportExportMessage(null);
+    setImportExportError(null);
+    setImportExportImporting(true);
+    const result = await importRenderCandidateSandbox();
+    setImportExportImporting(false);
+    if (!result.ok) {
+      setImportExportError(result.error);
+      return;
+    }
+    setImportExportMessage(
+      `Import validated (${result.data.compact.import_export_status ?? '—'}) — metadata/report-only.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   if (!summary) {
     return (
       <section className="panel validation-panel">
@@ -455,6 +497,8 @@ export default function ValidationStatusPanel({
   const mrmsRenderCandidateDryRunPlan = summary.mrms_render_candidate_dry_run_plan ?? null;
   const mrmsRenderCandidateScaffold = summary.mrms_render_candidate_scaffold ?? null;
   const mrmsRenderCandidateSandbox = summary.mrms_render_candidate_sandbox ?? null;
+  const mrmsRenderCandidateSandboxImportExport =
+    summary.mrms_render_candidate_sandbox_import_export ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -1469,6 +1513,143 @@ export default function ValidationStatusPanel({
             'make mrms-render-candidate-sandbox --refresh'
           }
           label="Suggested sandbox command"
+          manualCopy
+        />
+        <SafetyNote />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="MRMS render candidate sandbox import/export"
+        className="validation-render-candidate-sandbox-import-export"
+        summary={
+          <p className="validation-meta">
+            {mrmsRenderCandidateSandboxImportExport?.import_export_status
+              ? `Advisory ${mrmsRenderCandidateSandboxImportExport.import_export_status} — schema ${mrmsRenderCandidateSandboxImportExport.schema_version ?? '—'}`
+              : 'No import/export report yet — run make mrms-render-candidate-sandbox-export'}
+          </p>
+        }
+      >
+        <p className="validation-warn">
+          This is local manifest import/export only. It does not verify MRMS, enable production
+          rendering, download/decode/render, create or serve production tiles, clear alerts, or
+          authorize production use. Imports are metadata/report-only.
+        </p>
+        {mrmsRenderCandidateSandboxImportExport ? (
+          <>
+            <p className="validation-meta">
+              Status: {mrmsRenderCandidateSandboxImportExport.import_export_status ?? '—'} — reason:{' '}
+              {mrmsRenderCandidateSandboxImportExport.import_export_reason ?? '—'}
+            </p>
+            <p className="validation-meta">
+              Schema version: {mrmsRenderCandidateSandboxImportExport.schema_version ?? '—'} — binary
+              artifacts included:{' '}
+              {mrmsRenderCandidateSandboxImportExport.binary_artifacts_included ? 'yes' : 'no'}
+            </p>
+            {(mrmsRenderCandidateSandboxImportExport.included_reports ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Included reports</strong>
+                <ul>
+                  {(mrmsRenderCandidateSandboxImportExport.included_reports ?? []).map((item) => (
+                    <li key={`${item.path}-${item.kind}`}>
+                      <code>{item.path}</code> — {item.kind}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {(mrmsRenderCandidateSandboxImportExport.missing_inputs ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Missing inputs</strong>
+                <ul>
+                  {(mrmsRenderCandidateSandboxImportExport.missing_inputs ?? []).map((item) => (
+                    <li key={item}>
+                      <code>{item}</code>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {(mrmsRenderCandidateSandboxImportExport.blockers ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Blockers</strong>
+                <ul>
+                  {(mrmsRenderCandidateSandboxImportExport.blockers ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="validation-meta">Blockers: none</p>
+            )}
+            {(mrmsRenderCandidateSandboxImportExport.warnings ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Warnings</strong>
+                <ul>
+                  {(mrmsRenderCandidateSandboxImportExport.warnings ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {mrmsRenderCandidateSandboxImportExport.latest_export_json_path ? (
+              <p className="validation-meta">
+                Latest export JSON:{' '}
+                <code>{mrmsRenderCandidateSandboxImportExport.latest_export_json_path}</code>
+              </p>
+            ) : null}
+            {mrmsRenderCandidateSandboxImportExport.latest_import_json_path ? (
+              <p className="validation-meta">
+                Latest import JSON:{' '}
+                <code>{mrmsRenderCandidateSandboxImportExport.latest_import_json_path}</code>
+              </p>
+            ) : null}
+            {mrmsRenderCandidateSandboxImportExport.comparison?.changed_sandbox_status != null ? (
+              <p className="validation-meta">
+                Comparison changed sandbox status:{' '}
+                {mrmsRenderCandidateSandboxImportExport.comparison.changed_sandbox_status ? 'yes' : 'no'}
+              </p>
+            ) : null}
+            {mrmsRenderCandidateSandboxImportExport.status_json_path ? (
+              <p className="validation-meta">
+                Status JSON: <code>{mrmsRenderCandidateSandboxImportExport.status_json_path}</code>
+              </p>
+            ) : null}
+            {mrmsRenderCandidateSandboxImportExport.status_markdown_path ? (
+              <p className="validation-meta">
+                Status Markdown:{' '}
+                <code>{mrmsRenderCandidateSandboxImportExport.status_markdown_path}</code>
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            No import/export report yet. Run{' '}
+            <code>make mrms-render-candidate-sandbox-export</code> to archive local sandbox metadata.
+          </p>
+        )}
+        <button
+          type="button"
+          className="validation-action"
+          disabled={importExportExporting}
+          onClick={() => void handleImportExportExport()}
+        >
+          {importExportExporting ? 'Exporting…' : 'Export sandbox manifest (local only)'}
+        </button>
+        <button
+          type="button"
+          className="validation-action"
+          disabled={importExportImporting}
+          onClick={() => void handleImportExportImport()}
+        >
+          {importExportImporting ? 'Importing…' : 'Import latest export (validate only)'}
+        </button>
+        {importExportMessage ? <p className="validation-meta">{importExportMessage}</p> : null}
+        {importExportError ? <p className="validation-warn">{importExportError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateSandboxImportExport?.suggested_import_export_command ??
+            'make mrms-render-candidate-sandbox-import-export'
+          }
+          label="Suggested import/export command"
           manualCopy
         />
         <SafetyNote />

@@ -2298,3 +2298,31 @@ cd frontend && npm run build
 ### Known limitations
 - Sandbox is local-only — cleanup is report-only; no file deletion in Phase 65
 - `ready` is not production authorization
+
+## Phase 66 - Gated Candidate Sandbox Manifest Import/Export
+
+Local metadata import/export for candidate sandbox manifests and reports, with advisory comparison and schema version 1.0.
+
+### Backend
+- `mrms_render_candidate_sandbox_import_export.py` — export/import validation, conservative `missing` / `export_ready` / `import_ready` / `imported` / `invalid` / `blocked` status
+- Export dir: `data/dev/mrms_render_candidate_exports/`; import dir: `data/dev/mrms_render_candidate_imports/`
+- Status: `mrms_render_candidate_import_export_latest.json`, `.md`
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/import-export` (+ `/export`, `/import`)
+- CLI: `scripts/mrms_render_candidate_sandbox_import_export.py`; `make mrms-render-candidate-sandbox-export`, `make mrms-render-candidate-sandbox-import-export`
+
+### Frontend
+- Dev Validation **MRMS render candidate sandbox import/export** collapsible with schema version, included/missing reports, blockers, comparison summary
+
+### Run commands
+
+```bash
+make test
+make mrms-render-candidate-sandbox-export
+make mrms-render-candidate-sandbox-import-export
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Metadata/report-only — no binary artifacts, no production tile paths
+- `imported` is not production authorization
