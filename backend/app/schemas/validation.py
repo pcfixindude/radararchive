@@ -1745,6 +1745,87 @@ class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowl
     compact: MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHintCompact
 
 
+class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentCompact(
+    BaseModel
+):
+    available: bool = False
+    count: int = 0
+    acknowledgment_id: Optional[str] = None
+    created_at: Optional[str] = None
+    operator: Optional[str] = None
+    operator_name: Optional[str] = None
+    operator_initials: Optional[str] = None
+    note: Optional[str] = None
+    related_trend: Optional[str] = None
+    related_hint_status: Optional[str] = None
+    related_hint_reason: Optional[str] = None
+    related_trend_review_recommended: bool = False
+    acknowledged_trend_review: bool = False
+    latest_rollup_status: Optional[str] = None
+    trend_review_still_recommended: bool = False
+    suggested_command: Optional[str] = None
+    next_phase_recommendation: Optional[str] = None
+    verified_mrms: bool = False
+    local_acknowledgment_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_authorize_production_use: bool = True
+    prototype: bool = True
+
+
+class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentCreateRequest(
+    BaseModel
+):
+    operator_name: Optional[str] = None
+    operator_initials: Optional[str] = None
+    note: str = ""
+    related_trend: Optional[str] = None
+    related_hint_status: Optional[str] = None
+    related_hint_reason: Optional[str] = None
+    related_trend_review_recommended: Optional[bool] = None
+    acknowledged_trend_review: Optional[bool] = None
+
+
+class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentCreateResponse(
+    BaseModel
+):
+    verified_mrms: bool = False
+    local_acknowledgment_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_authorize_production_use: bool = True
+    production_enabled: bool = False
+    trend_review_still_recommended: bool = False
+    acknowledgment: dict[str, Any]
+
+
+class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentsResponse(
+    BaseModel
+):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_acknowledgment_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_authorize_production_use: bool = True
+    count: int = 0
+    max_entries: int = 50
+    trend_review_still_recommended: bool = False
+    suggested_command: Optional[str] = None
+    next_phase_recommendation: Optional[str] = None
+    latest: Optional[
+        MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentCompact
+    ] = None
+    entries: list[
+        MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentCompact
+    ] = Field(default_factory=list)
+
+
 class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusCompact(BaseModel):
     available: bool = False
     rollup_status: Optional[str] = None
@@ -2667,6 +2748,9 @@ class ValidationSummaryResponse(BaseModel):
     ] = None
     mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_hint: Optional[
         MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHintCompact
+    ] = None
+    mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment: Optional[
+        MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentCompact
     ] = None
     scheduled_operator_status: Optional[ScheduledOperatorStatusCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
