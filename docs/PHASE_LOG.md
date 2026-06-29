@@ -3026,3 +3026,30 @@ cd frontend && npm run build
 - Local dev result: `preflight_not_candidate_ready` — preflight `needs_review`; dry-run plan skipped
 - Not production authorization
 
+## Phase 93 - Gated Render Candidate Scaffold Review
+
+Evaluate disabled-by-default render candidate scaffold only after preflight is `candidate_preflight_ready` and dry-run plan is `dry_run_plan_ready`.
+
+### Backend
+- `mrms_render_candidate_gated_scaffold_review.py` — refreshes preflight, resolves blockers, generates dry-run plan and scaffold only when gated
+- Paths: `mrms_render_candidate_gated_scaffold_review_latest.json`, `mrms_render_candidate_gated_scaffold_review_latest.md`
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/gated-scaffold-review`
+- CLI: `scripts/mrms_render_candidate_gated_scaffold_review.py`; `make mrms-review-gated-scaffold`
+
+### Frontend
+- **Review gated scaffold** button on MRMS render candidate command scaffold collapsible
+
+### Run commands
+
+```bash
+make test
+make mrms-review-gated-scaffold ARGS="--refresh"
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Does not generate or review scaffold when preflight is not `candidate_preflight_ready` or dry-run plan is not `dry_run_plan_ready`
+- Local dev result: `preflight_not_candidate_ready` — preflight `needs_review`; dry-run plan and scaffold skipped
+- Not production authorization
+

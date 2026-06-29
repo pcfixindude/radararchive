@@ -52,6 +52,9 @@ from backend.app.services.mrms_render_candidate_dry_run_plan import (
 from backend.app.services.mrms_render_candidate_gated_dry_run_review import (
     compact_gated_dry_run_review,
 )
+from backend.app.services.mrms_render_candidate_gated_scaffold_review import (
+    compact_gated_scaffold_review,
+)
 from backend.app.services.mrms_render_candidate_scaffold import (
     compact_render_candidate_scaffold,
 )
@@ -314,6 +317,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "mrms_render_candidate_trend_hint_chain_bootstrap": compact_trend_hint_chain_bootstrap(storage),
         "mrms_render_candidate_dry_run_plan": compact_render_candidate_dry_run_plan(storage),
         "mrms_render_candidate_gated_dry_run_review": compact_gated_dry_run_review(storage),
+        "mrms_render_candidate_gated_scaffold_review": compact_gated_scaffold_review(storage),
         "mrms_render_candidate_scaffold": compact_render_candidate_scaffold(storage),
         "mrms_render_candidate_sandbox": compact_render_candidate_sandbox(storage),
         "mrms_render_candidate_sandbox_import_export": compact_render_candidate_sandbox_import_export(

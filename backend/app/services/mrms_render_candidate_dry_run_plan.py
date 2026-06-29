@@ -30,8 +30,8 @@ DRY_RUN_NEEDS_REVIEW = "needs_review"
 DRY_RUN_PLAN_READY = "dry_run_plan_ready"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 93 — gated render candidate scaffold review "
-    "(explicitly disabled-by-default; no production tile serving)"
+    "Phase 94 — gated candidate artifact sandbox layout "
+    "(local sandbox directory layout isolated from production tile serving)"
 )
 
 

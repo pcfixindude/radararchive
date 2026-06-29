@@ -56,6 +56,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateTrendHintChainBootstrapResponse,
     MrmsRenderCandidateDryRunPlanResponse,
     MrmsRenderCandidateGatedDryRunReviewResponse,
+    MrmsRenderCandidateGatedScaffoldReviewResponse,
     MrmsRenderCandidateScaffoldResponse,
     MrmsRenderCandidateSandboxResponse,
     MrmsRenderCandidateSandboxImportExportResponse,
@@ -216,6 +217,10 @@ from backend.app.services.mrms_render_candidate_dry_run_plan import (
 from backend.app.services.mrms_render_candidate_gated_dry_run_review import (
     build_gated_dry_run_review_payload,
     review_gated_dry_run_plan,
+)
+from backend.app.services.mrms_render_candidate_gated_scaffold_review import (
+    build_gated_scaffold_review_payload,
+    review_gated_scaffold,
 )
 from backend.app.services.mrms_render_candidate_scaffold import (
     build_render_candidate_scaffold_payload,
@@ -707,6 +712,33 @@ def validation_mrms_render_candidate_gated_dry_run_review_run() -> (
     review_gated_dry_run_plan(storage)
     payload = build_gated_dry_run_review_payload(storage)
     return MrmsRenderCandidateGatedDryRunReviewResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/gated-scaffold-review",
+    response_model=MrmsRenderCandidateGatedScaffoldReviewResponse,
+)
+def validation_mrms_render_candidate_gated_scaffold_review() -> (
+    MrmsRenderCandidateGatedScaffoldReviewResponse
+):
+    """Latest gated scaffold review report (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_gated_scaffold_review_payload(storage)
+    return MrmsRenderCandidateGatedScaffoldReviewResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/gated-scaffold-review",
+    response_model=MrmsRenderCandidateGatedScaffoldReviewResponse,
+)
+def validation_mrms_render_candidate_gated_scaffold_review_run() -> (
+    MrmsRenderCandidateGatedScaffoldReviewResponse
+):
+    """Dev/local only — review preflight, dry-run plan, and scaffold when gates open."""
+    storage = LocalStorage(settings.local_storage_root)
+    review_gated_scaffold(storage)
+    payload = build_gated_scaffold_review_payload(storage)
+    return MrmsRenderCandidateGatedScaffoldReviewResponse(**payload)
 
 
 @router.get(

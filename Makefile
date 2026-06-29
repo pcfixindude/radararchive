@@ -202,6 +202,11 @@ mrms-render-candidate-gated-dry-run-review:
 
 mrms-review-gated-dry-run-plan: mrms-render-candidate-gated-dry-run-review
 
+mrms-render-candidate-gated-scaffold-review:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_gated_scaffold_review.py $(ARGS)
+
+mrms-review-gated-scaffold: mrms-render-candidate-gated-scaffold-review
+
 mrms-render-candidate-scaffold:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_scaffold.py $(ARGS)
 

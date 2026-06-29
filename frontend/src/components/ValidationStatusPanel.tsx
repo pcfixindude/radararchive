@@ -15,6 +15,7 @@ import {
   refreshVisualReviewSampleBootstrap,
   refreshRenderCandidateDryRunPlan,
   refreshRenderCandidateGatedDryRunReview,
+  refreshRenderCandidateGatedScaffoldReview,
   refreshRenderCandidateScaffold,
   refreshRenderCandidateSandbox,
   exportRenderCandidateSandbox,
@@ -127,6 +128,9 @@ export default function ValidationStatusPanel({
   const [gatedDryRunReviewRefreshing, setGatedDryRunReviewRefreshing] = useState(false);
   const [gatedDryRunReviewMessage, setGatedDryRunReviewMessage] = useState<string | null>(null);
   const [gatedDryRunReviewError, setGatedDryRunReviewError] = useState<string | null>(null);
+  const [gatedScaffoldReviewRefreshing, setGatedScaffoldReviewRefreshing] = useState(false);
+  const [gatedScaffoldReviewMessage, setGatedScaffoldReviewMessage] = useState<string | null>(null);
+  const [gatedScaffoldReviewError, setGatedScaffoldReviewError] = useState<string | null>(null);
   const [scaffoldRefreshing, setScaffoldRefreshing] = useState(false);
   const [scaffoldMessage, setScaffoldMessage] = useState<string | null>(null);
   const [scaffoldError, setScaffoldError] = useState<string | null>(null);
@@ -621,6 +625,24 @@ export default function ValidationStatusPanel({
     }
     setGatedDryRunReviewMessage(
       `Gated dry-run review: ${result.data.compact.review_status ?? '—'} — preflight ${result.data.compact.preflight_level ?? '—'} — plan ${result.data.compact.dry_run_plan_skipped ? 'skipped' : (result.data.compact.dry_run_plan_status ?? '—')}.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
+  async function handleGatedScaffoldReviewRefresh() {
+    setGatedScaffoldReviewMessage(null);
+    setGatedScaffoldReviewError(null);
+    setGatedScaffoldReviewRefreshing(true);
+    const result = await refreshRenderCandidateGatedScaffoldReview();
+    setGatedScaffoldReviewRefreshing(false);
+    if (!result.ok) {
+      setGatedScaffoldReviewError(result.error);
+      return;
+    }
+    setGatedScaffoldReviewMessage(
+      `Gated scaffold review: ${result.data.compact.review_status ?? '—'} — preflight ${result.data.compact.preflight_level ?? '—'} — scaffold ${result.data.compact.scaffold_skipped ? 'skipped' : (result.data.compact.scaffold_status ?? '—')}.`,
     );
     if (onRefresh) {
       await onRefresh();
@@ -1154,6 +1176,8 @@ export default function ValidationStatusPanel({
   const mrmsRenderCandidateDryRunPlan = summary.mrms_render_candidate_dry_run_plan ?? null;
   const mrmsRenderCandidateGatedDryRunReview =
     summary.mrms_render_candidate_gated_dry_run_review ?? null;
+  const mrmsRenderCandidateGatedScaffoldReview =
+    summary.mrms_render_candidate_gated_scaffold_review ?? null;
   const mrmsRenderCandidateScaffold = summary.mrms_render_candidate_scaffold ?? null;
   const mrmsRenderCandidateSandbox = summary.mrms_render_candidate_sandbox ?? null;
   const mrmsRenderCandidateSandboxImportExport =
@@ -2261,6 +2285,51 @@ export default function ValidationStatusPanel({
           alerts, or authorize production use. Future candidate commands listed below are not executed
           by default.
         </p>
+        {mrmsRenderCandidateGatedScaffoldReview?.available ? (
+          <p className="validation-meta">
+            Latest gated scaffold review: {mrmsRenderCandidateGatedScaffoldReview.review_status ?? '—'} —{' '}
+            preflight {mrmsRenderCandidateGatedScaffoldReview.preflight_level ?? '—'}
+            {mrmsRenderCandidateGatedScaffoldReview.scaffold_skipped
+              ? ' — scaffold skipped'
+              : ` — scaffold ${mrmsRenderCandidateGatedScaffoldReview.scaffold_status ?? '—'}`}
+          </p>
+        ) : null}
+        {(mrmsRenderCandidateGatedScaffoldReview?.preflight_blockers ?? []).length > 0 ? (
+          <div className="validation-meta">
+            <strong>Preflight blockers</strong>
+            <ul>
+              {(mrmsRenderCandidateGatedScaffoldReview?.preflight_blockers ?? []).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        {(mrmsRenderCandidateGatedScaffoldReview?.dry_run_plan_blockers ?? []).length > 0 ? (
+          <div className="validation-meta">
+            <strong>Dry-run plan blockers</strong>
+            <ul>
+              {(mrmsRenderCandidateGatedScaffoldReview?.dry_run_plan_blockers ?? []).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        <button
+          type="button"
+          className="validation-action"
+          onClick={() => void handleGatedScaffoldReviewRefresh()}
+          disabled={gatedScaffoldReviewRefreshing}
+        >
+          {gatedScaffoldReviewRefreshing
+            ? 'Reviewing gated scaffold…'
+            : 'Review gated scaffold (preflight + dry-run gates)'}
+        </button>
+        {gatedScaffoldReviewMessage ? (
+          <p className="validation-meta">{gatedScaffoldReviewMessage}</p>
+        ) : null}
+        {gatedScaffoldReviewError ? (
+          <p className="validation-warn">{gatedScaffoldReviewError}</p>
+        ) : null}
         {mrmsRenderCandidateScaffold ? (
           <>
             <p className="validation-meta">
@@ -2350,6 +2419,14 @@ export default function ValidationStatusPanel({
         </button>
         {scaffoldMessage ? <p className="validation-meta">{scaffoldMessage}</p> : null}
         {scaffoldError ? <p className="validation-warn">{scaffoldError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateGatedScaffoldReview?.suggested_command ??
+            'make mrms-review-gated-scaffold --refresh'
+          }
+          label="Suggested gated scaffold review command"
+          manualCopy
+        />
         <CommandLine
           command={
             mrmsRenderCandidateScaffold?.suggested_command ??

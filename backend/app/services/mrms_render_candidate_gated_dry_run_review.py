@@ -40,8 +40,8 @@ REVIEW_PLAN_NEEDS_REVIEW = "dry_run_plan_needs_review"
 REVIEW_PLAN_READY = "dry_run_plan_ready"
 
 NEXT_PHASE_SCAFFOLD = (
-    "Phase 93 — gated render candidate scaffold review "
-    "(explicitly disabled-by-default; no production tile serving)"
+    "Phase 94 — gated candidate artifact sandbox layout "
+    "(local sandbox directory layout isolated from production tile serving)"
 )
 NEXT_PHASE_PREFLIGHT_EVIDENCE = (
     "Phase 93 — complete MRMS preflight evidence "
