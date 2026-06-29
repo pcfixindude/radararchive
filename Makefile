@@ -191,6 +191,9 @@ mrms-render-candidate-sandbox-import-export:
 mrms-render-candidate-sandbox-comparison-history:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_sandbox_comparison_history.py $(ARGS)
 
+mrms-render-candidate-sandbox-comparison-trend-hint:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_sandbox_comparison_trend_hint.py $(ARGS)
+
 mrms-proof-history:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_proof_history.py $(ARGS)
 

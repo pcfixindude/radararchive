@@ -1373,6 +1373,58 @@ class MrmsRenderCandidateSandboxComparisonHistoryResponse(BaseModel):
     compact: MrmsRenderCandidateSandboxComparisonHistoryCompact
 
 
+class MrmsRenderCandidateSandboxComparisonTrendHintCompact(BaseModel):
+    available: bool = False
+    hint_status: Optional[str] = None
+    hint_reason: Optional[str] = None
+    trend: Optional[str] = None
+    trend_review_recommended: bool = False
+    history_count: Optional[int] = None
+    changed_count: Optional[int] = None
+    unchanged_count: Optional[int] = None
+    current_changed_streak: Optional[int] = None
+    recurring_signals: list[str] = Field(default_factory=list)
+    blockers: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    suggested_action: Optional[str] = None
+    suggested_command: Optional[str] = None
+    schema_version: Optional[str] = None
+    json_path: Optional[str] = None
+    markdown_path: Optional[str] = None
+    next_phase_recommendation: Optional[str] = None
+    verified_mrms: bool = False
+    local_trend_hint_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    prototype: bool = True
+
+
+class MrmsRenderCandidateSandboxComparisonTrendHintResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_trend_hint_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    latest: dict[str, Any] = Field(default_factory=dict)
+    compact: MrmsRenderCandidateSandboxComparisonTrendHintCompact
+
+
 class ScheduledOperatorStatusCompact(BaseModel):
     operator_status_requested: bool = False
     operator_status_generated: bool = False
@@ -2111,6 +2163,9 @@ class ValidationSummaryResponse(BaseModel):
     ] = None
     mrms_render_candidate_sandbox_comparison_history: Optional[
         MrmsRenderCandidateSandboxComparisonHistoryCompact
+    ] = None
+    mrms_render_candidate_sandbox_comparison_trend_hint: Optional[
+        MrmsRenderCandidateSandboxComparisonTrendHintCompact
     ] = None
     scheduled_operator_status: Optional[ScheduledOperatorStatusCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)

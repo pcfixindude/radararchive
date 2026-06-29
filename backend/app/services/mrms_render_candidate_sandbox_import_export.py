@@ -32,8 +32,8 @@ STATUS_INVALID = "invalid"
 STATUS_BLOCKED = "blocked"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 68 — Gated candidate sandbox comparison trend hints "
-    "(local trend hints across sandbox comparison history without production tile serving)"
+    "Phase 69 — Gated candidate sandbox comparison review acknowledgment "
+    "(local acknowledgment of reviewed trend hints without clearing alerts)"
 )
 
 INPUT_DEFINITIONS: tuple[dict[str, str], ...] = (

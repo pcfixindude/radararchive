@@ -55,6 +55,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateSandboxImportExportResponse,
     MrmsRenderCandidateSandboxImportRequest,
     MrmsRenderCandidateSandboxComparisonHistoryResponse,
+    MrmsRenderCandidateSandboxComparisonTrendHintResponse,
     MrmsVisualReviewResponse,
     OperatorReviewStatusResponse,
     OperatorWorkflowPresetsResponse,
@@ -176,6 +177,10 @@ from backend.app.services.mrms_render_candidate_sandbox_import_export import (
 from backend.app.services.mrms_render_candidate_sandbox_comparison_history import (
     build_comparison_history_payload,
     refresh_comparison_history_report,
+)
+from backend.app.services.mrms_render_candidate_sandbox_comparison_trend_hint import (
+    build_sandbox_comparison_trend_hint_payload,
+    refresh_sandbox_comparison_trend_hint,
 )
 from backend.app.services.operator_review_status import build_operator_review_status_payload
 from backend.app.services.operator_workflow_presets import build_operator_workflow_presets_payload
@@ -544,6 +549,33 @@ def validation_mrms_render_candidate_sandbox_comparison_history_refresh() -> (
     refresh_comparison_history_report(storage)
     payload = build_comparison_history_payload(storage)
     return MrmsRenderCandidateSandboxComparisonHistoryResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/import-export/comparison-trend-hint",
+    response_model=MrmsRenderCandidateSandboxComparisonTrendHintResponse,
+)
+def validation_mrms_render_candidate_sandbox_comparison_trend_hint() -> (
+    MrmsRenderCandidateSandboxComparisonTrendHintResponse
+):
+    """Local MRMS render candidate sandbox comparison trend hint (read-only advisory)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_sandbox_comparison_trend_hint_payload(storage)
+    return MrmsRenderCandidateSandboxComparisonTrendHintResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/import-export/comparison-trend-hint",
+    response_model=MrmsRenderCandidateSandboxComparisonTrendHintResponse,
+)
+def validation_mrms_render_candidate_sandbox_comparison_trend_hint_refresh() -> (
+    MrmsRenderCandidateSandboxComparisonTrendHintResponse
+):
+    """Dev/local only — refresh sandbox comparison trend hint report."""
+    storage = LocalStorage(settings.local_storage_root)
+    refresh_sandbox_comparison_trend_hint(storage)
+    payload = build_sandbox_comparison_trend_hint_payload(storage)
+    return MrmsRenderCandidateSandboxComparisonTrendHintResponse(**payload)
 
 
 @router.get(

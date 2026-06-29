@@ -1117,6 +1117,39 @@ export type MrmsRenderCandidateSandboxComparisonHistoryCompact = {
   does_not_authorize_production_use: boolean;
 };
 
+export type MrmsRenderCandidateSandboxComparisonTrendHintCompact = {
+  available?: boolean;
+  hint_status?: string | null;
+  hint_reason?: string | null;
+  trend?: string | null;
+  trend_review_recommended?: boolean;
+  history_count?: number | null;
+  changed_count?: number | null;
+  unchanged_count?: number | null;
+  current_changed_streak?: number | null;
+  recurring_signals?: string[];
+  blockers?: string[];
+  warnings?: string[];
+  suggested_action?: string | null;
+  suggested_command?: string | null;
+  schema_version?: string | null;
+  json_path?: string | null;
+  markdown_path?: string | null;
+  next_phase_recommendation?: string | null;
+  verified_mrms: boolean;
+  local_trend_hint_only: boolean;
+  advisory_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  does_not_create_production_tiles: boolean;
+  does_not_serve_production_tiles: boolean;
+  does_not_delete_by_default: boolean;
+  binary_artifacts_included: boolean;
+  no_external_notifications: boolean;
+  does_not_authorize_production_use: boolean;
+};
+
 export type OperatorWorkflowPresetsCompact = {
   available?: boolean;
   recommended_count?: number;
@@ -1661,6 +1694,7 @@ export type ValidationSummary = {
   mrms_render_candidate_sandbox?: MrmsRenderCandidateSandboxCompact | null;
   mrms_render_candidate_sandbox_import_export?: MrmsRenderCandidateSandboxImportExportCompact | null;
   mrms_render_candidate_sandbox_comparison_history?: MrmsRenderCandidateSandboxComparisonHistoryCompact | null;
+  mrms_render_candidate_sandbox_comparison_trend_hint?: MrmsRenderCandidateSandboxComparisonTrendHintCompact | null;
   scheduled_operator_status?: ScheduledOperatorStatusCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
@@ -2003,6 +2037,28 @@ export async function refreshRenderCandidateSandboxComparisonHistory(): Promise<
       };
     }
     const data = (await response.json()) as { compact: MrmsRenderCandidateSandboxComparisonHistoryCompact };
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function refreshRenderCandidateSandboxComparisonTrendHint(): Promise<
+  | { ok: true; data: { compact: MrmsRenderCandidateSandboxComparisonTrendHintCompact } }
+  | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/validation/mrms-render-candidate/sandbox/import-export/comparison-trend-hint`,
+      { method: 'POST' },
+    );
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: `Render candidate sandbox comparison trend hint refresh failed (${response.status})`,
+      };
+    }
+    const data = (await response.json()) as { compact: MrmsRenderCandidateSandboxComparisonTrendHintCompact };
     return { ok: true, data };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };

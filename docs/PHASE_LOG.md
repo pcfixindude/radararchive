@@ -2355,3 +2355,30 @@ cd frontend && npm run build
 - Advisory metadata comparisons only — no binary artifacts
 - History is not production authorization
 
+## Phase 68 - Gated Candidate Sandbox Comparison Trend Hints
+
+Local trend hints across sandbox comparison history for spotting recurring changes.
+
+### Backend
+- `mrms_render_candidate_sandbox_comparison_trend_hint.py` — trend analysis, `missing` / `ready` / `needs_review` / `blocked` hint status
+- Paths: `mrms_render_candidate_sandbox_comparison_trend_hint.json`, `.md`
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/import-export/comparison-trend-hint`
+- CLI: `scripts/mrms_render_candidate_sandbox_comparison_trend_hint.py`; `make mrms-render-candidate-sandbox-comparison-trend-hint`
+
+### Frontend
+- Dev Validation **MRMS render candidate sandbox comparison trend hints** collapsible
+
+### Run commands
+
+```bash
+make test
+make mrms-render-candidate-sandbox-comparison-trend-hint --refresh
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Trend hints are advisory only — derived from comparison history metadata
+- `needs_review` is not production authorization
+
+

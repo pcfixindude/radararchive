@@ -14,6 +14,7 @@ import {
   exportRenderCandidateSandbox,
   importRenderCandidateSandbox,
   refreshRenderCandidateSandboxComparisonHistory,
+  refreshRenderCandidateSandboxComparisonTrendHint,
   submitDiffAcknowledgment,
   type MrmsProofHistory,
   type MrmsProofRegressionHistory,
@@ -98,6 +99,9 @@ export default function ValidationStatusPanel({
   const [comparisonHistoryRefreshing, setComparisonHistoryRefreshing] = useState(false);
   const [comparisonHistoryMessage, setComparisonHistoryMessage] = useState<string | null>(null);
   const [comparisonHistoryError, setComparisonHistoryError] = useState<string | null>(null);
+  const [trendHintRefreshing, setTrendHintRefreshing] = useState(false);
+  const [trendHintMessage, setTrendHintMessage] = useState<string | null>(null);
+  const [trendHintError, setTrendHintError] = useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -449,6 +453,24 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleTrendHintRefresh() {
+    setTrendHintMessage(null);
+    setTrendHintError(null);
+    setTrendHintRefreshing(true);
+    const result = await refreshRenderCandidateSandboxComparisonTrendHint();
+    setTrendHintRefreshing(false);
+    if (!result.ok) {
+      setTrendHintError(result.error);
+      return;
+    }
+    setTrendHintMessage(
+      `Trend hint refreshed (${result.data.compact.hint_status ?? '—'}) — trend ${result.data.compact.trend ?? '—'}.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   if (!summary) {
     return (
       <section className="panel validation-panel">
@@ -523,6 +545,8 @@ export default function ValidationStatusPanel({
     summary.mrms_render_candidate_sandbox_import_export ?? null;
   const mrmsRenderCandidateSandboxComparisonHistory =
     summary.mrms_render_candidate_sandbox_comparison_history ?? null;
+  const mrmsRenderCandidateSandboxComparisonTrendHint =
+    summary.mrms_render_candidate_sandbox_comparison_trend_hint ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -1765,6 +1789,95 @@ export default function ValidationStatusPanel({
             'make mrms-render-candidate-sandbox-comparison-history --refresh'
           }
           label="Suggested comparison history command"
+          manualCopy
+        />
+        <SafetyNote />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="MRMS render candidate sandbox comparison trend hints"
+        className="validation-render-candidate-sandbox-comparison-trend-hint"
+        summary={
+          <p className="validation-meta">
+            {mrmsRenderCandidateSandboxComparisonTrendHint?.trend
+              ? `Advisory ${mrmsRenderCandidateSandboxComparisonTrendHint.hint_status ?? '—'} — trend ${mrmsRenderCandidateSandboxComparisonTrendHint.trend}`
+              : 'No trend hint yet — run make mrms-render-candidate-sandbox-comparison-trend-hint --refresh'}
+          </p>
+        }
+      >
+        <p className="validation-warn">
+          This is local manifest import/export comparison trend hints only. It does not verify MRMS,
+          enable production rendering, download/decode/render, create or serve production tiles, clear
+          alerts, or authorize production use. Imports are metadata/report-only.
+        </p>
+        {mrmsRenderCandidateSandboxComparisonTrendHint ? (
+          <>
+            <p className="validation-meta">
+              Hint status: {mrmsRenderCandidateSandboxComparisonTrendHint.hint_status ?? '—'} — reason:{' '}
+              {mrmsRenderCandidateSandboxComparisonTrendHint.hint_reason ?? '—'}
+            </p>
+            <p className="validation-meta">
+              Trend: {mrmsRenderCandidateSandboxComparisonTrendHint.trend ?? '—'} — review recommended:{' '}
+              {mrmsRenderCandidateSandboxComparisonTrendHint.trend_review_recommended ? 'yes' : 'no'} —
+              changed streak: {mrmsRenderCandidateSandboxComparisonTrendHint.current_changed_streak ?? 0}
+            </p>
+            {mrmsRenderCandidateSandboxComparisonTrendHint.suggested_action ? (
+              <p className="validation-meta">
+                Suggested action: {mrmsRenderCandidateSandboxComparisonTrendHint.suggested_action}
+              </p>
+            ) : null}
+            {(mrmsRenderCandidateSandboxComparisonTrendHint.recurring_signals ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Recurring signals</strong>
+                <ul>
+                  {(mrmsRenderCandidateSandboxComparisonTrendHint.recurring_signals ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {(mrmsRenderCandidateSandboxComparisonTrendHint.blockers ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Blockers</strong>
+                <ul>
+                  {(mrmsRenderCandidateSandboxComparisonTrendHint.blockers ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {mrmsRenderCandidateSandboxComparisonTrendHint.json_path ? (
+              <p className="validation-meta">
+                JSON: <code>{mrmsRenderCandidateSandboxComparisonTrendHint.json_path}</code>
+              </p>
+            ) : null}
+            {mrmsRenderCandidateSandboxComparisonTrendHint.markdown_path ? (
+              <p className="validation-meta">
+                Markdown: <code>{mrmsRenderCandidateSandboxComparisonTrendHint.markdown_path}</code>
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            No trend hint yet. Seed comparison history first, then run{' '}
+            <code>make mrms-render-candidate-sandbox-comparison-trend-hint --refresh</code>.
+          </p>
+        )}
+        <button
+          type="button"
+          className="validation-action"
+          disabled={trendHintRefreshing}
+          onClick={() => void handleTrendHintRefresh()}
+        >
+          {trendHintRefreshing ? 'Refreshing trend hint…' : 'Refresh trend hint report (local only)'}
+        </button>
+        {trendHintMessage ? <p className="validation-meta">{trendHintMessage}</p> : null}
+        {trendHintError ? <p className="validation-warn">{trendHintError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateSandboxComparisonTrendHint?.suggested_command ??
+            'make mrms-render-candidate-sandbox-comparison-trend-hint --refresh'
+          }
+          label="Suggested trend hint command"
           manualCopy
         />
         <SafetyNote />
