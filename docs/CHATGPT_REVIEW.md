@@ -11,10 +11,10 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 91
 - Latest phase: Phase 91 — Bootstrap visual review sample set
-- Latest commit: (pending commit)
+- Latest commit: `980f504`
 - Latest tag: `phase-91-bootstrap-visual-review-sample-set`
-- Push status: pending
-- Final git status: source changes staged for commit
+- Push status: pushed
+- Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
 
