@@ -11,10 +11,10 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 92
 - Latest phase: Phase 92 — Gated render candidate dry-run plan review
-- Latest commit: (pending commit)
+- Latest commit: `b16e3c0`
 - Latest tag: `phase-92-gated-render-candidate-dry-run-plan`
-- Push status: pending
-- Final git status: source changes staged for commit
+- Push status: pushed
+- Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
 
