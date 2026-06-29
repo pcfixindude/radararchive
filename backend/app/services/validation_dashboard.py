@@ -88,6 +88,9 @@ from backend.app.services.mrms_render_candidate_trend_hint_ack_status_history im
 from backend.app.services.mrms_render_candidate_trend_hint_review_acknowledgment import (
     compact_trend_hint_review_acknowledgment_summary,
 )
+from backend.app.services.mrms_render_candidate_trend_hint_review_digest_diff import (
+    compact_trend_hint_review_digest_diff,
+)
 from backend.app.services.mrms_render_candidate_trend_hint_review_digest_history import (
     compact_trend_hint_review_digest_history,
 )
@@ -335,6 +338,9 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "mrms_render_candidate_trend_hint_ack_status_history": compact_trend_hint_ack_status_history(storage),
         "mrms_render_candidate_trend_hint_review_digest": compact_trend_hint_review_digest(storage),
         "mrms_render_candidate_trend_hint_review_digest_history": compact_trend_hint_review_digest_history(
+            storage
+        ),
+        "mrms_render_candidate_trend_hint_review_digest_diff": compact_trend_hint_review_digest_diff(
             storage
         ),
         "scheduled_operator_status": compact_scheduled_operator_status(scheduled),

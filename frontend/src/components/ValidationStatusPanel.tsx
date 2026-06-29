@@ -1061,6 +1061,8 @@ export default function ValidationStatusPanel({
   const trendHintReviewDigest = summary.mrms_render_candidate_trend_hint_review_digest ?? null;
   const trendHintReviewDigestHistory =
     summary.mrms_render_candidate_trend_hint_review_digest_history ?? null;
+  const trendHintReviewDigestDiff =
+    summary.mrms_render_candidate_trend_hint_review_digest_diff ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -3998,6 +4000,61 @@ export default function ValidationStatusPanel({
             'make mrms-render-candidate-trend-hint-review-digest-history --refresh'
           }
           label="Suggested trend-hint review digest history command"
+          manualCopy
+        />
+        <SafetyNote />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Candidate trend-hint review digest diff"
+        className="validation-render-candidate-trend-hint-review-digest-diff"
+        summary={
+          <p className="validation-meta">
+            {trendHintReviewDigestDiff?.available
+              ? `Diff ${trendHintReviewDigestDiff.diff_status ?? '—'} — checked ${formatTimestamp(trendHintReviewDigestDiff.checked_at)}`
+              : 'No trend-hint review digest diff yet — refresh review digest twice'}
+          </p>
+        }
+      >
+        <p className="validation-warn">
+          Local diff between consecutive trend-hint review digests only. Does not verify MRMS,
+          enable production rendering, download/decode/render, create or serve production tiles,
+          clear alerts, or authorize production use.
+        </p>
+        {trendHintReviewDigestDiff?.available ? (
+          <>
+            <p className="validation-meta">
+              Status: {trendHintReviewDigestDiff.diff_status ?? '—'} — history entries:{' '}
+              {trendHintReviewDigestDiff.history_count ?? 0}
+            </p>
+            {trendHintReviewDigestDiff.changes?.digest_status ? (
+              <p className="validation-meta">
+                Digest:{' '}
+                {(trendHintReviewDigestDiff.changes.digest_status as { baseline?: string; current?: string }).baseline ?? '—'}{' '}
+                →{' '}
+                {(trendHintReviewDigestDiff.changes.digest_status as { baseline?: string; current?: string }).current ?? '—'}
+              </p>
+            ) : null}
+            {trendHintReviewDigestDiff.changes?.coverage_change ? (
+              <p className="validation-meta">
+                Coverage:{' '}
+                {(trendHintReviewDigestDiff.changes.coverage_change as { baseline?: string; current?: string }).baseline ?? '—'}{' '}
+                →{' '}
+                {(trendHintReviewDigestDiff.changes.coverage_change as { baseline?: string; current?: string }).current ?? '—'}
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            Refresh review digest at least twice to record consecutive digest history, or run{' '}
+            <code>make mrms-render-candidate-trend-hint-review-digest-diff --refresh</code>.
+          </p>
+        )}
+        <CommandLine
+          command={
+            trendHintReviewDigestDiff?.suggested_command ??
+            'make mrms-render-candidate-trend-hint-review-digest-diff'
+          }
+          label="Suggested trend-hint review digest diff command"
           manualCopy
         />
         <SafetyNote />

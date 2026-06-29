@@ -1762,6 +1762,28 @@ export type MrmsRenderCandidateTrendHintReviewDigestHistoryCompact = {
   does_not_authorize_production_use: boolean;
 };
 
+export type MrmsRenderCandidateTrendHintReviewDigestDiffCompact = {
+  available?: boolean;
+  diff_status?: string | null;
+  checked_at?: string | null;
+  history_count?: number;
+  changes?: Record<string, unknown> | null;
+  suggested_command?: string | null;
+  next_phase_recommendation?: string | null;
+  verified_mrms: boolean;
+  local_digest_diff_only: boolean;
+  advisory_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  does_not_create_production_tiles: boolean;
+  does_not_serve_production_tiles: boolean;
+  does_not_delete_by_default: boolean;
+  binary_artifacts_included: boolean;
+  no_external_notifications: boolean;
+  does_not_authorize_production_use: boolean;
+};
+
 export type MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentCreateRequest = {
   operator_name?: string;
   operator_initials?: string;
@@ -2342,6 +2364,7 @@ export type ValidationSummary = {
   mrms_render_candidate_trend_hint_ack_status_history?: MrmsRenderCandidateTrendHintAckStatusHistoryCompact | null;
   mrms_render_candidate_trend_hint_review_digest?: MrmsRenderCandidateTrendHintReviewDigestCompact | null;
   mrms_render_candidate_trend_hint_review_digest_history?: MrmsRenderCandidateTrendHintReviewDigestHistoryCompact | null;
+  mrms_render_candidate_trend_hint_review_digest_diff?: MrmsRenderCandidateTrendHintReviewDigestDiffCompact | null;
   scheduled_operator_status?: ScheduledOperatorStatusCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];

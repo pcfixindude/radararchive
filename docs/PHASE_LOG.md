@@ -2832,3 +2832,31 @@ cd frontend && npm run build
 - History does not clear alerts or mutate digests, rollups, or acknowledgments
 - History appends on review digest refresh only
 
+## Phase 86 - Candidate Trend-Hint Review Digest Diff
+
+Local diff between consecutive trend-hint review digests without production authorization.
+
+### Backend
+- `mrms_render_candidate_trend_hint_review_digest_diff.py` — compare consecutive digest history entries, bounded diff history, latest JSON
+- Paths: `mrms_render_candidate_trend_hint_review_digest_diff_latest.json`, `mrms_render_candidate_trend_hint_review_digest_diff_history.json`
+- Phase 85 `append_trend_hint_review_digest_history_entry` records diff on history append
+- API: `GET /api/validation/mrms-render-candidate/sandbox/trend-hint-review-digest/diff`
+- CLI: `scripts/mrms_render_candidate_trend_hint_review_digest_diff.py`; `make mrms-render-candidate-trend-hint-review-digest-diff`
+
+### Frontend
+- Dev Validation **Candidate trend-hint review digest diff** collapsible (read-only from summary)
+
+### Run commands
+
+```bash
+make test
+make mrms-render-candidate-trend-hint-review-digest --refresh
+make mrms-render-candidate-trend-hint-review-digest-diff --refresh
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Diff does not clear alerts or mutate digests, rollups, or acknowledgments
+- Diff records on digest history append or CLI `--refresh` recompute from latest history
+

@@ -42,8 +42,8 @@ ROLLUP_STALE = "stale"
 ROLLUP_BLOCKED = "blocked"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 86 — candidate trend-hint review digest diff "
-    "(local diff between consecutive review digests without production authorization)"
+    "Phase 87 — candidate trend-hint review digest regeneration hint "
+    "(local hint when digest diff suggests refresh without production authorization)"
 )
 
 

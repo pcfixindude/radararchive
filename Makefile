@@ -245,6 +245,9 @@ mrms-render-candidate-trend-hint-review-digest:
 mrms-render-candidate-trend-hint-review-digest-history:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_trend_hint_review_digest_history.py $(ARGS)
 
+mrms-render-candidate-trend-hint-review-digest-diff:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_trend_hint_review_digest_diff.py $(ARGS)
+
 mrms-proof-history:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_proof_history.py $(ARGS)
 

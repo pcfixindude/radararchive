@@ -30,8 +30,8 @@ COVERAGE_MIXED = "mixed"
 COVERAGE_NO_BASELINE = "no_baseline"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 86 — candidate trend-hint review digest diff "
-    "(local diff between consecutive review digests without production authorization)"
+    "Phase 87 — candidate trend-hint review digest regeneration hint "
+    "(local hint when digest diff suggests refresh without production authorization)"
 )
 
 DIGEST_COVERAGE_RANK = {
@@ -159,6 +159,15 @@ def append_trend_hint_review_digest_history_entry(
     entry = build_trend_hint_review_digest_history_entry(digest, previous_entry=previous)
     history.insert(0, entry)
     _save_trend_hint_review_digest_history(storage, history)
+    from backend.app.services.mrms_render_candidate_trend_hint_review_digest_diff import (
+        record_trend_hint_review_digest_diff,
+    )
+
+    record_trend_hint_review_digest_diff(
+        storage,
+        current_entry=entry,
+        baseline_entry=previous,
+    )
     return entry
 
 

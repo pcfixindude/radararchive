@@ -77,6 +77,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateTrendHintAckStatusHistoryResponse,
     MrmsRenderCandidateTrendHintAckStatusResponse,
     MrmsRenderCandidateTrendHintReviewDigestHistoryResponse,
+    MrmsRenderCandidateTrendHintReviewDigestDiffResponse,
     MrmsRenderCandidateTrendHintReviewDigestResponse,
     MrmsRenderCandidateTrendHintReviewAcknowledgmentCreateRequest,
     MrmsRenderCandidateTrendHintReviewAcknowledgmentCreateResponse,
@@ -261,6 +262,9 @@ from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgmen
     build_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint,
     build_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint_payload,
     refresh_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint,
+)
+from backend.app.services.mrms_render_candidate_trend_hint_review_digest_diff import (
+    build_trend_hint_review_digest_diff_payload,
 )
 from backend.app.services.mrms_render_candidate_trend_hint_review_digest_history import (
     build_trend_hint_review_digest_history_payload,
@@ -1271,6 +1275,19 @@ def validation_mrms_render_candidate_trend_hint_review_digest_history_refresh() 
     refresh_trend_hint_review_digest_history_report(storage)
     payload = build_trend_hint_review_digest_history_payload(storage)
     return MrmsRenderCandidateTrendHintReviewDigestHistoryResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/trend-hint-review-digest/diff",
+    response_model=MrmsRenderCandidateTrendHintReviewDigestDiffResponse,
+)
+def validation_mrms_render_candidate_trend_hint_review_digest_diff() -> (
+    MrmsRenderCandidateTrendHintReviewDigestDiffResponse
+):
+    """Latest local candidate trend-hint review digest diff (read-only; does not clear alerts)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_trend_hint_review_digest_diff_payload(storage)
+    return MrmsRenderCandidateTrendHintReviewDigestDiffResponse(**payload)
 
 
 @router.get(
