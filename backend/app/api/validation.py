@@ -62,6 +62,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateGatedComparisonHistoryResponse,
     MrmsRenderCandidateGatedTrendReviewResponse,
     MrmsRenderCandidateGatedComparisonAckResponse,
+    MrmsRenderCandidateGatedAckHistoryResponse,
     MrmsRenderCandidateScaffoldResponse,
     MrmsRenderCandidateSandboxResponse,
     MrmsRenderCandidateSandboxImportExportResponse,
@@ -246,6 +247,10 @@ from backend.app.services.mrms_render_candidate_gated_trend_review import (
 from backend.app.services.mrms_render_candidate_gated_comparison_ack import (
     build_gated_comparison_ack_payload,
     review_gated_comparison_ack,
+)
+from backend.app.services.mrms_render_candidate_gated_ack_history import (
+    build_gated_ack_history_payload,
+    review_gated_ack_history,
 )
 from backend.app.services.mrms_render_candidate_scaffold import (
     build_render_candidate_scaffold_payload,
@@ -899,6 +904,33 @@ def validation_mrms_render_candidate_gated_comparison_ack_run() -> (
     review_gated_comparison_ack(storage)
     payload = build_gated_comparison_ack_payload(storage)
     return MrmsRenderCandidateGatedComparisonAckResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/gated-ack-history",
+    response_model=MrmsRenderCandidateGatedAckHistoryResponse,
+)
+def validation_mrms_render_candidate_gated_ack_history() -> (
+    MrmsRenderCandidateGatedAckHistoryResponse
+):
+    """Latest gated acknowledgment history review report (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_gated_ack_history_payload(storage)
+    return MrmsRenderCandidateGatedAckHistoryResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/gated-ack-history",
+    response_model=MrmsRenderCandidateGatedAckHistoryResponse,
+)
+def validation_mrms_render_candidate_gated_ack_history_run() -> (
+    MrmsRenderCandidateGatedAckHistoryResponse
+):
+    """Dev/local only — review upstream gates and refresh ack history when comparison_ack_ready."""
+    storage = LocalStorage(settings.local_storage_root)
+    review_gated_ack_history(storage)
+    payload = build_gated_ack_history_payload(storage)
+    return MrmsRenderCandidateGatedAckHistoryResponse(**payload)
 
 
 @router.get(

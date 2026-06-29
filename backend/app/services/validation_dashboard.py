@@ -70,6 +70,9 @@ from backend.app.services.mrms_render_candidate_gated_trend_review import (
 from backend.app.services.mrms_render_candidate_gated_comparison_ack import (
     compact_gated_comparison_ack,
 )
+from backend.app.services.mrms_render_candidate_gated_ack_history import (
+    compact_gated_ack_history,
+)
 from backend.app.services.mrms_render_candidate_scaffold import (
     compact_render_candidate_scaffold,
 )
@@ -338,6 +341,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "mrms_render_candidate_gated_comparison_history": compact_gated_comparison_history(storage),
         "mrms_render_candidate_gated_trend_review": compact_gated_trend_review(storage),
         "mrms_render_candidate_gated_comparison_ack": compact_gated_comparison_ack(storage),
+        "mrms_render_candidate_gated_ack_history": compact_gated_ack_history(storage),
         "mrms_render_candidate_scaffold": compact_render_candidate_scaffold(storage),
         "mrms_render_candidate_sandbox": compact_render_candidate_sandbox(storage),
         "mrms_render_candidate_sandbox_import_export": compact_render_candidate_sandbox_import_export(

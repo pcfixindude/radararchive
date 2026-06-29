@@ -21,6 +21,7 @@ import {
   refreshRenderCandidateGatedComparisonHistory,
   refreshRenderCandidateGatedTrendReview,
   refreshRenderCandidateGatedComparisonAck,
+  refreshRenderCandidateGatedAckHistory,
   refreshRenderCandidateScaffold,
   refreshRenderCandidateSandbox,
   exportRenderCandidateSandbox,
@@ -151,6 +152,9 @@ export default function ValidationStatusPanel({
   const [gatedAckRefreshing, setGatedAckRefreshing] = useState(false);
   const [gatedAckMessage, setGatedAckMessage] = useState<string | null>(null);
   const [gatedAckError, setGatedAckError] = useState<string | null>(null);
+  const [gatedAckHistoryRefreshing, setGatedAckHistoryRefreshing] = useState(false);
+  const [gatedAckHistoryMessage, setGatedAckHistoryMessage] = useState<string | null>(null);
+  const [gatedAckHistoryError, setGatedAckHistoryError] = useState<string | null>(null);
   const [scaffoldRefreshing, setScaffoldRefreshing] = useState(false);
   const [scaffoldMessage, setScaffoldMessage] = useState<string | null>(null);
   const [scaffoldError, setScaffoldError] = useState<string | null>(null);
@@ -759,6 +763,24 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleGatedAckHistoryRefresh() {
+    setGatedAckHistoryMessage(null);
+    setGatedAckHistoryError(null);
+    setGatedAckHistoryRefreshing(true);
+    const result = await refreshRenderCandidateGatedAckHistory();
+    setGatedAckHistoryRefreshing(false);
+    if (!result.ok) {
+      setGatedAckHistoryError(result.error);
+      return;
+    }
+    setGatedAckHistoryMessage(
+      `Gated ack history: ${result.data.compact.review_status ?? '—'} — entries ${result.data.compact.history_skipped ? 'skipped' : (result.data.compact.ack_history_count ?? 0)}.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   async function handleScaffoldRefresh() {
     setScaffoldMessage(null);
     setScaffoldError(null);
@@ -1298,6 +1320,8 @@ export default function ValidationStatusPanel({
     summary.mrms_render_candidate_gated_trend_review ?? null;
   const mrmsRenderCandidateGatedComparisonAck =
     summary.mrms_render_candidate_gated_comparison_ack ?? null;
+  const mrmsRenderCandidateGatedAckHistory =
+    summary.mrms_render_candidate_gated_ack_history ?? null;
   const mrmsRenderCandidateScaffold = summary.mrms_render_candidate_scaffold ?? null;
   const mrmsRenderCandidateSandbox = summary.mrms_render_candidate_sandbox ?? null;
   const mrmsRenderCandidateSandboxImportExport =
@@ -3460,6 +3484,37 @@ export default function ValidationStatusPanel({
           production rendering, download/decode/render, create or serve production tiles, clear alerts,
           or authorize production use.
         </p>
+        {mrmsRenderCandidateGatedAckHistory?.available ? (
+          <p className="validation-meta">
+            Latest gated ack history review: {mrmsRenderCandidateGatedAckHistory.review_status ?? '—'} —{' '}
+            preflight {mrmsRenderCandidateGatedAckHistory.preflight_level ?? '—'}
+            {mrmsRenderCandidateGatedAckHistory.history_skipped
+              ? ' — history skipped'
+              : ` — ${mrmsRenderCandidateGatedAckHistory.ack_history_count ?? 0} entries`}
+          </p>
+        ) : null}
+        {(mrmsRenderCandidateGatedAckHistory?.preflight_blockers ?? []).length > 0 ? (
+          <div className="validation-meta">
+            <strong>Preflight blockers</strong>
+            <ul>
+              {(mrmsRenderCandidateGatedAckHistory?.preflight_blockers ?? []).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        <button
+          type="button"
+          className="validation-action"
+          onClick={() => void handleGatedAckHistoryRefresh()}
+          disabled={gatedAckHistoryRefreshing}
+        >
+          {gatedAckHistoryRefreshing
+            ? 'Reviewing gated acknowledgment history…'
+            : 'Review gated acknowledgment history (upstream gates)'}
+        </button>
+        {gatedAckHistoryMessage ? <p className="validation-meta">{gatedAckHistoryMessage}</p> : null}
+        {gatedAckHistoryError ? <p className="validation-warn">{gatedAckHistoryError}</p> : null}
         {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistory?.available ? (
           <>
             <p className="validation-meta">
@@ -3522,6 +3577,14 @@ export default function ValidationStatusPanel({
         </button>
         {ackStatusHistoryMessage ? <p className="validation-meta">{ackStatusHistoryMessage}</p> : null}
         {ackStatusHistoryError ? <p className="validation-warn">{ackStatusHistoryError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateGatedAckHistory?.suggested_command ??
+            'make mrms-review-gated-ack-history --refresh'
+          }
+          label="Suggested gated acknowledgment history command"
+          manualCopy
+        />
         <CommandLine
           command={
             mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistory?.suggested_command ??

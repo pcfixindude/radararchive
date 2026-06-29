@@ -232,6 +232,11 @@ mrms-render-candidate-gated-comparison-ack:
 
 mrms-review-gated-ack: mrms-render-candidate-gated-comparison-ack
 
+mrms-render-candidate-gated-ack-history:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_gated_ack_history.py $(ARGS)
+
+mrms-review-gated-ack-history: mrms-render-candidate-gated-ack-history
+
 mrms-render-candidate-scaffold:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_scaffold.py $(ARGS)
 

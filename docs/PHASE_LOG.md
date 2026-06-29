@@ -3188,3 +3188,30 @@ cd frontend && npm run build
 - Local dev result: `preflight_not_candidate_ready` — preflight `needs_review`; trend and acknowledgment skipped
 - Not production authorization
 
+## Phase 99 - Gated Sandbox Acknowledgment History
+
+Run or review local sandbox acknowledgment history only when comparison acknowledgment is `comparison_ack_ready` or `comparison_ack_needs_acknowledgment`.
+
+### Backend
+- `mrms_render_candidate_gated_ack_history.py` — refreshes upstream gates and refreshes acknowledgment history only when comparison_ack_ready
+- Paths: `mrms_render_candidate_gated_ack_history_latest.json`, `mrms_render_candidate_gated_ack_history_latest.md`
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/gated-ack-history`
+- CLI: `scripts/mrms_render_candidate_gated_ack_history.py`; `make mrms-review-gated-ack-history`
+
+### Frontend
+- **Review gated acknowledgment history** button on MRMS render candidate sandbox comparison acknowledgment status history collapsible
+
+### Run commands
+
+```bash
+make test
+make mrms-review-gated-ack-history ARGS="--refresh"
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Does not run acknowledgment history when any upstream gate is closed
+- Local dev result: `preflight_not_candidate_ready` — preflight `needs_review`; ack and history skipped
+- Not production authorization
+

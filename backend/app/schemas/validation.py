@@ -2018,6 +2018,94 @@ class MrmsRenderCandidateGatedComparisonAckResponse(BaseModel):
     compact: MrmsRenderCandidateGatedComparisonAckCompact
 
 
+class MrmsRenderCandidateGatedAckHistoryCompact(BaseModel):
+    available: bool = False
+    review_status: Optional[str] = None
+    preflight_level: Optional[str] = None
+    preflight_reason: Optional[str] = None
+    preflight_blockers: list[str] = Field(default_factory=list)
+    preflight_warnings: list[str] = Field(default_factory=list)
+    trend_skipped: bool = True
+    ack_skipped: bool = True
+    history_skipped: bool = True
+    hint_status: Optional[str] = None
+    trend: Optional[str] = None
+    rollup_status: Optional[str] = None
+    acknowledgment_status: Optional[str] = None
+    status_reason: Optional[str] = None
+    stale_acknowledgment: bool = False
+    acknowledgment_count: int = 0
+    ack_history_count: int = 0
+    latest_rollup_status: Optional[str] = None
+    latest_acknowledgment_status: Optional[str] = None
+    latest_coverage_change: Optional[str] = None
+    latest_recorded_at: Optional[str] = None
+    recent_ack_history_entries: list[dict[str, Any]] = Field(default_factory=list)
+    ack_blockers: list[str] = Field(default_factory=list)
+    ack_warnings: list[str] = Field(default_factory=list)
+    suggested_action: Optional[str] = None
+    resolution_status: Optional[str] = None
+    remaining_blockers: list[str] = Field(default_factory=list)
+    next_commands: list[str] = Field(default_factory=list)
+    next_operator_step: Optional[str] = None
+    reviewed_at: Optional[str] = None
+    json_path: Optional[str] = None
+    markdown_path: Optional[str] = None
+    suggested_command: Optional[str] = None
+    next_phase_recommendation: Optional[str] = None
+    verified_mrms: bool = False
+    local_gated_ack_history_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_execute_candidate_steps: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    ack_history_ready_is_not_production_authorization: bool = True
+    comparison_ack_ready_is_not_production_authorization: bool = True
+    trend_hint_ready_is_not_production_authorization: bool = True
+    comparison_history_ready_is_not_production_authorization: bool = True
+    manifest_io_ready_is_not_production_authorization: bool = True
+    sandbox_layout_ready_is_not_production_authorization: bool = True
+    scaffold_ready_is_not_production_authorization: bool = True
+    dry_run_plan_ready_is_not_production_authorization: bool = True
+    gated_preflight_ready_is_not_production_authorization: bool = True
+    prototype: bool = True
+
+
+class MrmsRenderCandidateGatedAckHistoryResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_gated_ack_history_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_execute_candidate_steps: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    ack_history_ready_is_not_production_authorization: bool = True
+    comparison_ack_ready_is_not_production_authorization: bool = True
+    trend_hint_ready_is_not_production_authorization: bool = True
+    comparison_history_ready_is_not_production_authorization: bool = True
+    manifest_io_ready_is_not_production_authorization: bool = True
+    sandbox_layout_ready_is_not_production_authorization: bool = True
+    scaffold_ready_is_not_production_authorization: bool = True
+    dry_run_plan_ready_is_not_production_authorization: bool = True
+    gated_preflight_ready_is_not_production_authorization: bool = True
+    latest: Optional[dict[str, Any]] = None
+    compact: MrmsRenderCandidateGatedAckHistoryCompact
+
+
 class MrmsRenderCandidateScaffoldCompact(BaseModel):
     available: bool = False
     scaffold_status: Optional[str] = None
@@ -4077,6 +4165,9 @@ class ValidationSummaryResponse(BaseModel):
     ] = None
     mrms_render_candidate_gated_comparison_ack: Optional[
         MrmsRenderCandidateGatedComparisonAckCompact
+    ] = None
+    mrms_render_candidate_gated_ack_history: Optional[
+        MrmsRenderCandidateGatedAckHistoryCompact
     ] = None
     mrms_render_candidate_scaffold: Optional[MrmsRenderCandidateScaffoldCompact] = None
     mrms_render_candidate_sandbox: Optional[MrmsRenderCandidateSandboxCompact] = None
