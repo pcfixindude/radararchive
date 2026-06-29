@@ -11,7 +11,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 64
 - Latest phase: Phase 64 — Gated real MRMS rendering candidate command scaffold
-- Latest commit: `0ef0442`
+- Latest commit: `aeefadf`
 - Latest tag: `phase-64-render-candidate-scaffold`
 - Push status: pushed to origin main with tag
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
