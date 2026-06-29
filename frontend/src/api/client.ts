@@ -1450,6 +1450,55 @@ export type MrmsRenderCandidateGatedTrendReviewCompact = {
   gated_preflight_ready_is_not_production_authorization: boolean;
 };
 
+export type MrmsRenderCandidateGatedComparisonAckCompact = {
+  available?: boolean;
+  review_status?: string | null;
+  preflight_level?: string | null;
+  preflight_reason?: string | null;
+  preflight_blockers?: string[];
+  preflight_warnings?: string[];
+  trend_skipped?: boolean;
+  ack_skipped?: boolean;
+  hint_status?: string | null;
+  trend?: string | null;
+  rollup_status?: string | null;
+  acknowledgment_status?: string | null;
+  status_reason?: string | null;
+  stale_acknowledgment?: boolean;
+  acknowledgment_count?: number;
+  ack_blockers?: string[];
+  ack_warnings?: string[];
+  suggested_action?: string | null;
+  resolution_status?: string | null;
+  remaining_blockers?: string[];
+  next_commands?: string[];
+  next_operator_step?: string | null;
+  reviewed_at?: string | null;
+  suggested_command?: string | null;
+  next_phase_recommendation?: string | null;
+  verified_mrms: boolean;
+  local_gated_comparison_ack_only: boolean;
+  advisory_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  does_not_create_production_tiles: boolean;
+  does_not_execute_candidate_steps: boolean;
+  does_not_serve_production_tiles: boolean;
+  does_not_delete_by_default: boolean;
+  binary_artifacts_included: boolean;
+  no_external_notifications: boolean;
+  does_not_authorize_production_use: boolean;
+  comparison_ack_ready_is_not_production_authorization: boolean;
+  trend_hint_ready_is_not_production_authorization: boolean;
+  comparison_history_ready_is_not_production_authorization: boolean;
+  manifest_io_ready_is_not_production_authorization: boolean;
+  sandbox_layout_ready_is_not_production_authorization: boolean;
+  scaffold_ready_is_not_production_authorization: boolean;
+  dry_run_plan_ready_is_not_production_authorization: boolean;
+  gated_preflight_ready_is_not_production_authorization: boolean;
+};
+
 export type MrmsRenderCandidateScaffoldCompact = {
   available?: boolean;
   scaffold_status?: string | null;
@@ -2831,6 +2880,7 @@ export type ValidationSummary = {
   mrms_render_candidate_gated_manifest_io?: MrmsRenderCandidateGatedManifestIoCompact | null;
   mrms_render_candidate_gated_comparison_history?: MrmsRenderCandidateGatedComparisonHistoryCompact | null;
   mrms_render_candidate_gated_trend_review?: MrmsRenderCandidateGatedTrendReviewCompact | null;
+  mrms_render_candidate_gated_comparison_ack?: MrmsRenderCandidateGatedComparisonAckCompact | null;
   mrms_render_candidate_scaffold?: MrmsRenderCandidateScaffoldCompact | null;
   mrms_render_candidate_sandbox?: MrmsRenderCandidateSandboxCompact | null;
   mrms_render_candidate_sandbox_import_export?: MrmsRenderCandidateSandboxImportExportCompact | null;
@@ -3340,6 +3390,28 @@ export async function refreshRenderCandidateGatedTrendReview(): Promise<
       };
     }
     const data = (await response.json()) as { compact: MrmsRenderCandidateGatedTrendReviewCompact };
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function refreshRenderCandidateGatedComparisonAck(): Promise<
+  | { ok: true; data: { compact: MrmsRenderCandidateGatedComparisonAckCompact } }
+  | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/validation/mrms-render-candidate/sandbox/gated-ack-review`,
+      { method: 'POST' },
+    );
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: `Gated comparison acknowledgment review failed (${response.status})`,
+      };
+    }
+    const data = (await response.json()) as { compact: MrmsRenderCandidateGatedComparisonAckCompact };
     return { ok: true, data };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };

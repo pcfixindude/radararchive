@@ -61,6 +61,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateGatedManifestIoResponse,
     MrmsRenderCandidateGatedComparisonHistoryResponse,
     MrmsRenderCandidateGatedTrendReviewResponse,
+    MrmsRenderCandidateGatedComparisonAckResponse,
     MrmsRenderCandidateScaffoldResponse,
     MrmsRenderCandidateSandboxResponse,
     MrmsRenderCandidateSandboxImportExportResponse,
@@ -241,6 +242,10 @@ from backend.app.services.mrms_render_candidate_gated_comparison_history import 
 from backend.app.services.mrms_render_candidate_gated_trend_review import (
     build_gated_trend_review_payload,
     review_gated_trend_review,
+)
+from backend.app.services.mrms_render_candidate_gated_comparison_ack import (
+    build_gated_comparison_ack_payload,
+    review_gated_comparison_ack,
 )
 from backend.app.services.mrms_render_candidate_scaffold import (
     build_render_candidate_scaffold_payload,
@@ -867,6 +872,33 @@ def validation_mrms_render_candidate_gated_trend_review_run() -> (
     review_gated_trend_review(storage)
     payload = build_gated_trend_review_payload(storage)
     return MrmsRenderCandidateGatedTrendReviewResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/gated-ack-review",
+    response_model=MrmsRenderCandidateGatedComparisonAckResponse,
+)
+def validation_mrms_render_candidate_gated_comparison_ack() -> (
+    MrmsRenderCandidateGatedComparisonAckResponse
+):
+    """Latest gated comparison acknowledgment review report (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_gated_comparison_ack_payload(storage)
+    return MrmsRenderCandidateGatedComparisonAckResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/gated-ack-review",
+    response_model=MrmsRenderCandidateGatedComparisonAckResponse,
+)
+def validation_mrms_render_candidate_gated_comparison_ack_run() -> (
+    MrmsRenderCandidateGatedComparisonAckResponse
+):
+    """Dev/local only — review upstream gates and refresh acknowledgment when trend_hint_ready."""
+    storage = LocalStorage(settings.local_storage_root)
+    review_gated_comparison_ack(storage)
+    payload = build_gated_comparison_ack_payload(storage)
+    return MrmsRenderCandidateGatedComparisonAckResponse(**payload)
 
 
 @router.get(

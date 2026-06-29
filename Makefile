@@ -227,6 +227,11 @@ mrms-render-candidate-gated-trend-review:
 
 mrms-review-gated-trend: mrms-render-candidate-gated-trend-review
 
+mrms-render-candidate-gated-comparison-ack:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_gated_comparison_ack.py $(ARGS)
+
+mrms-review-gated-ack: mrms-render-candidate-gated-comparison-ack
+
 mrms-render-candidate-scaffold:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_scaffold.py $(ARGS)
 

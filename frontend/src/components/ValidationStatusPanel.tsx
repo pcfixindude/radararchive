@@ -20,6 +20,7 @@ import {
   refreshRenderCandidateGatedManifestIo,
   refreshRenderCandidateGatedComparisonHistory,
   refreshRenderCandidateGatedTrendReview,
+  refreshRenderCandidateGatedComparisonAck,
   refreshRenderCandidateScaffold,
   refreshRenderCandidateSandbox,
   exportRenderCandidateSandbox,
@@ -147,6 +148,9 @@ export default function ValidationStatusPanel({
   const [gatedTrendRefreshing, setGatedTrendRefreshing] = useState(false);
   const [gatedTrendMessage, setGatedTrendMessage] = useState<string | null>(null);
   const [gatedTrendError, setGatedTrendError] = useState<string | null>(null);
+  const [gatedAckRefreshing, setGatedAckRefreshing] = useState(false);
+  const [gatedAckMessage, setGatedAckMessage] = useState<string | null>(null);
+  const [gatedAckError, setGatedAckError] = useState<string | null>(null);
   const [scaffoldRefreshing, setScaffoldRefreshing] = useState(false);
   const [scaffoldMessage, setScaffoldMessage] = useState<string | null>(null);
   const [scaffoldError, setScaffoldError] = useState<string | null>(null);
@@ -737,6 +741,24 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleGatedAckRefresh() {
+    setGatedAckMessage(null);
+    setGatedAckError(null);
+    setGatedAckRefreshing(true);
+    const result = await refreshRenderCandidateGatedComparisonAck();
+    setGatedAckRefreshing(false);
+    if (!result.ok) {
+      setGatedAckError(result.error);
+      return;
+    }
+    setGatedAckMessage(
+      `Gated comparison ack: ${result.data.compact.review_status ?? '—'} — rollup ${result.data.compact.ack_skipped ? 'skipped' : (result.data.compact.rollup_status ?? '—')}.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   async function handleScaffoldRefresh() {
     setScaffoldMessage(null);
     setScaffoldError(null);
@@ -1274,6 +1296,8 @@ export default function ValidationStatusPanel({
     summary.mrms_render_candidate_gated_comparison_history ?? null;
   const mrmsRenderCandidateGatedTrendReview =
     summary.mrms_render_candidate_gated_trend_review ?? null;
+  const mrmsRenderCandidateGatedComparisonAck =
+    summary.mrms_render_candidate_gated_comparison_ack ?? null;
   const mrmsRenderCandidateScaffold = summary.mrms_render_candidate_scaffold ?? null;
   const mrmsRenderCandidateSandbox = summary.mrms_render_candidate_sandbox ?? null;
   const mrmsRenderCandidateSandboxImportExport =
@@ -3298,6 +3322,47 @@ export default function ValidationStatusPanel({
           enable production rendering, download/decode/render, create or serve production tiles, clear
           alerts, or authorize production use.
         </p>
+        {mrmsRenderCandidateGatedComparisonAck?.available ? (
+          <p className="validation-meta">
+            Latest gated ack review: {mrmsRenderCandidateGatedComparisonAck.review_status ?? '—'} —{' '}
+            preflight {mrmsRenderCandidateGatedComparisonAck.preflight_level ?? '—'}
+            {mrmsRenderCandidateGatedComparisonAck.ack_skipped
+              ? ' — ack skipped'
+              : ` — rollup ${mrmsRenderCandidateGatedComparisonAck.rollup_status ?? '—'}`}
+          </p>
+        ) : null}
+        {(mrmsRenderCandidateGatedComparisonAck?.preflight_blockers ?? []).length > 0 ? (
+          <div className="validation-meta">
+            <strong>Preflight blockers</strong>
+            <ul>
+              {(mrmsRenderCandidateGatedComparisonAck?.preflight_blockers ?? []).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        {(mrmsRenderCandidateGatedComparisonAck?.ack_blockers ?? []).length > 0 ? (
+          <div className="validation-meta">
+            <strong>Acknowledgment blockers</strong>
+            <ul>
+              {(mrmsRenderCandidateGatedComparisonAck?.ack_blockers ?? []).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        <button
+          type="button"
+          className="validation-action"
+          onClick={() => void handleGatedAckRefresh()}
+          disabled={gatedAckRefreshing}
+        >
+          {gatedAckRefreshing
+            ? 'Reviewing gated comparison acknowledgment…'
+            : 'Review gated comparison acknowledgment (upstream gates)'}
+        </button>
+        {gatedAckMessage ? <p className="validation-meta">{gatedAckMessage}</p> : null}
+        {gatedAckError ? <p className="validation-warn">{gatedAckError}</p> : null}
         {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatus ? (
           <>
             <p className="validation-meta">
@@ -3361,6 +3426,14 @@ export default function ValidationStatusPanel({
         </button>
         {ackStatusMessage ? <p className="validation-meta">{ackStatusMessage}</p> : null}
         {ackStatusError ? <p className="validation-warn">{ackStatusError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateGatedComparisonAck?.suggested_command ??
+            'make mrms-review-gated-ack --refresh'
+          }
+          label="Suggested gated comparison acknowledgment command"
+          manualCopy
+        />
         <CommandLine
           command={
             mrmsRenderCandidateSandboxComparisonAcknowledgmentStatus?.suggested_command ??

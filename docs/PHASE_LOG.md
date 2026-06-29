@@ -3161,3 +3161,30 @@ cd frontend && npm run build
 - Local dev result: `preflight_not_candidate_ready` — preflight `needs_review`; comparison and trend hint skipped
 - Not production authorization
 
+## Phase 98 - Gated Sandbox Comparison Acknowledgment
+
+Run or review local sandbox comparison acknowledgment only when trend hint is `trend_hint_ready` or `trend_hint_needs_review`.
+
+### Backend
+- `mrms_render_candidate_gated_comparison_ack.py` — refreshes upstream gates and refreshes acknowledgment status only when trend_hint_ready
+- Paths: `mrms_render_candidate_gated_comparison_ack_latest.json`, `mrms_render_candidate_gated_comparison_ack_latest.md`
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/gated-ack-review`
+- CLI: `scripts/mrms_render_candidate_gated_comparison_ack.py`; `make mrms-review-gated-ack`
+
+### Frontend
+- **Review gated comparison acknowledgment** button on MRMS render candidate sandbox comparison acknowledgment status collapsible
+
+### Run commands
+
+```bash
+make test
+make mrms-review-gated-ack ARGS="--refresh"
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Does not run acknowledgment when any upstream gate is closed
+- Local dev result: `preflight_not_candidate_ready` — preflight `needs_review`; trend and acknowledgment skipped
+- Not production authorization
+
