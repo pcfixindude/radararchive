@@ -56,6 +56,9 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateSandboxImportRequest,
     MrmsRenderCandidateSandboxComparisonHistoryResponse,
     MrmsRenderCandidateSandboxComparisonTrendHintResponse,
+    MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentCreateRequest,
+    MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentCreateResponse,
+    MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentsResponse,
     MrmsVisualReviewResponse,
     OperatorReviewStatusResponse,
     OperatorWorkflowPresetsResponse,
@@ -179,8 +182,14 @@ from backend.app.services.mrms_render_candidate_sandbox_comparison_history impor
     refresh_comparison_history_report,
 )
 from backend.app.services.mrms_render_candidate_sandbox_comparison_trend_hint import (
+    build_sandbox_comparison_trend_hint,
     build_sandbox_comparison_trend_hint_payload,
     refresh_sandbox_comparison_trend_hint,
+)
+from backend.app.services.mrms_render_candidate_sandbox_comparison_review_acknowledgment import (
+    SandboxComparisonReviewAcknowledgmentValidationError,
+    build_sandbox_comparison_review_acknowledgments_payload,
+    create_sandbox_comparison_review_acknowledgment,
 )
 from backend.app.services.operator_review_status import build_operator_review_status_payload
 from backend.app.services.operator_workflow_presets import build_operator_workflow_presets_payload
@@ -576,6 +585,57 @@ def validation_mrms_render_candidate_sandbox_comparison_trend_hint_refresh() -> 
     refresh_sandbox_comparison_trend_hint(storage)
     payload = build_sandbox_comparison_trend_hint_payload(storage)
     return MrmsRenderCandidateSandboxComparisonTrendHintResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/import-export/comparison-review-acknowledgments",
+    response_model=MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentsResponse,
+)
+def validation_mrms_render_candidate_sandbox_comparison_review_acknowledgments(
+    limit: int = 25,
+) -> MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentsResponse:
+    """Bounded local sandbox comparison trend hint review acknowledgments (does not clear alerts)."""
+    storage = LocalStorage(settings.local_storage_root)
+    bounded = max(1, min(limit, 50))
+    payload = build_sandbox_comparison_review_acknowledgments_payload(storage, limit=bounded)
+    return MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentsResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/import-export/comparison-review-acknowledgments",
+    response_model=MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentCreateResponse,
+)
+def validation_mrms_render_candidate_sandbox_comparison_review_acknowledgments_create(
+    body: MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentCreateRequest,
+) -> MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentCreateResponse:
+    """Dev/local only — record sandbox comparison review acknowledgment; does NOT clear alerts."""
+    storage = LocalStorage(settings.local_storage_root)
+    try:
+        record = create_sandbox_comparison_review_acknowledgment(
+            storage,
+            operator_name=body.operator_name,
+            operator_initials=body.operator_initials,
+            note=body.note,
+            related_trend=body.related_trend,
+            related_hint_status=body.related_hint_status,
+            related_hint_reason=body.related_hint_reason,
+            related_trend_review_recommended=body.related_trend_review_recommended,
+            acknowledged_trend_review=body.acknowledged_trend_review,
+        )
+    except SandboxComparisonReviewAcknowledgmentValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    hint = build_sandbox_comparison_trend_hint(storage)
+    return MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentCreateResponse(
+        verified_mrms=False,
+        local_acknowledgment_only=True,
+        does_not_clear_alerts=True,
+        does_not_enable_production=True,
+        does_not_authorize_production_use=True,
+        production_enabled=settings.enable_production_radar_tiles,
+        trend_review_still_recommended=bool(hint.get("trend_review_recommended")),
+        acknowledgment=record,
+    )
 
 
 @router.get(

@@ -194,6 +194,9 @@ mrms-render-candidate-sandbox-comparison-history:
 mrms-render-candidate-sandbox-comparison-trend-hint:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_sandbox_comparison_trend_hint.py $(ARGS)
 
+mrms-render-candidate-sandbox-comparison-review-acknowledgment:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_sandbox_comparison_review_acknowledgment.py $(ARGS)
+
 mrms-proof-history:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_proof_history.py $(ARGS)
 

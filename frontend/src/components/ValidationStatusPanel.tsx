@@ -15,6 +15,7 @@ import {
   importRenderCandidateSandbox,
   refreshRenderCandidateSandboxComparisonHistory,
   refreshRenderCandidateSandboxComparisonTrendHint,
+  submitSandboxComparisonReviewAcknowledgment,
   submitDiffAcknowledgment,
   type MrmsProofHistory,
   type MrmsProofRegressionHistory,
@@ -102,6 +103,12 @@ export default function ValidationStatusPanel({
   const [trendHintRefreshing, setTrendHintRefreshing] = useState(false);
   const [trendHintMessage, setTrendHintMessage] = useState<string | null>(null);
   const [trendHintError, setTrendHintError] = useState<string | null>(null);
+  const [comparisonReviewAckOperator, setComparisonReviewAckOperator] = useState('');
+  const [comparisonReviewAckNote, setComparisonReviewAckNote] = useState('');
+  const [comparisonReviewAckTrendReview, setComparisonReviewAckTrendReview] = useState(false);
+  const [comparisonReviewAckSubmitting, setComparisonReviewAckSubmitting] = useState(false);
+  const [comparisonReviewAckMessage, setComparisonReviewAckMessage] = useState<string | null>(null);
+  const [comparisonReviewAckError, setComparisonReviewAckError] = useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -471,6 +478,32 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleComparisonReviewAckSubmit(event: FormEvent) {
+    event.preventDefault();
+    setComparisonReviewAckMessage(null);
+    setComparisonReviewAckError(null);
+    setComparisonReviewAckSubmitting(true);
+    const result = await submitSandboxComparisonReviewAcknowledgment({
+      operator_initials: comparisonReviewAckOperator.trim() || undefined,
+      note: comparisonReviewAckNote.trim(),
+      acknowledged_trend_review: comparisonReviewAckTrendReview || undefined,
+    });
+    setComparisonReviewAckSubmitting(false);
+    if (!result.ok) {
+      setComparisonReviewAckError(result.error);
+      return;
+    }
+    setComparisonReviewAckMessage(
+      result.data.trend_review_still_recommended
+        ? 'Acknowledgment recorded — trend review may still be recommended (does not clear alerts).'
+        : 'Acknowledgment recorded (local only — does not verify MRMS).',
+    );
+    setComparisonReviewAckNote('');
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   if (!summary) {
     return (
       <section className="panel validation-panel">
@@ -547,6 +580,8 @@ export default function ValidationStatusPanel({
     summary.mrms_render_candidate_sandbox_comparison_history ?? null;
   const mrmsRenderCandidateSandboxComparisonTrendHint =
     summary.mrms_render_candidate_sandbox_comparison_trend_hint ?? null;
+  const mrmsRenderCandidateSandboxComparisonReviewAcknowledgment =
+    summary.mrms_render_candidate_sandbox_comparison_review_acknowledgment ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -1878,6 +1913,94 @@ export default function ValidationStatusPanel({
             'make mrms-render-candidate-sandbox-comparison-trend-hint --refresh'
           }
           label="Suggested trend hint command"
+          manualCopy
+        />
+        <SafetyNote />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="MRMS render candidate sandbox comparison review acknowledgment"
+        className="validation-render-candidate-sandbox-comparison-review-acknowledgment"
+        summary={
+          <p className="validation-meta">
+            {mrmsRenderCandidateSandboxComparisonReviewAcknowledgment?.available
+              ? `Latest ack ${formatTimestamp(mrmsRenderCandidateSandboxComparisonReviewAcknowledgment.created_at)} — ${mrmsRenderCandidateSandboxComparisonReviewAcknowledgment.operator ?? '—'}`
+              : 'No comparison review acknowledgment yet — record local review below'}
+          </p>
+        }
+      >
+        <p className="validation-warn">
+          Local acknowledgment of reviewed sandbox comparison trend hints only. Does not verify MRMS,
+          enable production rendering, download/decode/render, create or serve production tiles, clear
+          alerts, or authorize production use.
+        </p>
+        {mrmsRenderCandidateSandboxComparisonReviewAcknowledgment?.available ? (
+          <>
+            <p className="validation-meta">
+              Count: {mrmsRenderCandidateSandboxComparisonReviewAcknowledgment.count ?? 0} — related
+              trend: {mrmsRenderCandidateSandboxComparisonReviewAcknowledgment.related_trend ?? '—'} —
+              hint status:{' '}
+              {mrmsRenderCandidateSandboxComparisonReviewAcknowledgment.related_hint_status ?? '—'}
+            </p>
+            {mrmsRenderCandidateSandboxComparisonReviewAcknowledgment.note ? (
+              <p className="validation-meta">
+                Latest note: {mrmsRenderCandidateSandboxComparisonReviewAcknowledgment.note}
+              </p>
+            ) : null}
+            {mrmsRenderCandidateSandboxComparisonReviewAcknowledgment.trend_review_still_recommended ? (
+              <p className="validation-warn">
+                Trend review still recommended — acknowledgment does not clear alerts or change trend
+                hints.
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            Refresh trend hints first, then record acknowledgment after local review.
+          </p>
+        )}
+        <form className="validation-form" onSubmit={(event) => void handleComparisonReviewAckSubmit(event)}>
+          <label>
+            Operator initials
+            <input
+              type="text"
+              value={comparisonReviewAckOperator}
+              onChange={(event) => setComparisonReviewAckOperator(event.target.value)}
+              autoComplete="name"
+            />
+          </label>
+          <label>
+            Note (required)
+            <textarea
+              value={comparisonReviewAckNote}
+              onChange={(event) => setComparisonReviewAckNote(event.target.value)}
+              rows={2}
+              required
+            />
+          </label>
+          <label className="validation-checkbox">
+            <input
+              type="checkbox"
+              checked={comparisonReviewAckTrendReview}
+              onChange={(event) => setComparisonReviewAckTrendReview(event.target.checked)}
+            />
+            Acknowledged current trend review recommendation (local only)
+          </label>
+          <button type="submit" className="validation-action" disabled={comparisonReviewAckSubmitting}>
+            {comparisonReviewAckSubmitting
+              ? 'Recording acknowledgment…'
+              : 'Record comparison review acknowledgment (local only)'}
+          </button>
+        </form>
+        {comparisonReviewAckMessage ? (
+          <p className="validation-meta">{comparisonReviewAckMessage}</p>
+        ) : null}
+        {comparisonReviewAckError ? <p className="validation-warn">{comparisonReviewAckError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateSandboxComparisonReviewAcknowledgment?.suggested_command ??
+            'make mrms-render-candidate-sandbox-comparison-review-acknowledgment --operator OP --note "Reviewed locally"'
+          }
+          label="Suggested review acknowledgment command"
           manualCopy
         />
         <SafetyNote />

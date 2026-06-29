@@ -1425,6 +1425,76 @@ class MrmsRenderCandidateSandboxComparisonTrendHintResponse(BaseModel):
     compact: MrmsRenderCandidateSandboxComparisonTrendHintCompact
 
 
+class MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentCompact(BaseModel):
+    available: bool = False
+    count: int = 0
+    acknowledgment_id: Optional[str] = None
+    created_at: Optional[str] = None
+    operator: Optional[str] = None
+    operator_name: Optional[str] = None
+    operator_initials: Optional[str] = None
+    note: Optional[str] = None
+    related_trend: Optional[str] = None
+    related_hint_status: Optional[str] = None
+    related_hint_reason: Optional[str] = None
+    related_trend_review_recommended: bool = False
+    acknowledged_trend_review: bool = False
+    trend_review_still_recommended: bool = False
+    suggested_command: Optional[str] = None
+    next_phase_recommendation: Optional[str] = None
+    verified_mrms: bool = False
+    local_acknowledgment_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_authorize_production_use: bool = True
+    prototype: bool = True
+
+
+class MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentCreateRequest(BaseModel):
+    operator_name: Optional[str] = None
+    operator_initials: Optional[str] = None
+    note: str = ""
+    related_trend: Optional[str] = None
+    related_hint_status: Optional[str] = None
+    related_hint_reason: Optional[str] = None
+    related_trend_review_recommended: Optional[bool] = None
+    acknowledged_trend_review: Optional[bool] = None
+
+
+class MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentCreateResponse(BaseModel):
+    verified_mrms: bool = False
+    local_acknowledgment_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_authorize_production_use: bool = True
+    production_enabled: bool = False
+    trend_review_still_recommended: bool = False
+    acknowledgment: dict[str, Any]
+
+
+class MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentsResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_acknowledgment_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_authorize_production_use: bool = True
+    count: int = 0
+    max_entries: int = 50
+    trend_review_still_recommended: bool = False
+    suggested_command: Optional[str] = None
+    next_phase_recommendation: Optional[str] = None
+    latest: Optional[MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentCompact] = None
+    entries: list[MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentCompact] = Field(
+        default_factory=list
+    )
+
+
 class ScheduledOperatorStatusCompact(BaseModel):
     operator_status_requested: bool = False
     operator_status_generated: bool = False
@@ -2166,6 +2236,9 @@ class ValidationSummaryResponse(BaseModel):
     ] = None
     mrms_render_candidate_sandbox_comparison_trend_hint: Optional[
         MrmsRenderCandidateSandboxComparisonTrendHintCompact
+    ] = None
+    mrms_render_candidate_sandbox_comparison_review_acknowledgment: Optional[
+        MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentCompact
     ] = None
     scheduled_operator_status: Optional[ScheduledOperatorStatusCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)
