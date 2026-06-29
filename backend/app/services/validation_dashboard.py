@@ -63,6 +63,9 @@ from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgmen
 from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status import (
     compact_ack_status_trend_review_acknowledgment_status,
 )
+from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_history import (
+    compact_ack_status_trend_review_acknowledgment_status_history,
+)
 from backend.app.services.operator_review_status import (
     compact_operator_review_status,
     compact_scheduled_operator_status,
@@ -278,6 +281,9 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         ),
         "mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status": (
             compact_ack_status_trend_review_acknowledgment_status(storage)
+        ),
+        "mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_history": (
+            compact_ack_status_trend_review_acknowledgment_status_history(storage)
         ),
         "scheduled_operator_status": compact_scheduled_operator_status(scheduled),
         "runbook_references": RUNBOOK_LINK_METADATA,

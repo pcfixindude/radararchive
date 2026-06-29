@@ -1,11 +1,14 @@
-"""MRMS render candidate sandbox comparison acknowledgment status history — local advisory only."""
+"""MRMS render candidate sandbox acknowledgment status trend review acknowledgment status history — local advisory only."""
 
 from __future__ import annotations
 
 import json
 from typing import Any, Optional
 
-from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status import (
+from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_hint import (
+    SCHEMA_VERSION,
+)
+from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status import (
     ROLLUP_BLOCKED,
     ROLLUP_CURRENT,
     ROLLUP_MISSING,
@@ -13,18 +16,19 @@ from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgmen
     ROLLUP_NOT_NEEDED,
     ROLLUP_STALE,
 )
-from backend.app.services.mrms_render_candidate_sandbox_comparison_trend_hint import SCHEMA_VERSION
 from backend.app.services.storage import LocalStorage
 
-ACK_STATUS_HISTORY_JSON = (
-    "dev/mrms_render_candidate_sandbox_comparison_acknowledgment_status_history.json"
+ACK_STATUS_TREND_REVIEW_ACK_STATUS_HISTORY_JSON = (
+    "dev/mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_history.json"
 )
-ACK_STATUS_HISTORY_MD = (
-    "dev/mrms_render_candidate_sandbox_comparison_acknowledgment_status_history.md"
+ACK_STATUS_TREND_REVIEW_ACK_STATUS_HISTORY_MD = (
+    "dev/mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_history.md"
 )
 
-MAX_ACK_STATUS_HISTORY = 25
-SUGGESTED_COMMAND = "make mrms-render-candidate-sandbox-comparison-acknowledgment-status-history"
+MAX_ACK_STATUS_TREND_REVIEW_ACK_STATUS_HISTORY = 25
+SUGGESTED_COMMAND = (
+    "make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status-history"
+)
 
 COVERAGE_UNCHANGED = "unchanged"
 COVERAGE_IMPROVED = "improved"
@@ -73,19 +77,19 @@ def _safety_fields() -> dict[str, Any]:
 
 
 def _history_json_path(storage: LocalStorage) -> str:
-    return storage.normalize_path(ACK_STATUS_HISTORY_JSON)
+    return storage.normalize_path(ACK_STATUS_TREND_REVIEW_ACK_STATUS_HISTORY_JSON)
 
 
 def _history_md_path(storage: LocalStorage) -> str:
-    return storage.normalize_path(ACK_STATUS_HISTORY_MD)
+    return storage.normalize_path(ACK_STATUS_TREND_REVIEW_ACK_STATUS_HISTORY_MD)
 
 
-def load_ack_status_history(
+def load_ack_status_trend_review_acknowledgment_status_history(
     storage: LocalStorage,
     *,
-    limit: int = MAX_ACK_STATUS_HISTORY,
+    limit: int = MAX_ACK_STATUS_TREND_REVIEW_ACK_STATUS_HISTORY,
 ) -> list[dict[str, Any]]:
-    bounded = max(1, min(limit, MAX_ACK_STATUS_HISTORY))
+    bounded = max(1, min(limit, MAX_ACK_STATUS_TREND_REVIEW_ACK_STATUS_HISTORY))
     abs_path = storage.absolute_path(_history_json_path(storage))
     if not abs_path.is_file():
         return []
@@ -98,11 +102,14 @@ def load_ack_status_history(
     return []
 
 
-def _save_ack_status_history(storage: LocalStorage, entries: list[dict[str, Any]]) -> None:
+def _save_ack_status_trend_review_acknowledgment_status_history(
+    storage: LocalStorage,
+    entries: list[dict[str, Any]],
+) -> None:
     repo_path = _history_json_path(storage)
     storage.ensure_directories(repo_path.rsplit("/", 1)[0])
     storage.absolute_path(repo_path).write_text(
-        json.dumps(entries[:MAX_ACK_STATUS_HISTORY], indent=2, sort_keys=True),
+        json.dumps(entries[:MAX_ACK_STATUS_TREND_REVIEW_ACK_STATUS_HISTORY], indent=2, sort_keys=True),
         encoding="utf-8",
     )
 
@@ -124,7 +131,7 @@ def _coverage_change_for_rollup(
     return COVERAGE_MIXED
 
 
-def build_ack_status_history_entry(
+def build_ack_status_trend_review_acknowledgment_status_history_entry(
     status: dict[str, Any],
     *,
     previous_entry: Optional[dict[str, Any]] = None,
@@ -157,25 +164,34 @@ def build_ack_status_history_entry(
     }
 
 
-def append_ack_status_history_entry(storage: LocalStorage, status: dict[str, Any]) -> dict[str, Any]:
-    history = load_ack_status_history(storage, limit=MAX_ACK_STATUS_HISTORY)
+def append_ack_status_trend_review_acknowledgment_status_history_entry(
+    storage: LocalStorage,
+    status: dict[str, Any],
+) -> dict[str, Any]:
+    history = load_ack_status_trend_review_acknowledgment_status_history(
+        storage,
+        limit=MAX_ACK_STATUS_TREND_REVIEW_ACK_STATUS_HISTORY,
+    )
     previous = history[0] if history else None
-    entry = build_ack_status_history_entry(status, previous_entry=previous)
+    entry = build_ack_status_trend_review_acknowledgment_status_history_entry(
+        status,
+        previous_entry=previous,
+    )
     history.insert(0, entry)
-    _save_ack_status_history(storage, history)
+    _save_ack_status_trend_review_acknowledgment_status_history(storage, history)
     return entry
 
 
-def build_ack_status_history_markdown(
+def build_ack_status_trend_review_acknowledgment_status_history_markdown(
     history: list[dict[str, Any]],
     latest: dict[str, Any],
 ) -> str:
     lines = [
-        "# MRMS Render Candidate Sandbox Comparison Acknowledgment Status History",
+        "# MRMS Render Candidate Sandbox Comparison Acknowledgment Status Trend Review Acknowledgment Status History",
         "",
         f"Generated at: {_utc_now()}",
         "",
-        "> **WARNING:** Local acknowledgment status history only. Advisory metadata — does **NOT** "
+        "> **WARNING:** Local trend review acknowledgment status history only. Advisory metadata — does **NOT** "
         "verify MRMS, enable production rendering, download/decode/render, create or serve production "
         "tiles, clear alerts, or authorize production use.",
         "",
@@ -198,8 +214,13 @@ def build_ack_status_history_markdown(
     return "\n".join(lines) + "\n"
 
 
-def refresh_ack_status_history_report(storage: LocalStorage) -> dict[str, Any]:
-    history = load_ack_status_history(storage, limit=MAX_ACK_STATUS_HISTORY)
+def refresh_ack_status_trend_review_acknowledgment_status_history_report(
+    storage: LocalStorage,
+) -> dict[str, Any]:
+    history = load_ack_status_trend_review_acknowledgment_status_history(
+        storage,
+        limit=MAX_ACK_STATUS_TREND_REVIEW_ACK_STATUS_HISTORY,
+    )
     latest_entry = history[0] if history else None
     body = {
         "generated_at": _utc_now(),
@@ -218,18 +239,20 @@ def refresh_ack_status_history_report(storage: LocalStorage) -> dict[str, Any]:
     }
     storage.ensure_directories(_history_json_path(storage).rsplit("/", 1)[0])
     storage.absolute_path(_history_md_path(storage)).write_text(
-        build_ack_status_history_markdown(history, body),
+        build_ack_status_trend_review_acknowledgment_status_history_markdown(history, body),
         encoding="utf-8",
     )
     return body
 
 
-def compact_ack_status_history(storage: LocalStorage) -> dict[str, Any]:
-    history = load_ack_status_history(storage, limit=10)
+def compact_ack_status_trend_review_acknowledgment_status_history(
+    storage: LocalStorage,
+) -> dict[str, Any]:
+    history = load_ack_status_trend_review_acknowledgment_status_history(storage, limit=10)
     latest_entry = history[0] if history else None
     return {
         "available": bool(history),
-        "history_count": len(load_ack_status_history(storage)),
+        "history_count": len(load_ack_status_trend_review_acknowledgment_status_history(storage)),
         "latest_rollup_status": (latest_entry or {}).get("rollup_status"),
         "latest_acknowledgment_status": (latest_entry or {}).get("acknowledgment_status"),
         "latest_coverage_change": (latest_entry or {}).get("coverage_change"),
@@ -252,28 +275,34 @@ def compact_ack_status_history(storage: LocalStorage) -> dict[str, Any]:
     }
 
 
-def build_ack_status_history_payload(storage: LocalStorage) -> dict[str, Any]:
-    history = load_ack_status_history(storage)
-    body = refresh_ack_status_history_report(storage) if history else {
-        "generated_at": _utc_now(),
-        "history_count": 0,
-        "latest_rollup_status": None,
-        "latest_acknowledgment_status": None,
-        "latest_coverage_change": None,
-        "latest_entry": None,
-        "recent_entries": [],
-        "schema_version": SCHEMA_VERSION,
-        "json_path": _history_json_path(storage),
-        "markdown_path": _history_md_path(storage),
-        "suggested_command": SUGGESTED_COMMAND,
-        "next_phase_recommendation": NEXT_PHASE_RECOMMENDATION,
-        **_safety_fields(),
-    }
+def build_ack_status_trend_review_acknowledgment_status_history_payload(
+    storage: LocalStorage,
+) -> dict[str, Any]:
+    history = load_ack_status_trend_review_acknowledgment_status_history(storage)
+    body = (
+        refresh_ack_status_trend_review_acknowledgment_status_history_report(storage)
+        if history
+        else {
+            "generated_at": _utc_now(),
+            "history_count": 0,
+            "latest_rollup_status": None,
+            "latest_acknowledgment_status": None,
+            "latest_coverage_change": None,
+            "latest_entry": None,
+            "recent_entries": [],
+            "schema_version": SCHEMA_VERSION,
+            "json_path": _history_json_path(storage),
+            "markdown_path": _history_md_path(storage),
+            "suggested_command": SUGGESTED_COMMAND,
+            "next_phase_recommendation": NEXT_PHASE_RECOMMENDATION,
+            **_safety_fields(),
+        }
+    )
     return {
         **_safety_fields(),
         "latest": body,
-        "compact": compact_ack_status_history(storage),
+        "compact": compact_ack_status_trend_review_acknowledgment_status_history(storage),
         "entries": history,
         "count": len(history),
-        "max_entries": MAX_ACK_STATUS_HISTORY,
+        "max_entries": MAX_ACK_STATUS_TREND_REVIEW_ACK_STATUS_HISTORY,
     }

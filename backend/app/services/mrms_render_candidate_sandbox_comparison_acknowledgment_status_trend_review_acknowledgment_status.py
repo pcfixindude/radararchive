@@ -50,8 +50,9 @@ ROLLUP_STALE = "stale"
 ROLLUP_BLOCKED = "blocked"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 75 — Gated candidate sandbox comparison acknowledgment status trend review acknowledgment status "
-    "history (local bounded history of trend review acknowledgment status rollups without production authorization)"
+    "Phase 76 — Gated candidate sandbox comparison acknowledgment status trend review acknowledgment status "
+    "trend hints (local advisory trend hints derived from trend review acknowledgment status history "
+    "without production authorization)"
 )
 
 
@@ -292,6 +293,11 @@ def save_ack_status_trend_review_acknowledgment_status(
     storage: LocalStorage,
     status: dict[str, Any],
 ) -> dict[str, Any]:
+    from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_history import (
+        append_ack_status_trend_review_acknowledgment_status_history_entry,
+        refresh_ack_status_trend_review_acknowledgment_status_history_report,
+    )
+
     json_path = _status_json_path(storage)
     md_path = _status_md_path(storage)
     storage.ensure_directories(json_path.rsplit("/", 1)[0])
@@ -310,6 +316,8 @@ def save_ack_status_trend_review_acknowledgment_status(
         build_ack_status_trend_review_acknowledgment_status_markdown(status),
         encoding="utf-8",
     )
+    append_ack_status_trend_review_acknowledgment_status_history_entry(storage, status)
+    refresh_ack_status_trend_review_acknowledgment_status_history_report(storage)
     return status
 
 
