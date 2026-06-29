@@ -179,6 +179,9 @@ mrms-render-candidate-dry-run-plan:
 mrms-render-candidate-scaffold:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_scaffold.py $(ARGS)
 
+mrms-render-candidate-sandbox:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_sandbox.py $(ARGS)
+
 mrms-proof-history:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_proof_history.py $(ARGS)
 

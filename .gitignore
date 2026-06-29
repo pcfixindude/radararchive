@@ -59,3 +59,6 @@ data/dev/mrms_render_candidate_dry_run_plan.json
 data/dev/mrms_render_candidate_dry_run_plan.md
 data/dev/mrms_render_candidate_scaffold.json
 data/dev/mrms_render_candidate_scaffold.md
+data/dev/mrms_render_candidate_sandbox/
+data/dev/mrms_render_candidate_sandbox_manifest.json
+data/dev/mrms_render_candidate_sandbox_report.md

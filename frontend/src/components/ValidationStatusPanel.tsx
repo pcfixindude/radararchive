@@ -10,6 +10,7 @@ import {
   refreshRenderCandidatePreflight,
   refreshRenderCandidateDryRunPlan,
   refreshRenderCandidateScaffold,
+  refreshRenderCandidateSandbox,
   submitDiffAcknowledgment,
   type MrmsProofHistory,
   type MrmsProofRegressionHistory,
@@ -84,6 +85,9 @@ export default function ValidationStatusPanel({
   const [scaffoldRefreshing, setScaffoldRefreshing] = useState(false);
   const [scaffoldMessage, setScaffoldMessage] = useState<string | null>(null);
   const [scaffoldError, setScaffoldError] = useState<string | null>(null);
+  const [sandboxRefreshing, setSandboxRefreshing] = useState(false);
+  const [sandboxMessage, setSandboxMessage] = useState<string | null>(null);
+  const [sandboxError, setSandboxError] = useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -363,6 +367,24 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleSandboxRefresh() {
+    setSandboxMessage(null);
+    setSandboxError(null);
+    setSandboxRefreshing(true);
+    const result = await refreshRenderCandidateSandbox();
+    setSandboxRefreshing(false);
+    if (!result.ok) {
+      setSandboxError(result.error);
+      return;
+    }
+    setSandboxMessage(
+      `Sandbox refreshed (${result.data.compact.sandbox_status ?? '—'}) — local-only; cleanup report-only by default.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   if (!summary) {
     return (
       <section className="panel validation-panel">
@@ -432,6 +454,7 @@ export default function ValidationStatusPanel({
   const mrmsRenderCandidatePreflight = summary.mrms_render_candidate_preflight ?? null;
   const mrmsRenderCandidateDryRunPlan = summary.mrms_render_candidate_dry_run_plan ?? null;
   const mrmsRenderCandidateScaffold = summary.mrms_render_candidate_scaffold ?? null;
+  const mrmsRenderCandidateSandbox = summary.mrms_render_candidate_sandbox ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -1310,6 +1333,142 @@ export default function ValidationStatusPanel({
             'make mrms-render-candidate-scaffold --refresh'
           }
           label="Suggested scaffold command"
+          manualCopy
+        />
+        <SafetyNote />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="MRMS render candidate sandbox"
+        className="validation-render-candidate-sandbox"
+        summary={
+          <p className="validation-meta">
+            {mrmsRenderCandidateSandbox?.sandbox_status
+              ? `Advisory ${mrmsRenderCandidateSandbox.sandbox_status} — ${mrmsRenderCandidateSandbox.blocking_items?.length ?? 0} blocking`
+              : 'No sandbox report yet — run make mrms-render-candidate-sandbox --refresh'}
+          </p>
+        }
+      >
+        <p className="validation-warn">
+          This is a local candidate artifact sandbox only. It does not verify MRMS, enable production
+          rendering, download/decode/render by default, create or serve production tiles, clear alerts,
+          or authorize production use. Cleanup is report-only unless explicitly confirmed.
+        </p>
+        {mrmsRenderCandidateSandbox ? (
+          <>
+            <p className="validation-meta">
+              Sandbox status: {mrmsRenderCandidateSandbox.sandbox_status ?? '—'} — reason:{' '}
+              {mrmsRenderCandidateSandbox.sandbox_reason ?? '—'}
+            </p>
+            {mrmsRenderCandidateSandbox.sandbox_root ? (
+              <p className="validation-meta">
+                Sandbox root: <code>{mrmsRenderCandidateSandbox.sandbox_root}</code>
+              </p>
+            ) : null}
+            <p className="validation-meta">
+              Isolated from production tile serving:{' '}
+              {mrmsRenderCandidateSandbox.isolation_status ? 'yes' : 'no'} — cleanup mode:{' '}
+              {mrmsRenderCandidateSandbox.cleanup_mode ?? 'report_only'} — delete performed:{' '}
+              {mrmsRenderCandidateSandbox.delete_performed ? 'yes' : 'no'}
+            </p>
+            {(mrmsRenderCandidateSandbox.expected_subdirectories ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Expected subdirectories</strong>
+                <ul>
+                  {(mrmsRenderCandidateSandbox.expected_subdirectories ?? []).map((name) => (
+                    <li key={name}>
+                      <code>{name}/</code> —{' '}
+                      {(mrmsRenderCandidateSandbox.existing_subdirectories ?? []).includes(name)
+                        ? 'present'
+                        : 'missing'}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {(mrmsRenderCandidateSandbox.blocking_items ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Blockers</strong>
+                <ul>
+                  {(mrmsRenderCandidateSandbox.blocking_items ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="validation-meta">Blockers: none</p>
+            )}
+            {(mrmsRenderCandidateSandbox.warnings ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Warnings</strong>
+                <ul>
+                  {(mrmsRenderCandidateSandbox.warnings ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {(mrmsRenderCandidateSandbox.safety_gates ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Safety gates</strong>
+                <ul>
+                  {(mrmsRenderCandidateSandbox.safety_gates ?? []).slice(0, 8).map((gate) => (
+                    <li key={gate.id ?? gate.message}>
+                      {gate.id ?? 'gate'}: {gate.passed ? 'passed' : 'failed'} — {gate.message}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {(mrmsRenderCandidateSandbox.cleanup_candidates ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Cleanup candidates (report-only)</strong>
+                <ul>
+                  {(mrmsRenderCandidateSandbox.cleanup_candidates ?? []).map((item) => (
+                    <li key={item.path}>
+                      <code>{item.path}</code> — {item.category} ({item.file_count} files)
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {mrmsRenderCandidateSandbox.json_path ? (
+              <p className="validation-meta">
+                JSON: <code>{mrmsRenderCandidateSandbox.json_path}</code>
+              </p>
+            ) : null}
+            {mrmsRenderCandidateSandbox.markdown_path ? (
+              <p className="validation-meta">
+                Markdown: <code>{mrmsRenderCandidateSandbox.markdown_path}</code>
+              </p>
+            ) : null}
+            {mrmsRenderCandidateSandbox.next_phase_recommendation ? (
+              <p className="validation-meta">
+                Next phase: {mrmsRenderCandidateSandbox.next_phase_recommendation}
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            No sandbox report yet. Run <code>make mrms-render-candidate-sandbox --refresh</code> to
+            create the local layout and advisory report.
+          </p>
+        )}
+        <button
+          type="button"
+          className="validation-action"
+          disabled={sandboxRefreshing}
+          onClick={() => void handleSandboxRefresh()}
+        >
+          {sandboxRefreshing ? 'Refreshing sandbox…' : 'Refresh sandbox report (local only)'}
+        </button>
+        {sandboxMessage ? <p className="validation-meta">{sandboxMessage}</p> : null}
+        {sandboxError ? <p className="validation-warn">{sandboxError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateSandbox?.suggested_command ??
+            'make mrms-render-candidate-sandbox --refresh'
+          }
+          label="Suggested sandbox command"
           manualCopy
         />
         <SafetyNote />

@@ -9,10 +9,10 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 64
-- Latest phase: Phase 64 — Gated real MRMS rendering candidate command scaffold
-- Latest commit: `aeefadf`
-- Latest tag: `phase-64-render-candidate-scaffold`
+- Completed through phase: 65
+- Latest phase: Phase 65 — Gated candidate artifact sandbox layout
+- Latest commit: `f6f1e1c`
+- Latest tag: `phase-65-candidate-artifact-sandbox`
 - Push status: pushed to origin main with tag
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
@@ -29,19 +29,20 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Render candidate preflight: local advisory only; `candidate_preflight_ready` is **not** production authorization
 - Render candidate dry-run plan: local advisory only; does not download/decode/render by default; `dry_run_plan_ready` is **not** production authorization
 - Render candidate scaffold: disabled-by-default local scaffold; dry-run/no-op only; `scaffold_ready` is **not** production authorization
+- Render candidate sandbox: local-only artifact layout under `data/dev/`; cleanup report-only by default; `ready` is **not** production authorization
 - Scheduled visual review: explicit opt-in only via `--visual-review` or `make scheduled-proof-bundle-visual-review`
 
 ## Latest phase summary
 
-- Phase: **64**
-- Purpose: Add a disabled-by-default command scaffold for a future real MRMS rendering candidate attempt, with hard safety gates, dry-run/no-op default behavior, and no production tile serving.
-- Main command added: `make mrms-render-candidate-scaffold`
-- API added: `GET/POST /api/validation/mrms-render-candidate/scaffold`
-- Tests: backend 706 passed; frontend vitest 8 passed; frontend build succeeded
+- Phase: **65**
+- Purpose: Add a local sandbox directory layout and cleanup/reporting workflow for future real MRMS candidate artifacts, isolated from production tile serving and disabled by default.
+- Main command added: `make mrms-render-candidate-sandbox`
+- API added: `GET/POST /api/validation/mrms-render-candidate/sandbox`
+- Tests: backend 727 passed; frontend vitest 8 passed; frontend build succeeded
 - Known limitations:
-  - Scaffold is disabled-by-default — does not download/decode/render or execute listed candidate commands
-  - Conservative blocking when Phase 62 preflight or Phase 63 dry-run plan is missing/blocked
-  - `scaffold_ready` only when prerequisites are acceptable and scaffold remains dry-run/no-op
+  - Sandbox is local-only under `data/dev/mrms_render_candidate_sandbox/`
+  - Cleanup is report-only — no file deletion in Phase 65 even with `--confirm-delete-dev-sandbox`
+  - Conservative blocking when sandbox path escapes `data/dev/` or overlaps production tile paths
   - `verified_mrms` remains false
 
 ## Current capabilities
@@ -61,23 +62,24 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Render candidate preflight JSON/Markdown with Dev Validation preflight UI
 - Render candidate dry-run plan JSON/Markdown with Dev Validation dry-run plan UI
 - Render candidate command scaffold JSON/Markdown with Dev Validation scaffold UI
+- Render candidate artifact sandbox layout/manifest/report with Dev Validation sandbox UI
 
 ## Current focus
 
-The project is in the **local visual evidence review** block with gated preflight, dry-run planning, and disabled-by-default scaffold before any real MRMS rendering candidate attempt.
+The project is in the **local visual evidence review** block with gated preflight, dry-run planning, disabled-by-default scaffold, and local artifact sandbox before any real MRMS rendering candidate attempt.
 
-The next major direction should add a local sandbox directory layout for future candidate artifacts.
+The next major direction should add local import/export for candidate sandbox manifests and reports.
 
 Do **not** promote to verified MRMS yet.
 
 ## Next recommended phase
 
-- Phase number: **65**
-- Phase title: Gated candidate artifact sandbox layout
-- Goal: Add a local sandbox directory layout and cleanup/reporting workflow for future real MRMS candidate artifacts, keeping it isolated from production tile serving and disabled by default.
-- Why this is next: Phase 64 scaffolds future candidate commands with hard safety gates; Phase 65 should define an isolated local artifact sandbox before any side-effectful candidate work.
+- Phase number: **66**
+- Phase title: Gated candidate sandbox manifest import/export
+- Goal: Add local import/export support for candidate sandbox manifests and reports so future candidate artifacts can be reviewed, archived, and compared without touching production tile serving or verifying MRMS.
+- Why this is next: Phase 65 defines the isolated sandbox layout; Phase 66 should add manifest import/export for review/archive/compare workflows.
 - Safety boundaries:
-  - local-only sandbox by default
+  - local-only import/export by default
   - no MRMS verification claim
   - no production rendering or tile serving
   - no download/decode/render execution unless explicitly gated and disabled by default
@@ -101,12 +103,12 @@ Read first:
 - docs/VERIFIED_MRMS_CRITERIA.md
 - docs/GRIB2_DECODE.md
 
-Task: Implement Phase 65 only.
+Task: Implement Phase 66 only.
 
-Goal: Add a local sandbox directory layout and cleanup/reporting workflow for future real MRMS candidate artifacts, keeping it isolated from production tile serving and disabled by default.
+Goal: Add local import/export support for candidate sandbox manifests and reports so future candidate artifacts can be reviewed, archived, and compared without touching production tile serving or verifying MRMS.
 
 Requirements (summary):
-- Persist local sandbox layout/report JSON/Markdown under data/dev/ (gitignored)
+- Persist local import/export JSON/Markdown under data/dev/ (gitignored)
 - Expose read-only API/status and Dev Validation UI
 - Keep verified_mrms false and production rendering gated
 - Do not download/decode/render by default, clear alerts, or mutate catalog/render gates

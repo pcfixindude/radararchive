@@ -51,6 +51,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidatePreflightResponse,
     MrmsRenderCandidateDryRunPlanResponse,
     MrmsRenderCandidateScaffoldResponse,
+    MrmsRenderCandidateSandboxResponse,
     MrmsVisualReviewResponse,
     OperatorReviewStatusResponse,
     OperatorWorkflowPresetsResponse,
@@ -159,6 +160,10 @@ from backend.app.services.mrms_render_candidate_dry_run_plan import (
 from backend.app.services.mrms_render_candidate_scaffold import (
     build_render_candidate_scaffold_payload,
     generate_render_candidate_scaffold,
+)
+from backend.app.services.mrms_render_candidate_sandbox import (
+    build_render_candidate_sandbox_payload,
+    generate_render_candidate_sandbox,
 )
 from backend.app.services.operator_review_status import build_operator_review_status_payload
 from backend.app.services.operator_workflow_presets import build_operator_workflow_presets_payload
@@ -439,6 +444,29 @@ def validation_mrms_render_candidate_scaffold_refresh() -> MrmsRenderCandidateSc
     generate_render_candidate_scaffold(storage)
     payload = build_render_candidate_scaffold_payload(storage)
     return MrmsRenderCandidateScaffoldResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox",
+    response_model=MrmsRenderCandidateSandboxResponse,
+)
+def validation_mrms_render_candidate_sandbox() -> MrmsRenderCandidateSandboxResponse:
+    """Local MRMS render candidate sandbox status (read-only advisory; local-only)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_render_candidate_sandbox_payload(storage)
+    return MrmsRenderCandidateSandboxResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox",
+    response_model=MrmsRenderCandidateSandboxResponse,
+)
+def validation_mrms_render_candidate_sandbox_refresh() -> MrmsRenderCandidateSandboxResponse:
+    """Dev/local only — create/validate sandbox layout and regenerate report; does NOT delete by default."""
+    storage = LocalStorage(settings.local_storage_root)
+    generate_render_candidate_sandbox(storage)
+    payload = build_render_candidate_sandbox_payload(storage)
+    return MrmsRenderCandidateSandboxResponse(**payload)
 
 
 @router.get(

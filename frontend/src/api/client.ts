@@ -1005,6 +1005,48 @@ export type MrmsRenderCandidateScaffoldCompact = {
   does_not_authorize_production_use: boolean;
 };
 
+export type MrmsRenderCandidateSandboxCompact = {
+  available?: boolean;
+  sandbox_status?: string | null;
+  sandbox_reason?: string | null;
+  blocking_items?: string[];
+  warnings?: string[];
+  sandbox_root?: string | null;
+  expected_subdirectories?: string[];
+  existing_subdirectories?: string[];
+  missing_subdirectories?: string[];
+  cleanup_candidates?: Array<{
+    path?: string;
+    category?: string;
+    file_count?: number;
+    total_bytes?: number;
+    action?: string;
+    delete_requires_flag?: string;
+    note?: string;
+  }>;
+  cleanup_mode?: string;
+  delete_performed?: boolean;
+  safety_gates?: Array<{ id?: string; passed?: boolean; message?: string }>;
+  isolation_status?: boolean | null;
+  created_at?: string | null;
+  json_path?: string | null;
+  markdown_path?: string | null;
+  suggested_command?: string | null;
+  next_phase_recommendation?: string | null;
+  verified_mrms: boolean;
+  local_sandbox_only: boolean;
+  disabled_by_default: boolean;
+  cleanup_report_only_by_default: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  does_not_create_production_tiles: boolean;
+  does_not_serve_production_tiles: boolean;
+  does_not_delete_by_default: boolean;
+  no_external_notifications: boolean;
+  does_not_authorize_production_use: boolean;
+};
+
 export type OperatorWorkflowPresetsCompact = {
   available?: boolean;
   recommended_count?: number;
@@ -1546,6 +1588,7 @@ export type ValidationSummary = {
   mrms_render_candidate_preflight?: MrmsRenderCandidatePreflightCompact | null;
   mrms_render_candidate_dry_run_plan?: MrmsRenderCandidateDryRunPlanCompact | null;
   mrms_render_candidate_scaffold?: MrmsRenderCandidateScaffoldCompact | null;
+  mrms_render_candidate_sandbox?: MrmsRenderCandidateSandboxCompact | null;
   scheduled_operator_status?: ScheduledOperatorStatusCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
@@ -1806,6 +1849,24 @@ export async function refreshRenderCandidateScaffold(): Promise<
       return { ok: false, error: `Render candidate scaffold refresh failed (${response.status})` };
     }
     const data = (await response.json()) as { compact: MrmsRenderCandidateScaffoldCompact };
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function refreshRenderCandidateSandbox(): Promise<
+  | { ok: true; data: { compact: MrmsRenderCandidateSandboxCompact } }
+  | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(`${API_BASE}/api/validation/mrms-render-candidate/sandbox`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      return { ok: false, error: `Render candidate sandbox refresh failed (${response.status})` };
+    }
+    const data = (await response.json()) as { compact: MrmsRenderCandidateSandboxCompact };
     return { ok: true, data };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };

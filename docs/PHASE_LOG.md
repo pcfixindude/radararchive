@@ -2270,3 +2270,31 @@ cd frontend && npm run build
 ### Known limitations
 - Scaffold is disabled-by-default — does not download/decode/render, serve production tiles, clear alerts, or mutate gates
 - `scaffold_ready` is not production authorization
+
+## Phase 65 - Gated Candidate Artifact Sandbox Layout
+
+Local sandbox directory layout and cleanup/reporting workflow for future real MRMS candidate artifacts, isolated from production tile serving.
+
+### Backend
+- `mrms_render_candidate_sandbox.py` — sandbox layout, manifest/report generation, conservative `missing` / `needs_setup` / `ready` / `needs_cleanup` / `blocked` status
+- Sandbox root: `data/dev/mrms_render_candidate_sandbox/` with `incoming/`, `decoded/`, `rendered/`, `reports/`, `logs/`, `manifests/`, `scratch/`, `quarantine/`
+- Manifest/report: `mrms_render_candidate_sandbox_manifest.json`, `mrms_render_candidate_sandbox_report.md`
+- `compact_render_candidate_sandbox()` on validation summary
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox`
+- CLI: `scripts/mrms_render_candidate_sandbox.py`; `make mrms-render-candidate-sandbox`
+
+### Frontend
+- Dev Validation **MRMS render candidate sandbox** collapsible with root, subdirectories, blockers, safety gates, report-only cleanup candidates
+
+### Run commands
+
+```bash
+make test
+make mrms-render-candidate-sandbox --refresh
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Sandbox is local-only — cleanup is report-only; no file deletion in Phase 65
+- `ready` is not production authorization

@@ -33,6 +33,9 @@ from backend.app.services.mrms_render_candidate_dry_run_plan import (
 from backend.app.services.mrms_render_candidate_scaffold import (
     compact_render_candidate_scaffold,
 )
+from backend.app.services.mrms_render_candidate_sandbox import (
+    compact_render_candidate_sandbox,
+)
 from backend.app.services.operator_review_status import (
     compact_operator_review_status,
     compact_scheduled_operator_status,
@@ -223,6 +226,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "mrms_render_candidate_preflight": compact_render_candidate_preflight(storage),
         "mrms_render_candidate_dry_run_plan": compact_render_candidate_dry_run_plan(storage),
         "mrms_render_candidate_scaffold": compact_render_candidate_scaffold(storage),
+        "mrms_render_candidate_sandbox": compact_render_candidate_sandbox(storage),
         "scheduled_operator_status": compact_scheduled_operator_status(scheduled),
         "runbook_references": RUNBOOK_LINK_METADATA,
         "catalog": catalog,
