@@ -11,9 +11,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 81
 - Latest phase: Phase 81 — Candidate trend-hint review acknowledgments
-- Latest commit: TBD after push
+- Latest commit: `b3fc82a`
 - Latest tag: `phase-81-candidate-trend-hint-review-acknowledgments`
-- Push status: pending
+- Push status: pushed
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
