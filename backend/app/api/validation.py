@@ -57,6 +57,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateDryRunPlanResponse,
     MrmsRenderCandidateGatedDryRunReviewResponse,
     MrmsRenderCandidateGatedScaffoldReviewResponse,
+    MrmsRenderCandidateGatedSandboxLayoutResponse,
     MrmsRenderCandidateScaffoldResponse,
     MrmsRenderCandidateSandboxResponse,
     MrmsRenderCandidateSandboxImportExportResponse,
@@ -221,6 +222,10 @@ from backend.app.services.mrms_render_candidate_gated_dry_run_review import (
 from backend.app.services.mrms_render_candidate_gated_scaffold_review import (
     build_gated_scaffold_review_payload,
     review_gated_scaffold,
+)
+from backend.app.services.mrms_render_candidate_gated_sandbox_layout import (
+    build_gated_sandbox_layout_payload,
+    review_gated_sandbox_layout,
 )
 from backend.app.services.mrms_render_candidate_scaffold import (
     build_render_candidate_scaffold_payload,
@@ -739,6 +744,33 @@ def validation_mrms_render_candidate_gated_scaffold_review_run() -> (
     review_gated_scaffold(storage)
     payload = build_gated_scaffold_review_payload(storage)
     return MrmsRenderCandidateGatedScaffoldReviewResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/gated-layout-review",
+    response_model=MrmsRenderCandidateGatedSandboxLayoutResponse,
+)
+def validation_mrms_render_candidate_gated_sandbox_layout() -> (
+    MrmsRenderCandidateGatedSandboxLayoutResponse
+):
+    """Latest gated sandbox layout review report (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_gated_sandbox_layout_payload(storage)
+    return MrmsRenderCandidateGatedSandboxLayoutResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/gated-layout-review",
+    response_model=MrmsRenderCandidateGatedSandboxLayoutResponse,
+)
+def validation_mrms_render_candidate_gated_sandbox_layout_run() -> (
+    MrmsRenderCandidateGatedSandboxLayoutResponse
+):
+    """Dev/local only — review upstream gates and generate sandbox layout when scaffold_ready."""
+    storage = LocalStorage(settings.local_storage_root)
+    review_gated_sandbox_layout(storage)
+    payload = build_gated_sandbox_layout_payload(storage)
+    return MrmsRenderCandidateGatedSandboxLayoutResponse(**payload)
 
 
 @router.get(

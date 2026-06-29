@@ -16,6 +16,7 @@ import {
   refreshRenderCandidateDryRunPlan,
   refreshRenderCandidateGatedDryRunReview,
   refreshRenderCandidateGatedScaffoldReview,
+  refreshRenderCandidateGatedSandboxLayout,
   refreshRenderCandidateScaffold,
   refreshRenderCandidateSandbox,
   exportRenderCandidateSandbox,
@@ -131,6 +132,9 @@ export default function ValidationStatusPanel({
   const [gatedScaffoldReviewRefreshing, setGatedScaffoldReviewRefreshing] = useState(false);
   const [gatedScaffoldReviewMessage, setGatedScaffoldReviewMessage] = useState<string | null>(null);
   const [gatedScaffoldReviewError, setGatedScaffoldReviewError] = useState<string | null>(null);
+  const [gatedSandboxLayoutRefreshing, setGatedSandboxLayoutRefreshing] = useState(false);
+  const [gatedSandboxLayoutMessage, setGatedSandboxLayoutMessage] = useState<string | null>(null);
+  const [gatedSandboxLayoutError, setGatedSandboxLayoutError] = useState<string | null>(null);
   const [scaffoldRefreshing, setScaffoldRefreshing] = useState(false);
   const [scaffoldMessage, setScaffoldMessage] = useState<string | null>(null);
   const [scaffoldError, setScaffoldError] = useState<string | null>(null);
@@ -643,6 +647,24 @@ export default function ValidationStatusPanel({
     }
     setGatedScaffoldReviewMessage(
       `Gated scaffold review: ${result.data.compact.review_status ?? '—'} — preflight ${result.data.compact.preflight_level ?? '—'} — scaffold ${result.data.compact.scaffold_skipped ? 'skipped' : (result.data.compact.scaffold_status ?? '—')}.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
+  async function handleGatedSandboxLayoutRefresh() {
+    setGatedSandboxLayoutMessage(null);
+    setGatedSandboxLayoutError(null);
+    setGatedSandboxLayoutRefreshing(true);
+    const result = await refreshRenderCandidateGatedSandboxLayout();
+    setGatedSandboxLayoutRefreshing(false);
+    if (!result.ok) {
+      setGatedSandboxLayoutError(result.error);
+      return;
+    }
+    setGatedSandboxLayoutMessage(
+      `Gated sandbox layout: ${result.data.compact.review_status ?? '—'} — preflight ${result.data.compact.preflight_level ?? '—'} — sandbox ${result.data.compact.sandbox_skipped ? 'skipped' : (result.data.compact.sandbox_status ?? '—')}.`,
     );
     if (onRefresh) {
       await onRefresh();
@@ -1178,6 +1200,8 @@ export default function ValidationStatusPanel({
     summary.mrms_render_candidate_gated_dry_run_review ?? null;
   const mrmsRenderCandidateGatedScaffoldReview =
     summary.mrms_render_candidate_gated_scaffold_review ?? null;
+  const mrmsRenderCandidateGatedSandboxLayout =
+    summary.mrms_render_candidate_gated_sandbox_layout ?? null;
   const mrmsRenderCandidateScaffold = summary.mrms_render_candidate_scaffold ?? null;
   const mrmsRenderCandidateSandbox = summary.mrms_render_candidate_sandbox ?? null;
   const mrmsRenderCandidateSandboxImportExport =
@@ -2453,6 +2477,51 @@ export default function ValidationStatusPanel({
           rendering, download/decode/render by default, create or serve production tiles, clear alerts,
           or authorize production use. Cleanup is report-only unless explicitly confirmed.
         </p>
+        {mrmsRenderCandidateGatedSandboxLayout?.available ? (
+          <p className="validation-meta">
+            Latest gated layout review: {mrmsRenderCandidateGatedSandboxLayout.review_status ?? '—'} —{' '}
+            preflight {mrmsRenderCandidateGatedSandboxLayout.preflight_level ?? '—'}
+            {mrmsRenderCandidateGatedSandboxLayout.sandbox_skipped
+              ? ' — sandbox skipped'
+              : ` — sandbox ${mrmsRenderCandidateGatedSandboxLayout.sandbox_status ?? '—'}`}
+          </p>
+        ) : null}
+        {(mrmsRenderCandidateGatedSandboxLayout?.preflight_blockers ?? []).length > 0 ? (
+          <div className="validation-meta">
+            <strong>Preflight blockers</strong>
+            <ul>
+              {(mrmsRenderCandidateGatedSandboxLayout?.preflight_blockers ?? []).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        {(mrmsRenderCandidateGatedSandboxLayout?.scaffold_blockers ?? []).length > 0 ? (
+          <div className="validation-meta">
+            <strong>Scaffold blockers</strong>
+            <ul>
+              {(mrmsRenderCandidateGatedSandboxLayout?.scaffold_blockers ?? []).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        <button
+          type="button"
+          className="validation-action"
+          onClick={() => void handleGatedSandboxLayoutRefresh()}
+          disabled={gatedSandboxLayoutRefreshing}
+        >
+          {gatedSandboxLayoutRefreshing
+            ? 'Reviewing gated sandbox layout…'
+            : 'Review gated sandbox layout (upstream gates)'}
+        </button>
+        {gatedSandboxLayoutMessage ? (
+          <p className="validation-meta">{gatedSandboxLayoutMessage}</p>
+        ) : null}
+        {gatedSandboxLayoutError ? (
+          <p className="validation-warn">{gatedSandboxLayoutError}</p>
+        ) : null}
         {mrmsRenderCandidateSandbox ? (
           <>
             <p className="validation-meta">
@@ -2563,6 +2632,14 @@ export default function ValidationStatusPanel({
         </button>
         {sandboxMessage ? <p className="validation-meta">{sandboxMessage}</p> : null}
         {sandboxError ? <p className="validation-warn">{sandboxError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateGatedSandboxLayout?.suggested_command ??
+            'make mrms-review-gated-sandbox-layout --refresh'
+          }
+          label="Suggested gated sandbox layout command"
+          manualCopy
+        />
         <CommandLine
           command={
             mrmsRenderCandidateSandbox?.suggested_command ??

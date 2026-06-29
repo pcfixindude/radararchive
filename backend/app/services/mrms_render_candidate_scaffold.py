@@ -40,8 +40,8 @@ EXECUTE_ENV_VAR = "ENABLE_MRMS_RENDER_CANDIDATE_EXECUTE"
 EXECUTE_DEFAULT = "false"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 94 — gated candidate artifact sandbox layout "
-    "(local sandbox directory layout isolated from production tile serving; disabled by default)"
+    "Phase 95 — gated candidate sandbox manifest import/export "
+    "(local import/export for candidate sandbox manifests without production tile serving)"
 )
 
 

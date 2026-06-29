@@ -3053,3 +3053,30 @@ cd frontend && npm run build
 - Local dev result: `preflight_not_candidate_ready` — preflight `needs_review`; dry-run plan and scaffold skipped
 - Not production authorization
 
+## Phase 94 - Gated Candidate Artifact Sandbox Layout
+
+Generate or review local candidate artifact sandbox layout only when preflight is `candidate_preflight_ready`, dry-run plan is `dry_run_plan_ready`, and scaffold is `scaffold_ready`.
+
+### Backend
+- `mrms_render_candidate_gated_sandbox_layout.py` — refreshes upstream gates and generates sandbox layout only when scaffold_ready
+- Paths: `mrms_render_candidate_gated_sandbox_layout_latest.json`, `mrms_render_candidate_gated_sandbox_layout_latest.md`
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/gated-layout-review`
+- CLI: `scripts/mrms_render_candidate_gated_sandbox_layout.py`; `make mrms-review-gated-sandbox-layout`
+
+### Frontend
+- **Review gated sandbox layout** button on MRMS render candidate sandbox collapsible
+
+### Run commands
+
+```bash
+make test
+make mrms-review-gated-sandbox-layout ARGS="--refresh"
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Does not generate sandbox layout when preflight, dry-run plan, or scaffold gates are closed
+- Local dev result: `preflight_not_candidate_ready` — preflight `needs_review`; dry-run plan, scaffold, and sandbox skipped
+- Not production authorization
+

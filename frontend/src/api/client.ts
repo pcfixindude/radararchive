@@ -1223,6 +1223,54 @@ export type MrmsRenderCandidateGatedScaffoldReviewCompact = {
   gated_preflight_ready_is_not_production_authorization: boolean;
 };
 
+export type MrmsRenderCandidateGatedSandboxLayoutCompact = {
+  available?: boolean;
+  review_status?: string | null;
+  preflight_level?: string | null;
+  preflight_reason?: string | null;
+  preflight_blockers?: string[];
+  preflight_warnings?: string[];
+  dry_run_plan_skipped?: boolean;
+  dry_run_plan_status?: string | null;
+  dry_run_plan_reason?: string | null;
+  dry_run_plan_blockers?: string[];
+  scaffold_skipped?: boolean;
+  scaffold_status?: string | null;
+  scaffold_reason?: string | null;
+  scaffold_blockers?: string[];
+  scaffold_blocking_items?: string[];
+  sandbox_skipped?: boolean;
+  sandbox_status?: string | null;
+  sandbox_reason?: string | null;
+  sandbox_blockers?: string[];
+  sandbox_root?: string | null;
+  delete_performed?: boolean;
+  resolution_status?: string | null;
+  remaining_blockers?: string[];
+  next_commands?: string[];
+  next_operator_step?: string | null;
+  reviewed_at?: string | null;
+  suggested_command?: string | null;
+  next_phase_recommendation?: string | null;
+  verified_mrms: boolean;
+  local_gated_sandbox_layout_only: boolean;
+  advisory_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  does_not_create_production_tiles: boolean;
+  does_not_execute_candidate_steps: boolean;
+  does_not_serve_production_tiles: boolean;
+  does_not_delete_by_default: boolean;
+  binary_artifacts_included: boolean;
+  no_external_notifications: boolean;
+  does_not_authorize_production_use: boolean;
+  sandbox_layout_ready_is_not_production_authorization: boolean;
+  scaffold_ready_is_not_production_authorization: boolean;
+  dry_run_plan_ready_is_not_production_authorization: boolean;
+  gated_preflight_ready_is_not_production_authorization: boolean;
+};
+
 export type MrmsRenderCandidateScaffoldCompact = {
   available?: boolean;
   scaffold_status?: string | null;
@@ -2600,6 +2648,7 @@ export type ValidationSummary = {
   mrms_render_candidate_dry_run_plan?: MrmsRenderCandidateDryRunPlanCompact | null;
   mrms_render_candidate_gated_dry_run_review?: MrmsRenderCandidateGatedDryRunReviewCompact | null;
   mrms_render_candidate_gated_scaffold_review?: MrmsRenderCandidateGatedScaffoldReviewCompact | null;
+  mrms_render_candidate_gated_sandbox_layout?: MrmsRenderCandidateGatedSandboxLayoutCompact | null;
   mrms_render_candidate_scaffold?: MrmsRenderCandidateScaffoldCompact | null;
   mrms_render_candidate_sandbox?: MrmsRenderCandidateSandboxCompact | null;
   mrms_render_candidate_sandbox_import_export?: MrmsRenderCandidateSandboxImportExportCompact | null;
@@ -3021,6 +3070,28 @@ export async function refreshRenderCandidateGatedScaffoldReview(): Promise<
       };
     }
     const data = (await response.json()) as { compact: MrmsRenderCandidateGatedScaffoldReviewCompact };
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function refreshRenderCandidateGatedSandboxLayout(): Promise<
+  | { ok: true; data: { compact: MrmsRenderCandidateGatedSandboxLayoutCompact } }
+  | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/validation/mrms-render-candidate/sandbox/gated-layout-review`,
+      { method: 'POST' },
+    );
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: `Gated sandbox layout review failed (${response.status})`,
+      };
+    }
+    const data = (await response.json()) as { compact: MrmsRenderCandidateGatedSandboxLayoutCompact };
     return { ok: true, data };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
