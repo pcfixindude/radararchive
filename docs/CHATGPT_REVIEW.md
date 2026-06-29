@@ -11,9 +11,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 88
 - Latest phase: Phase 88 — Gated real MRMS render candidate preflight attempt
-- Latest commit: `TBD`
+- Latest commit: `cd6e8d2`
 - Latest tag: `phase-88-gated-real-mrms-candidate-preflight`
-- Push status: pending
+- Push status: pushed
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
