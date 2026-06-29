@@ -270,6 +270,7 @@ Limitations:
 - `make mrms-render-candidate-sandbox-comparison-acknowledgment-status-history` refreshes local sandbox comparison acknowledgment status history (`--refresh`; Phase 71)
 - `make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-hint` refreshes local sandbox comparison acknowledgment status trend hints (`--refresh`; Phase 72)
 - `make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment` records local sandbox comparison acknowledgment status trend review acknowledgment (`--operator`, `--note`; Phase 73)
+- `make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status` refreshes local sandbox comparison acknowledgment status trend review acknowledgment status rollup (`--refresh`; Phase 74)
 - `make scheduled-proof-bundle-visual-review` runs full scheduled proof/digest/export/operator-status with explicit visual review generation (Phase 59; `--visual-review` opt-in)
 - `make mrms-review-session ARGS="... --export-after-create"` creates a session and immediately exports Markdown (session is kept if export fails)
 - `make mrms-signoff` records local operator sign-off (does not set verified_mrms)

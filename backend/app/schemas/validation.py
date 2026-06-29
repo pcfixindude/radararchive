@@ -1576,6 +1576,64 @@ class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowl
     )
 
 
+class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusCompact(
+    BaseModel
+):
+    available: bool = False
+    rollup_status: Optional[str] = None
+    acknowledgment_status: Optional[str] = None
+    status_reason: Optional[str] = None
+    stale_acknowledgment: bool = False
+    trend: Optional[str] = None
+    hint_status: Optional[str] = None
+    trend_review_recommended: bool = False
+    acknowledgment_count: Optional[int] = None
+    latest_acknowledgment_id: Optional[str] = None
+    latest_acknowledgment_created_at: Optional[str] = None
+    latest_acknowledgment_operator: Optional[str] = None
+    blockers: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    suggested_action: Optional[str] = None
+    suggested_command: Optional[str] = None
+    schema_version: Optional[str] = None
+    json_path: Optional[str] = None
+    markdown_path: Optional[str] = None
+    next_phase_recommendation: Optional[str] = None
+    verified_mrms: bool = False
+    local_status_rollup_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    prototype: bool = True
+
+
+class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusResponse(
+    BaseModel
+):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_status_rollup_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    latest: dict[str, Any] = Field(default_factory=dict)
+    compact: MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusCompact
+
+
 class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusCompact(BaseModel):
     available: bool = False
     rollup_status: Optional[str] = None
@@ -2489,6 +2547,9 @@ class ValidationSummaryResponse(BaseModel):
     ] = None
     mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment: Optional[
         MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentCompact
+    ] = None
+    mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status: Optional[
+        MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusCompact
     ] = None
     scheduled_operator_status: Optional[ScheduledOperatorStatusCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)

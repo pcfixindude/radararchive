@@ -209,6 +209,9 @@ mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-hint:
 mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment.py $(ARGS)
 
+mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status.py $(ARGS)
+
 mrms-proof-history:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_proof_history.py $(ARGS)
 

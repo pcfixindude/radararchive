@@ -1,4 +1,4 @@
-"""MRMS render candidate sandbox comparison acknowledgment status — local rollup only."""
+"""MRMS render candidate sandbox acknowledgment status trend review acknowledgment status — local rollup only."""
 
 from __future__ import annotations
 
@@ -6,26 +6,34 @@ import json
 from typing import Any, Optional
 
 from backend.app.config import settings
-from backend.app.services.mrms_render_candidate_sandbox_comparison_review_acknowledgment import (
-    count_sandbox_comparison_review_acknowledgments,
-    load_latest_sandbox_comparison_review_acknowledgment,
-)
-from backend.app.services.mrms_render_candidate_sandbox_comparison_trend_hint import (
+from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_hint import (
     HINT_BLOCKED,
     HINT_MISSING,
     SCHEMA_VERSION,
     TREND_BLOCKED,
     TREND_NO_DATA,
-    build_sandbox_comparison_trend_hint,
-    load_sandbox_comparison_trend_hint,
+    build_ack_status_trend_hint,
+    load_ack_status_trend_hint,
+)
+from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment import (
+    count_ack_status_trend_review_acknowledgments,
+    load_latest_ack_status_trend_review_acknowledgment,
 )
 from backend.app.services.storage import LocalStorage
 
-STATUS_JSON = "dev/mrms_render_candidate_sandbox_comparison_acknowledgment_status.json"
-STATUS_MD = "dev/mrms_render_candidate_sandbox_comparison_acknowledgment_status.md"
+STATUS_JSON = (
+    "dev/mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status.json"
+)
+STATUS_MD = (
+    "dev/mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status.md"
+)
 
-SUGGESTED_COMMAND = "make mrms-render-candidate-sandbox-comparison-acknowledgment-status"
-SUGGESTED_ACK_COMMAND = "make mrms-render-candidate-sandbox-comparison-review-acknowledgment"
+SUGGESTED_COMMAND = (
+    "make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status"
+)
+SUGGESTED_ACK_COMMAND = (
+    "make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment"
+)
 
 ACK_STATUS_MISSING = "missing"
 ACK_STATUS_NOT_NEEDED = "not_needed"
@@ -108,9 +116,11 @@ def _hint_snapshot_matches_acknowledgment(
     ack_generated = acknowledgment.get("related_hint_generated_at")
     if hint_generated and ack_generated and hint_generated != ack_generated:
         return False
-    if hint.get("changed_count") != acknowledgment.get("related_changed_count"):
+    if hint.get("worsened_count") != acknowledgment.get("related_worsened_count"):
         return False
     if hint.get("history_count") != acknowledgment.get("related_history_count"):
+        return False
+    if hint.get("latest_rollup_status") != acknowledgment.get("latest_rollup_status"):
         return False
     return True
 
@@ -124,7 +134,7 @@ def _classify_acknowledgment_status(
     if blockers or hint.get("trend") == TREND_BLOCKED or hint.get("hint_status") == HINT_BLOCKED:
         return ACK_STATUS_BLOCKED, False, "safety_gate_failure"
     if hint.get("trend") == TREND_NO_DATA or hint.get("hint_status") == HINT_MISSING:
-        return ACK_STATUS_MISSING, False, "no_trend_hint"
+        return ACK_STATUS_MISSING, False, "no_status_trend_hint"
     if not bool(hint.get("trend_review_recommended")):
         return ACK_STATUS_NOT_NEEDED, False, "trend_review_not_recommended"
     if latest_ack is None:
@@ -159,30 +169,39 @@ def _suggested_action_for_status(
     stale_acknowledgment: bool,
 ) -> str:
     if rollup_status == ROLLUP_BLOCKED:
-        return "Resolve blocked sandbox comparison safety gates before relying on acknowledgment status."
+        return (
+            "Resolve blocked acknowledgment status trend hint safety gates before relying on "
+            "trend review acknowledgment status."
+        )
     if rollup_status == ROLLUP_MISSING:
         return (
-            "Seed comparison history and refresh trend hints before acknowledgment status is available."
+            "Seed acknowledgment status history and refresh status trend hints before trend review "
+            "acknowledgment status is available."
         )
     if rollup_status == ROLLUP_NOT_NEEDED:
-        return "Sandbox comparison trend stable — acknowledgment not required (local monitoring only)."
+        return (
+            "Acknowledgment status trend stable — trend review acknowledgment not required "
+            "(local monitoring only)."
+        )
     if rollup_status == ROLLUP_NEEDS_ACKNOWLEDGMENT:
         return (
-            "Record local sandbox comparison review acknowledgment after reviewing trend hints "
+            "Record local status trend review acknowledgment after reviewing trend hints "
             "(does not verify MRMS or clear alerts)."
         )
     if rollup_status == ROLLUP_STALE or stale_acknowledgment:
         return (
-            "Re-review updated sandbox comparison trend hints and record a fresh acknowledgment "
-            "(local advisory only)."
+            "Re-review updated acknowledgment status trend hints and record a fresh trend review "
+            "acknowledgment (local advisory only)."
         )
-    return "Sandbox comparison acknowledgment status current for latest trend hint snapshot."
+    return (
+        "Status trend review acknowledgment status current for latest acknowledgment status trend hint snapshot."
+    )
 
 
-def build_sandbox_comparison_acknowledgment_status(storage: LocalStorage) -> dict[str, Any]:
-    hint = load_sandbox_comparison_trend_hint(storage) or build_sandbox_comparison_trend_hint(storage)
-    latest_ack = load_latest_sandbox_comparison_review_acknowledgment(storage)
-    acknowledgment_count = count_sandbox_comparison_review_acknowledgments(storage)
+def build_ack_status_trend_review_acknowledgment_status(storage: LocalStorage) -> dict[str, Any]:
+    hint = load_ack_status_trend_hint(storage) or build_ack_status_trend_hint(storage)
+    latest_ack = load_latest_ack_status_trend_review_acknowledgment(storage)
+    acknowledgment_count = count_ack_status_trend_review_acknowledgments(storage)
 
     blockers: list[str] = list(hint.get("blockers") or [])
     safety = _current_safety_state()
@@ -232,13 +251,13 @@ def build_sandbox_comparison_acknowledgment_status(storage: LocalStorage) -> dic
     }
 
 
-def build_acknowledgment_status_markdown(status: dict[str, Any]) -> str:
+def build_ack_status_trend_review_acknowledgment_status_markdown(status: dict[str, Any]) -> str:
     lines = [
-        "# MRMS Render Candidate Sandbox Comparison Acknowledgment Status",
+        "# MRMS Render Candidate Sandbox Comparison Acknowledgment Status Trend Review Acknowledgment Status",
         "",
         f"Generated at: {status.get('generated_at')}",
         "",
-        "> **WARNING:** Local acknowledgment status rollup only. Advisory metadata — does **NOT** "
+        "> **WARNING:** Local trend review acknowledgment status rollup only. Advisory metadata — does **NOT** "
         "verify MRMS, enable production rendering, download/decode/render, create or serve production "
         "tiles, clear alerts, or authorize production use.",
         "",
@@ -247,14 +266,14 @@ def build_acknowledgment_status_markdown(status: dict[str, Any]) -> str:
         f"- Reason: {status.get('status_reason')}",
         f"- Stale acknowledgment: {status.get('stale_acknowledgment')}",
         "",
-        "## Trend hint snapshot",
+        "## Status trend hint snapshot",
         "",
         f"- Trend: {status.get('trend')}",
         f"- Hint status: {status.get('hint_status')}",
         f"- Review recommended: {status.get('trend_review_recommended')}",
         f"- Hint generated at: {status.get('hint_generated_at')}",
         "",
-        "## Latest acknowledgment",
+        "## Latest trend review acknowledgment",
         "",
         f"- Count: {status.get('acknowledgment_count')}",
         f"- Latest ID: {status.get('latest_acknowledgment_id') or '—'}",
@@ -269,15 +288,10 @@ def build_acknowledgment_status_markdown(status: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def save_sandbox_comparison_acknowledgment_status(
+def save_ack_status_trend_review_acknowledgment_status(
     storage: LocalStorage,
     status: dict[str, Any],
 ) -> dict[str, Any]:
-    from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_history import (
-        append_ack_status_history_entry,
-        refresh_ack_status_history_report,
-    )
-
     json_path = _status_json_path(storage)
     md_path = _status_md_path(storage)
     storage.ensure_directories(json_path.rsplit("/", 1)[0])
@@ -293,15 +307,15 @@ def save_sandbox_comparison_acknowledgment_status(
         encoding="utf-8",
     )
     storage.absolute_path(md_path).write_text(
-        build_acknowledgment_status_markdown(status),
+        build_ack_status_trend_review_acknowledgment_status_markdown(status),
         encoding="utf-8",
     )
-    append_ack_status_history_entry(storage, status)
-    refresh_ack_status_history_report(storage)
     return status
 
 
-def load_sandbox_comparison_acknowledgment_status(storage: LocalStorage) -> Optional[dict[str, Any]]:
+def load_ack_status_trend_review_acknowledgment_status(
+    storage: LocalStorage,
+) -> Optional[dict[str, Any]]:
     abs_path = storage.absolute_path(_status_json_path(storage))
     if not abs_path.is_file():
         return None
@@ -314,17 +328,17 @@ def load_sandbox_comparison_acknowledgment_status(storage: LocalStorage) -> Opti
     return None
 
 
-def refresh_sandbox_comparison_acknowledgment_status(storage: LocalStorage) -> dict[str, Any]:
-    status = build_sandbox_comparison_acknowledgment_status(storage)
-    return save_sandbox_comparison_acknowledgment_status(storage, status)
+def refresh_ack_status_trend_review_acknowledgment_status(storage: LocalStorage) -> dict[str, Any]:
+    status = build_ack_status_trend_review_acknowledgment_status(storage)
+    return save_ack_status_trend_review_acknowledgment_status(storage, status)
 
 
-def compact_sandbox_comparison_acknowledgment_status(storage: LocalStorage) -> dict[str, Any]:
-    latest = load_sandbox_comparison_acknowledgment_status(storage)
+def compact_ack_status_trend_review_acknowledgment_status(storage: LocalStorage) -> dict[str, Any]:
+    latest = load_ack_status_trend_review_acknowledgment_status(storage)
     if latest is None:
-        latest = build_sandbox_comparison_acknowledgment_status(storage)
+        latest = build_ack_status_trend_review_acknowledgment_status(storage)
     return {
-        "available": load_sandbox_comparison_acknowledgment_status(storage) is not None,
+        "available": load_ack_status_trend_review_acknowledgment_status(storage) is not None,
         "rollup_status": latest.get("rollup_status"),
         "acknowledgment_status": latest.get("acknowledgment_status"),
         "status_reason": latest.get("status_reason"),
@@ -348,12 +362,14 @@ def compact_sandbox_comparison_acknowledgment_status(storage: LocalStorage) -> d
     }
 
 
-def build_sandbox_comparison_acknowledgment_status_payload(storage: LocalStorage) -> dict[str, Any]:
-    latest = load_sandbox_comparison_acknowledgment_status(storage)
+def build_ack_status_trend_review_acknowledgment_status_payload(
+    storage: LocalStorage,
+) -> dict[str, Any]:
+    latest = load_ack_status_trend_review_acknowledgment_status(storage)
     if latest is None:
-        latest = build_sandbox_comparison_acknowledgment_status(storage)
+        latest = build_ack_status_trend_review_acknowledgment_status(storage)
     return {
         **_safety_fields(),
         "latest": latest,
-        "compact": compact_sandbox_comparison_acknowledgment_status(storage),
+        "compact": compact_ack_status_trend_review_acknowledgment_status(storage),
     }
