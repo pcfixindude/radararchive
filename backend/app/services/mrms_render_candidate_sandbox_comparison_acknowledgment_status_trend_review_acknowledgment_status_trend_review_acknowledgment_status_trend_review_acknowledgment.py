@@ -1,4 +1,4 @@
-"""Local acknowledgment status trend hint review acknowledgments — does NOT clear alerts or verify MRMS."""
+"""Local trend review acknowledgment status trend review acknowledgment status trend hint review acknowledgments — does NOT clear alerts or verify MRMS."""
 
 from __future__ import annotations
 
@@ -7,19 +7,19 @@ import uuid
 from typing import Any, Optional
 
 from backend.app.config import settings
-from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_hint import (
-    build_ack_status_trend_hint,
-    load_ack_status_trend_hint,
+from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint import (
+    build_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint,
+    load_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint,
 )
 from backend.app.services.storage import LocalStorage
 
 ACKNOWLEDGMENTS_PATH = (
-    "dev/mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgments.json"
+    "dev/mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgments.json"
 )
 MAX_ACKNOWLEDGMENTS = 50
 
 SUGGESTED_COMMAND = (
-    "make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment"
+    "make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status-trend-review-acknowledgment-status-trend-review-acknowledgment"
 )
 
 NEXT_PHASE_RECOMMENDATION = (
@@ -29,7 +29,7 @@ NEXT_PHASE_RECOMMENDATION = (
 )
 
 
-class AckStatusTrendReviewAcknowledgmentValidationError(ValueError):
+class AckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAcknowledgmentValidationError(ValueError):
     """Raised when acknowledgment input fails validation."""
 
 
@@ -58,7 +58,9 @@ def _ack_repo_path(storage: LocalStorage) -> str:
     return storage.normalize_path(ACKNOWLEDGMENTS_PATH)
 
 
-def load_ack_status_trend_review_acknowledgments(storage: LocalStorage) -> list[dict[str, Any]]:
+def load_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgments(
+    storage: LocalStorage,
+) -> list[dict[str, Any]]:
     abs_path = storage.absolute_path(_ack_repo_path(storage))
     if not abs_path.is_file():
         return []
@@ -83,10 +85,13 @@ def _save_acknowledgments(storage: LocalStorage, entries: list[dict[str, Any]]) 
 
 
 def _latest_status_trend_hint(storage: LocalStorage) -> dict[str, Any]:
-    return load_ack_status_trend_hint(storage) or build_ack_status_trend_hint(storage)
+    return (
+        load_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint(storage)
+        or build_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint(storage)
+    )
 
 
-def validate_ack_status_trend_review_acknowledgment_input(
+def validate_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_input(
     *,
     operator_name: Optional[str] = None,
     operator_initials: Optional[str] = None,
@@ -94,14 +99,14 @@ def validate_ack_status_trend_review_acknowledgment_input(
 ) -> None:
     identity = (operator_name or "").strip() or (operator_initials or "").strip()
     if not identity:
-        raise AckStatusTrendReviewAcknowledgmentValidationError(
+        raise AckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAcknowledgmentValidationError(
             "operator_name or operator_initials is required"
         )
     if not (note or "").strip():
-        raise AckStatusTrendReviewAcknowledgmentValidationError("note is required")
+        raise AckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAcknowledgmentValidationError("note is required")
 
 
-def create_ack_status_trend_review_acknowledgment(
+def create_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment(
     storage: LocalStorage,
     *,
     operator_name: Optional[str] = None,
@@ -114,7 +119,7 @@ def create_ack_status_trend_review_acknowledgment(
     acknowledged_trend_review: Optional[bool] = None,
 ) -> dict[str, Any]:
     """Persist local acknowledgment; does NOT mutate alerts, trend hints, or production gates."""
-    validate_ack_status_trend_review_acknowledgment_input(
+    validate_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_input(
         operator_name=operator_name,
         operator_initials=operator_initials,
         note=note,
@@ -150,24 +155,34 @@ def create_ack_status_trend_review_acknowledgment(
         **_safety_fields(),
     }
 
-    entries = load_ack_status_trend_review_acknowledgments(storage)
+    entries = load_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgments(
+        storage
+    )
     entries.insert(0, record)
     _save_acknowledgments(storage, entries)
     return record
 
 
-def load_latest_ack_status_trend_review_acknowledgment(
+def load_latest_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment(
     storage: LocalStorage,
 ) -> Optional[dict[str, Any]]:
-    entries = load_ack_status_trend_review_acknowledgments(storage)
+    entries = load_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgments(
+        storage
+    )
     return entries[0] if entries else None
 
 
-def count_ack_status_trend_review_acknowledgments(storage: LocalStorage) -> int:
-    return len(load_ack_status_trend_review_acknowledgments(storage))
+def count_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgments(
+    storage: LocalStorage,
+) -> int:
+    return len(
+        load_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgments(
+            storage
+        )
+    )
 
 
-def compact_ack_status_trend_review_acknowledgment(
+def compact_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment(
     entry: Optional[dict[str, Any]],
 ) -> Optional[dict[str, Any]]:
     if entry is None:
@@ -190,9 +205,15 @@ def compact_ack_status_trend_review_acknowledgment(
     }
 
 
-def compact_ack_status_trend_review_acknowledgment_summary(storage: LocalStorage) -> dict[str, Any]:
-    latest = load_latest_ack_status_trend_review_acknowledgment(storage)
-    count = count_ack_status_trend_review_acknowledgments(storage)
+def compact_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_summary(
+    storage: LocalStorage,
+) -> dict[str, Any]:
+    latest = load_latest_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment(
+        storage
+    )
+    count = count_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgments(
+        storage
+    )
     hint = _latest_status_trend_hint(storage)
     trend_review_still_recommended = bool(hint.get("trend_review_recommended"))
     if latest is None:
@@ -204,7 +225,12 @@ def compact_ack_status_trend_review_acknowledgment_summary(storage: LocalStorage
             "next_phase_recommendation": NEXT_PHASE_RECOMMENDATION,
             **_safety_fields(),
         }
-    compact = compact_ack_status_trend_review_acknowledgment(latest) or {}
+    compact = (
+        compact_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment(
+            latest
+        )
+        or {}
+    )
     return {
         "available": True,
         "count": count,
@@ -216,22 +242,28 @@ def compact_ack_status_trend_review_acknowledgment_summary(storage: LocalStorage
     }
 
 
-def build_ack_status_trend_review_acknowledgments_payload(
+def build_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgments_payload(
     storage: LocalStorage,
     *,
     limit: int = 25,
 ) -> dict[str, Any]:
-    entries = load_ack_status_trend_review_acknowledgments(storage)
+    entries = load_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgments(
+        storage
+    )
     bounded = max(1, min(limit, MAX_ACKNOWLEDGMENTS))
     hint = _latest_status_trend_hint(storage)
-    latest = compact_ack_status_trend_review_acknowledgment(entries[0] if entries else None)
+    latest = compact_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment(
+        entries[0] if entries else None
+    )
     return {
         "count": len(entries),
         "max_entries": MAX_ACKNOWLEDGMENTS,
         "trend_review_still_recommended": bool(hint.get("trend_review_recommended")),
         "latest": latest,
         "entries": [
-            compact_ack_status_trend_review_acknowledgment(item)
+            compact_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment(
+                item
+            )
             for item in entries[:bounded]
             if item
         ],
