@@ -1300,6 +1300,53 @@ export type MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendHintCom
   does_not_authorize_production_use: boolean;
 };
 
+export type MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentCompact = {
+  available?: boolean;
+  count?: number;
+  acknowledgment_id?: string | null;
+  created_at?: string | null;
+  operator?: string | null;
+  operator_name?: string | null;
+  operator_initials?: string | null;
+  note?: string | null;
+  related_trend?: string | null;
+  related_hint_status?: string | null;
+  related_hint_reason?: string | null;
+  related_trend_review_recommended?: boolean;
+  acknowledged_trend_review?: boolean;
+  latest_rollup_status?: string | null;
+  trend_review_still_recommended?: boolean;
+  suggested_command?: string | null;
+  next_phase_recommendation?: string | null;
+  verified_mrms: boolean;
+  local_acknowledgment_only: boolean;
+  advisory_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  does_not_create_production_tiles: boolean;
+  does_not_serve_production_tiles: boolean;
+  does_not_authorize_production_use: boolean;
+};
+
+export type MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentCreateRequest = {
+  operator_name?: string;
+  operator_initials?: string;
+  note: string;
+  acknowledged_trend_review?: boolean;
+};
+
+export type MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentCreateResponse = {
+  verified_mrms: boolean;
+  local_acknowledgment_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_authorize_production_use: boolean;
+  production_enabled: boolean;
+  trend_review_still_recommended: boolean;
+  acknowledgment: Record<string, unknown>;
+};
+
 export type OperatorWorkflowPresetsCompact = {
   available?: boolean;
   recommended_count?: number;
@@ -1849,6 +1896,7 @@ export type ValidationSummary = {
   mrms_render_candidate_sandbox_comparison_acknowledgment_status?: MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusCompact | null;
   mrms_render_candidate_sandbox_comparison_acknowledgment_status_history?: MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistoryCompact | null;
   mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_hint?: MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendHintCompact | null;
+  mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment?: MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentCompact | null;
   scheduled_operator_status?: ScheduledOperatorStatusCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
@@ -2330,6 +2378,44 @@ export async function refreshRenderCandidateSandboxComparisonAcknowledgmentStatu
     return { ok: true, data };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function submitAckStatusTrendReviewAcknowledgment(
+  payload: MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentCreateRequest,
+): Promise<
+  | {
+      ok: true;
+      data: MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentCreateResponse;
+    }
+  | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/validation/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/trend-review-acknowledgments`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      },
+    );
+    if (!response.ok) {
+      let error = `Status trend review acknowledgment failed (${response.status})`;
+      try {
+        const body = (await response.json()) as { detail?: string };
+        if (body.detail) {
+          error = body.detail;
+        }
+      } catch {
+        // keep default error
+      }
+      return { ok: false, error };
+    }
+    const data =
+      (await response.json()) as MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentCreateResponse;
+    return { ok: true, data };
+  } catch {
+    return { ok: false, error: 'Status trend review acknowledgment request failed' };
   }
 }
 

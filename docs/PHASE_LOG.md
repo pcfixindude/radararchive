@@ -2487,3 +2487,29 @@ cd frontend && npm run build
 - Trend hints are advisory only — derived from acknowledgment status history metadata
 - `needs_review` is not production authorization
 
+## Phase 73 - Gated Candidate Sandbox Comparison Acknowledgment Status Trend Review Acknowledgment
+
+Local acknowledgment of reviewed acknowledgment status trend hints without clearing validation alerts.
+
+### Backend
+- `mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment.py` — bounded JSON list, operator + note validation
+- Path: `mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgments.json`
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/trend-review-acknowledgments`
+- CLI: `scripts/mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment.py`; `make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment`
+
+### Frontend
+- Dev Validation **MRMS render candidate sandbox comparison acknowledgment status trend review acknowledgment** collapsible with form
+
+### Run commands
+
+```bash
+make test
+make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment --operator OP --note "Reviewed locally"
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Acknowledgment does not clear alerts or mutate status trend hints
+- `trend_review_still_recommended` may remain true after acknowledgment
+

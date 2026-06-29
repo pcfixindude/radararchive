@@ -62,6 +62,9 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusResponse,
     MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusHistoryResponse,
     MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendHintResponse,
+    MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentCreateRequest,
+    MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentCreateResponse,
+    MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentsResponse,
     MrmsVisualReviewResponse,
     OperatorReviewStatusResponse,
     OperatorWorkflowPresetsResponse,
@@ -203,8 +206,14 @@ from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgmen
     refresh_ack_status_history_report,
 )
 from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_hint import (
+    build_ack_status_trend_hint,
     build_ack_status_trend_hint_payload,
     refresh_ack_status_trend_hint,
+)
+from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment import (
+    AckStatusTrendReviewAcknowledgmentValidationError,
+    build_ack_status_trend_review_acknowledgments_payload,
+    create_ack_status_trend_review_acknowledgment,
 )
 from backend.app.services.operator_review_status import build_operator_review_status_payload
 from backend.app.services.operator_workflow_presets import build_operator_workflow_presets_payload
@@ -732,6 +741,59 @@ def validation_mrms_render_candidate_sandbox_comparison_acknowledgment_status_tr
     refresh_ack_status_trend_hint(storage)
     payload = build_ack_status_trend_hint_payload(storage)
     return MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendHintResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/trend-review-acknowledgments",
+    response_model=MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentsResponse,
+)
+def validation_mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgments() -> (
+    MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentsResponse
+):
+    """Bounded local acknowledgment status trend hint review acknowledgments (does not clear alerts)."""
+    storage = LocalStorage(settings.local_storage_root)
+    bounded = 25
+    payload = build_ack_status_trend_review_acknowledgments_payload(storage, limit=bounded)
+    return MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentsResponse(
+        **payload
+    )
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/trend-review-acknowledgments",
+    response_model=MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentCreateResponse,
+)
+def validation_mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgments_create(
+    body: MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentCreateRequest,
+) -> MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentCreateResponse:
+    """Dev/local only — record status trend review acknowledgment; does NOT clear alerts."""
+    storage = LocalStorage(settings.local_storage_root)
+    try:
+        record = create_ack_status_trend_review_acknowledgment(
+            storage,
+            operator_name=body.operator_name,
+            operator_initials=body.operator_initials,
+            note=body.note,
+            related_trend=body.related_trend,
+            related_hint_status=body.related_hint_status,
+            related_hint_reason=body.related_hint_reason,
+            related_trend_review_recommended=body.related_trend_review_recommended,
+            acknowledged_trend_review=body.acknowledged_trend_review,
+        )
+    except AckStatusTrendReviewAcknowledgmentValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    hint = build_ack_status_trend_hint(storage)
+    return MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentCreateResponse(
+        verified_mrms=False,
+        local_acknowledgment_only=True,
+        does_not_clear_alerts=True,
+        does_not_enable_production=True,
+        does_not_authorize_production_use=True,
+        production_enabled=settings.enable_production_radar_tiles,
+        trend_review_still_recommended=bool(hint.get("trend_review_recommended")),
+        acknowledgment=record,
+    )
 
 
 @router.get(
