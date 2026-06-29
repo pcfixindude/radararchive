@@ -11,9 +11,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 85
 - Latest phase: Phase 85 — Candidate trend-hint review digest history
-- Latest commit: TBD
+- Latest commit: `d5afc49`
 - Latest tag: `phase-85-candidate-trend-hint-review-digest-history`
-- Push status: pending
+- Push status: pushed
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
@@ -36,7 +36,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Purpose: Add local bounded history of trend-hint review digests so operators can track digest changes over time without production authorization.
 - Main command added: `make mrms-render-candidate-trend-hint-review-digest-history`
 - API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/trend-hint-review-digest/history`
-- Tests: TBD
+- Tests: backend 981 passed; frontend vitest 8 passed; frontend build OK
 - Known limitations:
   - History does not clear alerts or mutate digests, rollups, or acknowledgments
   - History appends on review digest refresh only
