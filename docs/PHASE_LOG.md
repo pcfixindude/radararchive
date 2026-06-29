@@ -2999,3 +2999,30 @@ cd frontend && npm run build
 - Local dev result: `preflight_attempted` — visual `candidate_ready`; gated preflight ran with advisory result
 - Not production authorization
 
+## Phase 92 - Gated Render Candidate Dry-Run Plan Review
+
+Review gated preflight advisory result and evaluate/generate dry-run plan only when preflight is `candidate_preflight_ready`.
+
+### Backend
+- `mrms_render_candidate_gated_dry_run_review.py` — refreshes preflight, resolves blockers, generates dry-run plan only when gated
+- Paths: `mrms_render_candidate_gated_dry_run_review_latest.json`, `mrms_render_candidate_gated_dry_run_review_latest.md`
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/gated-dry-run-review`
+- CLI: `scripts/mrms_render_candidate_gated_dry_run_review.py`; `make mrms-review-gated-dry-run-plan`
+
+### Frontend
+- **Review gated dry-run plan** button on MRMS render candidate dry-run plan collapsible
+
+### Run commands
+
+```bash
+make test
+make mrms-review-gated-dry-run-plan ARGS="--refresh"
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Does not generate dry-run plan when preflight is not `candidate_preflight_ready`
+- Local dev result: `preflight_not_candidate_ready` — preflight `needs_review`; dry-run plan skipped
+- Not production authorization
+

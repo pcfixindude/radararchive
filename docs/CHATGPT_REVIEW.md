@@ -9,12 +9,12 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 91
-- Latest phase: Phase 91 — Bootstrap visual review sample set
-- Latest commit: `980f504`
-- Latest tag: `phase-91-bootstrap-visual-review-sample-set`
-- Push status: pushed
-- Final git status: source clean; only local `data/dev/` runtime artifacts modified
+- Completed through phase: 92
+- Latest phase: Phase 92 — Gated render candidate dry-run plan review
+- Latest commit: (pending commit)
+- Latest tag: `phase-92-gated-render-candidate-dry-run-plan`
+- Push status: pending
+- Final git status: source changes staged for commit
 
 ## Safety state
 
@@ -22,33 +22,34 @@ Do not treat this file as verified MRMS proof or production authorization.
 - `ENABLE_PRODUCTION_RADAR_TILES`: **false** by default
 - Placeholder tiles default: **true**
 - Production rendering: gated/off by default
-- Visual sample bootstrap: local advisory only; seeds acceptable annotations for drilldown — not production authorization
+- Gated dry-run review: local advisory only; skips dry-run plan generation when preflight is not `candidate_preflight_ready`
 
 ## Latest phase summary
 
-- Phase: **91**
-- Purpose: Create local visual review sample set and annotations so visual sample readiness reaches `candidate_ready` and gated preflight can run.
-- Main command added: `make mrms-bootstrap-visual-sample-set` (alias: `make mrms-visual-review-sample-bootstrap`)
-- API added: `GET/POST /api/validation/mrms-visual-review/sample-set/bootstrap`
-- Local operator run result: **preflight_attempted** — visual **candidate_ready** (`all_samples_acceptable`); review readiness **ready_for_preflight**; gated preflight **ran** (`preflight_not_run=false`)
-- Remaining follow-up: review advisory preflight result and complete any preflight evidence blockers before dry-run plan
+- Phase: **92**
+- Purpose: Review gated preflight advisory result and evaluate/generate dry-run plan only when preflight evidence supports it.
+- Main command added: `make mrms-review-gated-dry-run-plan` (alias: `make mrms-render-candidate-gated-dry-run-review`)
+- API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/gated-dry-run-review`
+- Local operator run result: **preflight_not_candidate_ready** — preflight `needs_review`; dry-run plan **skipped** (`dry_run_plan_skipped=true`)
+- Remaining follow-up: resolve preflight warnings/blockers until `candidate_preflight_ready`, then re-run gated dry-run review
 - Next commands for operators:
-  1. `make mrms-render-candidate-preflight --refresh` (review advisory preflight report)
-  2. `make mrms-resolve-preflight-blockers --refresh` (if blockers remain)
-- Tests: backend 1054 passed; frontend vitest 8 passed; frontend build OK
+  1. `make mrms-render-candidate-preflight --refresh`
+  2. `make mrms-resolve-preflight-blockers --refresh`
+  3. `make mrms-review-gated-dry-run-plan --refresh` (retry after preflight is candidate_preflight_ready)
+- Tests: backend 1063 passed; frontend vitest 8 passed; frontend build OK
 
 ## Current focus
 
-Review gated preflight advisory result and move toward **dry-run plan review** when `candidate_preflight_ready`.
+Resolve preflight `needs_review` blockers, then re-run gated dry-run review when `candidate_preflight_ready`.
 
 Do **not** promote to verified MRMS yet.
 
 ## Next recommended phase
 
-- Phase number: **92**
-- Phase title: Gated render candidate dry-run plan review
-- Goal: Evaluate the dry-run plan when preflight reaches `candidate_preflight_ready` or after reviewing the latest gated preflight attempt.
-- Why this is next: Phase 91 bootstrap cleared visual sample readiness; gated preflight attempt ran with advisory result captured.
+- Phase number: **93**
+- Phase title: Gated render candidate scaffold review
+- Goal: Evaluate the disabled-by-default render candidate scaffold when dry-run plan is `dry_run_plan_ready`.
+- Why this is next: Phase 92 correctly gates dry-run plan on preflight; once preflight reaches `candidate_preflight_ready` and dry-run plan is ready, scaffold review is the next gated evaluation step.
 - Safety boundaries:
   - local sandbox metadata only
   - no MRMS verification claim
@@ -60,7 +61,7 @@ Do **not** promote to verified MRMS yet.
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 92 only.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 93 only.
 ```
 
 ## Key docs (read order for new work)

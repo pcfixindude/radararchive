@@ -55,6 +55,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidatePreflightBlockersResponse,
     MrmsRenderCandidateTrendHintChainBootstrapResponse,
     MrmsRenderCandidateDryRunPlanResponse,
+    MrmsRenderCandidateGatedDryRunReviewResponse,
     MrmsRenderCandidateScaffoldResponse,
     MrmsRenderCandidateSandboxResponse,
     MrmsRenderCandidateSandboxImportExportResponse,
@@ -211,6 +212,10 @@ from backend.app.services.mrms_render_candidate_preflight import (
 from backend.app.services.mrms_render_candidate_dry_run_plan import (
     build_render_candidate_dry_run_plan_payload,
     generate_render_candidate_dry_run_plan,
+)
+from backend.app.services.mrms_render_candidate_gated_dry_run_review import (
+    build_gated_dry_run_review_payload,
+    review_gated_dry_run_plan,
 )
 from backend.app.services.mrms_render_candidate_scaffold import (
     build_render_candidate_scaffold_payload,
@@ -675,6 +680,33 @@ def validation_mrms_render_candidate_dry_run_plan_refresh() -> MrmsRenderCandida
     generate_render_candidate_dry_run_plan(storage)
     payload = build_render_candidate_dry_run_plan_payload(storage)
     return MrmsRenderCandidateDryRunPlanResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/gated-dry-run-review",
+    response_model=MrmsRenderCandidateGatedDryRunReviewResponse,
+)
+def validation_mrms_render_candidate_gated_dry_run_review() -> (
+    MrmsRenderCandidateGatedDryRunReviewResponse
+):
+    """Latest gated dry-run plan review report (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_gated_dry_run_review_payload(storage)
+    return MrmsRenderCandidateGatedDryRunReviewResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/gated-dry-run-review",
+    response_model=MrmsRenderCandidateGatedDryRunReviewResponse,
+)
+def validation_mrms_render_candidate_gated_dry_run_review_run() -> (
+    MrmsRenderCandidateGatedDryRunReviewResponse
+):
+    """Dev/local only — review preflight and dry-run plan; does NOT execute candidate steps."""
+    storage = LocalStorage(settings.local_storage_root)
+    review_gated_dry_run_plan(storage)
+    payload = build_gated_dry_run_review_payload(storage)
+    return MrmsRenderCandidateGatedDryRunReviewResponse(**payload)
 
 
 @router.get(

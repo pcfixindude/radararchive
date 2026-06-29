@@ -197,6 +197,11 @@ mrms-bootstrap-trend-hint-chain: mrms-render-candidate-trend-hint-chain-bootstra
 mrms-render-candidate-dry-run-plan:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_dry_run_plan.py $(ARGS)
 
+mrms-render-candidate-gated-dry-run-review:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_gated_dry_run_review.py $(ARGS)
+
+mrms-review-gated-dry-run-plan: mrms-render-candidate-gated-dry-run-review
+
 mrms-render-candidate-scaffold:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_scaffold.py $(ARGS)
 

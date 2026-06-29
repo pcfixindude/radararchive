@@ -1146,6 +1146,42 @@ export type MrmsRenderCandidateDryRunPlanCompact = {
   does_not_authorize_production_use: boolean;
 };
 
+export type MrmsRenderCandidateGatedDryRunReviewCompact = {
+  available?: boolean;
+  review_status?: string | null;
+  preflight_level?: string | null;
+  preflight_reason?: string | null;
+  preflight_blocking_items?: string[];
+  dry_run_plan_skipped?: boolean;
+  dry_run_plan_status?: string | null;
+  dry_run_plan_reason?: string | null;
+  dry_run_plan_blocking_items?: string[];
+  resolution_status?: string | null;
+  remaining_blockers?: string[];
+  preflight_not_run?: boolean;
+  preflight_candidate_ready?: boolean;
+  next_commands?: string[];
+  next_operator_step?: string | null;
+  reviewed_at?: string | null;
+  suggested_command?: string | null;
+  next_phase_recommendation?: string | null;
+  verified_mrms: boolean;
+  local_gated_dry_run_review_only: boolean;
+  advisory_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  does_not_create_production_tiles: boolean;
+  does_not_execute_candidate_steps: boolean;
+  does_not_serve_production_tiles: boolean;
+  does_not_delete_by_default: boolean;
+  binary_artifacts_included: boolean;
+  no_external_notifications: boolean;
+  does_not_authorize_production_use: boolean;
+  dry_run_plan_ready_is_not_production_authorization: boolean;
+  gated_preflight_ready_is_not_production_authorization: boolean;
+};
+
 export type MrmsRenderCandidateScaffoldCompact = {
   available?: boolean;
   scaffold_status?: string | null;
@@ -2521,6 +2557,7 @@ export type ValidationSummary = {
   mrms_render_candidate_preflight_blockers?: MrmsRenderCandidatePreflightBlockersCompact | null;
   mrms_render_candidate_trend_hint_chain_bootstrap?: MrmsRenderCandidateTrendHintChainBootstrapCompact | null;
   mrms_render_candidate_dry_run_plan?: MrmsRenderCandidateDryRunPlanCompact | null;
+  mrms_render_candidate_gated_dry_run_review?: MrmsRenderCandidateGatedDryRunReviewCompact | null;
   mrms_render_candidate_scaffold?: MrmsRenderCandidateScaffoldCompact | null;
   mrms_render_candidate_sandbox?: MrmsRenderCandidateSandboxCompact | null;
   mrms_render_candidate_sandbox_import_export?: MrmsRenderCandidateSandboxImportExportCompact | null;
@@ -2898,6 +2935,28 @@ export async function refreshRenderCandidateDryRunPlan(): Promise<
       return { ok: false, error: `Render candidate dry-run plan refresh failed (${response.status})` };
     }
     const data = (await response.json()) as { compact: MrmsRenderCandidateDryRunPlanCompact };
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function refreshRenderCandidateGatedDryRunReview(): Promise<
+  | { ok: true; data: { compact: MrmsRenderCandidateGatedDryRunReviewCompact } }
+  | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/validation/mrms-render-candidate/sandbox/gated-dry-run-review`,
+      { method: 'POST' },
+    );
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: `Gated dry-run plan review failed (${response.status})`,
+      };
+    }
+    const data = (await response.json()) as { compact: MrmsRenderCandidateGatedDryRunReviewCompact };
     return { ok: true, data };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };

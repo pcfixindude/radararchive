@@ -57,6 +57,8 @@ data/dev/mrms_render_candidate_preflight.json
 data/dev/mrms_render_candidate_preflight.md
 data/dev/mrms_render_candidate_dry_run_plan.json
 data/dev/mrms_render_candidate_dry_run_plan.md
+data/dev/mrms_render_candidate_gated_dry_run_review_latest.json
+data/dev/mrms_render_candidate_gated_dry_run_review_latest.md
 data/dev/mrms_render_candidate_scaffold.json
 data/dev/mrms_render_candidate_scaffold.md
 data/dev/mrms_render_candidate_sandbox/

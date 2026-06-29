@@ -30,7 +30,7 @@ DRY_RUN_NEEDS_REVIEW = "needs_review"
 DRY_RUN_PLAN_READY = "dry_run_plan_ready"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 64 — Gated real MRMS rendering candidate command scaffold "
+    "Phase 93 — gated render candidate scaffold review "
     "(explicitly disabled-by-default; no production tile serving)"
 )
 

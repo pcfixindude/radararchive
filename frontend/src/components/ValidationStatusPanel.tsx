@@ -14,6 +14,7 @@ import {
   refreshRenderCandidateTrendHintChainBootstrap,
   refreshVisualReviewSampleBootstrap,
   refreshRenderCandidateDryRunPlan,
+  refreshRenderCandidateGatedDryRunReview,
   refreshRenderCandidateScaffold,
   refreshRenderCandidateSandbox,
   exportRenderCandidateSandbox,
@@ -123,6 +124,9 @@ export default function ValidationStatusPanel({
   const [dryRunPlanRefreshing, setDryRunPlanRefreshing] = useState(false);
   const [dryRunPlanMessage, setDryRunPlanMessage] = useState<string | null>(null);
   const [dryRunPlanError, setDryRunPlanError] = useState<string | null>(null);
+  const [gatedDryRunReviewRefreshing, setGatedDryRunReviewRefreshing] = useState(false);
+  const [gatedDryRunReviewMessage, setGatedDryRunReviewMessage] = useState<string | null>(null);
+  const [gatedDryRunReviewError, setGatedDryRunReviewError] = useState<string | null>(null);
   const [scaffoldRefreshing, setScaffoldRefreshing] = useState(false);
   const [scaffoldMessage, setScaffoldMessage] = useState<string | null>(null);
   const [scaffoldError, setScaffoldError] = useState<string | null>(null);
@@ -599,6 +603,24 @@ export default function ValidationStatusPanel({
     }
     setDryRunPlanMessage(
       `Dry-run plan refreshed (${result.data.compact.plan_status ?? '—'}) — local advisory only; does not download/decode/render.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
+  async function handleGatedDryRunReviewRefresh() {
+    setGatedDryRunReviewMessage(null);
+    setGatedDryRunReviewError(null);
+    setGatedDryRunReviewRefreshing(true);
+    const result = await refreshRenderCandidateGatedDryRunReview();
+    setGatedDryRunReviewRefreshing(false);
+    if (!result.ok) {
+      setGatedDryRunReviewError(result.error);
+      return;
+    }
+    setGatedDryRunReviewMessage(
+      `Gated dry-run review: ${result.data.compact.review_status ?? '—'} — preflight ${result.data.compact.preflight_level ?? '—'} — plan ${result.data.compact.dry_run_plan_skipped ? 'skipped' : (result.data.compact.dry_run_plan_status ?? '—')}.`,
     );
     if (onRefresh) {
       await onRefresh();
@@ -1130,6 +1152,8 @@ export default function ValidationStatusPanel({
   const mrmsRenderCandidateTrendHintChainBootstrap =
     summary.mrms_render_candidate_trend_hint_chain_bootstrap ?? null;
   const mrmsRenderCandidateDryRunPlan = summary.mrms_render_candidate_dry_run_plan ?? null;
+  const mrmsRenderCandidateGatedDryRunReview =
+    summary.mrms_render_candidate_gated_dry_run_review ?? null;
   const mrmsRenderCandidateScaffold = summary.mrms_render_candidate_scaffold ?? null;
   const mrmsRenderCandidateSandbox = summary.mrms_render_candidate_sandbox ?? null;
   const mrmsRenderCandidateSandboxImportExport =
@@ -2159,6 +2183,39 @@ export default function ValidationStatusPanel({
             Generate a local dry-run plan after preflight and sample readiness evidence are in place.
           </p>
         )}
+        {mrmsRenderCandidateGatedDryRunReview?.available ? (
+          <p className="validation-meta">
+            Latest gated review: {mrmsRenderCandidateGatedDryRunReview.review_status ?? '—'} —{' '}
+            preflight {mrmsRenderCandidateGatedDryRunReview.preflight_level ?? '—'}
+            {mrmsRenderCandidateGatedDryRunReview.dry_run_plan_skipped
+              ? ' — dry-run plan skipped'
+              : ` — plan ${mrmsRenderCandidateGatedDryRunReview.dry_run_plan_status ?? '—'}`}
+          </p>
+        ) : null}
+        {(mrmsRenderCandidateGatedDryRunReview?.preflight_blocking_items ?? []).length > 0 ? (
+          <div className="validation-meta">
+            <strong>Preflight blockers (gated review)</strong>
+            <ul>
+              {(mrmsRenderCandidateGatedDryRunReview?.preflight_blocking_items ?? []).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        <button
+          type="button"
+          className="validation-action"
+          onClick={() => void handleGatedDryRunReviewRefresh()}
+          disabled={gatedDryRunReviewRefreshing}
+        >
+          {gatedDryRunReviewRefreshing
+            ? 'Reviewing gated dry-run plan…'
+            : 'Review gated dry-run plan (preflight gate)'}
+        </button>
+        {gatedDryRunReviewMessage ? (
+          <p className="validation-meta">{gatedDryRunReviewMessage}</p>
+        ) : null}
+        {gatedDryRunReviewError ? <p className="validation-warn">{gatedDryRunReviewError}</p> : null}
         <button
           type="button"
           className="validation-refresh"
@@ -2169,6 +2226,14 @@ export default function ValidationStatusPanel({
         </button>
         {dryRunPlanMessage ? <p className="validation-meta">{dryRunPlanMessage}</p> : null}
         {dryRunPlanError ? <p className="validation-warn">{dryRunPlanError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateGatedDryRunReview?.suggested_command ??
+            'make mrms-review-gated-dry-run-plan --refresh'
+          }
+          label="Suggested gated dry-run plan review command"
+          manualCopy
+        />
         <CommandLine
           command={
             mrmsRenderCandidateDryRunPlan?.suggested_command ??

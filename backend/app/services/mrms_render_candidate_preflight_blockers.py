@@ -65,8 +65,8 @@ NEXT_PHASE_VISUAL = (
     "(review gated preflight attempt and remaining evidence blockers)"
 )
 NEXT_PHASE_DRY_RUN = (
-    "Phase 92 — gated render candidate dry-run plan review "
-    "(evaluate dry-run plan when preflight is candidate_preflight_ready)"
+    "Phase 93 — gated render candidate scaffold review "
+    "(after dry-run plan is dry_run_plan_ready)"
 )
 NEXT_PHASE_PREFLIGHT_EVIDENCE = (
     "Phase 91 — complete MRMS visual review evidence "
