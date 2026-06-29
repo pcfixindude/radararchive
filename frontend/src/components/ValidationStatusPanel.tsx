@@ -25,7 +25,7 @@ import {
   refreshRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatus,
   refreshRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusHistory,
   refreshRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint,
-  submitAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAcknowledgment,
+  submitTrendHintReviewAcknowledgment,
   submitAckStatusTrendReviewAckStatusTrendReviewAcknowledgment,
   submitAckStatusTrendReviewAcknowledgment,
   submitDiffAcknowledgment,
@@ -207,30 +207,12 @@ export default function ValidationStatusPanel({
     ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendHintError,
     setAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendHintError,
   ] = useState<string | null>(null);
-  const [
-    ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckOperator,
-    setAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckOperator,
-  ] = useState('');
-  const [
-    ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckNote,
-    setAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckNote,
-  ] = useState('');
-  const [
-    ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckTrendReview,
-    setAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckTrendReview,
-  ] = useState(false);
-  const [
-    ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckSubmitting,
-    setAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckSubmitting,
-  ] = useState(false);
-  const [
-    ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckMessage,
-    setAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckMessage,
-  ] = useState<string | null>(null);
-  const [
-    ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckError,
-    setAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckError,
-  ] = useState<string | null>(null);
+  const [trendHintReviewAckOperator, setTrendHintReviewAckOperator] = useState('');
+  const [trendHintReviewAckNote, setTrendHintReviewAckNote] = useState('');
+  const [trendHintReviewAckTrendReview, setTrendHintReviewAckTrendReview] = useState(false);
+  const [trendHintReviewAckSubmitting, setTrendHintReviewAckSubmitting] = useState(false);
+  const [trendHintReviewAckMessage, setTrendHintReviewAckMessage] = useState<string | null>(null);
+  const [trendHintReviewAckError, setTrendHintReviewAckError] = useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -845,27 +827,27 @@ export default function ValidationStatusPanel({
     }
   }
 
-  async function handleAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckSubmit(event: FormEvent) {
+  async function handleTrendHintReviewAckSubmit(event: FormEvent) {
     event.preventDefault();
-    setAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckMessage(null);
-    setAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckError(null);
-    setAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckSubmitting(true);
-    const result = await submitAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAcknowledgment({
-      operator_initials: ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckOperator.trim() || undefined,
-      note: ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckNote.trim(),
-      acknowledged_trend_review: ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckTrendReview || undefined,
+    setTrendHintReviewAckMessage(null);
+    setTrendHintReviewAckError(null);
+    setTrendHintReviewAckSubmitting(true);
+    const result = await submitTrendHintReviewAcknowledgment({
+      operator_initials: trendHintReviewAckOperator.trim() || undefined,
+      note: trendHintReviewAckNote.trim(),
+      acknowledged_trend_review: trendHintReviewAckTrendReview || undefined,
     });
-    setAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckSubmitting(false);
+    setTrendHintReviewAckSubmitting(false);
     if (!result.ok) {
-      setAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckError(result.error);
+      setTrendHintReviewAckError(result.error);
       return;
     }
-    setAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckMessage(
+    setTrendHintReviewAckMessage(
       result.data.trend_review_still_recommended
-        ? 'Acknowledgment recorded — status trend review may still be recommended (does not clear alerts).'
+        ? 'Acknowledgment recorded — trend review may still be recommended (does not clear alerts).'
         : 'Acknowledgment recorded (local only — does not verify MRMS).',
     );
-    setAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckNote('');
+    setTrendHintReviewAckNote('');
     if (onRefresh) {
       await onRefresh();
     }
@@ -979,9 +961,8 @@ export default function ValidationStatusPanel({
   const mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint =
     summary.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint ??
     null;
-  const mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgment =
-    summary.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment ??
-    null;
+  const trendHintReviewAck =
+    summary.mrms_render_candidate_trend_hint_review_acknowledgment ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -3522,77 +3503,56 @@ export default function ValidationStatusPanel({
         <SafetyNote />
       </CollapsibleSection>
       <CollapsibleSection
-        title="MRMS render candidate sandbox comparison acknowledgment status trend review acknowledgment status trend review acknowledgment status trend review acknowledgment"
-        className="validation-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status-trend-review-acknowledgment-status-trend-review-acknowledgment"
+        title="Candidate trend-hint review acknowledgments"
+        className="validation-render-candidate-trend-hint-review-acknowledgment"
         summary={
           <p className="validation-meta">
-            {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgment?.available
-              ? `Latest ack ${formatTimestamp(mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgment.created_at)} — ${mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgment.operator ?? '—'}`
-              : 'No trend review acknowledgment status trend review acknowledgment yet — record local review below'}
+            {trendHintReviewAck?.available
+              ? `Latest ack ${formatTimestamp(trendHintReviewAck.created_at)} — ${trendHintReviewAck.operator ?? '—'}`
+              : 'No candidate trend-hint review acknowledgment yet — record local review below'}
           </p>
         }
       >
         <p className="validation-warn">
-          Local acknowledgment of reviewed trend review acknowledgment status trend hints only. Does not
-          verify MRMS, enable production rendering, download/decode/render, create or serve production
-          tiles, clear alerts, or authorize production use.
+          Local acknowledgment of reviewed candidate trend hints only. Does not verify MRMS, enable
+          production rendering, download/decode/render, create or serve production tiles, clear alerts, or
+          authorize production use.
         </p>
-        {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgment?.available ? (
+        {trendHintReviewAck?.available ? (
           <>
             <p className="validation-meta">
-              Count:{' '}
-              {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgment.count ??
-                0}{' '}
-              — related trend:{' '}
-              {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgment.related_trend ??
-                '—'}{' '}
-              — hint status:{' '}
-              {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgment.related_hint_status ??
-                '—'}
+              Count: {trendHintReviewAck.count ?? 0} — related trend: {trendHintReviewAck.related_trend ?? '—'}{' '}
+              — hint status: {trendHintReviewAck.related_hint_status ?? '—'}
             </p>
-            {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgment.note ? (
-              <p className="validation-meta">
-                Latest note:{' '}
-                {
-                  mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgment.note
-                }
-              </p>
+            {trendHintReviewAck.note ? (
+              <p className="validation-meta">Latest note: {trendHintReviewAck.note}</p>
             ) : null}
-            {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgment.trend_review_still_recommended ? (
+            {trendHintReviewAck.trend_review_still_recommended ? (
               <p className="validation-warn">
-                Status trend review still recommended — acknowledgment does not clear alerts or change
-                trend hints.
+                Trend review still recommended — acknowledgment does not clear alerts or change trend hints.
               </p>
             ) : null}
           </>
         ) : (
           <p className="validation-meta">
-            Refresh trend review acknowledgment status trend hints first, then record acknowledgment after
-            local review.
+            Refresh candidate trend hints first, then record acknowledgment after local review.
           </p>
         )}
-        <form
-          className="validation-form"
-          onSubmit={(event) => void handleAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckSubmit(event)}
-        >
+        <form className="validation-form" onSubmit={(event) => void handleTrendHintReviewAckSubmit(event)}>
           <label>
             Operator initials
             <input
               type="text"
-              value={ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckOperator}
-              onChange={(event) =>
-                setAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckOperator(event.target.value)
-              }
+              value={trendHintReviewAckOperator}
+              onChange={(event) => setTrendHintReviewAckOperator(event.target.value)}
               autoComplete="name"
             />
           </label>
           <label>
             Note (required)
             <textarea
-              value={ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckNote}
-              onChange={(event) =>
-                setAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckNote(event.target.value)
-              }
+              value={trendHintReviewAckNote}
+              onChange={(event) => setTrendHintReviewAckNote(event.target.value)}
               rows={2}
               required
             />
@@ -3600,35 +3560,27 @@ export default function ValidationStatusPanel({
           <label className="validation-checkbox">
             <input
               type="checkbox"
-              checked={ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckTrendReview}
-              onChange={(event) =>
-                setAckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckTrendReview(event.target.checked)
-              }
+              checked={trendHintReviewAckTrendReview}
+              onChange={(event) => setTrendHintReviewAckTrendReview(event.target.checked)}
             />
-            Acknowledged current status trend review recommendation (local only)
+            Acknowledged current trend review recommendation (local only)
           </label>
-          <button
-            type="submit"
-            className="validation-action"
-            disabled={ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckSubmitting}
-          >
-            {ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckSubmitting
+          <button type="submit" className="validation-action" disabled={trendHintReviewAckSubmitting}>
+            {trendHintReviewAckSubmitting
               ? 'Recording acknowledgment…'
-              : 'Record trend review acknowledgment status trend review acknowledgment (local only)'}
+              : 'Record candidate trend-hint review acknowledgment (local only)'}
           </button>
         </form>
-        {ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckMessage ? (
-          <p className="validation-meta">{ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckMessage}</p>
+        {trendHintReviewAckMessage ? (
+          <p className="validation-meta">{trendHintReviewAckMessage}</p>
         ) : null}
-        {ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckError ? (
-          <p className="validation-warn">{ackStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAckError}</p>
-        ) : null}
+        {trendHintReviewAckError ? <p className="validation-warn">{trendHintReviewAckError}</p> : null}
         <CommandLine
           command={
-            mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgment?.suggested_command ??
-            'make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status-trend-review-acknowledgment-status-trend-review-acknowledgment --operator OP --note "Reviewed locally"'
+            trendHintReviewAck?.suggested_command ??
+            'make mrms-render-candidate-trend-hint-review-acknowledgment --operator OP --note "Reviewed locally"'
           }
-          label="Suggested trend review acknowledgment status trend review acknowledgment command"
+          label="Suggested candidate trend-hint review acknowledgment command"
           manualCopy
         />
         <SafetyNote />

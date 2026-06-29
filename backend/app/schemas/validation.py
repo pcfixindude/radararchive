@@ -1995,9 +1995,7 @@ class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowl
     compact: MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHintCompact
 
 
-class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentCompact(
-    BaseModel
-):
+class MrmsRenderCandidateTrendHintReviewAcknowledgmentCompact(BaseModel):
     available: bool = False
     count: int = 0
     acknowledgment_id: Optional[str] = None
@@ -2027,9 +2025,7 @@ class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowl
     prototype: bool = True
 
 
-class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentCreateRequest(
-    BaseModel
-):
+class MrmsRenderCandidateTrendHintReviewAcknowledgmentCreateRequest(BaseModel):
     operator_name: Optional[str] = None
     operator_initials: Optional[str] = None
     note: str = ""
@@ -2040,9 +2036,7 @@ class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowl
     acknowledged_trend_review: Optional[bool] = None
 
 
-class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentCreateResponse(
-    BaseModel
-):
+class MrmsRenderCandidateTrendHintReviewAcknowledgmentCreateResponse(BaseModel):
     verified_mrms: bool = False
     local_acknowledgment_only: bool = True
     does_not_clear_alerts: bool = True
@@ -2053,9 +2047,7 @@ class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowl
     acknowledgment: dict[str, Any]
 
 
-class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentsResponse(
-    BaseModel
-):
+class MrmsRenderCandidateTrendHintReviewAcknowledgmentsResponse(BaseModel):
     prototype: bool = True
     verified_mrms: bool = False
     local_acknowledgment_only: bool = True
@@ -2068,12 +2060,8 @@ class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowl
     trend_review_still_recommended: bool = False
     suggested_command: Optional[str] = None
     next_phase_recommendation: Optional[str] = None
-    latest: Optional[
-        MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentCompact
-    ] = None
-    entries: list[
-        MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentCompact
-    ] = Field(default_factory=list)
+    latest: Optional[MrmsRenderCandidateTrendHintReviewAcknowledgmentCompact] = None
+    entries: list[MrmsRenderCandidateTrendHintReviewAcknowledgmentCompact] = Field(default_factory=list)
 
 
 class MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusCompact(BaseModel):
@@ -3011,8 +2999,8 @@ class ValidationSummaryResponse(BaseModel):
     mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint: Optional[
         MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHintCompact
     ] = None
-    mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment: Optional[
-        MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentCompact
+    mrms_render_candidate_trend_hint_review_acknowledgment: Optional[
+        MrmsRenderCandidateTrendHintReviewAcknowledgmentCompact
     ] = None
     scheduled_operator_status: Optional[ScheduledOperatorStatusCompact] = None
     runbook_references: list[RunbookReferenceCompact] = Field(default_factory=list)

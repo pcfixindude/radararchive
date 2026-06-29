@@ -1,4 +1,4 @@
-"""Tests for trend review acknowledgment status trend review acknowledgment status trend hint review acknowledgments (Phase 81)."""
+"""Tests for candidate trend-hint review acknowledgments (Phase 81)."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgmen
 )
 from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_history import (
     COVERAGE_WORSENED,
+    _save_ack_status_history,
     _safety_fields as history_safety_fields,
 )
 from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_hint import (
@@ -22,13 +23,13 @@ from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgmen
     HINT_NEEDS_REVIEW,
     refresh_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint,
 )
-from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment import (
+from backend.app.services.mrms_render_candidate_trend_hint_review_acknowledgment import (
     ACKNOWLEDGMENTS_PATH,
-    AckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAcknowledgmentValidationError,
-    build_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgments_payload,
-    compact_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_summary,
-    create_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment,
-    load_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgments,
+    TrendHintReviewAckValidationError,
+    build_trend_hint_review_acknowledgments_payload,
+    compact_trend_hint_review_acknowledgment_summary,
+    create_trend_hint_review_acknowledgment,
+    load_trend_hint_review_acknowledgments,
 )
 from backend.app.services.mrms_render_candidate_sandbox_comparison_history import (
     COMPARISON_CHANGED,
@@ -48,7 +49,7 @@ def _use_test_storage(monkeypatch, storage):
     monkeypatch.setattr(settings, "enable_decoded_tiles", False)
 
 
-def _seed_status_trend_review_ack_status_trend_review_ack_status_trend_hint_needs_review(storage, monkeypatch):
+def _seed_candidate_trend_hint_needs_review(storage, monkeypatch):
     _use_test_storage(monkeypatch, storage)
     for _ in range(2):
         entry = build_comparison_history_entry(
@@ -60,10 +61,6 @@ def _seed_status_trend_review_ack_status_trend_review_ack_status_trend_hint_need
         append_comparison_history_entry(storage, entry)
     refresh_sandbox_comparison_trend_hint(storage)
     refresh_sandbox_comparison_acknowledgment_status(storage)
-    from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_history import (
-        _save_ack_status_history,
-    )
-
     base = {
         "rollup_status": ROLLUP_NEEDS_ACKNOWLEDGMENT,
         "acknowledgment_status": "none",
@@ -96,25 +93,22 @@ def _seed_status_trend_review_ack_status_trend_review_ack_status_trend_hint_need
     refresh_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint(storage)
 
 
-def test_acknowledgment_requires_operator_and_note(storage, monkeypatch):
+def test_trend_hint_review_ack_requires_operator_and_note(storage, monkeypatch):
     _use_test_storage(monkeypatch, storage)
     try:
-        create_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment(
-            storage,
-            note="reviewed",
-        )
-    except AckStatusTrendReviewAckStatusTrendReviewAckStatusTrendReviewAcknowledgmentValidationError as exc:
+        create_trend_hint_review_acknowledgment(storage, note="reviewed")
+    except TrendHintReviewAckValidationError as exc:
         assert "operator" in str(exc).lower()
     else:
         raise AssertionError("expected validation error")
 
 
-def test_acknowledgment_captures_related_status_trend_hint(storage, monkeypatch):
-    _seed_status_trend_review_ack_status_trend_review_ack_status_trend_hint_needs_review(storage, monkeypatch)
-    record = create_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment(
+def test_trend_hint_review_ack_captures_related_hint(storage, monkeypatch):
+    _seed_candidate_trend_hint_needs_review(storage, monkeypatch)
+    record = create_trend_hint_review_acknowledgment(
         storage,
         operator_initials="OP",
-        note="Reviewed status trend hints locally.",
+        note="Reviewed candidate trend hints locally.",
         acknowledged_trend_review=True,
     )
     assert record["related_hint_status"] == HINT_NEEDS_REVIEW
@@ -123,39 +117,35 @@ def test_acknowledgment_captures_related_status_trend_hint(storage, monkeypatch)
     assert record["verified_mrms"] is False
 
 
-def test_acknowledgment_persists_to_json(storage, monkeypatch):
-    _seed_status_trend_review_ack_status_trend_review_ack_status_trend_hint_needs_review(storage, monkeypatch)
-    create_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment(
+def test_trend_hint_review_ack_persists_to_json(storage, monkeypatch):
+    _seed_candidate_trend_hint_needs_review(storage, monkeypatch)
+    create_trend_hint_review_acknowledgment(
         storage,
         operator_initials="OP",
         note="Local review only.",
     )
-    entries = load_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgments(
-        storage
-    )
+    entries = load_trend_hint_review_acknowledgments(storage)
     assert len(entries) == 1
     assert storage.absolute_path(ACKNOWLEDGMENTS_PATH).is_file()
 
 
-def test_acknowledgment_safety_invariants(storage, monkeypatch):
-    _seed_status_trend_review_ack_status_trend_review_ack_status_trend_hint_needs_review(storage, monkeypatch)
-    create_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment(
+def test_trend_hint_review_ack_safety_invariants(storage, monkeypatch):
+    _seed_candidate_trend_hint_needs_review(storage, monkeypatch)
+    create_trend_hint_review_acknowledgment(
         storage,
         operator_initials="OP",
         note="Safety check.",
     )
-    compact = compact_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_summary(
-        storage
-    )
+    compact = compact_trend_hint_review_acknowledgment_summary(storage)
     assert compact["verified_mrms"] is False
     assert compact["does_not_clear_alerts"] is True
     assert compact["does_not_authorize_production_use"] is True
 
 
-def test_acknowledgment_does_not_clear_alerts(storage, monkeypatch):
-    _seed_status_trend_review_ack_status_trend_review_ack_status_trend_hint_needs_review(storage, monkeypatch)
+def test_trend_hint_review_ack_does_not_clear_alerts(storage, monkeypatch):
+    _seed_candidate_trend_hint_needs_review(storage, monkeypatch)
     save_validation_alert(storage, {"level": ALERT_FAILED, "reason": "test"})
-    create_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment(
+    create_trend_hint_review_acknowledgment(
         storage,
         operator_initials="OP",
         note="Does not clear alerts.",
@@ -165,44 +155,38 @@ def test_acknowledgment_does_not_clear_alerts(storage, monkeypatch):
     assert alert["level"] == ALERT_FAILED
 
 
-def test_summary_includes_acknowledgment_compact(db_session, storage, monkeypatch):
-    _seed_status_trend_review_ack_status_trend_review_ack_status_trend_hint_needs_review(storage, monkeypatch)
-    create_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment(
+def test_summary_includes_trend_hint_review_ack_compact(db_session, storage, monkeypatch):
+    _seed_candidate_trend_hint_needs_review(storage, monkeypatch)
+    create_trend_hint_review_acknowledgment(
         storage,
         operator_initials="OP",
         note="Summary test.",
     )
     summary = build_validation_summary(db_session, storage)
-    compact = summary[
-        "mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment"
-    ]
+    compact = summary["mrms_render_candidate_trend_hint_review_acknowledgment"]
     assert compact["available"] is True
     assert compact["verified_mrms"] is False
     assert compact["count"] == 1
 
 
-def test_acknowledgment_get_endpoint(client, storage, monkeypatch):
-    _seed_status_trend_review_ack_status_trend_review_ack_status_trend_hint_needs_review(storage, monkeypatch)
-    create_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment(
+def test_trend_hint_review_ack_get_endpoint(client, storage, monkeypatch):
+    _seed_candidate_trend_hint_needs_review(storage, monkeypatch)
+    create_trend_hint_review_acknowledgment(
         storage,
         operator_initials="OP",
         note="API GET test.",
     )
-    response = client.get(
-        "/api/validation/mrms-render-candidate/sandbox/import-export/"
-        "comparison-acknowledgment-status/trend-review-acknowledgment-status/trend-review-acknowledgment-status/trend-review-acknowledgments"
-    )
+    response = client.get("/api/validation/mrms-render-candidate/sandbox/trend-hint-review-acknowledgments")
     assert response.status_code == 200
     body = response.json()
     assert body["verified_mrms"] is False
     assert body["count"] == 1
 
 
-def test_acknowledgment_post_endpoint(client, storage, monkeypatch):
-    _seed_status_trend_review_ack_status_trend_review_ack_status_trend_hint_needs_review(storage, monkeypatch)
+def test_trend_hint_review_ack_post_endpoint(client, storage, monkeypatch):
+    _seed_candidate_trend_hint_needs_review(storage, monkeypatch)
     response = client.post(
-        "/api/validation/mrms-render-candidate/sandbox/import-export/"
-        "comparison-acknowledgment-status/trend-review-acknowledgment-status/trend-review-acknowledgment-status/trend-review-acknowledgments",
+        "/api/validation/mrms-render-candidate/sandbox/trend-hint-review-acknowledgments",
         json={
             "operator_initials": "OP",
             "note": "API POST test.",
@@ -216,31 +200,19 @@ def test_acknowledgment_post_endpoint(client, storage, monkeypatch):
     assert body["acknowledgment"]["operator_initials"] == "OP"
 
 
-def test_acknowledgment_post_validation_error(client, storage, monkeypatch):
+def test_trend_hint_review_ack_post_validation_error(client, storage, monkeypatch):
     _use_test_storage(monkeypatch, storage)
     response = client.post(
-        "/api/validation/mrms-render-candidate/sandbox/import-export/"
-        "comparison-acknowledgment-status/trend-review-acknowledgment-status/trend-review-acknowledgment-status/trend-review-acknowledgments",
+        "/api/validation/mrms-render-candidate/sandbox/trend-hint-review-acknowledgments",
         json={"note": "missing operator"},
     )
     assert response.status_code == 422
 
 
-def test_acknowledgments_payload_lists_entries(storage, monkeypatch):
-    _seed_status_trend_review_ack_status_trend_review_ack_status_trend_hint_needs_review(storage, monkeypatch)
-    create_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment(
-        storage,
-        operator_initials="A",
-        note="First.",
-    )
-    create_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment(
-        storage,
-        operator_initials="B",
-        note="Second.",
-    )
-    payload = build_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgments_payload(
-        storage,
-        limit=10,
-    )
+def test_trend_hint_review_ack_payload_lists_entries(storage, monkeypatch):
+    _seed_candidate_trend_hint_needs_review(storage, monkeypatch)
+    create_trend_hint_review_acknowledgment(storage, operator_initials="A", note="First.")
+    create_trend_hint_review_acknowledgment(storage, operator_initials="B", note="Second.")
+    payload = build_trend_hint_review_acknowledgments_payload(storage, limit=10)
     assert payload["count"] == 2
     assert len(payload["entries"]) == 2
