@@ -9,11 +9,11 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 82
-- Latest phase: Phase 82 — Candidate trend-hint acknowledgment status rollup
-- Latest commit: `436cb38`
-- Latest tag: `phase-82-candidate-trend-hint-ack-status-rollup`
-- Push status: pushed
+- Completed through phase: 83
+- Latest phase: Phase 83 — Candidate trend-hint acknowledgment status history
+- Latest commit: TBD
+- Latest tag: `phase-83-candidate-trend-hint-ack-status-history`
+- Push status: pending
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
@@ -22,6 +22,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - `ENABLE_PRODUCTION_RADAR_TILES`: **false** by default
 - Placeholder tiles default: **true**
 - Production rendering: gated/off by default
+- Candidate trend-hint acknowledgment status history: local advisory only
 - Candidate trend-hint acknowledgment status rollup: local advisory only
 - Candidate trend-hint review acknowledgments: local acknowledgment only
 - Candidate trend hints (Phase 80 chain): local advisory only
@@ -29,32 +30,32 @@ Do not treat this file as verified MRMS proof or production authorization.
 
 ## Latest phase summary
 
-- Phase: **82**
-- Purpose: Add local rollup linking candidate trend hints to trend-hint review acknowledgments so operators can see combined coverage without production authorization.
-- Main command added: `make mrms-render-candidate-trend-hint-ack-status`
-- API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/trend-hint-ack-status`
-- Tests: backend 944 passed; frontend vitest 8 passed; frontend build OK
+- Phase: **83**
+- Purpose: Add local bounded history of trend-hint acknowledgment status rollups so operators can track coverage changes over time without production authorization.
+- Main command added: `make mrms-render-candidate-trend-hint-ack-status-history`
+- API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/trend-hint-ack-status/history`
+- Tests: TBD
 - Known limitations:
-  - Rollup does not clear alerts or mutate trend hints or acknowledgments
-  - `trend_review_recommended` may remain true after acknowledgment
+  - History does not clear alerts or mutate rollups or acknowledgments
+  - History appends on status rollup refresh only
   - `verified_mrms` remains false
 
 ## Current focus
 
 Local visual evidence review block with full candidate sandbox review chain (rollup, history, trend hints, acknowledgments) before any real MRMS rendering candidate attempt.
 
-Next direction: candidate trend-hint acknowledgment status history.
+Next direction: candidate trend-hint review chain digest.
 
 Do **not** promote to verified MRMS yet.
 
 ## Next recommended phase
 
-- Phase number: **83**
-- Phase title: Candidate trend-hint acknowledgment status history
-- Goal: Add local bounded history of trend-hint acknowledgment status rollups so operators can track coverage changes over time without production authorization.
-- Why this is next: Phase 82 adds the trend-hint acknowledgment status rollup; Phase 83 should persist bounded history on refresh.
+- Phase number: **84**
+- Phase title: Candidate trend-hint review chain digest
+- Goal: Add local digest combining trend-hint acknowledgment status rollup and history so operators can see a single coverage summary without production authorization.
+- Why this is next: Phase 83 completes bounded history; Phase 84 should summarize rollup + history locally.
 - Safety boundaries:
-  - local-only history by default
+  - local-only digest by default
   - no MRMS verification claim
   - no production rendering or tile serving
   - no alert clearing
@@ -64,7 +65,7 @@ Do **not** promote to verified MRMS yet.
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 83 only.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 84 only.
 ```
 
 ## Key docs (read order for new work)

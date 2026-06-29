@@ -74,6 +74,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusResponse,
     MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusHistoryResponse,
     MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHintResponse,
+    MrmsRenderCandidateTrendHintAckStatusHistoryResponse,
     MrmsRenderCandidateTrendHintAckStatusResponse,
     MrmsRenderCandidateTrendHintReviewAcknowledgmentCreateRequest,
     MrmsRenderCandidateTrendHintReviewAcknowledgmentCreateResponse,
@@ -258,6 +259,10 @@ from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgmen
     build_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint,
     build_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint_payload,
     refresh_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint,
+)
+from backend.app.services.mrms_render_candidate_trend_hint_ack_status_history import (
+    build_trend_hint_ack_status_history_payload,
+    refresh_trend_hint_ack_status_history_report,
 )
 from backend.app.services.mrms_render_candidate_trend_hint_ack_status import (
     build_trend_hint_ack_status_payload,
@@ -1175,6 +1180,33 @@ def validation_mrms_render_candidate_trend_hint_ack_status_refresh() -> (
     refresh_trend_hint_ack_status(storage)
     payload = build_trend_hint_ack_status_payload(storage)
     return MrmsRenderCandidateTrendHintAckStatusResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/trend-hint-ack-status/history",
+    response_model=MrmsRenderCandidateTrendHintAckStatusHistoryResponse,
+)
+def validation_mrms_render_candidate_trend_hint_ack_status_history() -> (
+    MrmsRenderCandidateTrendHintAckStatusHistoryResponse
+):
+    """Bounded local candidate trend-hint acknowledgment status history (does not clear alerts)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_trend_hint_ack_status_history_payload(storage)
+    return MrmsRenderCandidateTrendHintAckStatusHistoryResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/trend-hint-ack-status/history",
+    response_model=MrmsRenderCandidateTrendHintAckStatusHistoryResponse,
+)
+def validation_mrms_render_candidate_trend_hint_ack_status_history_refresh() -> (
+    MrmsRenderCandidateTrendHintAckStatusHistoryResponse
+):
+    """Dev/local only — refresh trend-hint acknowledgment status history report; does NOT clear alerts."""
+    storage = LocalStorage(settings.local_storage_root)
+    refresh_trend_hint_ack_status_history_report(storage)
+    payload = build_trend_hint_ack_status_history_payload(storage)
+    return MrmsRenderCandidateTrendHintAckStatusHistoryResponse(**payload)
 
 
 @router.get(

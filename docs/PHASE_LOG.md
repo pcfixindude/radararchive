@@ -2749,3 +2749,31 @@ cd frontend && npm run build
 - Rollup does not clear alerts or mutate trend hints or acknowledgments
 - Stale acknowledgment may remain after hint refresh until re-acknowledged
 
+## Phase 83 - Candidate Trend-Hint Acknowledgment Status History
+
+Bounded local history of trend-hint acknowledgment status rollups without production authorization.
+
+### Backend
+- `mrms_render_candidate_trend_hint_ack_status_history.py` — bounded JSON list, coverage change tracking, Markdown report
+- Paths: `mrms_render_candidate_trend_hint_ack_status_history.json`, `mrms_render_candidate_trend_hint_ack_status_history.md`
+- Phase 82 `save_trend_hint_ack_status` appends history on rollup refresh
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/trend-hint-ack-status/history`
+- CLI: `scripts/mrms_render_candidate_trend_hint_ack_status_history.py`; `make mrms-render-candidate-trend-hint-ack-status-history`
+
+### Frontend
+- Dev Validation **Candidate trend-hint acknowledgment status history** collapsible with refresh button
+
+### Run commands
+
+```bash
+make test
+make mrms-render-candidate-trend-hint-ack-status --refresh
+make mrms-render-candidate-trend-hint-ack-status-history --refresh
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- History does not clear alerts or mutate rollups or acknowledgments
+- History appends on status rollup refresh only
+

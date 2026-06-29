@@ -236,6 +236,9 @@ mrms-render-candidate-trend-hint-review-acknowledgment:
 mrms-render-candidate-trend-hint-ack-status:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_trend_hint_ack_status.py $(ARGS)
 
+mrms-render-candidate-trend-hint-ack-status-history:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_trend_hint_ack_status_history.py $(ARGS)
+
 mrms-proof-history:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_proof_history.py $(ARGS)
 

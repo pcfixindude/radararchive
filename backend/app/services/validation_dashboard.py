@@ -82,6 +82,9 @@ from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgmen
     compact_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_trend_hint,
 )
 from backend.app.services.mrms_render_candidate_trend_hint_ack_status import compact_trend_hint_ack_status
+from backend.app.services.mrms_render_candidate_trend_hint_ack_status_history import (
+    compact_trend_hint_ack_status_history,
+)
 from backend.app.services.mrms_render_candidate_trend_hint_review_acknowledgment import (
     compact_trend_hint_review_acknowledgment_summary,
 )
@@ -323,6 +326,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
             storage
         ),
         "mrms_render_candidate_trend_hint_ack_status": compact_trend_hint_ack_status(storage),
+        "mrms_render_candidate_trend_hint_ack_status_history": compact_trend_hint_ack_status_history(storage),
         "scheduled_operator_status": compact_scheduled_operator_status(scheduled),
         "runbook_references": RUNBOOK_LINK_METADATA,
         "catalog": catalog,

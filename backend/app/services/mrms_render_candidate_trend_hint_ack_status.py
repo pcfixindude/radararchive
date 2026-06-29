@@ -42,8 +42,8 @@ ROLLUP_STALE = "stale"
 ROLLUP_BLOCKED = "blocked"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 83 — candidate trend-hint acknowledgment status history "
-    "(local bounded history of trend-hint acknowledgment status rollups)"
+    "Phase 84 — candidate trend-hint review chain digest "
+    "(local digest combining rollup and history without production authorization)"
 )
 
 
@@ -270,6 +270,11 @@ def build_trend_hint_ack_status_markdown(status: dict[str, Any]) -> str:
 
 
 def save_trend_hint_ack_status(storage: LocalStorage, status: dict[str, Any]) -> dict[str, Any]:
+    from backend.app.services.mrms_render_candidate_trend_hint_ack_status_history import (
+        append_trend_hint_ack_status_history_entry,
+        refresh_trend_hint_ack_status_history_report,
+    )
+
     json_path = _status_json_path(storage)
     md_path = _status_md_path(storage)
     storage.ensure_directories(json_path.rsplit("/", 1)[0])
@@ -288,6 +293,8 @@ def save_trend_hint_ack_status(storage: LocalStorage, status: dict[str, Any]) ->
         build_trend_hint_ack_status_markdown(status),
         encoding="utf-8",
     )
+    append_trend_hint_ack_status_history_entry(storage, status)
+    refresh_trend_hint_ack_status_history_report(storage)
     return status
 
 

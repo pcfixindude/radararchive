@@ -27,6 +27,7 @@ import {
   refreshRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint,
   submitTrendHintReviewAcknowledgment,
   refreshRenderCandidateTrendHintAckStatus,
+  refreshRenderCandidateTrendHintAckStatusHistory,
   submitAckStatusTrendReviewAckStatusTrendReviewAcknowledgment,
   submitAckStatusTrendReviewAcknowledgment,
   submitDiffAcknowledgment,
@@ -217,6 +218,9 @@ export default function ValidationStatusPanel({
   const [trendHintAckStatusRefreshing, setTrendHintAckStatusRefreshing] = useState(false);
   const [trendHintAckStatusMessage, setTrendHintAckStatusMessage] = useState<string | null>(null);
   const [trendHintAckStatusError, setTrendHintAckStatusError] = useState<string | null>(null);
+  const [trendHintAckStatusHistoryRefreshing, setTrendHintAckStatusHistoryRefreshing] = useState(false);
+  const [trendHintAckStatusHistoryMessage, setTrendHintAckStatusHistoryMessage] = useState<string | null>(null);
+  const [trendHintAckStatusHistoryError, setTrendHintAckStatusHistoryError] = useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -849,6 +853,24 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleTrendHintAckStatusHistoryRefresh() {
+    setTrendHintAckStatusHistoryMessage(null);
+    setTrendHintAckStatusHistoryError(null);
+    setTrendHintAckStatusHistoryRefreshing(true);
+    const result = await refreshRenderCandidateTrendHintAckStatusHistory();
+    setTrendHintAckStatusHistoryRefreshing(false);
+    if (!result.ok) {
+      setTrendHintAckStatusHistoryError(result.error);
+      return;
+    }
+    setTrendHintAckStatusHistoryMessage(
+      `Trend-hint acknowledgment status history refreshed — ${result.data.compact.history_count ?? 0} entries.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   async function handleTrendHintReviewAckSubmit(event: FormEvent) {
     event.preventDefault();
     setTrendHintReviewAckMessage(null);
@@ -986,6 +1008,7 @@ export default function ValidationStatusPanel({
   const trendHintReviewAck =
     summary.mrms_render_candidate_trend_hint_review_acknowledgment ?? null;
   const trendHintAckStatus = summary.mrms_render_candidate_trend_hint_ack_status ?? null;
+  const trendHintAckStatusHistory = summary.mrms_render_candidate_trend_hint_ack_status_history ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -3686,6 +3709,83 @@ export default function ValidationStatusPanel({
             'make mrms-render-candidate-trend-hint-ack-status --refresh'
           }
           label="Suggested trend-hint acknowledgment status command"
+          manualCopy
+        />
+        <SafetyNote />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Candidate trend-hint acknowledgment status history"
+        className="validation-render-candidate-trend-hint-ack-status-history"
+        summary={
+          <p className="validation-meta">
+            {trendHintAckStatusHistory?.available
+              ? `${trendHintAckStatusHistory.history_count ?? 0} entries — latest coverage ${trendHintAckStatusHistory.latest_coverage_change ?? '—'}`
+              : 'No trend-hint acknowledgment status history yet — refresh status rollup first'}
+          </p>
+        }
+      >
+        <p className="validation-warn">
+          Local bounded history of trend-hint acknowledgment status rollups only. Does not verify MRMS,
+          enable production rendering, download/decode/render, create or serve production tiles, clear alerts,
+          or authorize production use.
+        </p>
+        {trendHintAckStatusHistory?.available ? (
+          <>
+            <p className="validation-meta">
+              Latest rollup: {trendHintAckStatusHistory.latest_rollup_status ?? '—'} — acknowledgment:{' '}
+              {trendHintAckStatusHistory.latest_acknowledgment_status ?? '—'}
+            </p>
+            <p className="validation-meta">
+              Latest coverage change: {trendHintAckStatusHistory.latest_coverage_change ?? '—'} — recorded:{' '}
+              {formatTimestamp(trendHintAckStatusHistory.latest_recorded_at)}
+            </p>
+            {(trendHintAckStatusHistory.recent_entries ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Recent entries</strong>
+                <ul>
+                  {(trendHintAckStatusHistory.recent_entries ?? []).map((item) => (
+                    <li key={`${item.recorded_at}-${item.rollup_status}`}>
+                      {item.recorded_at} — rollup {item.rollup_status} (ack {item.acknowledgment_status}) —
+                      coverage {item.coverage_change}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {trendHintAckStatusHistory.json_path ? (
+              <p className="validation-meta">
+                JSON: <code>{trendHintAckStatusHistory.json_path}</code>
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            Refresh trend-hint acknowledgment status rollup first, then run{' '}
+            <code>make mrms-render-candidate-trend-hint-ack-status-history --refresh</code>.
+          </p>
+        )}
+        <button
+          type="button"
+          className="validation-action"
+          disabled={trendHintAckStatusHistoryRefreshing}
+          onClick={() => void handleTrendHintAckStatusHistoryRefresh()}
+        >
+          {trendHintAckStatusHistoryRefreshing
+            ? 'Refreshing trend-hint acknowledgment status history…'
+            : 'Refresh trend-hint acknowledgment status history (local only)'}
+        </button>
+        {trendHintAckStatusHistoryMessage ? (
+          <p className="validation-meta">{trendHintAckStatusHistoryMessage}</p>
+        ) : null}
+        {trendHintAckStatusHistoryError ? (
+          <p className="validation-warn">{trendHintAckStatusHistoryError}</p>
+        ) : null}
+        <CommandLine
+          command={
+            trendHintAckStatusHistory?.suggested_command ??
+            'make mrms-render-candidate-trend-hint-ack-status-history --refresh'
+          }
+          label="Suggested trend-hint acknowledgment status history command"
           manualCopy
         />
         <SafetyNote />
