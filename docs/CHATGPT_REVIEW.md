@@ -11,9 +11,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 74
 - Latest phase: Phase 74 — Gated candidate sandbox comparison acknowledgment status trend review acknowledgment status
-- Latest commit: (pending push)
+- Latest commit: `b55b6ae`
 - Latest tag: `phase-74-sandbox-status-trend-review-acknowledgment-status`
-- Push status: pending
+- Push status: pushed
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
