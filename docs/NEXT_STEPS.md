@@ -1,14 +1,14 @@
 # Next Steps
 
-## Phase 79 - TBD (Draft)
+## Phase 80 - TBD (Draft)
 
-Goal: Gated candidate sandbox comparison acknowledgment status trend review acknowledgment status trend review acknowledgment status history — local bounded history of status rollups without production authorization.
+Goal: Gated candidate sandbox comparison acknowledgment status trend review acknowledgment status trend review acknowledgment status trend hints — local advisory trend hints derived from status history without production authorization.
 
-## Phase 78 verification commands
+## Phase 79 verification commands
 
 ```bash
 make test
-make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status-trend-review-acknowledgment-status --refresh
+make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status-trend-review-acknowledgment-status-history --refresh
 cd frontend && npm test
 cd frontend && npm run build
 ```
