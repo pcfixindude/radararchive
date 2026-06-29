@@ -11,7 +11,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 67
 - Latest phase: Phase 67 — Gated candidate sandbox manifest comparison history
-- Latest commit: `1a20eff`
+- Latest commit: `38c8599`
 - Latest tag: `phase-67-sandbox-comparison-history`
 - Push status: pushed to origin main with tag
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
