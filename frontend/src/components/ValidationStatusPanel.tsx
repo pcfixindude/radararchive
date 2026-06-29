@@ -19,6 +19,7 @@ import {
   refreshRenderCandidateGatedSandboxLayout,
   refreshRenderCandidateGatedManifestIo,
   refreshRenderCandidateGatedComparisonHistory,
+  refreshRenderCandidateGatedTrendReview,
   refreshRenderCandidateScaffold,
   refreshRenderCandidateSandbox,
   exportRenderCandidateSandbox,
@@ -143,6 +144,9 @@ export default function ValidationStatusPanel({
   const [gatedComparisonRefreshing, setGatedComparisonRefreshing] = useState(false);
   const [gatedComparisonMessage, setGatedComparisonMessage] = useState<string | null>(null);
   const [gatedComparisonError, setGatedComparisonError] = useState<string | null>(null);
+  const [gatedTrendRefreshing, setGatedTrendRefreshing] = useState(false);
+  const [gatedTrendMessage, setGatedTrendMessage] = useState<string | null>(null);
+  const [gatedTrendError, setGatedTrendError] = useState<string | null>(null);
   const [scaffoldRefreshing, setScaffoldRefreshing] = useState(false);
   const [scaffoldMessage, setScaffoldMessage] = useState<string | null>(null);
   const [scaffoldError, setScaffoldError] = useState<string | null>(null);
@@ -715,6 +719,24 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleGatedTrendRefresh() {
+    setGatedTrendMessage(null);
+    setGatedTrendError(null);
+    setGatedTrendRefreshing(true);
+    const result = await refreshRenderCandidateGatedTrendReview();
+    setGatedTrendRefreshing(false);
+    if (!result.ok) {
+      setGatedTrendError(result.error);
+      return;
+    }
+    setGatedTrendMessage(
+      `Gated trend hint: ${result.data.compact.review_status ?? '—'} — preflight ${result.data.compact.preflight_level ?? '—'} — trend ${result.data.compact.trend_skipped ? 'skipped' : (result.data.compact.trend ?? '—')}.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   async function handleScaffoldRefresh() {
     setScaffoldMessage(null);
     setScaffoldError(null);
@@ -1250,6 +1272,8 @@ export default function ValidationStatusPanel({
     summary.mrms_render_candidate_gated_manifest_io ?? null;
   const mrmsRenderCandidateGatedComparisonHistory =
     summary.mrms_render_candidate_gated_comparison_history ?? null;
+  const mrmsRenderCandidateGatedTrendReview =
+    summary.mrms_render_candidate_gated_trend_review ?? null;
   const mrmsRenderCandidateScaffold = summary.mrms_render_candidate_scaffold ?? null;
   const mrmsRenderCandidateSandbox = summary.mrms_render_candidate_sandbox ?? null;
   const mrmsRenderCandidateSandboxImportExport =
@@ -3048,6 +3072,47 @@ export default function ValidationStatusPanel({
           enable production rendering, download/decode/render, create or serve production tiles, clear
           alerts, or authorize production use. Imports are metadata/report-only.
         </p>
+        {mrmsRenderCandidateGatedTrendReview?.available ? (
+          <p className="validation-meta">
+            Latest gated trend review: {mrmsRenderCandidateGatedTrendReview.review_status ?? '—'} —{' '}
+            preflight {mrmsRenderCandidateGatedTrendReview.preflight_level ?? '—'}
+            {mrmsRenderCandidateGatedTrendReview.trend_skipped
+              ? ' — trend skipped'
+              : ` — hint ${mrmsRenderCandidateGatedTrendReview.hint_status ?? '—'} / trend ${mrmsRenderCandidateGatedTrendReview.trend ?? '—'}`}
+          </p>
+        ) : null}
+        {(mrmsRenderCandidateGatedTrendReview?.preflight_blockers ?? []).length > 0 ? (
+          <div className="validation-meta">
+            <strong>Preflight blockers</strong>
+            <ul>
+              {(mrmsRenderCandidateGatedTrendReview?.preflight_blockers ?? []).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        {(mrmsRenderCandidateGatedTrendReview?.comparison_history_blockers ?? []).length > 0 ? (
+          <div className="validation-meta">
+            <strong>Comparison history blockers</strong>
+            <ul>
+              {(mrmsRenderCandidateGatedTrendReview?.comparison_history_blockers ?? []).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        <button
+          type="button"
+          className="validation-action"
+          onClick={() => void handleGatedTrendRefresh()}
+          disabled={gatedTrendRefreshing}
+        >
+          {gatedTrendRefreshing
+            ? 'Reviewing gated trend hints…'
+            : 'Review gated trend hints (upstream gates)'}
+        </button>
+        {gatedTrendMessage ? <p className="validation-meta">{gatedTrendMessage}</p> : null}
+        {gatedTrendError ? <p className="validation-warn">{gatedTrendError}</p> : null}
         {mrmsRenderCandidateSandboxComparisonTrendHint ? (
           <>
             <p className="validation-meta">
@@ -3111,6 +3176,14 @@ export default function ValidationStatusPanel({
         </button>
         {trendHintMessage ? <p className="validation-meta">{trendHintMessage}</p> : null}
         {trendHintError ? <p className="validation-warn">{trendHintError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateGatedTrendReview?.suggested_command ??
+            'make mrms-review-gated-trend --refresh'
+          }
+          label="Suggested gated trend review command"
+          manualCopy
+        />
         <CommandLine
           command={
             mrmsRenderCandidateSandboxComparisonTrendHint?.suggested_command ??

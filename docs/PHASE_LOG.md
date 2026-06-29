@@ -3134,3 +3134,30 @@ cd frontend && npm run build
 - Local dev result: `preflight_not_candidate_ready` — preflight `needs_review`; manifest IO and comparison skipped
 - Not production authorization
 
+## Phase 97 - Gated Sandbox Comparison Trend Hint
+
+Run or review local sandbox comparison trend hints only when comparison history is `comparison_history_ready`.
+
+### Backend
+- `mrms_render_candidate_gated_trend_review.py` — refreshes upstream gates and refreshes trend hints only when comparison_history_ready
+- Paths: `mrms_render_candidate_gated_trend_review_latest.json`, `mrms_render_candidate_gated_trend_review_latest.md`
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/gated-trend-review`
+- CLI: `scripts/mrms_render_candidate_gated_trend_review.py`; `make mrms-review-gated-trend`
+
+### Frontend
+- **Review gated trend hints** button on MRMS render candidate sandbox comparison trend hints collapsible
+
+### Run commands
+
+```bash
+make test
+make mrms-review-gated-trend ARGS="--refresh"
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Does not run trend hints when any upstream gate is closed
+- Local dev result: `preflight_not_candidate_ready` — preflight `needs_review`; comparison and trend hint skipped
+- Not production authorization
+

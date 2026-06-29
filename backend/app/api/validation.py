@@ -60,6 +60,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateGatedSandboxLayoutResponse,
     MrmsRenderCandidateGatedManifestIoResponse,
     MrmsRenderCandidateGatedComparisonHistoryResponse,
+    MrmsRenderCandidateGatedTrendReviewResponse,
     MrmsRenderCandidateScaffoldResponse,
     MrmsRenderCandidateSandboxResponse,
     MrmsRenderCandidateSandboxImportExportResponse,
@@ -236,6 +237,10 @@ from backend.app.services.mrms_render_candidate_gated_manifest_io import (
 from backend.app.services.mrms_render_candidate_gated_comparison_history import (
     build_gated_comparison_history_payload,
     review_gated_comparison_history,
+)
+from backend.app.services.mrms_render_candidate_gated_trend_review import (
+    build_gated_trend_review_payload,
+    review_gated_trend_review,
 )
 from backend.app.services.mrms_render_candidate_scaffold import (
     build_render_candidate_scaffold_payload,
@@ -835,6 +840,33 @@ def validation_mrms_render_candidate_gated_comparison_history_run() -> (
     review_gated_comparison_history(storage)
     payload = build_gated_comparison_history_payload(storage)
     return MrmsRenderCandidateGatedComparisonHistoryResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/gated-trend-review",
+    response_model=MrmsRenderCandidateGatedTrendReviewResponse,
+)
+def validation_mrms_render_candidate_gated_trend_review() -> (
+    MrmsRenderCandidateGatedTrendReviewResponse
+):
+    """Latest gated trend hint review report (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_gated_trend_review_payload(storage)
+    return MrmsRenderCandidateGatedTrendReviewResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/gated-trend-review",
+    response_model=MrmsRenderCandidateGatedTrendReviewResponse,
+)
+def validation_mrms_render_candidate_gated_trend_review_run() -> (
+    MrmsRenderCandidateGatedTrendReviewResponse
+):
+    """Dev/local only — review upstream gates and refresh trend hints when comparison_history_ready."""
+    storage = LocalStorage(settings.local_storage_root)
+    review_gated_trend_review(storage)
+    payload = build_gated_trend_review_payload(storage)
+    return MrmsRenderCandidateGatedTrendReviewResponse(**payload)
 
 
 @router.get(

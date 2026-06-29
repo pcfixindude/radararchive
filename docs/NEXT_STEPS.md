@@ -1,30 +1,30 @@
 # Next Steps
 
-## Phase 97 - Gated sandbox comparison trend hint (Draft)
+## Phase 98 - Gated sandbox comparison acknowledgment (Draft)
 
-Goal: Run gated local sandbox comparison trend hints when comparison history is `comparison_history_ready`.
+Goal: Run gated local sandbox comparison acknowledgment when trend hint is `trend_hint_ready` or `trend_hint_needs_review`.
 
 ```bash
-make mrms-review-gated-comparison ARGS="--refresh"
-make mrms-render-candidate-sandbox-comparison-trend-hint ARGS="--refresh"
+make mrms-review-gated-trend ARGS="--refresh"
+make mrms-render-candidate-sandbox-comparison-review-acknowledgment ARGS="--refresh"
 ```
 
-## Phase 96 verification commands
+## Phase 97 verification commands
 
 ```bash
 make test
-make mrms-review-gated-comparison ARGS="--refresh"
+make mrms-review-gated-trend ARGS="--refresh"
 cd frontend && npm test
 cd frontend && npm run build
 ```
 
-Local result after Phase 96 gated comparison history review:
+Local result after Phase 97 gated trend hint review:
 
 - `review_status`: `preflight_not_candidate_ready`
 - `preflight_level`: `needs_review`
-- `manifest_io_skipped`: `true`
 - `comparison_skipped`: `true`
-- Comparison history correctly not run — resolve preflight first
+- `trend_skipped`: `true`
+- Trend hints correctly not run — resolve preflight first
 
 Retry when upstream gates open:
 
@@ -36,6 +36,7 @@ make mrms-review-gated-scaffold ARGS="--refresh"
 make mrms-review-gated-sandbox-layout ARGS="--refresh"
 make mrms-review-gated-manifest-io ARGS="--refresh"
 make mrms-review-gated-comparison ARGS="--refresh"
+make mrms-review-gated-trend ARGS="--refresh"
 ```
 
 Remaining blockers/warnings (local dev):
