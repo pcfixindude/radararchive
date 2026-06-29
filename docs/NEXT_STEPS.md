@@ -1,15 +1,25 @@
 # Next Steps
 
-## Phase 88 - TBD (Draft)
+## Phase 89 - TBD (Draft)
 
-Goal: Gated real MRMS render candidate preflight attempt — use existing `make mrms-render-candidate-preflight --refresh` when review readiness shows `ready_for_preflight` and visual evidence blockers are cleared.
+Goal: Resolve visual evidence and review-chain preflight blockers so gated preflight can reach `candidate_preflight_ready`.
 
-## Phase 87 verification commands
+### Blocker-removal commands (current dev tree)
+
+```bash
+make mrms-render-candidate-trend-hint-ack-status ARGS="--refresh"
+make mrms-render-candidate-trend-hint-review-digest ARGS="--refresh"
+make mrms-render-candidate-review-readiness ARGS="--refresh"
+make mrms-render-candidate-preflight-attempt ARGS="--refresh"
+make mrms-visual-review-readiness ARGS="--refresh"
+```
+
+## Phase 88 verification commands
 
 ```bash
 make test
-make mrms-render-candidate-review-readiness --refresh
-make mrms-render-candidate-trend-hint-review-digest --refresh
+make mrms-render-candidate-review-readiness ARGS="--refresh"
+make mrms-render-candidate-preflight-attempt ARGS="--refresh"
 cd frontend && npm test
 cd frontend && npm run build
 ```

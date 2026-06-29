@@ -40,8 +40,8 @@ DIGEST_STABLE = "stable"
 DIGEST_CURRENT = "current"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 88 — gated real MRMS render candidate preflight attempt "
-    "(only when review chain and visual evidence are ready; does not verify MRMS or enable production)"
+    "Phase 89 — resolve visual evidence preflight blockers or review dry-run plan "
+    "(depending on latest gated preflight attempt result)"
 )
 
 

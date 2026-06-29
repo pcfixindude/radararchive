@@ -24,6 +24,11 @@ from backend.app.services.mrms_visual_review_sample_set import compact_visual_re
 from backend.app.services.mrms_visual_review_sample_readiness import (
     compact_visual_review_sample_readiness,
 )
+from backend.app.services.mrms_render_candidate_preflight_attempt import (
+    attempt_gated_preflight,
+    build_preflight_attempt_payload,
+    compact_preflight_attempt,
+)
 from backend.app.services.mrms_render_candidate_review_readiness import (
     build_candidate_review_readiness_payload,
     compact_candidate_review_readiness,
@@ -291,6 +296,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "mrms_visual_review_sample_readiness": compact_visual_review_sample_readiness(storage),
         "mrms_render_candidate_preflight": compact_render_candidate_preflight(storage),
         "mrms_render_candidate_review_readiness": compact_candidate_review_readiness(storage),
+        "mrms_render_candidate_preflight_attempt": compact_preflight_attempt(storage),
         "mrms_render_candidate_dry_run_plan": compact_render_candidate_dry_run_plan(storage),
         "mrms_render_candidate_scaffold": compact_render_candidate_scaffold(storage),
         "mrms_render_candidate_sandbox": compact_render_candidate_sandbox(storage),

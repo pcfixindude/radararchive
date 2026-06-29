@@ -2887,3 +2887,32 @@ cd frontend && npm run build
 - Readiness summary does not clear alerts or mutate gates
 - Not production authorization; typical fresh dev trees show blockers until chain is refreshed
 
+## Phase 88 - Gated Real MRMS Render Candidate Preflight Attempt
+
+Gate existing MRMS render candidate preflight behind review readiness — no new metadata chain.
+
+### Backend
+- `mrms_render_candidate_preflight_attempt.py` — checks review readiness gate, runs preflight only when `ready_for_preflight`, records attempt
+- Path: `mrms_render_candidate_preflight_attempt_latest.json`
+- Reuses `generate_render_candidate_preflight` and `generate_candidate_review_readiness`
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/preflight-attempt`
+- CLI: `scripts/mrms_render_candidate_preflight_attempt.py`; `make mrms-render-candidate-preflight-attempt`
+
+### Frontend
+- Gated preflight attempt button on **Candidate review readiness** collapsible
+
+### Run commands
+
+```bash
+make test
+make mrms-render-candidate-review-readiness ARGS="--refresh"
+make mrms-render-candidate-preflight-attempt ARGS="--refresh"
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Does not force preflight when readiness has blockers (`blocked_by_readiness`)
+- Local dev run: chain blocked (missing ack rollup) — preflight not executed
+- Not production authorization
+

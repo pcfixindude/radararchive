@@ -61,8 +61,8 @@ OVERALL_READY_FOR_PREFLIGHT = "ready_for_preflight"
 OVERALL_PREFLIGHT_CANDIDATE_READY = "preflight_candidate_ready"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 88 — gated real MRMS render candidate preflight attempt "
-    "(only when review chain and visual evidence are ready; does not verify MRMS or enable production)"
+    "Phase 89 — resolve visual evidence preflight blockers or review dry-run plan "
+    "(depending on latest gated preflight attempt result)"
 )
 
 

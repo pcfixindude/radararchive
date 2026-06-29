@@ -1181,6 +1181,61 @@ class MrmsRenderCandidateReviewReadinessResponse(BaseModel):
     compact: MrmsRenderCandidateReviewReadinessCompact
 
 
+class MrmsRenderCandidatePreflightAttemptCompact(BaseModel):
+    available: bool = False
+    attempt_status: Optional[str] = None
+    attempted_at: Optional[str] = None
+    readiness_level: Optional[str] = None
+    review_chain_ready: bool = False
+    gate_open: bool = False
+    preflight_not_run: bool = True
+    preflight_level: Optional[str] = None
+    preflight_reason: Optional[str] = None
+    gate_reason: Optional[str] = None
+    blocking_items: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    suggested_commands: list[str] = Field(default_factory=list)
+    next_operator_step: Optional[str] = None
+    json_path: Optional[str] = None
+    preflight_json_path: Optional[str] = None
+    preflight_markdown_path: Optional[str] = None
+    suggested_command: Optional[str] = None
+    next_phase_recommendation: Optional[str] = None
+    verified_mrms: bool = False
+    local_preflight_attempt_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    gated_preflight_ready_is_not_production_authorization: bool = True
+    prototype: bool = True
+
+
+class MrmsRenderCandidatePreflightAttemptResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_preflight_attempt_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    gated_preflight_ready_is_not_production_authorization: bool = True
+    latest: dict[str, Any] = Field(default_factory=dict)
+    compact: MrmsRenderCandidatePreflightAttemptCompact
+
+
 class MrmsRenderCandidateDryRunPlanCompact(BaseModel):
     available: bool = False
     plan_status: Optional[str] = None
@@ -3254,6 +3309,7 @@ class ValidationSummaryResponse(BaseModel):
     mrms_visual_review_sample_readiness: Optional[MrmsVisualReviewSampleReadinessCompact] = None
     mrms_render_candidate_preflight: Optional[MrmsRenderCandidatePreflightCompact] = None
     mrms_render_candidate_review_readiness: Optional[MrmsRenderCandidateReviewReadinessCompact] = None
+    mrms_render_candidate_preflight_attempt: Optional[MrmsRenderCandidatePreflightAttemptCompact] = None
     mrms_render_candidate_dry_run_plan: Optional[MrmsRenderCandidateDryRunPlanCompact] = None
     mrms_render_candidate_scaffold: Optional[MrmsRenderCandidateScaffoldCompact] = None
     mrms_render_candidate_sandbox: Optional[MrmsRenderCandidateSandboxCompact] = None

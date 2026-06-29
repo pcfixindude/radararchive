@@ -50,6 +50,7 @@ from backend.app.schemas.validation import (
     MrmsVisualReviewSampleAnnotationUpsertResponse,
     MrmsRenderCandidatePreflightResponse,
     MrmsRenderCandidateReviewReadinessResponse,
+    MrmsRenderCandidatePreflightAttemptResponse,
     MrmsRenderCandidateDryRunPlanResponse,
     MrmsRenderCandidateScaffoldResponse,
     MrmsRenderCandidateSandboxResponse,
@@ -179,6 +180,10 @@ from backend.app.services.mrms_visual_review_sample_readiness import (
     compact_visual_review_sample_readiness,
     refresh_visual_review_sample_readiness,
     upsert_sample_annotation,
+)
+from backend.app.services.mrms_render_candidate_preflight_attempt import (
+    attempt_gated_preflight,
+    build_preflight_attempt_payload,
 )
 from backend.app.services.mrms_render_candidate_review_readiness import (
     build_candidate_review_readiness_payload,
@@ -553,6 +558,31 @@ def validation_mrms_render_candidate_review_readiness_refresh() -> (
     generate_candidate_review_readiness(storage)
     payload = build_candidate_review_readiness_payload(storage)
     return MrmsRenderCandidateReviewReadinessResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/preflight-attempt",
+    response_model=MrmsRenderCandidatePreflightAttemptResponse,
+)
+def validation_mrms_render_candidate_preflight_attempt() -> MrmsRenderCandidatePreflightAttemptResponse:
+    """Latest gated preflight attempt (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_preflight_attempt_payload(storage)
+    return MrmsRenderCandidatePreflightAttemptResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/preflight-attempt",
+    response_model=MrmsRenderCandidatePreflightAttemptResponse,
+)
+def validation_mrms_render_candidate_preflight_attempt_run() -> (
+    MrmsRenderCandidatePreflightAttemptResponse
+):
+    """Dev/local only — gated preflight attempt; does NOT clear alerts or enable production."""
+    storage = LocalStorage(settings.local_storage_root)
+    attempt_gated_preflight(storage)
+    payload = build_preflight_attempt_payload(storage)
+    return MrmsRenderCandidatePreflightAttemptResponse(**payload)
 
 
 @router.get(

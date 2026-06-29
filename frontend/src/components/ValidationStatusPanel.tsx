@@ -9,6 +9,7 @@ import {
   refreshVisualReviewSampleReadiness,
   refreshRenderCandidatePreflight,
   refreshRenderCandidateReviewReadiness,
+  refreshRenderCandidatePreflightAttempt,
   refreshRenderCandidateDryRunPlan,
   refreshRenderCandidateScaffold,
   refreshRenderCandidateSandbox,
@@ -104,6 +105,9 @@ export default function ValidationStatusPanel({
   const [reviewReadinessRefreshing, setReviewReadinessRefreshing] = useState(false);
   const [reviewReadinessMessage, setReviewReadinessMessage] = useState<string | null>(null);
   const [reviewReadinessError, setReviewReadinessError] = useState<string | null>(null);
+  const [preflightAttemptRefreshing, setPreflightAttemptRefreshing] = useState(false);
+  const [preflightAttemptMessage, setPreflightAttemptMessage] = useState<string | null>(null);
+  const [preflightAttemptError, setPreflightAttemptError] = useState<string | null>(null);
   const [dryRunPlanRefreshing, setDryRunPlanRefreshing] = useState(false);
   const [dryRunPlanMessage, setDryRunPlanMessage] = useState<string | null>(null);
   const [dryRunPlanError, setDryRunPlanError] = useState<string | null>(null);
@@ -458,6 +462,24 @@ export default function ValidationStatusPanel({
       return;
     }
     setReadinessMessage('Readiness summary refreshed — candidate_ready is not production authorization.');
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
+  async function handlePreflightAttemptRefresh() {
+    setPreflightAttemptMessage(null);
+    setPreflightAttemptError(null);
+    setPreflightAttemptRefreshing(true);
+    const result = await refreshRenderCandidatePreflightAttempt();
+    setPreflightAttemptRefreshing(false);
+    if (!result.ok) {
+      setPreflightAttemptError(result.error);
+      return;
+    }
+    setPreflightAttemptMessage(
+      `Gated preflight attempt: ${result.data.compact.attempt_status ?? '—'} — preflight ${result.data.compact.preflight_level ?? 'not run'} (local advisory only).`,
+    );
     if (onRefresh) {
       await onRefresh();
     }
@@ -1036,6 +1058,7 @@ export default function ValidationStatusPanel({
   const mrmsVisualReviewSampleReadiness = summary.mrms_visual_review_sample_readiness ?? null;
   const mrmsRenderCandidatePreflight = summary.mrms_render_candidate_preflight ?? null;
   const mrmsRenderCandidateReviewReadiness = summary.mrms_render_candidate_review_readiness ?? null;
+  const mrmsRenderCandidatePreflightAttempt = summary.mrms_render_candidate_preflight_attempt ?? null;
   const mrmsRenderCandidateDryRunPlan = summary.mrms_render_candidate_dry_run_plan ?? null;
   const mrmsRenderCandidateScaffold = summary.mrms_render_candidate_scaffold ?? null;
   const mrmsRenderCandidateSandbox = summary.mrms_render_candidate_sandbox ?? null;
@@ -1708,6 +1731,20 @@ export default function ValidationStatusPanel({
                 </ul>
               </div>
             ) : null}
+            {mrmsRenderCandidatePreflightAttempt?.available ? (
+              <p className="validation-meta">
+                Latest attempt: {mrmsRenderCandidatePreflightAttempt.attempt_status ?? '—'} —{' '}
+                {formatTimestamp(mrmsRenderCandidatePreflightAttempt.attempted_at)} — preflight{' '}
+                {mrmsRenderCandidatePreflightAttempt.preflight_not_run
+                  ? 'not run (gate closed)'
+                  : (mrmsRenderCandidatePreflightAttempt.preflight_level ?? '—')}
+              </p>
+            ) : null}
+            {mrmsRenderCandidatePreflightAttempt?.gate_open === false ? (
+              <p className="validation-meta">
+                Gated preflight gate is closed — resolve review readiness blockers first.
+              </p>
+            ) : null}
           </>
         ) : null}
         <button
@@ -1720,6 +1757,20 @@ export default function ValidationStatusPanel({
             ? 'Refreshing review readiness…'
             : 'Refresh review readiness summary (local only)'}
         </button>
+        <button
+          type="button"
+          className="validation-action"
+          disabled={preflightAttemptRefreshing}
+          onClick={() => void handlePreflightAttemptRefresh()}
+        >
+          {preflightAttemptRefreshing
+            ? 'Running gated preflight attempt…'
+            : 'Run gated preflight attempt (skips when blockers present)'}
+        </button>
+        {preflightAttemptMessage ? (
+          <p className="validation-meta">{preflightAttemptMessage}</p>
+        ) : null}
+        {preflightAttemptError ? <p className="validation-warn">{preflightAttemptError}</p> : null}
         {reviewReadinessMessage ? (
           <p className="validation-meta">{reviewReadinessMessage}</p>
         ) : null}
@@ -1730,6 +1781,14 @@ export default function ValidationStatusPanel({
             'make mrms-render-candidate-review-readiness --refresh'
           }
           label="Suggested review readiness command"
+          manualCopy
+        />
+        <CommandLine
+          command={
+            mrmsRenderCandidatePreflightAttempt?.suggested_command ??
+            'make mrms-render-candidate-preflight-attempt --refresh'
+          }
+          label="Suggested gated preflight attempt command"
           manualCopy
         />
         <SafetyNote />
