@@ -11,9 +11,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 90
 - Latest phase: Phase 90 — Bootstrap sandbox comparison trend-hint chain
-- Latest commit: (pending commit)
+- Latest commit: `b5361ee`
 - Latest tag: `phase-90-bootstrap-sandbox-trend-hint-chain`
-- Push status: pending
+- Push status: pushed
 - Final git status: source changes staged for commit
 
 ## Safety state
