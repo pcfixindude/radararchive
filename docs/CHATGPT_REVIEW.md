@@ -11,9 +11,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 82
 - Latest phase: Phase 82 — Candidate trend-hint acknowledgment status rollup
-- Latest commit: TBD
+- Latest commit: `436cb38`
 - Latest tag: `phase-82-candidate-trend-hint-ack-status-rollup`
-- Push status: pending
+- Push status: pushed
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
@@ -33,7 +33,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Purpose: Add local rollup linking candidate trend hints to trend-hint review acknowledgments so operators can see combined coverage without production authorization.
 - Main command added: `make mrms-render-candidate-trend-hint-ack-status`
 - API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/trend-hint-ack-status`
-- Tests: TBD
+- Tests: backend 944 passed; frontend vitest 8 passed; frontend build OK
 - Known limitations:
   - Rollup does not clear alerts or mutate trend hints or acknowledgments
   - `trend_review_recommended` may remain true after acknowledgment
