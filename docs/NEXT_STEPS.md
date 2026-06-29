@@ -1,29 +1,31 @@
 # Next Steps
 
-## Phase 90 - TBD (Draft)
+## Phase 91 - Bootstrap visual review sample set (Draft)
 
-Goal: Bootstrap sandbox comparison trend-hint chain so ack rollup and review digest unblock.
-
-```bash
-make mrms-render-candidate-sandbox-comparison-history ARGS="--refresh"
-make mrms-render-candidate-sandbox-comparison-trend-hint ARGS="--refresh"
-make mrms-render-candidate-trend-hint-ack-status ARGS="--refresh"
-make mrms-resolve-preflight-blockers ARGS="--refresh"
-```
-
-Parallel visual evidence (if still blocked):
+Goal: Create local visual review sample set and annotations so visual sample readiness reaches `candidate_ready` and gated preflight can run.
 
 ```bash
 make mrms-visual-review
 make mrms-visual-review-sample-set
 make mrms-visual-review-readiness ARGS="--refresh"
+make mrms-resolve-preflight-blockers ARGS="--refresh"
 ```
 
-## Phase 89 verification commands
+## Phase 90 verification commands
 
 ```bash
 make test
-make mrms-resolve-preflight-blockers ARGS="--refresh"
+make mrms-bootstrap-trend-hint-chain ARGS="--refresh"
 cd frontend && npm test
 cd frontend && npm run build
 ```
+
+Local result after Phase 90 bootstrap:
+
+- `bootstrap_status`: `chain_ready_visual_blocked`
+- `rollup_status`: `not_needed`
+- `digest_status`: `stable`
+- `chain_readiness_level`: `chain_ready`
+- `overall_readiness_level`: `ready_for_preflight`
+- `preflight_not_run`: `true`
+- Remaining blocker: `visual sample readiness: no_sample_set`

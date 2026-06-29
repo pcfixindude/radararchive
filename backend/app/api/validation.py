@@ -52,6 +52,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateReviewReadinessResponse,
     MrmsRenderCandidatePreflightAttemptResponse,
     MrmsRenderCandidatePreflightBlockersResponse,
+    MrmsRenderCandidateTrendHintChainBootstrapResponse,
     MrmsRenderCandidateDryRunPlanResponse,
     MrmsRenderCandidateScaffoldResponse,
     MrmsRenderCandidateSandboxResponse,
@@ -185,6 +186,10 @@ from backend.app.services.mrms_visual_review_sample_readiness import (
 from backend.app.services.mrms_render_candidate_preflight_blockers import (
     build_preflight_blockers_payload,
     resolve_preflight_blockers,
+)
+from backend.app.services.mrms_render_candidate_trend_hint_chain_bootstrap import (
+    bootstrap_trend_hint_chain,
+    build_trend_hint_chain_bootstrap_payload,
 )
 from backend.app.services.mrms_render_candidate_preflight_attempt import (
     attempt_gated_preflight,
@@ -615,6 +620,33 @@ def validation_mrms_render_candidate_preflight_blockers_resolve() -> (
     resolve_preflight_blockers(storage)
     payload = build_preflight_blockers_payload(storage)
     return MrmsRenderCandidatePreflightBlockersResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/trend-hint-chain-bootstrap",
+    response_model=MrmsRenderCandidateTrendHintChainBootstrapResponse,
+)
+def validation_mrms_render_candidate_trend_hint_chain_bootstrap() -> (
+    MrmsRenderCandidateTrendHintChainBootstrapResponse
+):
+    """Latest trend-hint chain bootstrap report (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_trend_hint_chain_bootstrap_payload(storage)
+    return MrmsRenderCandidateTrendHintChainBootstrapResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/trend-hint-chain-bootstrap",
+    response_model=MrmsRenderCandidateTrendHintChainBootstrapResponse,
+)
+def validation_mrms_render_candidate_trend_hint_chain_bootstrap_run() -> (
+    MrmsRenderCandidateTrendHintChainBootstrapResponse
+):
+    """Dev/local only — seed comparison history and refresh trend-hint chain; does NOT force preflight."""
+    storage = LocalStorage(settings.local_storage_root)
+    bootstrap_trend_hint_chain(storage)
+    payload = build_trend_hint_chain_bootstrap_payload(storage)
+    return MrmsRenderCandidateTrendHintChainBootstrapResponse(**payload)
 
 
 @router.get(

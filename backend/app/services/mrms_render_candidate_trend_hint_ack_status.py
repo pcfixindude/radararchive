@@ -42,8 +42,8 @@ ROLLUP_STALE = "stale"
 ROLLUP_BLOCKED = "blocked"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 90 — bootstrap sandbox comparison trend-hint chain "
-    "(seed comparison history and refresh candidate trend hints)"
+    "Phase 91 — bootstrap visual review sample set "
+    "(trend-hint chain bootstrap available via make mrms-bootstrap-trend-hint-chain)"
 )
 
 

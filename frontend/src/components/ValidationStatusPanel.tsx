@@ -11,6 +11,7 @@ import {
   refreshRenderCandidateReviewReadiness,
   refreshRenderCandidatePreflightAttempt,
   refreshRenderCandidatePreflightBlockers,
+  refreshRenderCandidateTrendHintChainBootstrap,
   refreshRenderCandidateDryRunPlan,
   refreshRenderCandidateScaffold,
   refreshRenderCandidateSandbox,
@@ -112,6 +113,9 @@ export default function ValidationStatusPanel({
   const [preflightBlockersRefreshing, setPreflightBlockersRefreshing] = useState(false);
   const [preflightBlockersMessage, setPreflightBlockersMessage] = useState<string | null>(null);
   const [preflightBlockersError, setPreflightBlockersError] = useState<string | null>(null);
+  const [chainBootstrapRefreshing, setChainBootstrapRefreshing] = useState(false);
+  const [chainBootstrapMessage, setChainBootstrapMessage] = useState<string | null>(null);
+  const [chainBootstrapError, setChainBootstrapError] = useState<string | null>(null);
   const [dryRunPlanRefreshing, setDryRunPlanRefreshing] = useState(false);
   const [dryRunPlanMessage, setDryRunPlanMessage] = useState<string | null>(null);
   const [dryRunPlanError, setDryRunPlanError] = useState<string | null>(null);
@@ -483,6 +487,24 @@ export default function ValidationStatusPanel({
     }
     setPreflightBlockersMessage(
       `Blocker resolution: ${result.data.compact.resolution_status ?? '—'} — preflight ${result.data.compact.preflight_not_run ? 'not run' : (result.data.compact.preflight_level ?? '—')}.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
+  async function handleTrendHintChainBootstrapRefresh() {
+    setChainBootstrapMessage(null);
+    setChainBootstrapError(null);
+    setChainBootstrapRefreshing(true);
+    const result = await refreshRenderCandidateTrendHintChainBootstrap();
+    setChainBootstrapRefreshing(false);
+    if (!result.ok) {
+      setChainBootstrapError(result.error);
+      return;
+    }
+    setChainBootstrapMessage(
+      `Chain bootstrap: ${result.data.compact.bootstrap_status ?? '—'} — rollup ${result.data.compact.rollup_status ?? '—'} — digest ${result.data.compact.digest_status ?? '—'}.`,
     );
     if (onRefresh) {
       await onRefresh();
@@ -1082,6 +1104,8 @@ export default function ValidationStatusPanel({
   const mrmsRenderCandidateReviewReadiness = summary.mrms_render_candidate_review_readiness ?? null;
   const mrmsRenderCandidatePreflightAttempt = summary.mrms_render_candidate_preflight_attempt ?? null;
   const mrmsRenderCandidatePreflightBlockers = summary.mrms_render_candidate_preflight_blockers ?? null;
+  const mrmsRenderCandidateTrendHintChainBootstrap =
+    summary.mrms_render_candidate_trend_hint_chain_bootstrap ?? null;
   const mrmsRenderCandidateDryRunPlan = summary.mrms_render_candidate_dry_run_plan ?? null;
   const mrmsRenderCandidateScaffold = summary.mrms_render_candidate_scaffold ?? null;
   const mrmsRenderCandidateSandbox = summary.mrms_render_candidate_sandbox ?? null;
@@ -1778,8 +1802,35 @@ export default function ValidationStatusPanel({
                 Gated preflight gate is closed — resolve review readiness blockers first.
               </p>
             ) : null}
+            {mrmsRenderCandidateTrendHintChainBootstrap?.available ? (
+              <p className="validation-meta">
+                Latest chain bootstrap: {mrmsRenderCandidateTrendHintChainBootstrap.bootstrap_status ?? '—'}{' '}
+                — rollup {mrmsRenderCandidateTrendHintChainBootstrap.rollup_status ?? '—'} — digest{' '}
+                {mrmsRenderCandidateTrendHintChainBootstrap.digest_status ?? '—'}
+              </p>
+            ) : null}
+            {(mrmsRenderCandidateTrendHintChainBootstrap?.trend_hint_blockers ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Trend-hint chain blockers</strong>
+                <ul>
+                  {(mrmsRenderCandidateTrendHintChainBootstrap?.trend_hint_blockers ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </>
         ) : null}
+        <button
+          type="button"
+          className="validation-action"
+          disabled={chainBootstrapRefreshing}
+          onClick={() => void handleTrendHintChainBootstrapRefresh()}
+        >
+          {chainBootstrapRefreshing
+            ? 'Bootstrapping trend-hint chain…'
+            : 'Bootstrap sandbox comparison trend-hint chain (local only)'}
+        </button>
         <button
           type="button"
           className="validation-action"
@@ -1814,6 +1865,10 @@ export default function ValidationStatusPanel({
           <p className="validation-meta">{preflightBlockersMessage}</p>
         ) : null}
         {preflightBlockersError ? <p className="validation-warn">{preflightBlockersError}</p> : null}
+        {chainBootstrapMessage ? (
+          <p className="validation-meta">{chainBootstrapMessage}</p>
+        ) : null}
+        {chainBootstrapError ? <p className="validation-warn">{chainBootstrapError}</p> : null}
         {preflightAttemptMessage ? (
           <p className="validation-meta">{preflightAttemptMessage}</p>
         ) : null}
@@ -1822,6 +1877,14 @@ export default function ValidationStatusPanel({
           <p className="validation-meta">{reviewReadinessMessage}</p>
         ) : null}
         {reviewReadinessError ? <p className="validation-warn">{reviewReadinessError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateTrendHintChainBootstrap?.suggested_command ??
+            'make mrms-bootstrap-trend-hint-chain --refresh'
+          }
+          label="Suggested trend-hint chain bootstrap command"
+          manualCopy
+        />
         <CommandLine
           command={
             mrmsRenderCandidateReviewReadiness?.suggested_command ??

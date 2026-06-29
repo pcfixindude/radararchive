@@ -27,6 +27,9 @@ from backend.app.services.mrms_visual_review_sample_readiness import (
 from backend.app.services.mrms_render_candidate_preflight_blockers import (
     compact_preflight_blockers,
 )
+from backend.app.services.mrms_render_candidate_trend_hint_chain_bootstrap import (
+    compact_trend_hint_chain_bootstrap,
+)
 from backend.app.services.mrms_render_candidate_preflight_attempt import (
     attempt_gated_preflight,
     build_preflight_attempt_payload,
@@ -301,6 +304,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "mrms_render_candidate_review_readiness": compact_candidate_review_readiness(storage),
         "mrms_render_candidate_preflight_attempt": compact_preflight_attempt(storage),
         "mrms_render_candidate_preflight_blockers": compact_preflight_blockers(storage),
+        "mrms_render_candidate_trend_hint_chain_bootstrap": compact_trend_hint_chain_bootstrap(storage),
         "mrms_render_candidate_dry_run_plan": compact_render_candidate_dry_run_plan(storage),
         "mrms_render_candidate_scaffold": compact_render_candidate_scaffold(storage),
         "mrms_render_candidate_sandbox": compact_render_candidate_sandbox(storage),

@@ -2944,3 +2944,31 @@ cd frontend && npm run build
 - Local dev result: `still_blocked` — primary blocker is missing ack rollup / trend-hint chain upstream
 - Not production authorization
 
+## Phase 90 - Bootstrap Sandbox Comparison Trend-Hint Chain
+
+Seed local sandbox comparison history and refresh the candidate trend-hint chain so ack rollup and review digest can reach current/stable without forcing preflight.
+
+### Backend
+- `mrms_render_candidate_trend_hint_chain_bootstrap.py` — seeds comparison history if empty, refreshes upstream sandbox chain, runs operator refresh flow, resolves blockers (skips preflight when visual blocked)
+- Paths: `mrms_render_candidate_trend_hint_chain_bootstrap_latest.json`, `mrms_render_candidate_trend_hint_chain_bootstrap_latest.md`
+- `resolve_preflight_blockers` updated to skip gated preflight attempt when visual sample readiness is blocked
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/trend-hint-chain-bootstrap`
+- CLI: `scripts/mrms_render_candidate_trend_hint_chain_bootstrap.py`; `make mrms-bootstrap-trend-hint-chain`
+
+### Frontend
+- **Bootstrap sandbox comparison trend-hint chain** button on Candidate review readiness collapsible
+
+### Run commands
+
+```bash
+make test
+make mrms-bootstrap-trend-hint-chain ARGS="--refresh"
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Does not force preflight when visual sample readiness is blocked
+- Local dev result: `chain_ready_visual_blocked` — trend-hint chain ready; visual `no_sample_set` remains
+- Not production authorization
+

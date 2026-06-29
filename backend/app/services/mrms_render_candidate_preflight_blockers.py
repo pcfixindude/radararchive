@@ -57,19 +57,19 @@ BLOCKER_CATEGORY_REVIEW_CHAIN = "review_chain"
 BLOCKER_CATEGORY_PREFLIGHT = "preflight_evidence"
 
 NEXT_PHASE_TREND_HINT = (
-    "Phase 90 — bootstrap sandbox comparison trend-hint chain "
-    "(seed comparison history and refresh candidate trend hints)"
+    "Phase 91 — bootstrap visual review sample set "
+    "(trend-hint chain bootstrap complete; visual sample set still required)"
 )
 NEXT_PHASE_VISUAL = (
-    "Phase 90 — bootstrap visual review sample set "
+    "Phase 91 — bootstrap visual review sample set "
     "(create sample set and annotations for candidate_preflight_ready)"
 )
 NEXT_PHASE_DRY_RUN = (
-    "Phase 90 — gated render candidate dry-run plan review "
+    "Phase 92 — gated render candidate dry-run plan review "
     "(evaluate dry-run plan when preflight is candidate_preflight_ready)"
 )
 NEXT_PHASE_PREFLIGHT_EVIDENCE = (
-    "Phase 90 — complete MRMS visual review evidence "
+    "Phase 91 — complete MRMS visual review evidence "
     "(manifest, proof report, and sample readiness for preflight)"
 )
 
@@ -244,7 +244,11 @@ def _step_record(step_id: str, command: str, summary: dict[str, Any]) -> dict[st
     }
 
 
-def resolve_preflight_blockers(storage: LocalStorage) -> dict[str, Any]:
+def resolve_preflight_blockers(
+    storage: LocalStorage,
+    *,
+    skip_preflight_attempt: bool = False,
+) -> dict[str, Any]:
     steps: list[dict[str, Any]] = []
 
     refresh_trend_hint_ack_status(storage)
@@ -299,12 +303,29 @@ def resolve_preflight_blockers(storage: LocalStorage) -> dict[str, Any]:
         )
     )
 
-    attempt = attempt_gated_preflight(storage)
-    attempt_compact = compact_preflight_attempt(storage)
+    visual_blockers = _visual_blockers_from_compact(visual_compact)
+    if skip_preflight_attempt or visual_blockers:
+        attempt = {
+            "attempt_status": ATTEMPT_BLOCKED_BY_READINESS,
+            "preflight_not_run": True,
+            "gate_reason": visual_blockers[0] if visual_blockers else "preflight attempt skipped",
+            "blocking_items": list(visual_blockers),
+        }
+        attempt_compact = {
+            **compact_preflight_attempt(storage),
+            "attempt_status": ATTEMPT_BLOCKED_BY_READINESS,
+            "preflight_not_run": True,
+            "gate_reason": attempt.get("gate_reason"),
+        }
+        preflight_step_command = "(preflight attempt skipped — visual readiness gate)"
+    else:
+        attempt = attempt_gated_preflight(storage)
+        attempt_compact = compact_preflight_attempt(storage)
+        preflight_step_command = "make mrms-render-candidate-preflight-attempt --refresh"
     steps.append(
         _step_record(
             "preflight_retry",
-            "make mrms-render-candidate-preflight-attempt --refresh",
+            preflight_step_command,
             {
                 "attempt_status": attempt_compact.get("attempt_status"),
                 "preflight_not_run": attempt_compact.get("preflight_not_run"),

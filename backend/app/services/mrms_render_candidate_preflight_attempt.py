@@ -40,11 +40,11 @@ GATE_ALLOWED_LEVELS = frozenset(
 )
 
 NEXT_PHASE_BLOCKERS = (
-    "Phase 90 — sandbox comparison trend-hint chain bootstrap or visual review sample set "
-    "(depending on remaining preflight blockers report)"
+    "Phase 91 — bootstrap visual review sample set "
+    "(trend-hint chain bootstrap available via make mrms-bootstrap-trend-hint-chain)"
 )
 NEXT_PHASE_SUCCESS = (
-    "Phase 90 — gated render candidate dry-run plan review "
+    "Phase 92 — gated render candidate dry-run plan review "
     "(evaluate dry-run plan when preflight is candidate_preflight_ready)"
 )
 

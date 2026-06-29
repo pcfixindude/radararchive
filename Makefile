@@ -184,6 +184,11 @@ mrms-render-candidate-preflight-blockers:
 
 mrms-resolve-preflight-blockers: mrms-render-candidate-preflight-blockers
 
+mrms-render-candidate-trend-hint-chain-bootstrap:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_trend_hint_chain_bootstrap.py $(ARGS)
+
+mrms-bootstrap-trend-hint-chain: mrms-render-candidate-trend-hint-chain-bootstrap
+
 mrms-render-candidate-dry-run-plan:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_dry_run_plan.py $(ARGS)
 

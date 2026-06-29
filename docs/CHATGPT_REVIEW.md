@@ -9,12 +9,12 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 89
-- Latest phase: Phase 89 — Resolve preflight blockers
-- Latest commit: `ea077aa`
-- Latest tag: `phase-89-resolve-preflight-blockers`
-- Push status: pushed
-- Final git status: source clean; only local `data/dev/` runtime artifacts modified
+- Completed through phase: 90
+- Latest phase: Phase 90 — Bootstrap sandbox comparison trend-hint chain
+- Latest commit: (pending commit)
+- Latest tag: `phase-90-bootstrap-sandbox-trend-hint-chain`
+- Push status: pending
+- Final git status: source changes staged for commit
 
 ## Safety state
 
@@ -22,41 +22,36 @@ Do not treat this file as verified MRMS proof or production authorization.
 - `ENABLE_PRODUCTION_RADAR_TILES`: **false** by default
 - Placeholder tiles default: **true**
 - Production rendering: gated/off by default
-- Preflight blocker resolution: local advisory only; does not force preflight when gate closed
+- Trend-hint chain bootstrap: local advisory only; skips gated preflight when visual sample readiness is blocked
 
 ## Latest phase summary
 
-- Phase: **89**
-- Purpose: Run the documented refresh flow, record remaining blockers, and retry gated preflight only when readiness allows.
-- Main command added: `make mrms-resolve-preflight-blockers` (alias: `make mrms-render-candidate-preflight-blockers`)
-- API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/preflight-blockers`
-- Local operator run result: **still_blocked** — preflight **not run** (`blocked_by_readiness`)
+- Phase: **90**
+- Purpose: Seed sandbox comparison history and refresh the candidate trend-hint chain so ack rollup and review digest reach current/stable without forcing preflight.
+- Main command added: `make mrms-bootstrap-trend-hint-chain` (alias: `make mrms-render-candidate-trend-hint-chain-bootstrap`)
+- API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/trend-hint-chain-bootstrap`
+- Local operator run result: **chain_ready_visual_blocked** — trend-hint chain **ready** (`rollup=not_needed`, `digest=stable`, `chain=chain_ready`, `overall=ready_for_preflight`); preflight **not run** (`preflight_not_run=true`)
 - Remaining blockers (this dev tree):
-  - acknowledgment status rollup is missing
-  - review digest is missing
   - visual sample readiness: no_sample_set
-  - review readiness gate closed (`overall=blocked`, `chain=blocked`)
 - Next commands for operators:
-  1. `make mrms-render-candidate-sandbox-comparison-trend-hint --refresh`
-  2. `make mrms-render-candidate-trend-hint-ack-status --refresh`
-  3. `make mrms-render-candidate-trend-hint-review-digest --refresh`
-  4. `make mrms-visual-review` then `make mrms-visual-review-sample-set`
-  5. `make mrms-visual-review-readiness --refresh`
-  6. `make mrms-resolve-preflight-blockers --refresh` (retry after upstream fixes)
-- Tests: backend 1030 passed; frontend vitest 8 passed; frontend build OK
+  1. `make mrms-visual-review`
+  2. `make mrms-visual-review-sample-set`
+  3. `make mrms-visual-review-readiness --refresh`
+  4. `make mrms-resolve-preflight-blockers --refresh` (retry after visual bootstrap)
+- Tests: backend 1041 passed; frontend vitest 8 passed; frontend build OK
 
 ## Current focus
 
-Bootstrap the **sandbox comparison trend-hint chain** and **visual review sample set** so review readiness opens and gated preflight can run.
+Bootstrap **visual review sample set** so gated preflight can run when review readiness opens fully.
 
 Do **not** promote to verified MRMS yet.
 
 ## Next recommended phase
 
-- Phase number: **90**
-- Phase title: Bootstrap sandbox comparison trend-hint chain
-- Goal: Seed sandbox comparison history and refresh the candidate trend-hint chain so ack rollup and review digest can reach `current`/`stable`.
-- Why this is next: Phase 89 blocker report shows `blocker_category=candidate_trend_hint_chain` with missing ack rollup as primary blocker. Visual sample set is a parallel blocker — address in Phase 90 follow-up or Phase 91 if trend-hint chain alone is insufficient.
+- Phase number: **91**
+- Phase title: Bootstrap visual review sample set
+- Goal: Create local visual review sample set and annotations so visual sample readiness reaches `candidate_ready` and gated preflight can run.
+- Why this is next: Phase 90 bootstrap cleared trend-hint chain blockers; visual `no_sample_set` is the sole remaining preflight gate.
 - Safety boundaries:
   - local sandbox metadata only
   - no MRMS verification claim
@@ -68,7 +63,7 @@ Do **not** promote to verified MRMS yet.
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 90 only.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 91 only.
 ```
 
 ## Key docs (read order for new work)

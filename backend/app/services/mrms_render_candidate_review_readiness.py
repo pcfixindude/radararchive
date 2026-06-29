@@ -61,8 +61,8 @@ OVERALL_READY_FOR_PREFLIGHT = "ready_for_preflight"
 OVERALL_PREFLIGHT_CANDIDATE_READY = "preflight_candidate_ready"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 90 — sandbox comparison trend-hint chain bootstrap or visual review sample set "
-    "(depending on remaining preflight blockers report)"
+    "Phase 91 — bootstrap visual review sample set "
+    "(after trend-hint chain bootstrap; visual readiness still required for preflight)"
 )
 
 
