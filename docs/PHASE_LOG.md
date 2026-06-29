@@ -3080,3 +3080,30 @@ cd frontend && npm run build
 - Local dev result: `preflight_not_candidate_ready` — preflight `needs_review`; dry-run plan, scaffold, and sandbox skipped
 - Not production authorization
 
+## Phase 95 - Gated Sandbox Manifest Import/Export
+
+Run or review local sandbox manifest import/export only when preflight is `candidate_preflight_ready`, dry-run plan is `dry_run_plan_ready`, scaffold is `scaffold_ready`, and sandbox layout is `sandbox_layout_ready`.
+
+### Backend
+- `mrms_render_candidate_gated_manifest_io.py` — refreshes upstream gates and runs manifest import/export only when sandbox_layout_ready
+- Paths: `mrms_render_candidate_gated_manifest_io_latest.json`, `mrms_render_candidate_gated_manifest_io_latest.md`
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/gated-manifest-io`
+- CLI: `scripts/mrms_render_candidate_gated_manifest_io.py`; `make mrms-review-gated-manifest-io`
+
+### Frontend
+- **Review gated manifest import/export** button on MRMS render candidate sandbox import/export collapsible
+
+### Run commands
+
+```bash
+make test
+make mrms-review-gated-manifest-io ARGS="--refresh"
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Does not run manifest import/export when any upstream gate is closed
+- Local dev result: `preflight_not_candidate_ready` — preflight `needs_review`; dry-run plan, scaffold, sandbox, and manifest IO skipped
+- Not production authorization
+

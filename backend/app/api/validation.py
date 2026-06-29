@@ -58,6 +58,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateGatedDryRunReviewResponse,
     MrmsRenderCandidateGatedScaffoldReviewResponse,
     MrmsRenderCandidateGatedSandboxLayoutResponse,
+    MrmsRenderCandidateGatedManifestIoResponse,
     MrmsRenderCandidateScaffoldResponse,
     MrmsRenderCandidateSandboxResponse,
     MrmsRenderCandidateSandboxImportExportResponse,
@@ -226,6 +227,10 @@ from backend.app.services.mrms_render_candidate_gated_scaffold_review import (
 from backend.app.services.mrms_render_candidate_gated_sandbox_layout import (
     build_gated_sandbox_layout_payload,
     review_gated_sandbox_layout,
+)
+from backend.app.services.mrms_render_candidate_gated_manifest_io import (
+    build_gated_manifest_io_payload,
+    review_gated_manifest_io,
 )
 from backend.app.services.mrms_render_candidate_scaffold import (
     build_render_candidate_scaffold_payload,
@@ -771,6 +776,33 @@ def validation_mrms_render_candidate_gated_sandbox_layout_run() -> (
     review_gated_sandbox_layout(storage)
     payload = build_gated_sandbox_layout_payload(storage)
     return MrmsRenderCandidateGatedSandboxLayoutResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/gated-manifest-io",
+    response_model=MrmsRenderCandidateGatedManifestIoResponse,
+)
+def validation_mrms_render_candidate_gated_manifest_io() -> (
+    MrmsRenderCandidateGatedManifestIoResponse
+):
+    """Latest gated manifest import/export review report (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_gated_manifest_io_payload(storage)
+    return MrmsRenderCandidateGatedManifestIoResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/gated-manifest-io",
+    response_model=MrmsRenderCandidateGatedManifestIoResponse,
+)
+def validation_mrms_render_candidate_gated_manifest_io_run() -> (
+    MrmsRenderCandidateGatedManifestIoResponse
+):
+    """Dev/local only — review upstream gates and run manifest import/export when layout ready."""
+    storage = LocalStorage(settings.local_storage_root)
+    review_gated_manifest_io(storage)
+    payload = build_gated_manifest_io_payload(storage)
+    return MrmsRenderCandidateGatedManifestIoResponse(**payload)
 
 
 @router.get(

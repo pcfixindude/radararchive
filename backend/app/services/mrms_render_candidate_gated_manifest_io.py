@@ -1,4 +1,4 @@
-"""Gated candidate artifact sandbox layout — local advisory only; does NOT verify MRMS."""
+"""Gated sandbox manifest import/export — local advisory only; does NOT verify MRMS."""
 
 from __future__ import annotations
 
@@ -8,13 +8,16 @@ from typing import Any, Optional
 from backend.app.config import settings
 from backend.app.services.mrms_render_candidate_dry_run_plan import (
     DRY_RUN_PLAN_READY,
-    SUGGESTED_DRY_RUN_PLAN_COMMAND,
     compact_render_candidate_dry_run_plan,
     generate_render_candidate_dry_run_plan,
     load_render_candidate_dry_run_plan,
 )
 from backend.app.services.mrms_render_candidate_gated_dry_run_review import (
     SUGGESTED_COMMAND as SUGGESTED_DRY_RUN_REVIEW_COMMAND,
+)
+from backend.app.services.mrms_render_candidate_gated_sandbox_layout import (
+    REVIEW_LAYOUT_READY,
+    SUGGESTED_COMMAND as SUGGESTED_LAYOUT_REVIEW_COMMAND,
 )
 from backend.app.services.mrms_render_candidate_gated_scaffold_review import (
     SUGGESTED_COMMAND as SUGGESTED_SCAFFOLD_REVIEW_COMMAND,
@@ -32,51 +35,66 @@ from backend.app.services.mrms_render_candidate_preflight_blockers import (
     resolve_preflight_blockers,
 )
 from backend.app.services.mrms_render_candidate_sandbox import (
-    SANDBOX_BLOCKED,
-    SANDBOX_NEEDS_SETUP,
     SANDBOX_READY,
     SUGGESTED_SANDBOX_COMMAND,
     compact_render_candidate_sandbox,
     generate_render_candidate_sandbox,
     load_sandbox_manifest,
 )
+from backend.app.services.mrms_render_candidate_sandbox_import_export import (
+    STATUS_BLOCKED,
+    STATUS_IMPORTED,
+    STATUS_INVALID,
+    STATUS_MISSING,
+    SUGGESTED_IMPORT_EXPORT_COMMAND,
+    compact_render_candidate_sandbox_import_export,
+    load_import_export_status,
+    run_import_export_workflow,
+)
 from backend.app.services.mrms_render_candidate_scaffold import (
     SCAFFOLD_READY,
-    SUGGESTED_SCAFFOLD_COMMAND,
     compact_render_candidate_scaffold,
     generate_render_candidate_scaffold,
     load_render_candidate_scaffold,
 )
 from backend.app.services.storage import LocalStorage
 
-REVIEW_JSON = "dev/mrms_render_candidate_gated_sandbox_layout_latest.json"
-REVIEW_MD = "dev/mrms_render_candidate_gated_sandbox_layout_latest.md"
+REVIEW_JSON = "dev/mrms_render_candidate_gated_manifest_io_latest.json"
+REVIEW_MD = "dev/mrms_render_candidate_gated_manifest_io_latest.md"
 
-SUGGESTED_COMMAND = "make mrms-review-gated-sandbox-layout"
+SUGGESTED_COMMAND = "make mrms-review-gated-manifest-io"
 
 REVIEW_PREFLIGHT_BLOCKED = "preflight_not_candidate_ready"
 REVIEW_DRY_RUN_BLOCKED = "dry_run_plan_not_ready"
 REVIEW_SCAFFOLD_BLOCKED = "scaffold_not_ready"
-REVIEW_LAYOUT_BLOCKED = "sandbox_layout_blocked"
-REVIEW_LAYOUT_NEEDS_SETUP = "sandbox_needs_setup"
-REVIEW_LAYOUT_READY = "sandbox_layout_ready"
+REVIEW_LAYOUT_BLOCKED = "sandbox_layout_not_ready"
+REVIEW_MANIFEST_IO_BLOCKED = "manifest_io_blocked"
+REVIEW_MANIFEST_IO_MISSING = "manifest_io_missing"
+REVIEW_MANIFEST_IO_READY = "manifest_io_ready"
 
-NEXT_PHASE_IMPORT_EXPORT = (
+NEXT_PHASE_COMPARISON = (
     "Phase 96 — gated sandbox comparison history "
     "(local comparison history rollup without production authorization)"
 )
 NEXT_PHASE_PREFLIGHT = (
-    "Phase 95 — resolve preflight evidence "
-    "(until candidate_preflight_ready before sandbox layout)"
+    "Phase 96 — resolve preflight evidence "
+    "(until candidate_preflight_ready before manifest import/export)"
 )
 NEXT_PHASE_DRY_RUN = (
-    "Phase 95 — complete gated dry-run plan review "
-    "(until dry_run_plan_ready before sandbox layout)"
+    "Phase 96 — complete gated dry-run plan review "
+    "(until dry_run_plan_ready before manifest import/export)"
 )
 NEXT_PHASE_SCAFFOLD = (
-    "Phase 95 — complete gated scaffold review "
-    "(until scaffold_ready before sandbox layout)"
+    "Phase 96 — complete gated scaffold review "
+    "(until scaffold_ready before manifest import/export)"
 )
+NEXT_PHASE_LAYOUT = (
+    "Phase 96 — complete gated sandbox layout review "
+    "(until sandbox_layout_ready before manifest import/export)"
+)
+
+_LAYOUT_READY_STATUSES = frozenset({SANDBOX_READY, "needs_cleanup"})
+_MANIFEST_IO_READY_STATUSES = frozenset({STATUS_IMPORTED, "import_ready", "export_ready"})
 
 
 def _utc_now() -> str:
@@ -88,7 +106,7 @@ def _utc_now() -> str:
 def _safety_fields() -> dict[str, Any]:
     return {
         "verified_mrms": False,
-        "local_gated_sandbox_layout_only": True,
+        "local_gated_manifest_io_only": True,
         "advisory_only": True,
         "does_not_clear_alerts": True,
         "does_not_enable_production": True,
@@ -100,6 +118,7 @@ def _safety_fields() -> dict[str, Any]:
         "binary_artifacts_included": False,
         "no_external_notifications": True,
         "does_not_authorize_production_use": True,
+        "manifest_io_ready_is_not_production_authorization": True,
         "sandbox_layout_ready_is_not_production_authorization": True,
         "scaffold_ready_is_not_production_authorization": True,
         "dry_run_plan_ready_is_not_production_authorization": True,
@@ -178,6 +197,25 @@ def _scaffold_blockers(scaffold: dict[str, Any], *, skipped: bool) -> list[str]:
     return blockers
 
 
+def _layout_blockers(sandbox: dict[str, Any], *, skipped: bool) -> list[str]:
+    if skipped:
+        return ["sandbox layout not generated — upstream gate closed"]
+    blockers: list[str] = []
+    status = sandbox.get("sandbox_status")
+    if status not in _LAYOUT_READY_STATUSES:
+        blockers.append(
+            f"sandbox layout status is {status or 'missing'} (need sandbox_layout_ready)"
+        )
+    for item in sandbox.get("blocking_items") or []:
+        if item not in blockers:
+            blockers.append(str(item))
+    return blockers
+
+
+def _sandbox_layout_ready(sandbox_compact: dict[str, Any]) -> bool:
+    return sandbox_compact.get("sandbox_status") in _LAYOUT_READY_STATUSES
+
+
 def _next_commands_preflight_blocked(
     *,
     preflight: dict[str, Any],
@@ -190,7 +228,7 @@ def _next_commands_preflight_blocked(
     for cmd in (
         f"{SUGGESTED_PREFLIGHT_COMMAND} --refresh",
         f"{SUGGESTED_BLOCKERS_COMMAND} --refresh",
-        f"{SUGGESTED_SCAFFOLD_REVIEW_COMMAND} --refresh",
+        f"{SUGGESTED_LAYOUT_REVIEW_COMMAND} --refresh",
         f"{SUGGESTED_COMMAND} --refresh",
     ):
         if cmd not in commands:
@@ -203,7 +241,7 @@ def _next_commands_dry_run_blocked() -> list[str]:
         f"{SUGGESTED_PREFLIGHT_COMMAND} --refresh",
         f"{SUGGESTED_BLOCKERS_COMMAND} --refresh",
         f"{SUGGESTED_DRY_RUN_REVIEW_COMMAND} --refresh",
-        f"{SUGGESTED_SCAFFOLD_REVIEW_COMMAND} --refresh",
+        f"{SUGGESTED_LAYOUT_REVIEW_COMMAND} --refresh",
         f"{SUGGESTED_COMMAND} --refresh",
     ]
 
@@ -214,16 +252,27 @@ def _next_commands_scaffold_blocked() -> list[str]:
         f"{SUGGESTED_BLOCKERS_COMMAND} --refresh",
         f"{SUGGESTED_DRY_RUN_REVIEW_COMMAND} --refresh",
         f"{SUGGESTED_SCAFFOLD_REVIEW_COMMAND} --refresh",
-        f"{SUGGESTED_SCAFFOLD_COMMAND} --refresh",
+        f"{SUGGESTED_LAYOUT_REVIEW_COMMAND} --refresh",
     ]
 
 
-def _next_commands_sandbox_status(sandbox_status: str) -> list[str]:
-    if sandbox_status in {SANDBOX_READY, "needs_cleanup"}:
-        return ["make mrms-render-candidate-sandbox-import-export --refresh"]
+def _next_commands_layout_blocked() -> list[str]:
     return [
-        f"{SUGGESTED_SANDBOX_COMMAND} --refresh",
+        f"{SUGGESTED_PREFLIGHT_COMMAND} --refresh",
+        f"{SUGGESTED_BLOCKERS_COMMAND} --refresh",
+        f"{SUGGESTED_DRY_RUN_REVIEW_COMMAND} --refresh",
         f"{SUGGESTED_SCAFFOLD_REVIEW_COMMAND} --refresh",
+        f"{SUGGESTED_LAYOUT_REVIEW_COMMAND} --refresh",
+        f"{SUGGESTED_SANDBOX_COMMAND} --refresh",
+    ]
+
+
+def _next_commands_manifest_status(import_export_status: str) -> list[str]:
+    if import_export_status in _MANIFEST_IO_READY_STATUSES:
+        return ["make mrms-render-candidate-sandbox-comparison-history --refresh"]
+    return [
+        f"{SUGGESTED_IMPORT_EXPORT_COMMAND} --refresh",
+        f"{SUGGESTED_LAYOUT_REVIEW_COMMAND} --refresh",
     ]
 
 
@@ -236,79 +285,90 @@ def _classify_review_status(
     scaffold_compact: dict[str, Any],
     sandbox_skipped: bool,
     sandbox_compact: dict[str, Any],
+    manifest_io_skipped: bool,
+    manifest_compact: dict[str, Any],
     blockers_compact: dict[str, Any],
 ) -> tuple[str, str, list[str]]:
     if preflight.get("preflight_level") != PREFLIGHT_CANDIDATE_READY:
         return (
             REVIEW_PREFLIGHT_BLOCKED,
-            "Preflight is not candidate_preflight_ready — sandbox layout not generated.",
+            "Preflight is not candidate_preflight_ready — manifest import/export not run.",
             _next_commands_preflight_blocked(preflight=preflight, blockers=blockers_compact),
         )
 
     if dry_run_skipped or plan_compact.get("plan_status") != DRY_RUN_PLAN_READY:
         return (
             REVIEW_DRY_RUN_BLOCKED,
-            "Dry-run plan is not dry_run_plan_ready — sandbox layout not generated.",
+            "Dry-run plan is not dry_run_plan_ready — manifest import/export not run.",
             _next_commands_dry_run_blocked(),
         )
 
     if scaffold_skipped or scaffold_compact.get("scaffold_status") != SCAFFOLD_READY:
         return (
             REVIEW_SCAFFOLD_BLOCKED,
-            "Scaffold is not scaffold_ready — sandbox layout not generated.",
+            "Scaffold is not scaffold_ready — manifest import/export not run.",
             _next_commands_scaffold_blocked(),
         )
 
-    if sandbox_skipped:
+    if sandbox_skipped or not _sandbox_layout_ready(sandbox_compact):
         return (
             REVIEW_LAYOUT_BLOCKED,
-            "Sandbox layout gate closed unexpectedly.",
-            _next_commands_scaffold_blocked(),
+            "Sandbox layout is not sandbox_layout_ready — manifest import/export not run.",
+            _next_commands_layout_blocked(),
         )
 
-    sandbox_status = sandbox_compact.get("sandbox_status")
-    if sandbox_status == SANDBOX_BLOCKED:
+    if manifest_io_skipped:
         return (
-            REVIEW_LAYOUT_BLOCKED,
-            "Sandbox layout blocked — resolve safety gate failures.",
-            _next_commands_sandbox_status(str(sandbox_status)),
+            REVIEW_MANIFEST_IO_BLOCKED,
+            "Manifest import/export gate closed unexpectedly.",
+            _next_commands_layout_blocked(),
         )
-    if sandbox_status == SANDBOX_NEEDS_SETUP:
+
+    io_status = manifest_compact.get("import_export_status")
+    if io_status == STATUS_MISSING:
         return (
-            REVIEW_LAYOUT_NEEDS_SETUP,
-            "Sandbox needs setup — review missing subdirectories.",
-            _next_commands_sandbox_status(str(sandbox_status)),
+            REVIEW_MANIFEST_IO_MISSING,
+            "Manifest import/export missing inputs — review sandbox reports.",
+            _next_commands_manifest_status(str(io_status)),
         )
-    if sandbox_status in {SANDBOX_READY, "needs_cleanup"}:
+    if io_status in {STATUS_BLOCKED, STATUS_INVALID}:
         return (
-            REVIEW_LAYOUT_READY,
-            "Sandbox layout ready (local advisory) — consider manifest import/export.",
-            _next_commands_sandbox_status(str(sandbox_status)),
+            REVIEW_MANIFEST_IO_BLOCKED,
+            "Manifest import/export blocked — resolve blockers before advancing.",
+            _next_commands_manifest_status(str(io_status or "blocked")),
+        )
+    if io_status in _MANIFEST_IO_READY_STATUSES:
+        return (
+            REVIEW_MANIFEST_IO_READY,
+            "Manifest import/export ready (local advisory) — consider comparison history.",
+            _next_commands_manifest_status(str(io_status)),
         )
 
     return (
-        REVIEW_LAYOUT_BLOCKED,
-        "Sandbox layout blocked — resolve blocking items before advancing.",
-        _next_commands_sandbox_status(str(sandbox_status or "blocked")),
+        REVIEW_MANIFEST_IO_BLOCKED,
+        "Manifest import/export blocked — resolve blocking items before advancing.",
+        _next_commands_manifest_status(str(io_status or "blocked")),
     )
 
 
 def _next_phase_for_review(review_status: str) -> str:
-    if review_status == REVIEW_LAYOUT_READY:
-        return NEXT_PHASE_IMPORT_EXPORT
+    if review_status == REVIEW_MANIFEST_IO_READY:
+        return NEXT_PHASE_COMPARISON
     if review_status == REVIEW_PREFLIGHT_BLOCKED:
         return NEXT_PHASE_PREFLIGHT
     if review_status == REVIEW_DRY_RUN_BLOCKED:
         return NEXT_PHASE_DRY_RUN
     if review_status == REVIEW_SCAFFOLD_BLOCKED:
         return NEXT_PHASE_SCAFFOLD
+    if review_status == REVIEW_LAYOUT_BLOCKED:
+        return NEXT_PHASE_LAYOUT
     return (
-        "Phase 95 — resolve sandbox layout or upstream gate blockers "
-        "(depending on gated sandbox layout report)"
+        "Phase 96 — resolve manifest import/export or upstream gate blockers "
+        "(depending on gated manifest io report)"
     )
 
 
-def review_gated_sandbox_layout(storage: LocalStorage) -> dict[str, Any]:
+def review_gated_manifest_io(storage: LocalStorage) -> dict[str, Any]:
     steps: list[dict[str, Any]] = []
 
     generate_render_candidate_preflight(storage)
@@ -405,23 +465,16 @@ def review_gated_sandbox_layout(storage: LocalStorage) -> dict[str, Any]:
             )
         )
 
-    preflight_blockers, preflight_warnings = _preflight_blockers_and_warnings(preflight_compact)
-    dry_run_blockers = _dry_run_blockers(plan_compact, skipped=dry_run_skipped)
-    scaffold_blockers = _scaffold_blockers(scaffold_compact, skipped=scaffold_skipped)
-
-    sandbox_skipped = (
-        scaffold_skipped
-        or scaffold_compact.get("scaffold_status") != SCAFFOLD_READY
-    )
+    sandbox_skipped = scaffold_skipped or scaffold_compact.get("scaffold_status") != SCAFFOLD_READY
 
     if sandbox_skipped:
         sandbox_compact = compact_render_candidate_sandbox(storage)
         steps.append(
             _step_record(
-                "sandbox_layout",
-                "(sandbox layout skipped — upstream gate closed)",
+                "gated_sandbox_layout",
+                f"{SUGGESTED_LAYOUT_REVIEW_COMMAND} --refresh",
                 {
-                    "skipped": True,
+                    "sandbox_skipped": True,
                     "existing_sandbox_status": (load_sandbox_manifest(storage) or {}).get(
                         "sandbox_status"
                     ),
@@ -433,13 +486,51 @@ def review_gated_sandbox_layout(storage: LocalStorage) -> dict[str, Any]:
         sandbox_compact = compact_render_candidate_sandbox(storage)
         steps.append(
             _step_record(
-                "sandbox_layout",
-                f"{SUGGESTED_SANDBOX_COMMAND} --refresh",
+                "gated_sandbox_layout",
+                f"{SUGGESTED_LAYOUT_REVIEW_COMMAND} --refresh",
                 {
-                    "skipped": False,
+                    "sandbox_skipped": False,
                     "sandbox_status": sandbox_compact.get("sandbox_status"),
                     "sandbox_reason": sandbox_compact.get("sandbox_reason"),
-                    "layout_created": True,
+                    "layout_review_status": REVIEW_LAYOUT_READY
+                    if _sandbox_layout_ready(sandbox_compact)
+                    else REVIEW_LAYOUT_BLOCKED,
+                },
+            )
+        )
+
+    preflight_blockers, preflight_warnings = _preflight_blockers_and_warnings(preflight_compact)
+    dry_run_blockers = _dry_run_blockers(plan_compact, skipped=dry_run_skipped)
+    scaffold_blockers = _scaffold_blockers(scaffold_compact, skipped=scaffold_skipped)
+    layout_blockers = _layout_blockers(sandbox_compact, skipped=sandbox_skipped)
+
+    manifest_io_skipped = sandbox_skipped or not _sandbox_layout_ready(sandbox_compact)
+
+    if manifest_io_skipped:
+        manifest_compact = compact_render_candidate_sandbox_import_export(storage)
+        steps.append(
+            _step_record(
+                "manifest_io",
+                "(manifest import/export skipped — upstream gate closed)",
+                {
+                    "skipped": True,
+                    "existing_import_export_status": (load_import_export_status(storage) or {}).get(
+                        "import_export_status"
+                    ),
+                },
+            )
+        )
+    else:
+        run_import_export_workflow(storage, export=True, import_after_export=True)
+        manifest_compact = compact_render_candidate_sandbox_import_export(storage)
+        steps.append(
+            _step_record(
+                "manifest_io",
+                f"{SUGGESTED_IMPORT_EXPORT_COMMAND} --refresh",
+                {
+                    "skipped": False,
+                    "import_export_status": manifest_compact.get("import_export_status"),
+                    "import_export_reason": manifest_compact.get("import_export_reason"),
                 },
             )
         )
@@ -452,6 +543,8 @@ def review_gated_sandbox_layout(storage: LocalStorage) -> dict[str, Any]:
         scaffold_compact=scaffold_compact,
         sandbox_skipped=sandbox_skipped,
         sandbox_compact=sandbox_compact,
+        manifest_io_skipped=manifest_io_skipped,
+        manifest_compact=manifest_compact,
         blockers_compact=blockers_compact,
     )
 
@@ -470,13 +563,17 @@ def review_gated_sandbox_layout(storage: LocalStorage) -> dict[str, Any]:
         "scaffold_status": None if scaffold_skipped else scaffold_compact.get("scaffold_status"),
         "scaffold_reason": None if scaffold_skipped else scaffold_compact.get("scaffold_reason"),
         "scaffold_blockers": scaffold_blockers,
-        "scaffold_blocking_items": [] if scaffold_skipped else (scaffold_compact.get("blocking_items") or []),
         "sandbox_skipped": sandbox_skipped,
         "sandbox_status": None if sandbox_skipped else sandbox_compact.get("sandbox_status"),
         "sandbox_reason": None if sandbox_skipped else sandbox_compact.get("sandbox_reason"),
-        "sandbox_blockers": [] if sandbox_skipped else (sandbox_compact.get("blocking_items") or []),
+        "sandbox_layout_blockers": layout_blockers,
         "sandbox_root": None if sandbox_skipped else sandbox_compact.get("sandbox_root"),
-        "delete_performed": False,
+        "manifest_io_skipped": manifest_io_skipped,
+        "import_export_status": None if manifest_io_skipped else manifest_compact.get("import_export_status"),
+        "import_export_reason": None if manifest_io_skipped else manifest_compact.get("import_export_reason"),
+        "manifest_io_blockers": [] if manifest_io_skipped else (manifest_compact.get("blockers") or []),
+        "manifest_io_warnings": [] if manifest_io_skipped else (manifest_compact.get("warnings") or []),
+        "included_reports": [] if manifest_io_skipped else (manifest_compact.get("included_reports") or []),
         "resolution_status": blockers_compact.get("resolution_status"),
         "remaining_blockers": blockers_compact.get("remaining_blockers") or [],
         "next_operator_step": next_operator_step,
@@ -487,27 +584,24 @@ def review_gated_sandbox_layout(storage: LocalStorage) -> dict[str, Any]:
         "suggested_command": SUGGESTED_COMMAND,
         **_safety_fields(),
     }
-    return save_gated_sandbox_layout_report(storage, report)
+    return save_gated_manifest_io_report(storage, report)
 
 
 def build_review_markdown(report: dict[str, Any]) -> str:
     lines = [
-        "# Gated candidate artifact sandbox layout review",
+        "# Gated sandbox manifest import/export review",
         "",
-        "> **WARNING:** Local gated sandbox layout review only. Advisory metadata — does **NOT** verify MRMS, "
-        "enable production rendering, clear alerts, or authorize production use.",
+        "> **WARNING:** Local gated manifest import/export review only. Advisory metadata — does **NOT** "
+        "verify MRMS, enable production rendering, clear alerts, or authorize production use.",
         "",
         f"- Reviewed at: {report.get('reviewed_at')}",
         f"- Review status: **{report.get('review_status')}**",
         f"- Preflight level: {report.get('preflight_level')}",
         f"- Dry-run plan skipped: {report.get('dry_run_plan_skipped')}",
-        f"- Dry-run plan status: {report.get('dry_run_plan_status') or '—'}",
         f"- Scaffold skipped: {report.get('scaffold_skipped')}",
-        f"- Scaffold status: {report.get('scaffold_status') or '—'}",
         f"- Sandbox skipped: {report.get('sandbox_skipped')}",
-        f"- Sandbox status: {report.get('sandbox_status') or '—'}",
-        f"- Sandbox root: {report.get('sandbox_root') or '—'}",
-        f"- Delete performed: {report.get('delete_performed')}",
+        f"- Manifest IO skipped: {report.get('manifest_io_skipped')}",
+        f"- Import/export status: {report.get('import_export_status') or '—'}",
         f"- Next operator step: {report.get('next_operator_step')}",
         "",
         "## Preflight blockers",
@@ -532,11 +626,16 @@ def build_review_markdown(report: dict[str, Any]) -> str:
         lines.append(f"- {item}")
     if not report.get("scaffold_blockers"):
         lines.append("- none")
-    if not report.get("sandbox_skipped"):
-        lines.extend(["", "## Sandbox blockers", ""])
-        for item in report.get("sandbox_blockers") or []:
+    lines.extend(["", "## Sandbox layout blockers", ""])
+    for item in report.get("sandbox_layout_blockers") or []:
+        lines.append(f"- {item}")
+    if not report.get("sandbox_layout_blockers"):
+        lines.append("- none")
+    if not report.get("manifest_io_skipped"):
+        lines.extend(["", "## Manifest IO blockers", ""])
+        for item in report.get("manifest_io_blockers") or []:
             lines.append(f"- {item}")
-        if not report.get("sandbox_blockers"):
+        if not report.get("manifest_io_blockers"):
             lines.append("- none")
     lines.extend(["", "## Next commands", ""])
     for cmd in report.get("next_commands") or []:
@@ -545,7 +644,7 @@ def build_review_markdown(report: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def save_gated_sandbox_layout_report(storage: LocalStorage, report: dict[str, Any]) -> dict[str, Any]:
+def save_gated_manifest_io_report(storage: LocalStorage, report: dict[str, Any]) -> dict[str, Any]:
     json_path = _review_json_path(storage)
     md_path = _review_md_path(storage)
     storage.ensure_directories(json_path.rsplit("/", 1)[0])
@@ -567,7 +666,7 @@ def save_gated_sandbox_layout_report(storage: LocalStorage, report: dict[str, An
     return report
 
 
-def load_gated_sandbox_layout_report(storage: LocalStorage) -> Optional[dict[str, Any]]:
+def load_gated_manifest_io_report(storage: LocalStorage) -> Optional[dict[str, Any]]:
     abs_path = storage.absolute_path(_review_json_path(storage))
     if not abs_path.is_file():
         return None
@@ -580,38 +679,40 @@ def load_gated_sandbox_layout_report(storage: LocalStorage) -> Optional[dict[str
     return None
 
 
-def compact_gated_sandbox_layout(storage: LocalStorage) -> dict[str, Any]:
-    latest = load_gated_sandbox_layout_report(storage)
+def compact_gated_manifest_io(storage: LocalStorage) -> dict[str, Any]:
+    latest = load_gated_manifest_io_report(storage)
     if latest is None:
         preflight = compact_render_candidate_preflight(storage)
         plan = compact_render_candidate_dry_run_plan(storage)
         scaffold = compact_render_candidate_scaffold(storage)
+        sandbox = compact_render_candidate_sandbox(storage)
         skipped_preflight = preflight.get("preflight_level") != PREFLIGHT_CANDIDATE_READY
         skipped_plan = skipped_preflight or plan.get("plan_status") != DRY_RUN_PLAN_READY
         skipped_scaffold = skipped_plan or scaffold.get("scaffold_status") != SCAFFOLD_READY
+        skipped_layout = skipped_scaffold or not _sandbox_layout_ready(sandbox)
         if skipped_preflight:
             review_status = REVIEW_PREFLIGHT_BLOCKED
         elif skipped_plan:
             review_status = REVIEW_DRY_RUN_BLOCKED
         elif skipped_scaffold:
             review_status = REVIEW_SCAFFOLD_BLOCKED
-        else:
+        elif skipped_layout:
             review_status = REVIEW_LAYOUT_BLOCKED
+        else:
+            review_status = REVIEW_MANIFEST_IO_BLOCKED
         return {
             "available": False,
             "review_status": review_status,
             "preflight_level": preflight.get("preflight_level"),
             "dry_run_plan_skipped": skipped_preflight,
-            "dry_run_plan_status": None if skipped_preflight else plan.get("plan_status"),
             "scaffold_skipped": skipped_plan,
-            "scaffold_status": None if skipped_plan else scaffold.get("scaffold_status"),
-            "sandbox_skipped": True,
-            "delete_performed": False,
+            "sandbox_skipped": skipped_scaffold,
+            "manifest_io_skipped": True,
             "next_commands": _next_commands_preflight_blocked(
                 preflight=preflight,
                 blockers=compact_preflight_blockers(storage),
             ),
-            "next_operator_step": "Run gated sandbox layout review after upstream gates open.",
+            "next_operator_step": "Run gated manifest import/export after upstream gates open.",
             "json_path": _review_json_path(storage),
             "markdown_path": _review_md_path(storage),
             "suggested_command": SUGGESTED_COMMAND,
@@ -633,13 +734,17 @@ def compact_gated_sandbox_layout(storage: LocalStorage) -> dict[str, Any]:
         "scaffold_status": latest.get("scaffold_status"),
         "scaffold_reason": latest.get("scaffold_reason"),
         "scaffold_blockers": latest.get("scaffold_blockers") or [],
-        "scaffold_blocking_items": latest.get("scaffold_blocking_items") or [],
         "sandbox_skipped": bool(latest.get("sandbox_skipped")),
         "sandbox_status": latest.get("sandbox_status"),
         "sandbox_reason": latest.get("sandbox_reason"),
-        "sandbox_blockers": latest.get("sandbox_blockers") or [],
+        "sandbox_layout_blockers": latest.get("sandbox_layout_blockers") or [],
         "sandbox_root": latest.get("sandbox_root"),
-        "delete_performed": bool(latest.get("delete_performed")),
+        "manifest_io_skipped": bool(latest.get("manifest_io_skipped")),
+        "import_export_status": latest.get("import_export_status"),
+        "import_export_reason": latest.get("import_export_reason"),
+        "manifest_io_blockers": latest.get("manifest_io_blockers") or [],
+        "manifest_io_warnings": latest.get("manifest_io_warnings") or [],
+        "included_reports": latest.get("included_reports") or [],
         "resolution_status": latest.get("resolution_status"),
         "remaining_blockers": latest.get("remaining_blockers") or [],
         "next_commands": latest.get("next_commands") or [],
@@ -653,9 +758,9 @@ def compact_gated_sandbox_layout(storage: LocalStorage) -> dict[str, Any]:
     }
 
 
-def build_gated_sandbox_layout_payload(storage: LocalStorage) -> dict[str, Any]:
+def build_gated_manifest_io_payload(storage: LocalStorage) -> dict[str, Any]:
     return {
         **_safety_fields(),
-        "latest": load_gated_sandbox_layout_report(storage),
-        "compact": compact_gated_sandbox_layout(storage),
+        "latest": load_gated_manifest_io_report(storage),
+        "compact": compact_gated_manifest_io(storage),
     }

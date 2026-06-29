@@ -1649,6 +1649,86 @@ class MrmsRenderCandidateGatedSandboxLayoutResponse(BaseModel):
     compact: MrmsRenderCandidateGatedSandboxLayoutCompact
 
 
+class MrmsRenderCandidateGatedManifestIoCompact(BaseModel):
+    available: bool = False
+    review_status: Optional[str] = None
+    preflight_level: Optional[str] = None
+    preflight_reason: Optional[str] = None
+    preflight_blockers: list[str] = Field(default_factory=list)
+    preflight_warnings: list[str] = Field(default_factory=list)
+    dry_run_plan_skipped: bool = True
+    dry_run_plan_status: Optional[str] = None
+    dry_run_plan_reason: Optional[str] = None
+    dry_run_plan_blockers: list[str] = Field(default_factory=list)
+    scaffold_skipped: bool = True
+    scaffold_status: Optional[str] = None
+    scaffold_reason: Optional[str] = None
+    scaffold_blockers: list[str] = Field(default_factory=list)
+    sandbox_skipped: bool = True
+    sandbox_status: Optional[str] = None
+    sandbox_reason: Optional[str] = None
+    sandbox_layout_blockers: list[str] = Field(default_factory=list)
+    sandbox_root: Optional[str] = None
+    manifest_io_skipped: bool = True
+    import_export_status: Optional[str] = None
+    import_export_reason: Optional[str] = None
+    manifest_io_blockers: list[str] = Field(default_factory=list)
+    manifest_io_warnings: list[str] = Field(default_factory=list)
+    included_reports: list[dict[str, Any]] = Field(default_factory=list)
+    resolution_status: Optional[str] = None
+    remaining_blockers: list[str] = Field(default_factory=list)
+    next_commands: list[str] = Field(default_factory=list)
+    next_operator_step: Optional[str] = None
+    reviewed_at: Optional[str] = None
+    json_path: Optional[str] = None
+    markdown_path: Optional[str] = None
+    suggested_command: Optional[str] = None
+    next_phase_recommendation: Optional[str] = None
+    verified_mrms: bool = False
+    local_gated_manifest_io_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_execute_candidate_steps: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    manifest_io_ready_is_not_production_authorization: bool = True
+    sandbox_layout_ready_is_not_production_authorization: bool = True
+    scaffold_ready_is_not_production_authorization: bool = True
+    dry_run_plan_ready_is_not_production_authorization: bool = True
+    gated_preflight_ready_is_not_production_authorization: bool = True
+    prototype: bool = True
+
+
+class MrmsRenderCandidateGatedManifestIoResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_gated_manifest_io_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_execute_candidate_steps: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    manifest_io_ready_is_not_production_authorization: bool = True
+    sandbox_layout_ready_is_not_production_authorization: bool = True
+    scaffold_ready_is_not_production_authorization: bool = True
+    dry_run_plan_ready_is_not_production_authorization: bool = True
+    gated_preflight_ready_is_not_production_authorization: bool = True
+    latest: Optional[dict[str, Any]] = None
+    compact: MrmsRenderCandidateGatedManifestIoCompact
+
+
 class MrmsRenderCandidateScaffoldCompact(BaseModel):
     available: bool = False
     scaffold_status: Optional[str] = None
@@ -3696,6 +3776,9 @@ class ValidationSummaryResponse(BaseModel):
     ] = None
     mrms_render_candidate_gated_sandbox_layout: Optional[
         MrmsRenderCandidateGatedSandboxLayoutCompact
+    ] = None
+    mrms_render_candidate_gated_manifest_io: Optional[
+        MrmsRenderCandidateGatedManifestIoCompact
     ] = None
     mrms_render_candidate_scaffold: Optional[MrmsRenderCandidateScaffoldCompact] = None
     mrms_render_candidate_sandbox: Optional[MrmsRenderCandidateSandboxCompact] = None

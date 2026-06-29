@@ -212,6 +212,11 @@ mrms-render-candidate-gated-sandbox-layout:
 
 mrms-review-gated-sandbox-layout: mrms-render-candidate-gated-sandbox-layout
 
+mrms-render-candidate-gated-manifest-io:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_gated_manifest_io.py $(ARGS)
+
+mrms-review-gated-manifest-io: mrms-render-candidate-gated-manifest-io
+
 mrms-render-candidate-scaffold:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_scaffold.py $(ARGS)
 

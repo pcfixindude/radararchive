@@ -63,6 +63,8 @@ data/dev/mrms_render_candidate_gated_scaffold_review_latest.json
 data/dev/mrms_render_candidate_gated_scaffold_review_latest.md
 data/dev/mrms_render_candidate_gated_sandbox_layout_latest.json
 data/dev/mrms_render_candidate_gated_sandbox_layout_latest.md
+data/dev/mrms_render_candidate_gated_manifest_io_latest.json
+data/dev/mrms_render_candidate_gated_manifest_io_latest.md
 data/dev/mrms_render_candidate_scaffold.json
 data/dev/mrms_render_candidate_scaffold.md
 data/dev/mrms_render_candidate_sandbox/

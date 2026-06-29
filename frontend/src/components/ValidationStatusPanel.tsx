@@ -17,6 +17,7 @@ import {
   refreshRenderCandidateGatedDryRunReview,
   refreshRenderCandidateGatedScaffoldReview,
   refreshRenderCandidateGatedSandboxLayout,
+  refreshRenderCandidateGatedManifestIo,
   refreshRenderCandidateScaffold,
   refreshRenderCandidateSandbox,
   exportRenderCandidateSandbox,
@@ -135,6 +136,9 @@ export default function ValidationStatusPanel({
   const [gatedSandboxLayoutRefreshing, setGatedSandboxLayoutRefreshing] = useState(false);
   const [gatedSandboxLayoutMessage, setGatedSandboxLayoutMessage] = useState<string | null>(null);
   const [gatedSandboxLayoutError, setGatedSandboxLayoutError] = useState<string | null>(null);
+  const [gatedManifestIoRefreshing, setGatedManifestIoRefreshing] = useState(false);
+  const [gatedManifestIoMessage, setGatedManifestIoMessage] = useState<string | null>(null);
+  const [gatedManifestIoError, setGatedManifestIoError] = useState<string | null>(null);
   const [scaffoldRefreshing, setScaffoldRefreshing] = useState(false);
   const [scaffoldMessage, setScaffoldMessage] = useState<string | null>(null);
   const [scaffoldError, setScaffoldError] = useState<string | null>(null);
@@ -665,6 +669,24 @@ export default function ValidationStatusPanel({
     }
     setGatedSandboxLayoutMessage(
       `Gated sandbox layout: ${result.data.compact.review_status ?? '—'} — preflight ${result.data.compact.preflight_level ?? '—'} — sandbox ${result.data.compact.sandbox_skipped ? 'skipped' : (result.data.compact.sandbox_status ?? '—')}.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
+  async function handleGatedManifestIoRefresh() {
+    setGatedManifestIoMessage(null);
+    setGatedManifestIoError(null);
+    setGatedManifestIoRefreshing(true);
+    const result = await refreshRenderCandidateGatedManifestIo();
+    setGatedManifestIoRefreshing(false);
+    if (!result.ok) {
+      setGatedManifestIoError(result.error);
+      return;
+    }
+    setGatedManifestIoMessage(
+      `Gated manifest IO: ${result.data.compact.review_status ?? '—'} — preflight ${result.data.compact.preflight_level ?? '—'} — import/export ${result.data.compact.manifest_io_skipped ? 'skipped' : (result.data.compact.import_export_status ?? '—')}.`,
     );
     if (onRefresh) {
       await onRefresh();
@@ -1202,6 +1224,8 @@ export default function ValidationStatusPanel({
     summary.mrms_render_candidate_gated_scaffold_review ?? null;
   const mrmsRenderCandidateGatedSandboxLayout =
     summary.mrms_render_candidate_gated_sandbox_layout ?? null;
+  const mrmsRenderCandidateGatedManifestIo =
+    summary.mrms_render_candidate_gated_manifest_io ?? null;
   const mrmsRenderCandidateScaffold = summary.mrms_render_candidate_scaffold ?? null;
   const mrmsRenderCandidateSandbox = summary.mrms_render_candidate_sandbox ?? null;
   const mrmsRenderCandidateSandboxImportExport =
@@ -2666,6 +2690,51 @@ export default function ValidationStatusPanel({
           rendering, download/decode/render, create or serve production tiles, clear alerts, or
           authorize production use. Imports are metadata/report-only.
         </p>
+        {mrmsRenderCandidateGatedManifestIo?.available ? (
+          <p className="validation-meta">
+            Latest gated manifest IO review: {mrmsRenderCandidateGatedManifestIo.review_status ?? '—'} —{' '}
+            preflight {mrmsRenderCandidateGatedManifestIo.preflight_level ?? '—'}
+            {mrmsRenderCandidateGatedManifestIo.manifest_io_skipped
+              ? ' — manifest IO skipped'
+              : ` — ${mrmsRenderCandidateGatedManifestIo.import_export_status ?? '—'}`}
+          </p>
+        ) : null}
+        {(mrmsRenderCandidateGatedManifestIo?.preflight_blockers ?? []).length > 0 ? (
+          <div className="validation-meta">
+            <strong>Preflight blockers</strong>
+            <ul>
+              {(mrmsRenderCandidateGatedManifestIo?.preflight_blockers ?? []).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        {(mrmsRenderCandidateGatedManifestIo?.sandbox_layout_blockers ?? []).length > 0 ? (
+          <div className="validation-meta">
+            <strong>Sandbox layout blockers</strong>
+            <ul>
+              {(mrmsRenderCandidateGatedManifestIo?.sandbox_layout_blockers ?? []).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        <button
+          type="button"
+          className="validation-action"
+          onClick={() => void handleGatedManifestIoRefresh()}
+          disabled={gatedManifestIoRefreshing}
+        >
+          {gatedManifestIoRefreshing
+            ? 'Reviewing gated manifest IO…'
+            : 'Review gated manifest import/export (upstream gates)'}
+        </button>
+        {gatedManifestIoMessage ? (
+          <p className="validation-meta">{gatedManifestIoMessage}</p>
+        ) : null}
+        {gatedManifestIoError ? (
+          <p className="validation-warn">{gatedManifestIoError}</p>
+        ) : null}
         {mrmsRenderCandidateSandboxImportExport ? (
           <>
             <p className="validation-meta">
@@ -2777,6 +2846,14 @@ export default function ValidationStatusPanel({
         </button>
         {importExportMessage ? <p className="validation-meta">{importExportMessage}</p> : null}
         {importExportError ? <p className="validation-warn">{importExportError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateGatedManifestIo?.suggested_command ??
+            'make mrms-review-gated-manifest-io --refresh'
+          }
+          label="Suggested gated manifest import/export command"
+          manualCopy
+        />
         <CommandLine
           command={
             mrmsRenderCandidateSandboxImportExport?.suggested_import_export_command ??
