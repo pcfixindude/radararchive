@@ -11,9 +11,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 84
 - Latest phase: Phase 84 — Candidate trend-hint review chain digest
-- Latest commit: TBD
+- Latest commit: `9772750`
 - Latest tag: `phase-84-candidate-trend-hint-review-digest`
-- Push status: pending
+- Push status: pushed
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
@@ -35,7 +35,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Purpose: Add local digest combining trend-hint acknowledgment status rollup and history so operators can see one coverage summary without production authorization.
 - Main command added: `make mrms-render-candidate-trend-hint-review-digest`
 - API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/trend-hint-review-digest`
-- Tests: TBD
+- Tests: backend 968 passed; frontend vitest 8 passed; frontend build OK
 - Known limitations:
   - Digest does not clear alerts or mutate rollups, history, or acknowledgments
   - Digest is advisory metadata only — not production authorization
