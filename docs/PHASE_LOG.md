@@ -2618,3 +2618,29 @@ cd frontend && npm run build
 - Acknowledgment does not clear alerts or mutate status trend hints
 - `trend_review_still_recommended` may remain true after acknowledgment
 
+## Phase 78 - Gated Candidate Sandbox Comparison Acknowledgment Status Trend Review Acknowledgment Status Trend Review Acknowledgment Status
+
+Local rollup linking trend review acknowledgment status trend hints to trend review acknowledgments.
+
+### Backend
+- `mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status.py` — rollup classification, `missing` / `not_needed` / `needs_acknowledgment` / `current` / `stale` / `blocked`
+- Paths: `mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status.json`, `.md`
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/trend-review-acknowledgment-status/trend-review-acknowledgment-status`
+- CLI: `scripts/mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status.py`; `make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status-trend-review-acknowledgment-status`
+
+### Frontend
+- Dev Validation **MRMS render candidate sandbox comparison acknowledgment status trend review acknowledgment status trend review acknowledgment status** collapsible with refresh
+
+### Run commands
+
+```bash
+make test
+make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status-trend-review-acknowledgment-status --refresh
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Rollup is advisory only — derived from trend hints and acknowledgments metadata
+- `needs_acknowledgment` is not production authorization
+

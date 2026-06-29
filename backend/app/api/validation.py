@@ -71,6 +71,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentCreateRequest,
     MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentCreateResponse,
     MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentsResponse,
+    MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusResponse,
     MrmsVisualReviewResponse,
     OperatorReviewStatusResponse,
     OperatorWorkflowPresetsResponse,
@@ -238,6 +239,10 @@ from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgmen
     AckStatusTrendReviewAckStatusTrendReviewAcknowledgmentValidationError,
     build_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgments_payload,
     create_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment,
+)
+from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status import (
+    build_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_payload,
+    refresh_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status,
 )
 from backend.app.services.operator_review_status import build_operator_review_status_payload
 from backend.app.services.operator_workflow_presets import build_operator_workflow_presets_payload
@@ -966,6 +971,37 @@ def validation_mrms_render_candidate_sandbox_comparison_acknowledgment_status_tr
         production_enabled=settings.enable_production_radar_tiles,
         trend_review_still_recommended=bool(hint.get("trend_review_recommended")),
         acknowledgment=record,
+    )
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/trend-review-acknowledgment-status/trend-review-acknowledgment-status",
+    response_model=MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusResponse,
+)
+def validation_mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status() -> (
+    MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusResponse
+):
+    """Local sandbox comparison trend review acknowledgment status rollup (read-only advisory)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_payload(storage)
+    return MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusResponse(
+        **payload
+    )
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/trend-review-acknowledgment-status/trend-review-acknowledgment-status",
+    response_model=MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusResponse,
+)
+def validation_mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_refresh() -> (
+    MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusResponse
+):
+    """Dev/local only — refresh trend review acknowledgment status rollup."""
+    storage = LocalStorage(settings.local_storage_root)
+    refresh_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status(storage)
+    payload = build_ack_status_trend_review_acknowledgment_status_trend_review_acknowledgment_status_payload(storage)
+    return MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusResponse(
+        **payload
     )
 
 
