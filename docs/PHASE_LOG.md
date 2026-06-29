@@ -2566,3 +2566,29 @@ cd frontend && npm run build
 - History appends on status rollup refresh only
 - Coverage change is rollup-rank advisory — does not clear alerts
 
+## Phase 76 - Gated Candidate Sandbox Comparison Acknowledgment Status Trend Review Acknowledgment Status Trend Hints
+
+Local advisory trend hints derived from trend review acknowledgment status history.
+
+### Backend
+- `mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_hint.py` — trend analysis, `missing` / `ready` / `needs_review` / `blocked` hint status
+- Paths: `mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_hint.json`, `.md`
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/trend-review-acknowledgment-status/trend-hint`
+- CLI: `scripts/mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_hint.py`; `make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status-trend-hint`
+
+### Frontend
+- Dev Validation **MRMS render candidate sandbox comparison acknowledgment status trend review acknowledgment status trend hints** collapsible
+
+### Run commands
+
+```bash
+make test
+make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status-trend-hint --refresh
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Trend hints are advisory only — derived from trend review acknowledgment status history metadata
+- `needs_review` is not production authorization
+

@@ -23,8 +23,8 @@ SUGGESTED_COMMAND = (
 )
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 76 — Gated candidate sandbox comparison acknowledgment status trend review acknowledgment status "
-    "trend hints (local advisory trend hints derived from trend review acknowledgment status history "
+    "Phase 77 — Gated candidate sandbox comparison acknowledgment status trend review acknowledgment status "
+    "trend review acknowledgment (local acknowledgment of reviewed trend review acknowledgment status trend hints "
     "without production authorization)"
 )
 

@@ -1,25 +1,25 @@
 # Project State
 
-Current phase: Phase 75 complete
+Current phase: Phase 76 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
+- **Render candidate sandbox comparison acknowledgment status trend review acknowledgment status trend hints** — local advisory trends from trend review acknowledgment status history
 - **Render candidate sandbox comparison acknowledgment status trend review acknowledgment status history** — bounded local history of status rollups
-- **Render candidate sandbox comparison acknowledgment status trend review acknowledgment status** — local rollup linking status trend hints to trend review acknowledgments
 - **Default tile serving: placeholder**
 - Not verified real MRMS
 
-## Operator commands (Phase 75)
+## Operator commands (Phase 76)
 
 ```bash
-make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status --refresh
 make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status-history --refresh
+make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status-trend-hint --refresh
 ```
 
 ## Dev API
 
-`mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_history` compact on validation summary; `GET/POST /api/validation/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/trend-review-acknowledgment-status/history` for local bounded history (does not clear alerts or authorize production).
+`mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_hint` compact on validation summary; `GET/POST /api/validation/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status/trend-review-acknowledgment-status/trend-hint` for local trend hints (`needs_review` is not production authorization).
 
 ## Verified MRMS
 

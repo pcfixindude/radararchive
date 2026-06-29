@@ -21,6 +21,7 @@ import {
   refreshRenderCandidateSandboxComparisonAcknowledgmentStatusTrendHint,
   refreshRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatus,
   refreshRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusHistory,
+  refreshRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint,
   submitAckStatusTrendReviewAcknowledgment,
   submitDiffAcknowledgment,
   type MrmsProofHistory,
@@ -143,6 +144,14 @@ export default function ValidationStatusPanel({
   const [ackStatusTrendReviewAckStatusHistoryError, setAckStatusTrendReviewAckStatusHistoryError] = useState<
     string | null
   >(null);
+  const [
+    ackStatusTrendReviewAckStatusTrendHintRefreshing,
+    setAckStatusTrendReviewAckStatusTrendHintRefreshing,
+  ] = useState(false);
+  const [ackStatusTrendReviewAckStatusTrendHintMessage, setAckStatusTrendReviewAckStatusTrendHintMessage] =
+    useState<string | null>(null);
+  const [ackStatusTrendReviewAckStatusTrendHintError, setAckStatusTrendReviewAckStatusTrendHintError] =
+    useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -655,6 +664,25 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleAckStatusTrendReviewAckStatusTrendHintRefresh() {
+    setAckStatusTrendReviewAckStatusTrendHintMessage(null);
+    setAckStatusTrendReviewAckStatusTrendHintError(null);
+    setAckStatusTrendReviewAckStatusTrendHintRefreshing(true);
+    const result =
+      await refreshRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint();
+    setAckStatusTrendReviewAckStatusTrendHintRefreshing(false);
+    if (!result.ok) {
+      setAckStatusTrendReviewAckStatusTrendHintError(result.error);
+      return;
+    }
+    setAckStatusTrendReviewAckStatusTrendHintMessage(
+      `Status trend review acknowledgment status trend hint refreshed (${result.data.compact.hint_status ?? '—'}) — trend ${result.data.compact.trend ?? '—'}.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   if (!summary) {
     return (
       <section className="panel validation-panel">
@@ -747,6 +775,9 @@ export default function ValidationStatusPanel({
     null;
   const mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusHistory =
     summary.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_history ??
+    null;
+  const mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint =
+    summary.mrms_render_candidate_sandbox_comparison_acknowledgment_status_trend_review_acknowledgment_status_trend_hint ??
     null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
@@ -2743,6 +2774,113 @@ export default function ValidationStatusPanel({
             'make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status-history --refresh'
           }
           label="Suggested status trend review acknowledgment status history command"
+          manualCopy
+        />
+        <SafetyNote />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="MRMS render candidate sandbox comparison acknowledgment status trend review acknowledgment status trend hints"
+        className="validation-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status-trend-hint"
+        summary={
+          <p className="validation-meta">
+            {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint?.trend
+              ? `Advisory ${mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint.hint_status ?? '—'} — trend ${mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint.trend}`
+              : 'No status trend review acknowledgment status trend hint yet — run make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status-trend-hint --refresh'}
+          </p>
+        }
+      >
+        <p className="validation-warn">
+          Local advisory trend hints from trend review acknowledgment status history only. Does not verify MRMS,
+          enable production rendering, download/decode/render, create or serve production tiles, clear alerts,
+          or authorize production use.
+        </p>
+        {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint ? (
+          <>
+            <p className="validation-meta">
+              Hint status:{' '}
+              {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint.hint_status ??
+                '—'}{' '}
+              — reason:{' '}
+              {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint.hint_reason ??
+                '—'}
+            </p>
+            <p className="validation-meta">
+              Trend:{' '}
+              {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint.trend ??
+                '—'}{' '}
+              — review recommended:{' '}
+              {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint.trend_review_recommended
+                ? 'yes'
+                : 'no'}{' '}
+              — needs-ack streak:{' '}
+              {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint.current_needs_ack_streak ??
+                0}
+            </p>
+            {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint.suggested_action ? (
+              <p className="validation-meta">
+                Suggested action:{' '}
+                {
+                  mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint.suggested_action
+                }
+              </p>
+            ) : null}
+            {(mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint.recurring_signals ??
+              []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Recurring signals</strong>
+                <ul>
+                  {(
+                    mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint.recurring_signals ??
+                    []
+                  ).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint.json_path ? (
+              <p className="validation-meta">
+                JSON:{' '}
+                <code>
+                  {
+                    mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint.json_path
+                  }
+                </code>
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            Seed trend review acknowledgment status history first, then run{' '}
+            <code>
+              make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status-trend-hint
+              --refresh
+            </code>
+            .
+          </p>
+        )}
+        <button
+          type="button"
+          className="validation-action"
+          disabled={ackStatusTrendReviewAckStatusTrendHintRefreshing}
+          onClick={() => void handleAckStatusTrendReviewAckStatusTrendHintRefresh()}
+        >
+          {ackStatusTrendReviewAckStatusTrendHintRefreshing
+            ? 'Refreshing status trend hint…'
+            : 'Refresh status trend review acknowledgment status trend hint report (local only)'}
+        </button>
+        {ackStatusTrendReviewAckStatusTrendHintMessage ? (
+          <p className="validation-meta">{ackStatusTrendReviewAckStatusTrendHintMessage}</p>
+        ) : null}
+        {ackStatusTrendReviewAckStatusTrendHintError ? (
+          <p className="validation-warn">{ackStatusTrendReviewAckStatusTrendHintError}</p>
+        ) : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint?.suggested_command ??
+            'make mrms-render-candidate-sandbox-comparison-acknowledgment-status-trend-review-acknowledgment-status-trend-hint --refresh'
+          }
+          label="Suggested status trend review acknowledgment status trend hint command"
           manualCopy
         />
         <SafetyNote />
