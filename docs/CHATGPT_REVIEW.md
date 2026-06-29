@@ -11,9 +11,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 83
 - Latest phase: Phase 83 — Candidate trend-hint acknowledgment status history
-- Latest commit: TBD
+- Latest commit: `512d599`
 - Latest tag: `phase-83-candidate-trend-hint-ack-status-history`
-- Push status: pending
+- Push status: pushed
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
@@ -34,7 +34,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Purpose: Add local bounded history of trend-hint acknowledgment status rollups so operators can track coverage changes over time without production authorization.
 - Main command added: `make mrms-render-candidate-trend-hint-ack-status-history`
 - API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/trend-hint-ack-status/history`
-- Tests: TBD
+- Tests: backend 957 passed; frontend vitest 8 passed; frontend build OK
 - Known limitations:
   - History does not clear alerts or mutate rollups or acknowledgments
   - History appends on status rollup refresh only
