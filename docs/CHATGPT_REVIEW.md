@@ -11,7 +11,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 65
 - Latest phase: Phase 65 — Gated candidate artifact sandbox layout
-- Latest commit: `f6f1e1c`
+- Latest commit: `f241370`
 - Latest tag: `phase-65-candidate-artifact-sandbox`
 - Push status: pushed to origin main with tag
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
