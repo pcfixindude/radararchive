@@ -19,8 +19,8 @@ MAX_ACKNOWLEDGMENTS = 50
 SUGGESTED_COMMAND = "make mrms-render-candidate-sandbox-comparison-review-acknowledgment"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 70 — Gated candidate sandbox comparison acknowledgment status "
-    "(local rollup of trend hints and review acknowledgments without production authorization)"
+    "Phase 71 — Gated candidate sandbox comparison acknowledgment status history "
+    "(bounded local history of acknowledgment status rollups without production authorization)"
 )
 
 
@@ -136,6 +136,8 @@ def create_sandbox_comparison_review_acknowledgment(
         "related_hint_reason": hint_reason,
         "related_trend_review_recommended": bool(related_trend_review_recommended),
         "related_hint_generated_at": hint.get("generated_at"),
+        "related_changed_count": hint.get("changed_count"),
+        "related_history_count": hint.get("history_count"),
         "acknowledged_trend_review": bool(acknowledged_trend_review),
         "production_rendering_enabled": settings.enable_production_radar_tiles,
         "next_phase_recommendation": NEXT_PHASE_RECOMMENDATION,

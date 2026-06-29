@@ -35,8 +35,8 @@ HISTORY_READY = "ready"
 HISTORY_BLOCKED = "blocked"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 70 — Gated candidate sandbox comparison acknowledgment status "
-    "(local rollup of trend hints and review acknowledgments without production authorization)"
+    "Phase 71 — Gated candidate sandbox comparison acknowledgment status history "
+    "(bounded local history of acknowledgment status rollups without production authorization)"
 )
 
 

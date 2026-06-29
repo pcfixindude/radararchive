@@ -1196,6 +1196,41 @@ export type MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentCreateRespon
   acknowledgment: Record<string, unknown>;
 };
 
+export type MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusCompact = {
+  available?: boolean;
+  rollup_status?: string | null;
+  acknowledgment_status?: string | null;
+  status_reason?: string | null;
+  stale_acknowledgment?: boolean;
+  trend?: string | null;
+  hint_status?: string | null;
+  trend_review_recommended?: boolean;
+  acknowledgment_count?: number | null;
+  latest_acknowledgment_id?: string | null;
+  latest_acknowledgment_created_at?: string | null;
+  latest_acknowledgment_operator?: string | null;
+  blockers?: string[];
+  warnings?: string[];
+  suggested_action?: string | null;
+  suggested_command?: string | null;
+  schema_version?: string | null;
+  json_path?: string | null;
+  markdown_path?: string | null;
+  next_phase_recommendation?: string | null;
+  verified_mrms: boolean;
+  local_status_rollup_only: boolean;
+  advisory_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  does_not_create_production_tiles: boolean;
+  does_not_serve_production_tiles: boolean;
+  does_not_delete_by_default: boolean;
+  binary_artifacts_included: boolean;
+  no_external_notifications: boolean;
+  does_not_authorize_production_use: boolean;
+};
+
 export type OperatorWorkflowPresetsCompact = {
   available?: boolean;
   recommended_count?: number;
@@ -1742,6 +1777,7 @@ export type ValidationSummary = {
   mrms_render_candidate_sandbox_comparison_history?: MrmsRenderCandidateSandboxComparisonHistoryCompact | null;
   mrms_render_candidate_sandbox_comparison_trend_hint?: MrmsRenderCandidateSandboxComparisonTrendHintCompact | null;
   mrms_render_candidate_sandbox_comparison_review_acknowledgment?: MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentCompact | null;
+  mrms_render_candidate_sandbox_comparison_acknowledgment_status?: MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusCompact | null;
   scheduled_operator_status?: ScheduledOperatorStatusCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
@@ -2144,6 +2180,29 @@ export async function submitSandboxComparisonReviewAcknowledgment(
     return { ok: true, data };
   } catch {
     return { ok: false, error: 'Sandbox comparison review acknowledgment request failed' };
+  }
+}
+
+export async function refreshRenderCandidateSandboxComparisonAcknowledgmentStatus(): Promise<
+  | { ok: true; data: { compact: MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusCompact } }
+  | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/validation/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status`,
+      { method: 'POST' },
+    );
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: `Render candidate sandbox comparison acknowledgment status refresh failed (${response.status})`,
+      };
+    }
+    const data =
+      (await response.json()) as { compact: MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusCompact };
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 

@@ -1,15 +1,14 @@
 # Next Steps
 
-## Phase 70 - TBD (Draft)
+## Phase 71 - TBD (Draft)
 
-Goal: Gated candidate sandbox comparison acknowledgment status — local rollup linking latest trend hints to review acknowledgments without clearing validation alerts or verifying MRMS.
+Goal: Gated candidate sandbox comparison acknowledgment status history — bounded local history of acknowledgment status rollups without clearing validation alerts or verifying MRMS.
 
-## Phase 69 verification commands
+## Phase 70 verification commands
 
 ```bash
 make test
-make mrms-render-candidate-sandbox-comparison-trend-hint --refresh
-make mrms-render-candidate-sandbox-comparison-review-acknowledgment --operator OP --note "Reviewed locally"
+make mrms-render-candidate-sandbox-comparison-acknowledgment-status --refresh
 cd frontend && npm test
 cd frontend && npm run build
 ```

@@ -59,6 +59,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentCreateRequest,
     MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentCreateResponse,
     MrmsRenderCandidateSandboxComparisonReviewAcknowledgmentsResponse,
+    MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusResponse,
     MrmsVisualReviewResponse,
     OperatorReviewStatusResponse,
     OperatorWorkflowPresetsResponse,
@@ -190,6 +191,10 @@ from backend.app.services.mrms_render_candidate_sandbox_comparison_review_acknow
     SandboxComparisonReviewAcknowledgmentValidationError,
     build_sandbox_comparison_review_acknowledgments_payload,
     create_sandbox_comparison_review_acknowledgment,
+)
+from backend.app.services.mrms_render_candidate_sandbox_comparison_acknowledgment_status import (
+    build_sandbox_comparison_acknowledgment_status_payload,
+    refresh_sandbox_comparison_acknowledgment_status,
 )
 from backend.app.services.operator_review_status import build_operator_review_status_payload
 from backend.app.services.operator_workflow_presets import build_operator_workflow_presets_payload
@@ -636,6 +641,33 @@ def validation_mrms_render_candidate_sandbox_comparison_review_acknowledgments_c
         trend_review_still_recommended=bool(hint.get("trend_review_recommended")),
         acknowledgment=record,
     )
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status",
+    response_model=MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusResponse,
+)
+def validation_mrms_render_candidate_sandbox_comparison_acknowledgment_status() -> (
+    MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusResponse
+):
+    """Local sandbox comparison acknowledgment status rollup (read-only advisory)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_sandbox_comparison_acknowledgment_status_payload(storage)
+    return MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/import-export/comparison-acknowledgment-status",
+    response_model=MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusResponse,
+)
+def validation_mrms_render_candidate_sandbox_comparison_acknowledgment_status_refresh() -> (
+    MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusResponse
+):
+    """Dev/local only — refresh sandbox comparison acknowledgment status rollup."""
+    storage = LocalStorage(settings.local_storage_root)
+    refresh_sandbox_comparison_acknowledgment_status(storage)
+    payload = build_sandbox_comparison_acknowledgment_status_payload(storage)
+    return MrmsRenderCandidateSandboxComparisonAcknowledgmentStatusResponse(**payload)
 
 
 @router.get(
