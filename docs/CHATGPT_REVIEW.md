@@ -11,9 +11,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 97
 - Latest phase: Phase 97 — Gated sandbox comparison trend hint
-- Latest commit: (pending)
+- Latest commit: `bf8c0fd`
 - Latest tag: `phase-97-gated-sandbox-comparison-trend-hint`
-- Push status: pending
+- Push status: pushed
 - Final git status: source clean after commit; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
