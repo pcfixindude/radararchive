@@ -11,9 +11,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 89
 - Latest phase: Phase 89 — Resolve preflight blockers
-- Latest commit: `TBD`
+- Latest commit: `ea077aa`
 - Latest tag: `phase-89-resolve-preflight-blockers`
-- Push status: pending
+- Push status: pushed
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
