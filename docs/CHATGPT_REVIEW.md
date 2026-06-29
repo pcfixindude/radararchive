@@ -11,7 +11,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 86
 - Latest phase: Phase 86 — Candidate trend-hint review digest diff
-- Latest commit: `TBD`
+- Latest commit: `c284673`
 - Latest tag: `phase-86-candidate-trend-hint-review-digest-diff`
 - Push status: pending
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
