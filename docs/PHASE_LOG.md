@@ -2326,3 +2326,32 @@ cd frontend && npm run build
 ### Known limitations
 - Metadata/report-only — no binary artifacts, no production tile paths
 - `imported` is not production authorization
+
+## Phase 67 - Gated Candidate Sandbox Manifest Comparison History
+
+Local comparison history for candidate sandbox exports/imports with bounded JSON/Markdown persistence.
+
+### Backend
+- `mrms_render_candidate_sandbox_comparison_history.py` — history recording, `missing` / `ready` / `blocked` status
+- Paths: `mrms_render_candidate_sandbox_comparison_history.json`, `mrms_render_candidate_sandbox_comparison_latest.json`, `.md`
+- Auto-records on import (`current_vs_imported`) and export pairs (`export_vs_previous_export`)
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/import-export/comparison-history`
+- CLI: `scripts/mrms_render_candidate_sandbox_comparison_history.py`; `make mrms-render-candidate-sandbox-comparison-history`
+
+### Frontend
+- Dev Validation **MRMS render candidate sandbox comparison history** collapsible with recent entries and history status
+
+### Run commands
+
+```bash
+make test
+make mrms-render-candidate-sandbox-import-export
+make mrms-render-candidate-sandbox-comparison-history --refresh
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Advisory metadata comparisons only — no binary artifacts
+- History is not production authorization
+

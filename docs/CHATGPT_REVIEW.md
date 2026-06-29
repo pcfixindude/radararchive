@@ -9,10 +9,10 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 66
-- Latest phase: Phase 66 — Gated candidate sandbox manifest import/export
-- Latest commit: `640d5ed`
-- Latest tag: `phase-66-sandbox-manifest-import-export`
+- Completed through phase: 67
+- Latest phase: Phase 67 — Gated candidate sandbox manifest comparison history
+- Latest commit: `1a20eff`
+- Latest tag: `phase-67-sandbox-comparison-history`
 - Push status: pushed to origin main with tag
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
@@ -22,44 +22,42 @@ Do not treat this file as verified MRMS proof or production authorization.
 - `ENABLE_PRODUCTION_RADAR_TILES`: **false** by default
 - Placeholder tiles default: **true**
 - Production rendering: gated/off by default
-- External notifications: **none**
-- Render candidate sandbox import/export: local metadata/report-only; no binary artifacts by default; `imported` is **not** production authorization
-- Render candidate sandbox: local-only artifact layout under `data/dev/`; cleanup report-only by default
-- Render candidate scaffold: disabled-by-default local scaffold; dry-run/no-op only
-- Scheduled visual review: explicit opt-in only via `--visual-review` or `make scheduled-proof-bundle-visual-review`
+- Render candidate sandbox comparison history: local advisory only; records metadata comparisons from import/export; not production authorization
+- Render candidate sandbox import/export: local metadata/report-only
+- Scheduled visual review: explicit opt-in only
 
 ## Latest phase summary
 
-- Phase: **66**
-- Purpose: Add local import/export support for candidate sandbox manifests and reports for review/archive/compare without touching production tile serving.
-- Main commands added: `make mrms-render-candidate-sandbox-export`, `make mrms-render-candidate-sandbox-import-export`
-- API added: `GET /api/validation/mrms-render-candidate/sandbox/import-export`, `POST .../export`, `POST .../import`
-- Tests: backend 751 passed; frontend vitest 8 passed; frontend build succeeded
+- Phase: **67**
+- Purpose: Add local comparison history for candidate sandbox exports/imports so operators can review changes across candidate artifact reports.
+- Main command added: `make mrms-render-candidate-sandbox-comparison-history`
+- API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/import-export/comparison-history`
+- Tests: backend 767 passed; frontend vitest 8 passed; frontend build succeeded
 - Known limitations:
-  - Import/export is metadata/report-only — no binary artifacts, no production tile paths
-  - Conservative blocking on verified_mrms claims, production rendering claims, path traversal, or paths outside `data/dev/`
-  - Advisory comparison between current sandbox manifest and imported manifest
+  - History records metadata comparisons only — no binary artifacts
+  - Entries recorded automatically on import and on export-vs-previous-export pairs
+  - Bounded history (25 entries)
   - `verified_mrms` remains false
 
 ## Current focus
 
-The project is in the **local visual evidence review** block with gated preflight, dry-run planning, disabled-by-default scaffold, local artifact sandbox, and manifest import/export before any real MRMS rendering candidate attempt.
+Local visual evidence review block with sandbox import/export and comparison history before any real MRMS rendering candidate attempt.
 
-The next major direction should add comparison history for sandbox exports/imports.
+Next direction: comparison trend hints across history.
 
 Do **not** promote to verified MRMS yet.
 
 ## Next recommended phase
 
-- Phase number: **67**
-- Phase title: Gated candidate sandbox manifest comparison history
-- Goal: Add local comparison history for candidate sandbox exports/imports so operators can review changes across candidate artifact reports without touching production tile serving or verifying MRMS.
-- Why this is next: Phase 66 adds manifest import/export; Phase 67 should persist comparison history across exports/imports for operator review.
+- Phase number: **68**
+- Phase title: Gated candidate sandbox comparison trend hints
+- Goal: Add local trend hints across sandbox comparison history so operators can spot recurring changes without touching production tile serving or verifying MRMS.
+- Why this is next: Phase 67 persists comparison history; Phase 68 should summarize trends/hints for operator review.
 - Safety boundaries:
-  - local-only comparison history by default
+  - local-only trend hints by default
   - no MRMS verification claim
   - no production rendering or tile serving
-  - no download/decode/render execution unless explicitly gated and disabled by default
+  - no download/decode/render by default
   - no alert clearing
   - no mutation of catalog/render gates
 
@@ -67,31 +65,7 @@ Do **not** promote to verified MRMS yet.
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-
-Read first:
-- docs/CHATGPT_REVIEW.md
-- README.md
-- docs/PROJECT_STATE.md
-- docs/NEXT_STEPS.md
-- docs/PHASE_LOG.md
-- docs/ARCHITECTURE.md
-- docs/API_SPEC.md
-- docs/RUNBOOK_REAL_MRMS_VALIDATION.md
-- docs/VERIFIED_MRMS_CRITERIA.md
-- docs/GRIB2_DECODE.md
-
-Task: Implement Phase 67 only.
-
-Goal: Add local comparison history for candidate sandbox exports/imports so operators can review changes across candidate artifact reports without touching production tile serving or verifying MRMS.
-
-Requirements (summary):
-- Persist local comparison history JSON/Markdown under data/dev/ (gitignored)
-- Expose read-only API/status and Dev Validation UI
-- Keep verified_mrms false and production rendering gated
-- Do not download/decode/render by default, clear alerts, or mutate catalog/render gates
-- Update docs/CHATGPT_REVIEW.md before final commit/tag/push
-
-Run make test, frontend tests, and frontend build before commit.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 68 only.
 ```
 
 ## Key docs (read order for new work)

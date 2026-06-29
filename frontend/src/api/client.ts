@@ -1080,6 +1080,43 @@ export type MrmsRenderCandidateSandboxImportExportCompact = {
   does_not_authorize_production_use: boolean;
 };
 
+export type MrmsRenderCandidateSandboxComparisonHistoryCompact = {
+  available?: boolean;
+  history_status?: string | null;
+  history_reason?: string | null;
+  history_count?: number;
+  blockers?: string[];
+  warnings?: string[];
+  schema_version?: string | null;
+  latest_comparison_type?: string | null;
+  latest_comparison_status?: string | null;
+  latest_recorded_at?: string | null;
+  recent_entries?: Array<{
+    recorded_at?: string;
+    comparison_type?: string;
+    comparison_status?: string;
+    changed_sandbox_status?: boolean;
+  }>;
+  latest_import_export_status?: string | null;
+  json_path?: string | null;
+  markdown_path?: string | null;
+  latest_json_path?: string | null;
+  suggested_command?: string | null;
+  next_phase_recommendation?: string | null;
+  verified_mrms: boolean;
+  local_comparison_history_only: boolean;
+  advisory_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  does_not_create_production_tiles: boolean;
+  does_not_serve_production_tiles: boolean;
+  does_not_delete_by_default: boolean;
+  binary_artifacts_included: boolean;
+  no_external_notifications: boolean;
+  does_not_authorize_production_use: boolean;
+};
+
 export type OperatorWorkflowPresetsCompact = {
   available?: boolean;
   recommended_count?: number;
@@ -1623,6 +1660,7 @@ export type ValidationSummary = {
   mrms_render_candidate_scaffold?: MrmsRenderCandidateScaffoldCompact | null;
   mrms_render_candidate_sandbox?: MrmsRenderCandidateSandboxCompact | null;
   mrms_render_candidate_sandbox_import_export?: MrmsRenderCandidateSandboxImportExportCompact | null;
+  mrms_render_candidate_sandbox_comparison_history?: MrmsRenderCandidateSandboxComparisonHistoryCompact | null;
   scheduled_operator_status?: ScheduledOperatorStatusCompact | null;
   runbook_references?: RunbookReference[];
   frame_summaries?: FrameTileMetricsCompact[];
@@ -1943,6 +1981,28 @@ export async function importRenderCandidateSandbox(importJsonPath?: string): Pro
       return { ok: false, error: `Render candidate sandbox import failed (${response.status})` };
     }
     const data = (await response.json()) as { compact: MrmsRenderCandidateSandboxImportExportCompact };
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function refreshRenderCandidateSandboxComparisonHistory(): Promise<
+  | { ok: true; data: { compact: MrmsRenderCandidateSandboxComparisonHistoryCompact } }
+  | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/validation/mrms-render-candidate/sandbox/import-export/comparison-history`,
+      { method: 'POST' },
+    );
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: `Render candidate sandbox comparison history refresh failed (${response.status})`,
+      };
+    }
+    const data = (await response.json()) as { compact: MrmsRenderCandidateSandboxComparisonHistoryCompact };
     return { ok: true, data };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };

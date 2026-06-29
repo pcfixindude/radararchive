@@ -66,3 +66,6 @@ data/dev/mrms_render_candidate_exports/
 data/dev/mrms_render_candidate_imports/
 data/dev/mrms_render_candidate_import_export_latest.json
 data/dev/mrms_render_candidate_import_export_latest.md
+data/dev/mrms_render_candidate_sandbox_comparison_history.json
+data/dev/mrms_render_candidate_sandbox_comparison_latest.json
+data/dev/mrms_render_candidate_sandbox_comparison_history.md

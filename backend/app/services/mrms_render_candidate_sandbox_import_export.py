@@ -8,10 +8,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from backend.app.config import settings
-from backend.app.services.mrms_render_candidate_sandbox import (
-    MANIFEST_JSON,
-    load_sandbox_manifest,
-)
+from backend.app.services.mrms_render_candidate_sandbox import load_sandbox_manifest
 from backend.app.services.storage import LocalStorage
 
 SCHEMA_VERSION = "1.0"
@@ -35,8 +32,8 @@ STATUS_INVALID = "invalid"
 STATUS_BLOCKED = "blocked"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 67 — Gated candidate sandbox manifest comparison history "
-    "(local comparison history for sandbox exports/imports without production tile serving)"
+    "Phase 68 — Gated candidate sandbox comparison trend hints "
+    "(local trend hints across sandbox comparison history without production tile serving)"
 )
 
 INPUT_DEFINITIONS: tuple[dict[str, str], ...] = (
@@ -492,7 +489,13 @@ def export_candidate_sandbox_manifest(storage: LocalStorage) -> dict[str, Any]:
         build_export_markdown(export_body),
         encoding="utf-8",
     )
-    return save_import_export_status(storage, export_body, export_json=export_json, export_md=export_md)
+    result = save_import_export_status(storage, export_body, export_json=export_json, export_md=export_md)
+    from backend.app.services.mrms_render_candidate_sandbox_comparison_history import (
+        record_export_comparison_history,
+    )
+
+    record_export_comparison_history(storage, export_json_path=export_json)
+    return result
 
 
 def import_candidate_sandbox_manifest(
@@ -578,7 +581,7 @@ def import_candidate_sandbox_manifest(
         "latest_import_markdown_path": import_md,
         "comparison": comparison,
     }
-    return save_import_export_status(
+    result = save_import_export_status(
         storage,
         status_body,
         export_json=source_json_path,
@@ -586,6 +589,13 @@ def import_candidate_sandbox_manifest(
         import_json=import_json,
         import_md=import_md,
     )
+    if validation.get("valid"):
+        from backend.app.services.mrms_render_candidate_sandbox_comparison_history import (
+            record_import_comparison_history,
+        )
+
+        record_import_comparison_history(storage, import_record)
+    return result
 
 
 def build_import_markdown(import_record: dict[str, Any]) -> str:

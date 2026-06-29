@@ -13,6 +13,7 @@ import {
   refreshRenderCandidateSandbox,
   exportRenderCandidateSandbox,
   importRenderCandidateSandbox,
+  refreshRenderCandidateSandboxComparisonHistory,
   submitDiffAcknowledgment,
   type MrmsProofHistory,
   type MrmsProofRegressionHistory,
@@ -94,6 +95,9 @@ export default function ValidationStatusPanel({
   const [importExportImporting, setImportExportImporting] = useState(false);
   const [importExportMessage, setImportExportMessage] = useState<string | null>(null);
   const [importExportError, setImportExportError] = useState<string | null>(null);
+  const [comparisonHistoryRefreshing, setComparisonHistoryRefreshing] = useState(false);
+  const [comparisonHistoryMessage, setComparisonHistoryMessage] = useState<string | null>(null);
+  const [comparisonHistoryError, setComparisonHistoryError] = useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -427,6 +431,24 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleComparisonHistoryRefresh() {
+    setComparisonHistoryMessage(null);
+    setComparisonHistoryError(null);
+    setComparisonHistoryRefreshing(true);
+    const result = await refreshRenderCandidateSandboxComparisonHistory();
+    setComparisonHistoryRefreshing(false);
+    if (!result.ok) {
+      setComparisonHistoryError(result.error);
+      return;
+    }
+    setComparisonHistoryMessage(
+      `Comparison history refreshed (${result.data.compact.history_status ?? '—'}) — ${result.data.compact.history_count ?? 0} entries.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   if (!summary) {
     return (
       <section className="panel validation-panel">
@@ -499,6 +521,8 @@ export default function ValidationStatusPanel({
   const mrmsRenderCandidateSandbox = summary.mrms_render_candidate_sandbox ?? null;
   const mrmsRenderCandidateSandboxImportExport =
     summary.mrms_render_candidate_sandbox_import_export ?? null;
+  const mrmsRenderCandidateSandboxComparisonHistory =
+    summary.mrms_render_candidate_sandbox_comparison_history ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -1650,6 +1674,97 @@ export default function ValidationStatusPanel({
             'make mrms-render-candidate-sandbox-import-export'
           }
           label="Suggested import/export command"
+          manualCopy
+        />
+        <SafetyNote />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="MRMS render candidate sandbox comparison history"
+        className="validation-render-candidate-sandbox-comparison-history"
+        summary={
+          <p className="validation-meta">
+            {mrmsRenderCandidateSandboxComparisonHistory?.history_status
+              ? `Advisory ${mrmsRenderCandidateSandboxComparisonHistory.history_status} — ${mrmsRenderCandidateSandboxComparisonHistory.history_count ?? 0} entries`
+              : 'No comparison history yet — run make mrms-render-candidate-sandbox-import-export'}
+          </p>
+        }
+      >
+        <p className="validation-warn">
+          This is local manifest import/export comparison history only. It does not verify MRMS,
+          enable production rendering, download/decode/render, create or serve production tiles, clear
+          alerts, or authorize production use. Imports are metadata/report-only.
+        </p>
+        {mrmsRenderCandidateSandboxComparisonHistory ? (
+          <>
+            <p className="validation-meta">
+              History status: {mrmsRenderCandidateSandboxComparisonHistory.history_status ?? '—'} —
+              reason: {mrmsRenderCandidateSandboxComparisonHistory.history_reason ?? '—'}
+            </p>
+            <p className="validation-meta">
+              Schema version: {mrmsRenderCandidateSandboxComparisonHistory.schema_version ?? '—'} —
+              latest comparison: {mrmsRenderCandidateSandboxComparisonHistory.latest_comparison_type ?? '—'}{' '}
+              ({mrmsRenderCandidateSandboxComparisonHistory.latest_comparison_status ?? '—'})
+            </p>
+            {(mrmsRenderCandidateSandboxComparisonHistory.recent_entries ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Recent entries</strong>
+                <ul>
+                  {(mrmsRenderCandidateSandboxComparisonHistory.recent_entries ?? []).map((item) => (
+                    <li key={`${item.recorded_at}-${item.comparison_type}`}>
+                      {item.recorded_at} — {item.comparison_type} ({item.comparison_status})
+                      {item.changed_sandbox_status ? ' — sandbox status changed' : ''}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {(mrmsRenderCandidateSandboxComparisonHistory.blockers ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Blockers</strong>
+                <ul>
+                  {(mrmsRenderCandidateSandboxComparisonHistory.blockers ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="validation-meta">Blockers: none</p>
+            )}
+            {mrmsRenderCandidateSandboxComparisonHistory.json_path ? (
+              <p className="validation-meta">
+                History JSON: <code>{mrmsRenderCandidateSandboxComparisonHistory.json_path}</code>
+              </p>
+            ) : null}
+            {mrmsRenderCandidateSandboxComparisonHistory.markdown_path ? (
+              <p className="validation-meta">
+                History Markdown:{' '}
+                <code>{mrmsRenderCandidateSandboxComparisonHistory.markdown_path}</code>
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            No comparison history yet. Run import/export workflow to record advisory comparisons.
+          </p>
+        )}
+        <button
+          type="button"
+          className="validation-action"
+          disabled={comparisonHistoryRefreshing}
+          onClick={() => void handleComparisonHistoryRefresh()}
+        >
+          {comparisonHistoryRefreshing
+            ? 'Refreshing comparison history…'
+            : 'Refresh comparison history report (local only)'}
+        </button>
+        {comparisonHistoryMessage ? <p className="validation-meta">{comparisonHistoryMessage}</p> : null}
+        {comparisonHistoryError ? <p className="validation-warn">{comparisonHistoryError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateSandboxComparisonHistory?.suggested_command ??
+            'make mrms-render-candidate-sandbox-comparison-history --refresh'
+          }
+          label="Suggested comparison history command"
           manualCopy
         />
         <SafetyNote />

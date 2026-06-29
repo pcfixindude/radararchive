@@ -263,6 +263,7 @@ Limitations:
 - `make mrms-render-candidate-sandbox` creates/validates local render candidate artifact sandbox layout (`--refresh` persists manifest/report; Phase 65)
 - `make mrms-render-candidate-sandbox-export` exports local candidate sandbox manifest metadata (`--export`; Phase 66)
 - `make mrms-render-candidate-sandbox-import-export` exports then validates/imports latest export metadata (`--export --import`; Phase 66)
+- `make mrms-render-candidate-sandbox-comparison-history` refreshes local sandbox comparison history summary (`--refresh`; Phase 67)
 - `make scheduled-proof-bundle-visual-review` runs full scheduled proof/digest/export/operator-status with explicit visual review generation (Phase 59; `--visual-review` opt-in)
 - `make mrms-review-session ARGS="... --export-after-create"` creates a session and immediately exports Markdown (session is kept if export fails)
 - `make mrms-signoff` records local operator sign-off (does not set verified_mrms)

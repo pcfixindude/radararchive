@@ -54,6 +54,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateSandboxResponse,
     MrmsRenderCandidateSandboxImportExportResponse,
     MrmsRenderCandidateSandboxImportRequest,
+    MrmsRenderCandidateSandboxComparisonHistoryResponse,
     MrmsVisualReviewResponse,
     OperatorReviewStatusResponse,
     OperatorWorkflowPresetsResponse,
@@ -171,6 +172,10 @@ from backend.app.services.mrms_render_candidate_sandbox_import_export import (
     build_render_candidate_sandbox_import_export_payload,
     export_candidate_sandbox_manifest,
     import_candidate_sandbox_manifest,
+)
+from backend.app.services.mrms_render_candidate_sandbox_comparison_history import (
+    build_comparison_history_payload,
+    refresh_comparison_history_report,
 )
 from backend.app.services.operator_review_status import build_operator_review_status_payload
 from backend.app.services.operator_workflow_presets import build_operator_workflow_presets_payload
@@ -512,6 +517,33 @@ def validation_mrms_render_candidate_sandbox_import(
     import_candidate_sandbox_manifest(storage, source_json_path=import_path)
     payload = build_render_candidate_sandbox_import_export_payload(storage)
     return MrmsRenderCandidateSandboxImportExportResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/import-export/comparison-history",
+    response_model=MrmsRenderCandidateSandboxComparisonHistoryResponse,
+)
+def validation_mrms_render_candidate_sandbox_comparison_history() -> (
+    MrmsRenderCandidateSandboxComparisonHistoryResponse
+):
+    """Local MRMS render candidate sandbox comparison history (read-only advisory)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_comparison_history_payload(storage)
+    return MrmsRenderCandidateSandboxComparisonHistoryResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/import-export/comparison-history",
+    response_model=MrmsRenderCandidateSandboxComparisonHistoryResponse,
+)
+def validation_mrms_render_candidate_sandbox_comparison_history_refresh() -> (
+    MrmsRenderCandidateSandboxComparisonHistoryResponse
+):
+    """Dev/local only — refresh sandbox comparison history summary report."""
+    storage = LocalStorage(settings.local_storage_root)
+    refresh_comparison_history_report(storage)
+    payload = build_comparison_history_payload(storage)
+    return MrmsRenderCandidateSandboxComparisonHistoryResponse(**payload)
 
 
 @router.get(

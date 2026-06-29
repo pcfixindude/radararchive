@@ -39,6 +39,9 @@ from backend.app.services.mrms_render_candidate_sandbox import (
 from backend.app.services.mrms_render_candidate_sandbox_import_export import (
     compact_render_candidate_sandbox_import_export,
 )
+from backend.app.services.mrms_render_candidate_sandbox_comparison_history import (
+    compact_comparison_history,
+)
 from backend.app.services.operator_review_status import (
     compact_operator_review_status,
     compact_scheduled_operator_status,
@@ -233,6 +236,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "mrms_render_candidate_sandbox_import_export": compact_render_candidate_sandbox_import_export(
             storage
         ),
+        "mrms_render_candidate_sandbox_comparison_history": compact_comparison_history(storage),
         "scheduled_operator_status": compact_scheduled_operator_status(scheduled),
         "runbook_references": RUNBOOK_LINK_METADATA,
         "catalog": catalog,
