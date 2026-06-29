@@ -44,8 +44,8 @@ MAX_DIFF_HISTORY = 25
 SUGGESTED_COMMAND = "make mrms-render-candidate-trend-hint-review-digest-diff"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 89 — resolve visual evidence preflight blockers or review dry-run plan "
-    "(depending on latest gated preflight attempt result)"
+    "Phase 90 — bootstrap sandbox comparison trend-hint chain "
+    "(seed comparison history and refresh candidate trend hints)"
 )
 
 DIGEST_STATUS_RANK = {

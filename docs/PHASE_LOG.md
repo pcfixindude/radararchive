@@ -2916,3 +2916,31 @@ cd frontend && npm run build
 - Local dev run: chain blocked (missing ack rollup) — preflight not executed
 - Not production authorization
 
+## Phase 89 - Resolve Preflight Blockers
+
+Orchestrate blocker-removal refresh flow and record specific remaining blockers without forcing preflight.
+
+### Backend
+- `mrms_render_candidate_preflight_blockers.py` — runs ack status, digest, readiness, visual readiness, gated preflight retry in order
+- Paths: `mrms_render_candidate_preflight_blockers_latest.json`, `mrms_render_candidate_preflight_blockers_latest.md`
+- Maps blockers to specific next commands (trend-hint chain, visual sample set, preflight retry)
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/preflight-blockers`
+- CLI: `scripts/mrms_render_candidate_preflight_blockers.py`; `make mrms-resolve-preflight-blockers`
+
+### Frontend
+- **Resolve preflight blockers** button on Candidate review readiness collapsible
+
+### Run commands
+
+```bash
+make test
+make mrms-resolve-preflight-blockers ARGS="--refresh"
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Does not force preflight when readiness gate is closed
+- Local dev result: `still_blocked` — primary blocker is missing ack rollup / trend-hint chain upstream
+- Not production authorization
+

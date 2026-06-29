@@ -10,6 +10,7 @@ import {
   refreshRenderCandidatePreflight,
   refreshRenderCandidateReviewReadiness,
   refreshRenderCandidatePreflightAttempt,
+  refreshRenderCandidatePreflightBlockers,
   refreshRenderCandidateDryRunPlan,
   refreshRenderCandidateScaffold,
   refreshRenderCandidateSandbox,
@@ -108,6 +109,9 @@ export default function ValidationStatusPanel({
   const [preflightAttemptRefreshing, setPreflightAttemptRefreshing] = useState(false);
   const [preflightAttemptMessage, setPreflightAttemptMessage] = useState<string | null>(null);
   const [preflightAttemptError, setPreflightAttemptError] = useState<string | null>(null);
+  const [preflightBlockersRefreshing, setPreflightBlockersRefreshing] = useState(false);
+  const [preflightBlockersMessage, setPreflightBlockersMessage] = useState<string | null>(null);
+  const [preflightBlockersError, setPreflightBlockersError] = useState<string | null>(null);
   const [dryRunPlanRefreshing, setDryRunPlanRefreshing] = useState(false);
   const [dryRunPlanMessage, setDryRunPlanMessage] = useState<string | null>(null);
   const [dryRunPlanError, setDryRunPlanError] = useState<string | null>(null);
@@ -462,6 +466,24 @@ export default function ValidationStatusPanel({
       return;
     }
     setReadinessMessage('Readiness summary refreshed — candidate_ready is not production authorization.');
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
+  async function handlePreflightBlockersRefresh() {
+    setPreflightBlockersMessage(null);
+    setPreflightBlockersError(null);
+    setPreflightBlockersRefreshing(true);
+    const result = await refreshRenderCandidatePreflightBlockers();
+    setPreflightBlockersRefreshing(false);
+    if (!result.ok) {
+      setPreflightBlockersError(result.error);
+      return;
+    }
+    setPreflightBlockersMessage(
+      `Blocker resolution: ${result.data.compact.resolution_status ?? '—'} — preflight ${result.data.compact.preflight_not_run ? 'not run' : (result.data.compact.preflight_level ?? '—')}.`,
+    );
     if (onRefresh) {
       await onRefresh();
     }
@@ -1059,6 +1081,7 @@ export default function ValidationStatusPanel({
   const mrmsRenderCandidatePreflight = summary.mrms_render_candidate_preflight ?? null;
   const mrmsRenderCandidateReviewReadiness = summary.mrms_render_candidate_review_readiness ?? null;
   const mrmsRenderCandidatePreflightAttempt = summary.mrms_render_candidate_preflight_attempt ?? null;
+  const mrmsRenderCandidatePreflightBlockers = summary.mrms_render_candidate_preflight_blockers ?? null;
   const mrmsRenderCandidateDryRunPlan = summary.mrms_render_candidate_dry_run_plan ?? null;
   const mrmsRenderCandidateScaffold = summary.mrms_render_candidate_scaffold ?? null;
   const mrmsRenderCandidateSandbox = summary.mrms_render_candidate_sandbox ?? null;
@@ -1731,6 +1754,16 @@ export default function ValidationStatusPanel({
                 </ul>
               </div>
             ) : null}
+            {mrmsRenderCandidatePreflightBlockers?.remaining_blockers?.length ? (
+              <div className="validation-meta">
+                <strong>Preflight blockers report</strong>
+                <ul>
+                  {(mrmsRenderCandidatePreflightBlockers.remaining_blockers ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             {mrmsRenderCandidatePreflightAttempt?.available ? (
               <p className="validation-meta">
                 Latest attempt: {mrmsRenderCandidatePreflightAttempt.attempt_status ?? '—'} —{' '}
@@ -1760,6 +1793,16 @@ export default function ValidationStatusPanel({
         <button
           type="button"
           className="validation-action"
+          disabled={preflightBlockersRefreshing}
+          onClick={() => void handlePreflightBlockersRefresh()}
+        >
+          {preflightBlockersRefreshing
+            ? 'Resolving preflight blockers…'
+            : 'Resolve preflight blockers (full refresh flow)'}
+        </button>
+        <button
+          type="button"
+          className="validation-action"
           disabled={preflightAttemptRefreshing}
           onClick={() => void handlePreflightAttemptRefresh()}
         >
@@ -1767,6 +1810,10 @@ export default function ValidationStatusPanel({
             ? 'Running gated preflight attempt…'
             : 'Run gated preflight attempt (skips when blockers present)'}
         </button>
+        {preflightBlockersMessage ? (
+          <p className="validation-meta">{preflightBlockersMessage}</p>
+        ) : null}
+        {preflightBlockersError ? <p className="validation-warn">{preflightBlockersError}</p> : null}
         {preflightAttemptMessage ? (
           <p className="validation-meta">{preflightAttemptMessage}</p>
         ) : null}
@@ -1781,6 +1828,14 @@ export default function ValidationStatusPanel({
             'make mrms-render-candidate-review-readiness --refresh'
           }
           label="Suggested review readiness command"
+          manualCopy
+        />
+        <CommandLine
+          command={
+            mrmsRenderCandidatePreflightBlockers?.suggested_command ??
+            'make mrms-resolve-preflight-blockers --refresh'
+          }
+          label="Suggested preflight blocker resolution command"
           manualCopy
         />
         <CommandLine

@@ -30,8 +30,8 @@ COVERAGE_MIXED = "mixed"
 COVERAGE_NO_BASELINE = "no_baseline"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 89 — resolve visual evidence preflight blockers or review dry-run plan "
-    "(depending on latest gated preflight attempt result)"
+    "Phase 90 — bootstrap sandbox comparison trend-hint chain "
+    "(seed comparison history and refresh candidate trend hints)"
 )
 
 DIGEST_COVERAGE_RANK = {

@@ -51,6 +51,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidatePreflightResponse,
     MrmsRenderCandidateReviewReadinessResponse,
     MrmsRenderCandidatePreflightAttemptResponse,
+    MrmsRenderCandidatePreflightBlockersResponse,
     MrmsRenderCandidateDryRunPlanResponse,
     MrmsRenderCandidateScaffoldResponse,
     MrmsRenderCandidateSandboxResponse,
@@ -180,6 +181,10 @@ from backend.app.services.mrms_visual_review_sample_readiness import (
     compact_visual_review_sample_readiness,
     refresh_visual_review_sample_readiness,
     upsert_sample_annotation,
+)
+from backend.app.services.mrms_render_candidate_preflight_blockers import (
+    build_preflight_blockers_payload,
+    resolve_preflight_blockers,
 )
 from backend.app.services.mrms_render_candidate_preflight_attempt import (
     attempt_gated_preflight,
@@ -583,6 +588,33 @@ def validation_mrms_render_candidate_preflight_attempt_run() -> (
     attempt_gated_preflight(storage)
     payload = build_preflight_attempt_payload(storage)
     return MrmsRenderCandidatePreflightAttemptResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/preflight-blockers",
+    response_model=MrmsRenderCandidatePreflightBlockersResponse,
+)
+def validation_mrms_render_candidate_preflight_blockers() -> (
+    MrmsRenderCandidatePreflightBlockersResponse
+):
+    """Latest preflight blocker resolution report (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_preflight_blockers_payload(storage)
+    return MrmsRenderCandidatePreflightBlockersResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/preflight-blockers",
+    response_model=MrmsRenderCandidatePreflightBlockersResponse,
+)
+def validation_mrms_render_candidate_preflight_blockers_resolve() -> (
+    MrmsRenderCandidatePreflightBlockersResponse
+):
+    """Dev/local only — run blocker resolution flow; does NOT force preflight when gated."""
+    storage = LocalStorage(settings.local_storage_root)
+    resolve_preflight_blockers(storage)
+    payload = build_preflight_blockers_payload(storage)
+    return MrmsRenderCandidatePreflightBlockersResponse(**payload)
 
 
 @router.get(

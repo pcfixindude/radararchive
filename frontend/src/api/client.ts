@@ -1017,6 +1017,39 @@ export type MrmsRenderCandidatePreflightAttemptCompact = {
   gated_preflight_ready_is_not_production_authorization: boolean;
 };
 
+export type MrmsRenderCandidatePreflightBlockersCompact = {
+  available?: boolean;
+  resolution_status?: string | null;
+  blocker_category?: string | null;
+  primary_blocker?: string | null;
+  remaining_blockers?: string[];
+  visual_blockers?: string[];
+  readiness_level?: string | null;
+  visual_readiness_level?: string | null;
+  visual_readiness_reason?: string | null;
+  preflight_attempt_status?: string | null;
+  preflight_level?: string | null;
+  preflight_not_run?: boolean;
+  next_commands?: string[];
+  next_operator_step?: string | null;
+  resolved_at?: string | null;
+  suggested_command?: string | null;
+  next_phase_recommendation?: string | null;
+  verified_mrms: boolean;
+  local_blocker_report_only: boolean;
+  advisory_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  does_not_create_production_tiles: boolean;
+  does_not_serve_production_tiles: boolean;
+  does_not_delete_by_default: boolean;
+  binary_artifacts_included: boolean;
+  no_external_notifications: boolean;
+  does_not_authorize_production_use: boolean;
+  gated_preflight_ready_is_not_production_authorization: boolean;
+};
+
 export type MrmsRenderCandidateDryRunPlanCompact = {
   available?: boolean;
   plan_status?: string | null;
@@ -2413,6 +2446,7 @@ export type ValidationSummary = {
   mrms_render_candidate_preflight?: MrmsRenderCandidatePreflightCompact | null;
   mrms_render_candidate_review_readiness?: MrmsRenderCandidateReviewReadinessCompact | null;
   mrms_render_candidate_preflight_attempt?: MrmsRenderCandidatePreflightAttemptCompact | null;
+  mrms_render_candidate_preflight_blockers?: MrmsRenderCandidatePreflightBlockersCompact | null;
   mrms_render_candidate_dry_run_plan?: MrmsRenderCandidateDryRunPlanCompact | null;
   mrms_render_candidate_scaffold?: MrmsRenderCandidateScaffoldCompact | null;
   mrms_render_candidate_sandbox?: MrmsRenderCandidateSandboxCompact | null;
@@ -2665,6 +2699,28 @@ export async function refreshRenderCandidateReviewReadiness(): Promise<
       };
     }
     const data = (await response.json()) as { compact: MrmsRenderCandidateReviewReadinessCompact };
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function refreshRenderCandidatePreflightBlockers(): Promise<
+  | { ok: true; data: { compact: MrmsRenderCandidatePreflightBlockersCompact } }
+  | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/validation/mrms-render-candidate/sandbox/preflight-blockers`,
+      { method: 'POST' },
+    );
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: `Preflight blocker resolution failed (${response.status})`,
+      };
+    }
+    const data = (await response.json()) as { compact: MrmsRenderCandidatePreflightBlockersCompact };
     return { ok: true, data };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };

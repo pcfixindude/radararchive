@@ -40,12 +40,12 @@ GATE_ALLOWED_LEVELS = frozenset(
 )
 
 NEXT_PHASE_BLOCKERS = (
-    "Phase 89 — resolve visual evidence preflight blockers "
-    "(complete sample readiness and visual review before retrying gated preflight)"
+    "Phase 90 — sandbox comparison trend-hint chain bootstrap or visual review sample set "
+    "(depending on remaining preflight blockers report)"
 )
 NEXT_PHASE_SUCCESS = (
-    "Phase 89 — gated render candidate dry-run plan review "
-    "(evaluate dry-run plan when preflight is candidate_preflight_ready; does not execute render)"
+    "Phase 90 — gated render candidate dry-run plan review "
+    "(evaluate dry-run plan when preflight is candidate_preflight_ready)"
 )
 
 
