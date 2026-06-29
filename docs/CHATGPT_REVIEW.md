@@ -11,10 +11,10 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 95
 - Latest phase: Phase 95 — Gated sandbox manifest import/export
-- Latest commit: (pending commit)
+- Latest commit: `872da3b`
 - Latest tag: `phase-95-gated-sandbox-manifest-import-export`
-- Push status: pending
-- Final git status: source changes staged for commit
+- Push status: pushed
+- Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
 
