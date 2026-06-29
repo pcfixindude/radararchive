@@ -11,9 +11,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 99
 - Latest phase: Phase 99 — Gated sandbox acknowledgment history
-- Latest commit: (pending)
+- Latest commit: `993336b`
 - Latest tag: `phase-99-gated-sandbox-acknowledgment-history`
-- Push status: pending
+- Push status: pushed
 - Final git status: source clean after commit; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
