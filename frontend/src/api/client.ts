@@ -947,6 +947,41 @@ export type MrmsRenderCandidatePreflightCompact = {
   candidate_preflight_ready_is_not_production_authorization: boolean;
 };
 
+export type MrmsRenderCandidateReviewReadinessCompact = {
+  available?: boolean;
+  chain_readiness_level?: string | null;
+  overall_readiness_level?: string | null;
+  review_chain_ready?: boolean;
+  preflight_blocked?: boolean;
+  preflight_candidate_ready?: boolean;
+  gated_preflight_still_blocked?: boolean;
+  blocking_items?: string[];
+  warnings?: string[];
+  next_operator_step?: string | null;
+  suggested_commands?: string[];
+  regeneration_recommended?: boolean;
+  regeneration_reason?: string | null;
+  regeneration_suggested_command?: string | null;
+  computed_at?: string | null;
+  json_path?: string | null;
+  markdown_path?: string | null;
+  suggested_command?: string | null;
+  next_phase_recommendation?: string | null;
+  verified_mrms: boolean;
+  local_readiness_summary_only: boolean;
+  advisory_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  does_not_create_production_tiles: boolean;
+  does_not_serve_production_tiles: boolean;
+  does_not_delete_by_default: boolean;
+  binary_artifacts_included: boolean;
+  no_external_notifications: boolean;
+  does_not_authorize_production_use: boolean;
+  gated_preflight_ready_is_not_production_authorization: boolean;
+};
+
 export type MrmsRenderCandidateDryRunPlanCompact = {
   available?: boolean;
   plan_status?: string | null;
@@ -2341,6 +2376,7 @@ export type ValidationSummary = {
   mrms_visual_review_sample_set?: MrmsVisualReviewSampleSetCompact | null;
   mrms_visual_review_sample_readiness?: MrmsVisualReviewSampleReadinessCompact | null;
   mrms_render_candidate_preflight?: MrmsRenderCandidatePreflightCompact | null;
+  mrms_render_candidate_review_readiness?: MrmsRenderCandidateReviewReadinessCompact | null;
   mrms_render_candidate_dry_run_plan?: MrmsRenderCandidateDryRunPlanCompact | null;
   mrms_render_candidate_scaffold?: MrmsRenderCandidateScaffoldCompact | null;
   mrms_render_candidate_sandbox?: MrmsRenderCandidateSandboxCompact | null;
@@ -2571,6 +2607,28 @@ export async function refreshVisualReviewSampleReadiness(): Promise<
       return { ok: false, error: `Sample readiness refresh failed (${response.status})` };
     }
     const data = (await response.json()) as { compact: MrmsVisualReviewSampleReadinessCompact };
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function refreshRenderCandidateReviewReadiness(): Promise<
+  | { ok: true; data: { compact: MrmsRenderCandidateReviewReadinessCompact } }
+  | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/validation/mrms-render-candidate/sandbox/review-readiness`,
+      { method: 'POST' },
+    );
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: `Candidate review readiness refresh failed (${response.status})`,
+      };
+    }
+    const data = (await response.json()) as { compact: MrmsRenderCandidateReviewReadinessCompact };
     return { ok: true, data };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };

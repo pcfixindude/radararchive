@@ -1,31 +1,26 @@
 # Project State
 
-Current phase: Phase 86 complete
+Current phase: Phase 87 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
-- **Candidate trend-hint review digest diff** — local diff between consecutive review digests
-- **Candidate trend-hint review digest history** — bounded local history of review digests
-- **Candidate trend-hint review chain digest** — local digest combining rollup and history
-- **Candidate trend-hint acknowledgment status history** — bounded local history of acknowledgment status rollups
-- **Candidate trend-hint acknowledgment status rollup** — local rollup linking trend hints to acknowledgments
-- **Candidate trend-hint review acknowledgments** — local acknowledgment of reviewed candidate trend hints
-- **Candidate trend hints** (Phase 80 chain) — local advisory trends from status history
+- **Candidate review readiness** — consolidated local summary of the trend-hint review chain plus gated preflight status
+- **Candidate trend-hint review chain** — hints, acknowledgments, rollup, history, digest, digest history, digest diff (Phases 80–86)
 - **Default tile serving: placeholder**
 - Not verified real MRMS
 
-## Operator commands (Phase 86)
+## Operator commands (Phase 87)
 
 ```bash
+make mrms-render-candidate-review-readiness --refresh
 make mrms-render-candidate-trend-hint-review-digest --refresh
-make mrms-render-candidate-trend-hint-review-digest-history --refresh
-make mrms-render-candidate-trend-hint-review-digest-diff --refresh
+make mrms-render-candidate-preflight --refresh
 ```
 
 ## Dev API
 
-`mrms_render_candidate_trend_hint_review_digest_diff` compact on validation summary; `GET /api/validation/mrms-render-candidate/sandbox/trend-hint-review-digest/diff` for local trend-hint review digest diff (does not clear alerts).
+`mrms_render_candidate_review_readiness` compact on validation summary; `GET/POST /api/validation/mrms-render-candidate/sandbox/review-readiness` for consolidated review readiness (does not clear alerts).
 
 ## Verified MRMS
 

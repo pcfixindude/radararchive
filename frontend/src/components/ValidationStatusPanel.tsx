@@ -8,6 +8,7 @@ import {
   submitVisualReviewSampleAnnotation,
   refreshVisualReviewSampleReadiness,
   refreshRenderCandidatePreflight,
+  refreshRenderCandidateReviewReadiness,
   refreshRenderCandidateDryRunPlan,
   refreshRenderCandidateScaffold,
   refreshRenderCandidateSandbox,
@@ -100,6 +101,9 @@ export default function ValidationStatusPanel({
   const [preflightRefreshing, setPreflightRefreshing] = useState(false);
   const [preflightMessage, setPreflightMessage] = useState<string | null>(null);
   const [preflightError, setPreflightError] = useState<string | null>(null);
+  const [reviewReadinessRefreshing, setReviewReadinessRefreshing] = useState(false);
+  const [reviewReadinessMessage, setReviewReadinessMessage] = useState<string | null>(null);
+  const [reviewReadinessError, setReviewReadinessError] = useState<string | null>(null);
   const [dryRunPlanRefreshing, setDryRunPlanRefreshing] = useState(false);
   const [dryRunPlanMessage, setDryRunPlanMessage] = useState<string | null>(null);
   const [dryRunPlanError, setDryRunPlanError] = useState<string | null>(null);
@@ -454,6 +458,24 @@ export default function ValidationStatusPanel({
       return;
     }
     setReadinessMessage('Readiness summary refreshed — candidate_ready is not production authorization.');
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
+  async function handleReviewReadinessRefresh() {
+    setReviewReadinessMessage(null);
+    setReviewReadinessError(null);
+    setReviewReadinessRefreshing(true);
+    const result = await refreshRenderCandidateReviewReadiness();
+    setReviewReadinessRefreshing(false);
+    if (!result.ok) {
+      setReviewReadinessError(result.error);
+      return;
+    }
+    setReviewReadinessMessage(
+      `Review readiness refreshed (${result.data.compact.overall_readiness_level ?? '—'}) — local advisory only.`,
+    );
     if (onRefresh) {
       await onRefresh();
     }
@@ -1013,6 +1035,7 @@ export default function ValidationStatusPanel({
   const mrmsVisualReviewSampleSet = summary.mrms_visual_review_sample_set ?? null;
   const mrmsVisualReviewSampleReadiness = summary.mrms_visual_review_sample_readiness ?? null;
   const mrmsRenderCandidatePreflight = summary.mrms_render_candidate_preflight ?? null;
+  const mrmsRenderCandidateReviewReadiness = summary.mrms_render_candidate_review_readiness ?? null;
   const mrmsRenderCandidateDryRunPlan = summary.mrms_render_candidate_dry_run_plan ?? null;
   const mrmsRenderCandidateScaffold = summary.mrms_render_candidate_scaffold ?? null;
   const mrmsRenderCandidateSandbox = summary.mrms_render_candidate_sandbox ?? null;
@@ -1618,6 +1641,95 @@ export default function ValidationStatusPanel({
             'make mrms-visual-review'
           }
           label="Suggested command"
+          manualCopy
+        />
+        <SafetyNote />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Candidate review readiness"
+        className="validation-render-candidate-review-readiness"
+        summary={
+          <p className="validation-meta">
+            {mrmsRenderCandidateReviewReadiness?.overall_readiness_level
+              ? `Overall ${mrmsRenderCandidateReviewReadiness.overall_readiness_level} — chain ${mrmsRenderCandidateReviewReadiness.chain_readiness_level ?? '—'} — gated preflight ${mrmsRenderCandidateReviewReadiness.gated_preflight_still_blocked ? 'blocked' : 'unblocked'}`
+              : 'No review readiness summary yet — run make mrms-render-candidate-review-readiness --refresh'}
+          </p>
+        }
+      >
+        <p className="validation-warn">
+          Consolidated local readiness for the candidate trend-hint review chain. Does not verify
+          MRMS, enable production rendering, download/decode/render, create or serve production tiles,
+          clear alerts, or authorize production use.
+        </p>
+        {mrmsRenderCandidateReviewReadiness ? (
+          <>
+            <p className="validation-meta">
+              <strong>Next step:</strong>{' '}
+              {mrmsRenderCandidateReviewReadiness.next_operator_step ?? '—'}
+            </p>
+            <p className="validation-meta">
+              Review chain ready: {yesNo(mrmsRenderCandidateReviewReadiness.review_chain_ready ?? false)}{' '}
+              — preflight blocked: {yesNo(mrmsRenderCandidateReviewReadiness.preflight_blocked ?? true)}
+            </p>
+            {mrmsRenderCandidateReviewReadiness.regeneration_recommended ? (
+              <p className="validation-meta">
+                Digest refresh recommended: {mrmsRenderCandidateReviewReadiness.regeneration_reason ?? '—'}
+              </p>
+            ) : null}
+            {(mrmsRenderCandidateReviewReadiness.blocking_items ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Blockers</strong>
+                <ul>
+                  {(mrmsRenderCandidateReviewReadiness.blocking_items ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {(mrmsRenderCandidateReviewReadiness.warnings ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Warnings</strong>
+                <ul>
+                  {(mrmsRenderCandidateReviewReadiness.warnings ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {(mrmsRenderCandidateReviewReadiness.suggested_commands ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Suggested commands</strong>
+                <ul>
+                  {(mrmsRenderCandidateReviewReadiness.suggested_commands ?? []).map((cmd) => (
+                    <li key={cmd}>
+                      <code>{cmd}</code>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </>
+        ) : null}
+        <button
+          type="button"
+          className="validation-action"
+          disabled={reviewReadinessRefreshing}
+          onClick={() => void handleReviewReadinessRefresh()}
+        >
+          {reviewReadinessRefreshing
+            ? 'Refreshing review readiness…'
+            : 'Refresh review readiness summary (local only)'}
+        </button>
+        {reviewReadinessMessage ? (
+          <p className="validation-meta">{reviewReadinessMessage}</p>
+        ) : null}
+        {reviewReadinessError ? <p className="validation-warn">{reviewReadinessError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateReviewReadiness?.suggested_command ??
+            'make mrms-render-candidate-review-readiness --refresh'
+          }
+          label="Suggested review readiness command"
           manualCopy
         />
         <SafetyNote />

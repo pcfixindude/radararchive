@@ -44,8 +44,8 @@ MAX_DIFF_HISTORY = 25
 SUGGESTED_COMMAND = "make mrms-render-candidate-trend-hint-review-digest-diff"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 87 — candidate trend-hint review digest regeneration hint "
-    "(local hint when digest diff suggests refresh without production authorization)"
+    "Phase 88 — gated real MRMS render candidate preflight attempt "
+    "(only when review chain and visual evidence are ready; does not verify MRMS or enable production)"
 )
 
 DIGEST_STATUS_RANK = {

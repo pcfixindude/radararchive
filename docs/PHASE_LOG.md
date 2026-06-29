@@ -2860,3 +2860,30 @@ cd frontend && npm run build
 - Diff does not clear alerts or mutate digests, rollups, or acknowledgments
 - Diff records on digest history append or CLI `--refresh` recompute from latest history
 
+## Phase 87 - Candidate Review Readiness Consolidation
+
+Consolidated local readiness summary for the candidate trend-hint review chain and gated preflight status.
+
+### Backend
+- `mrms_render_candidate_review_readiness.py` — gathers chain evidence, regeneration hint, blockers, next operator step
+- Paths: `mrms_render_candidate_review_readiness.json`, `mrms_render_candidate_review_readiness.md`
+- Reuses compacts from trend hints, acknowledgments, rollup, history, digest, digest diff, and preflight
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/review-readiness`
+- CLI: `scripts/mrms_render_candidate_review_readiness.py`; `make mrms-render-candidate-review-readiness`
+
+### Frontend
+- Dev Validation **Candidate review readiness** collapsible with refresh button (placed before preflight)
+
+### Run commands
+
+```bash
+make test
+make mrms-render-candidate-review-readiness --refresh
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Readiness summary does not clear alerts or mutate gates
+- Not production authorization; typical fresh dev trees show blockers until chain is refreshed
+

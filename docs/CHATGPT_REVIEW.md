@@ -9,10 +9,10 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 86
-- Latest phase: Phase 86 — Candidate trend-hint review digest diff
-- Latest commit: `c284673`
-- Latest tag: `phase-86-candidate-trend-hint-review-digest-diff`
+- Completed through phase: 87
+- Latest phase: Phase 87 — Candidate review readiness consolidation
+- Latest commit: `TBD`
+- Latest tag: `phase-87-candidate-review-readiness-consolidation`
 - Push status: pending
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
@@ -22,53 +22,48 @@ Do not treat this file as verified MRMS proof or production authorization.
 - `ENABLE_PRODUCTION_RADAR_TILES`: **false** by default
 - Placeholder tiles default: **true**
 - Production rendering: gated/off by default
-- Candidate trend-hint review digest diff: local advisory only
-- Candidate trend-hint review digest history: local advisory only
-- Candidate trend-hint review chain digest: local advisory only
-- Candidate trend-hint acknowledgment status history: local advisory only
-- Candidate trend-hint acknowledgment status rollup: local advisory only
-- Candidate trend-hint review acknowledgments: local acknowledgment only
-- Candidate trend hints (Phase 80 chain): local advisory only
+- Candidate review readiness: local advisory consolidation only
+- Candidate trend-hint review chain (hints, acks, rollup, history, digest, diff): local advisory only
 - Render candidate sandbox import/export: local metadata/report-only
 
 ## Latest phase summary
 
-- Phase: **86**
-- Purpose: Add local diff between consecutive trend-hint review digests so operators can see digest change signals without production authorization.
-- Main command added: `make mrms-render-candidate-trend-hint-review-digest-diff`
-- API added: `GET /api/validation/mrms-render-candidate/sandbox/trend-hint-review-digest/diff`
-- Tests: backend 994 passed; frontend vitest 8 passed; frontend build OK
+- Phase: **87**
+- Purpose: Consolidate the candidate trend-hint review chain into one operator readiness summary with blockers, regeneration hints, and gated preflight status — without another metadata-only layer.
+- Main command added: `make mrms-render-candidate-review-readiness`
+- API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/review-readiness`
+- Tests: backend 1008 passed; frontend vitest 8 passed; frontend build OK
 - Known limitations:
-  - Diff does not clear alerts or mutate digests, rollups, or acknowledgments
-  - Diff records on digest history append (digest refresh) or via `--refresh` CLI recompute
+  - Readiness summary does not clear alerts or mutate gates, digests, or acknowledgments
+  - `gated_preflight_ready` / `preflight_candidate_ready` are not production authorization
   - `verified_mrms` remains false
+  - Review chain is typically **not** complete on a fresh dev tree — blockers are expected until operators refresh the chain
 
 ## Current focus
 
-Local visual evidence review block with full candidate sandbox review chain (rollup, history, digest, digest history, digest diff, trend hints, acknowledgments) before any real MRMS rendering candidate attempt.
-
-Next direction: candidate trend-hint review digest regeneration hint.
+Use the consolidated readiness summary to decide when to attempt a **gated real MRMS render candidate preflight** (Phase 62 command) after visual evidence and the trend-hint review chain are in order.
 
 Do **not** promote to verified MRMS yet.
 
 ## Next recommended phase
 
-- Phase number: **87**
-- Phase title: Candidate trend-hint review digest regeneration hint
-- Goal: Add local hint when digest diff suggests refresh without production authorization.
-- Why this is next: Phase 86 completes consecutive digest diff; Phase 87 should surface operator-facing regeneration guidance from diff signals.
+- Phase number: **88**
+- Phase title: Gated real MRMS render candidate preflight attempt
+- Goal: Run the existing gated preflight workflow deliberately when review readiness shows `ready_for_preflight`, resolving any remaining visual-evidence blockers first.
+- Why this is next: Phase 87 consolidates the review chain; the next meaningful step is operator execution of the existing preflight gate — not another digest/rollup/history layer.
+- If blockers remain (typical on fresh dev): resolve them with the suggested commands in the readiness summary before Phase 88.
 - Safety boundaries:
-  - local-only hint by default
+  - preflight remains advisory and gated
   - no MRMS verification claim
-  - no production rendering or tile serving
+  - no production rendering or tile serving by default
   - no alert clearing
-  - no mutation of catalog/render gates
+  - no catalog/render gate mutation
 
 ## Suggested next Cursor prompt
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 87 only.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 88 only.
 ```
 
 ## Key docs (read order for new work)

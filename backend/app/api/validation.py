@@ -49,6 +49,7 @@ from backend.app.schemas.validation import (
     MrmsVisualReviewSampleAnnotationUpsertRequest,
     MrmsVisualReviewSampleAnnotationUpsertResponse,
     MrmsRenderCandidatePreflightResponse,
+    MrmsRenderCandidateReviewReadinessResponse,
     MrmsRenderCandidateDryRunPlanResponse,
     MrmsRenderCandidateScaffoldResponse,
     MrmsRenderCandidateSandboxResponse,
@@ -178,6 +179,10 @@ from backend.app.services.mrms_visual_review_sample_readiness import (
     compact_visual_review_sample_readiness,
     refresh_visual_review_sample_readiness,
     upsert_sample_annotation,
+)
+from backend.app.services.mrms_render_candidate_review_readiness import (
+    build_candidate_review_readiness_payload,
+    generate_candidate_review_readiness,
 )
 from backend.app.services.mrms_render_candidate_preflight import (
     build_render_candidate_preflight_payload,
@@ -523,6 +528,31 @@ def validation_mrms_render_candidate_preflight_refresh() -> MrmsRenderCandidateP
     generate_render_candidate_preflight(storage)
     payload = build_render_candidate_preflight_payload(storage)
     return MrmsRenderCandidatePreflightResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/review-readiness",
+    response_model=MrmsRenderCandidateReviewReadinessResponse,
+)
+def validation_mrms_render_candidate_review_readiness() -> MrmsRenderCandidateReviewReadinessResponse:
+    """Local candidate trend-hint review chain readiness summary (does not clear alerts)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_candidate_review_readiness_payload(storage)
+    return MrmsRenderCandidateReviewReadinessResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/review-readiness",
+    response_model=MrmsRenderCandidateReviewReadinessResponse,
+)
+def validation_mrms_render_candidate_review_readiness_refresh() -> (
+    MrmsRenderCandidateReviewReadinessResponse
+):
+    """Dev/local only — refresh review readiness summary; does NOT clear alerts."""
+    storage = LocalStorage(settings.local_storage_root)
+    generate_candidate_review_readiness(storage)
+    payload = build_candidate_review_readiness_payload(storage)
+    return MrmsRenderCandidateReviewReadinessResponse(**payload)
 
 
 @router.get(

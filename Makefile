@@ -173,6 +173,9 @@ mrms-visual-review-readiness:
 mrms-render-candidate-preflight:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_preflight.py $(ARGS)
 
+mrms-render-candidate-review-readiness:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_review_readiness.py $(ARGS)
+
 mrms-render-candidate-dry-run-plan:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_dry_run_plan.py $(ARGS)
 
