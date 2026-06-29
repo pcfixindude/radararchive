@@ -26,6 +26,7 @@ import {
   refreshRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusHistory,
   refreshRenderCandidateSandboxComparisonAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendReviewAcknowledgmentStatusTrendHint,
   submitTrendHintReviewAcknowledgment,
+  refreshRenderCandidateTrendHintAckStatus,
   submitAckStatusTrendReviewAckStatusTrendReviewAcknowledgment,
   submitAckStatusTrendReviewAcknowledgment,
   submitDiffAcknowledgment,
@@ -213,6 +214,9 @@ export default function ValidationStatusPanel({
   const [trendHintReviewAckSubmitting, setTrendHintReviewAckSubmitting] = useState(false);
   const [trendHintReviewAckMessage, setTrendHintReviewAckMessage] = useState<string | null>(null);
   const [trendHintReviewAckError, setTrendHintReviewAckError] = useState<string | null>(null);
+  const [trendHintAckStatusRefreshing, setTrendHintAckStatusRefreshing] = useState(false);
+  const [trendHintAckStatusMessage, setTrendHintAckStatusMessage] = useState<string | null>(null);
+  const [trendHintAckStatusError, setTrendHintAckStatusError] = useState<string | null>(null);
 
   const loadProofReview = useCallback(async () => {
     setProofReviewLoading(true);
@@ -789,6 +793,24 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleTrendHintAckStatusRefresh() {
+    setTrendHintAckStatusMessage(null);
+    setTrendHintAckStatusError(null);
+    setTrendHintAckStatusRefreshing(true);
+    const result = await refreshRenderCandidateTrendHintAckStatus();
+    setTrendHintAckStatusRefreshing(false);
+    if (!result.ok) {
+      setTrendHintAckStatusError(result.error);
+      return;
+    }
+    setTrendHintAckStatusMessage(
+      `Trend-hint acknowledgment status refreshed (${result.data.compact.rollup_status ?? '—'}) — ${result.data.compact.acknowledgment_status ?? '—'}.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   async function handleAckStatusTrendReviewAckStatusTrendReviewAckStatusHistoryRefresh() {
     setAckStatusTrendReviewAckStatusTrendReviewAckStatusHistoryMessage(null);
     setAckStatusTrendReviewAckStatusTrendReviewAckStatusHistoryError(null);
@@ -963,6 +985,7 @@ export default function ValidationStatusPanel({
     null;
   const trendHintReviewAck =
     summary.mrms_render_candidate_trend_hint_review_acknowledgment ?? null;
+  const trendHintAckStatus = summary.mrms_render_candidate_trend_hint_ack_status ?? null;
   const workflowPresetById = Object.fromEntries(
     (operatorWorkflowPresets?.presets ?? []).map((preset) => [preset.preset_id, preset]),
   );
@@ -3581,6 +3604,88 @@ export default function ValidationStatusPanel({
             'make mrms-render-candidate-trend-hint-review-acknowledgment --operator OP --note "Reviewed locally"'
           }
           label="Suggested candidate trend-hint review acknowledgment command"
+          manualCopy
+        />
+        <SafetyNote />
+      </CollapsibleSection>
+      <CollapsibleSection
+        title="Candidate trend-hint acknowledgment status"
+        className="validation-render-candidate-trend-hint-ack-status"
+        summary={
+          <p className="validation-meta">
+            {trendHintAckStatus?.rollup_status
+              ? `Rollup ${trendHintAckStatus.rollup_status} — ack ${trendHintAckStatus.acknowledgment_status ?? '—'}`
+              : 'No trend-hint acknowledgment status yet — run make mrms-render-candidate-trend-hint-ack-status --refresh'}
+          </p>
+        }
+      >
+        <p className="validation-warn">
+          Local rollup linking candidate trend hints to trend-hint review acknowledgments only. Does not
+          verify MRMS, enable production rendering, download/decode/render, create or serve production
+          tiles, clear alerts, or authorize production use.
+        </p>
+        {trendHintAckStatus ? (
+          <>
+            <p className="validation-meta">
+              Rollup status: {trendHintAckStatus.rollup_status ?? '—'} — acknowledgment status:{' '}
+              {trendHintAckStatus.acknowledgment_status ?? '—'} — reason:{' '}
+              {trendHintAckStatus.status_reason ?? '—'}
+            </p>
+            <p className="validation-meta">
+              Trend: {trendHintAckStatus.trend ?? '—'} — hint status:{' '}
+              {trendHintAckStatus.hint_status ?? '—'} — review recommended:{' '}
+              {trendHintAckStatus.trend_review_recommended ? 'yes' : 'no'}
+            </p>
+            {trendHintAckStatus.stale_acknowledgment ? (
+              <p className="validation-warn">
+                Stale acknowledgment — re-review updated trend hints and record a fresh acknowledgment.
+              </p>
+            ) : null}
+            {trendHintAckStatus.suggested_action ? (
+              <p className="validation-meta">Suggested action: {trendHintAckStatus.suggested_action}</p>
+            ) : null}
+            {(trendHintAckStatus.blockers ?? []).length > 0 ? (
+              <div className="validation-warn">
+                <strong>Blockers</strong>
+                <ul>
+                  {(trendHintAckStatus.blockers ?? []).map((blocker) => (
+                    <li key={blocker}>{blocker}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {trendHintAckStatus.json_path ? (
+              <p className="validation-meta">
+                JSON: <code>{trendHintAckStatus.json_path}</code>
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="validation-meta">
+            Refresh candidate trend hints and record trend-hint review acknowledgments first, then run{' '}
+            <code>make mrms-render-candidate-trend-hint-ack-status --refresh</code>.
+          </p>
+        )}
+        <button
+          type="button"
+          className="validation-action"
+          disabled={trendHintAckStatusRefreshing}
+          onClick={() => void handleTrendHintAckStatusRefresh()}
+        >
+          {trendHintAckStatusRefreshing
+            ? 'Refreshing trend-hint acknowledgment status…'
+            : 'Refresh trend-hint acknowledgment status rollup (local only)'}
+        </button>
+        {trendHintAckStatusMessage ? (
+          <p className="validation-meta">{trendHintAckStatusMessage}</p>
+        ) : null}
+        {trendHintAckStatusError ? <p className="validation-warn">{trendHintAckStatusError}</p> : null}
+        <CommandLine
+          command={
+            trendHintAckStatus?.suggested_command ??
+            'make mrms-render-candidate-trend-hint-ack-status --refresh'
+          }
+          label="Suggested trend-hint acknowledgment status command"
           manualCopy
         />
         <SafetyNote />

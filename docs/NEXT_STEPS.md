@@ -1,14 +1,14 @@
 # Next Steps
 
-## Phase 82 - TBD (Draft)
+## Phase 83 - TBD (Draft)
 
-Goal: Candidate trend-hint acknowledgment status rollup — local rollup linking candidate trend hints to trend-hint review acknowledgments without production authorization.
+Goal: Candidate trend-hint acknowledgment status history — local bounded history of trend-hint acknowledgment status rollups without production authorization.
 
-## Phase 81 verification commands
+## Phase 82 verification commands
 
 ```bash
 make test
-make mrms-render-candidate-trend-hint-review-acknowledgment --operator OP --note "Reviewed locally"
+make mrms-render-candidate-trend-hint-ack-status --refresh
 cd frontend && npm test
 cd frontend && npm run build
 ```

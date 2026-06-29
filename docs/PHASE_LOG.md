@@ -2723,3 +2723,29 @@ cd frontend && npm run build
 - Acknowledgment does not clear alerts or mutate trend hints
 - `trend_review_still_recommended` may remain true after acknowledgment
 
+## Phase 82 - Candidate Trend-Hint Acknowledgment Status Rollup
+
+Local rollup linking candidate trend hints to trend-hint review acknowledgments without production authorization.
+
+### Backend
+- `mrms_render_candidate_trend_hint_ack_status.py` — rollup status, acknowledgment classification, JSON/Markdown reports
+- Paths: `mrms_render_candidate_trend_hint_ack_status.json`, `mrms_render_candidate_trend_hint_ack_status.md`
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/trend-hint-ack-status`
+- CLI: `scripts/mrms_render_candidate_trend_hint_ack_status.py`; `make mrms-render-candidate-trend-hint-ack-status`
+
+### Frontend
+- Dev Validation **Candidate trend-hint acknowledgment status** collapsible with refresh button
+
+### Run commands
+
+```bash
+make test
+make mrms-render-candidate-trend-hint-ack-status --refresh
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Rollup does not clear alerts or mutate trend hints or acknowledgments
+- Stale acknowledgment may remain after hint refresh until re-acknowledged
+

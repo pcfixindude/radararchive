@@ -9,11 +9,11 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 81
-- Latest phase: Phase 81 — Candidate trend-hint review acknowledgments
-- Latest commit: `b3fc82a`
-- Latest tag: `phase-81-candidate-trend-hint-review-acknowledgments`
-- Push status: pushed
+- Completed through phase: 82
+- Latest phase: Phase 82 — Candidate trend-hint acknowledgment status rollup
+- Latest commit: TBD
+- Latest tag: `phase-82-candidate-trend-hint-ack-status-rollup`
+- Push status: pending
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
@@ -22,38 +22,39 @@ Do not treat this file as verified MRMS proof or production authorization.
 - `ENABLE_PRODUCTION_RADAR_TILES`: **false** by default
 - Placeholder tiles default: **true**
 - Production rendering: gated/off by default
+- Candidate trend-hint acknowledgment status rollup: local advisory only
 - Candidate trend-hint review acknowledgments: local acknowledgment only
 - Candidate trend hints (Phase 80 chain): local advisory only
 - Render candidate sandbox import/export: local metadata/report-only
 
 ## Latest phase summary
 
-- Phase: **81**
-- Purpose: Add local acknowledgment of reviewed candidate trend hints so operators can record review without clearing validation alerts or verifying MRMS.
-- Main command added: `make mrms-render-candidate-trend-hint-review-acknowledgment`
-- API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/trend-hint-review-acknowledgments`
-- Tests: backend 932 passed; frontend vitest 8 passed; frontend build OK
+- Phase: **82**
+- Purpose: Add local rollup linking candidate trend hints to trend-hint review acknowledgments so operators can see combined coverage without production authorization.
+- Main command added: `make mrms-render-candidate-trend-hint-ack-status`
+- API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/trend-hint-ack-status`
+- Tests: TBD
 - Known limitations:
-  - Acknowledgment does not clear alerts or mutate trend hints
-  - `trend_review_still_recommended` may remain true after acknowledgment
+  - Rollup does not clear alerts or mutate trend hints or acknowledgments
+  - `trend_review_recommended` may remain true after acknowledgment
   - `verified_mrms` remains false
 
 ## Current focus
 
 Local visual evidence review block with full candidate sandbox review chain (rollup, history, trend hints, acknowledgments) before any real MRMS rendering candidate attempt.
 
-Next direction: candidate trend-hint acknowledgment status rollup.
+Next direction: candidate trend-hint acknowledgment status history.
 
 Do **not** promote to verified MRMS yet.
 
 ## Next recommended phase
 
-- Phase number: **82**
-- Phase title: Candidate trend-hint acknowledgment status rollup
-- Goal: Add local rollup linking candidate trend hints to trend-hint review acknowledgments so operators can see combined coverage without production authorization.
-- Why this is next: Phase 81 adds trend-hint review acknowledgments; Phase 82 should rollup hints + acknowledgments locally.
+- Phase number: **83**
+- Phase title: Candidate trend-hint acknowledgment status history
+- Goal: Add local bounded history of trend-hint acknowledgment status rollups so operators can track coverage changes over time without production authorization.
+- Why this is next: Phase 82 adds the trend-hint acknowledgment status rollup; Phase 83 should persist bounded history on refresh.
 - Safety boundaries:
-  - local-only rollup by default
+  - local-only history by default
   - no MRMS verification claim
   - no production rendering or tile serving
   - no alert clearing
@@ -63,7 +64,7 @@ Do **not** promote to verified MRMS yet.
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 82 only.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 83 only.
 ```
 
 ## Key docs (read order for new work)
