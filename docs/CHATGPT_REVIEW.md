@@ -11,7 +11,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 66
 - Latest phase: Phase 66 — Gated candidate sandbox manifest import/export
-- Latest commit: `95e6f04`
+- Latest commit: `640d5ed`
 - Latest tag: `phase-66-sandbox-manifest-import-export`
 - Push status: pushed to origin main with tag
 - Final git status: source clean; only local `data/dev/` runtime artifacts modified
