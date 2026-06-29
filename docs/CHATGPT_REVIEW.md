@@ -11,10 +11,10 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 94
 - Latest phase: Phase 94 — Gated candidate artifact sandbox layout
-- Latest commit: (pending commit)
+- Latest commit: `6f9ba07`
 - Latest tag: `phase-94-gated-candidate-artifact-sandbox-layout`
-- Push status: pending
-- Final git status: source changes staged for commit
+- Push status: pushed
+- Final git status: source clean; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
 
