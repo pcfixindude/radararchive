@@ -1,4 +1,4 @@
-"""Gated sandbox manifest import/export — local advisory only; does NOT verify MRMS."""
+"""Gated sandbox comparison history — local advisory only; does NOT verify MRMS."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ from backend.app.services.mrms_render_candidate_gated_dry_run_review import (
     SUGGESTED_COMMAND as SUGGESTED_DRY_RUN_REVIEW_COMMAND,
 )
 from backend.app.services.mrms_render_candidate_gated_sandbox_layout import (
+    REVIEW_LAYOUT_BLOCKED,
     REVIEW_LAYOUT_READY,
     SUGGESTED_COMMAND as SUGGESTED_LAYOUT_REVIEW_COMMAND,
 )
@@ -41,15 +42,20 @@ from backend.app.services.mrms_render_candidate_sandbox import (
     generate_render_candidate_sandbox,
     load_sandbox_manifest,
 )
+from backend.app.services.mrms_render_candidate_sandbox_comparison_history import (
+    HISTORY_BLOCKED,
+    HISTORY_MISSING,
+    HISTORY_READY,
+    SUGGESTED_COMMAND as SUGGESTED_COMPARISON_COMMAND,
+    compact_comparison_history,
+    refresh_comparison_history_report,
+)
 from backend.app.services.mrms_render_candidate_sandbox_import_export import (
-    STATUS_BLOCKED,
     STATUS_IMPORTED,
-    STATUS_INVALID,
-    STATUS_MISSING,
-    SUGGESTED_IMPORT_EXPORT_COMMAND,
     compact_render_candidate_sandbox_import_export,
     load_import_export_status,
     run_import_export_workflow,
+    SUGGESTED_IMPORT_EXPORT_COMMAND,
 )
 from backend.app.services.mrms_render_candidate_scaffold import (
     SCAFFOLD_READY,
@@ -59,38 +65,43 @@ from backend.app.services.mrms_render_candidate_scaffold import (
 )
 from backend.app.services.storage import LocalStorage
 
-REVIEW_JSON = "dev/mrms_render_candidate_gated_manifest_io_latest.json"
-REVIEW_MD = "dev/mrms_render_candidate_gated_manifest_io_latest.md"
+REVIEW_JSON = "dev/mrms_render_candidate_gated_comparison_history_latest.json"
+REVIEW_MD = "dev/mrms_render_candidate_gated_comparison_history_latest.md"
 
-SUGGESTED_COMMAND = "make mrms-review-gated-manifest-io"
+SUGGESTED_COMMAND = "make mrms-review-gated-comparison"
 
 REVIEW_PREFLIGHT_BLOCKED = "preflight_not_candidate_ready"
 REVIEW_DRY_RUN_BLOCKED = "dry_run_plan_not_ready"
 REVIEW_SCAFFOLD_BLOCKED = "scaffold_not_ready"
-REVIEW_LAYOUT_BLOCKED = "sandbox_layout_not_ready"
-REVIEW_MANIFEST_IO_BLOCKED = "manifest_io_blocked"
-REVIEW_MANIFEST_IO_MISSING = "manifest_io_missing"
-REVIEW_MANIFEST_IO_READY = "manifest_io_ready"
+REVIEW_LAYOUT_NOT_READY = "sandbox_layout_not_ready"
+REVIEW_MANIFEST_IO_NOT_READY = "manifest_io_not_ready"
+REVIEW_COMPARISON_BLOCKED = "comparison_history_blocked"
+REVIEW_COMPARISON_MISSING = "comparison_history_missing"
+REVIEW_COMPARISON_READY = "comparison_history_ready"
 
-NEXT_PHASE_COMPARISON = (
+NEXT_PHASE_TREND_HINT = (
     "Phase 97 — gated sandbox comparison trend hint "
     "(local trend rollup without production authorization)"
 )
 NEXT_PHASE_PREFLIGHT = (
     "Phase 96 — resolve preflight evidence "
-    "(until candidate_preflight_ready before manifest import/export)"
+    "(until candidate_preflight_ready before comparison history)"
 )
 NEXT_PHASE_DRY_RUN = (
     "Phase 96 — complete gated dry-run plan review "
-    "(until dry_run_plan_ready before manifest import/export)"
+    "(until dry_run_plan_ready before comparison history)"
 )
 NEXT_PHASE_SCAFFOLD = (
     "Phase 96 — complete gated scaffold review "
-    "(until scaffold_ready before manifest import/export)"
+    "(until scaffold_ready before comparison history)"
 )
 NEXT_PHASE_LAYOUT = (
     "Phase 96 — complete gated sandbox layout review "
-    "(until sandbox_layout_ready before manifest import/export)"
+    "(until sandbox_layout_ready before comparison history)"
+)
+NEXT_PHASE_MANIFEST_IO = (
+    "Phase 96 — complete gated manifest import/export "
+    "(until manifest_io ready before comparison history)"
 )
 
 _LAYOUT_READY_STATUSES = frozenset({SANDBOX_READY, "needs_cleanup"})
@@ -106,7 +117,7 @@ def _utc_now() -> str:
 def _safety_fields() -> dict[str, Any]:
     return {
         "verified_mrms": False,
-        "local_gated_manifest_io_only": True,
+        "local_gated_comparison_history_only": True,
         "advisory_only": True,
         "does_not_clear_alerts": True,
         "does_not_enable_production": True,
@@ -118,6 +129,7 @@ def _safety_fields() -> dict[str, Any]:
         "binary_artifacts_included": False,
         "no_external_notifications": True,
         "does_not_authorize_production_use": True,
+        "comparison_history_ready_is_not_production_authorization": True,
         "manifest_io_ready_is_not_production_authorization": True,
         "sandbox_layout_ready_is_not_production_authorization": True,
         "scaffold_ready_is_not_production_authorization": True,
@@ -216,6 +228,10 @@ def _sandbox_layout_ready(sandbox_compact: dict[str, Any]) -> bool:
     return sandbox_compact.get("sandbox_status") in _LAYOUT_READY_STATUSES
 
 
+def _manifest_io_ready(manifest_compact: dict[str, Any]) -> bool:
+    return manifest_compact.get("import_export_status") in _MANIFEST_IO_READY_STATUSES
+
+
 def _next_commands_preflight_blocked(
     *,
     preflight: dict[str, Any],
@@ -267,12 +283,21 @@ def _next_commands_layout_blocked() -> list[str]:
     ]
 
 
-def _next_commands_manifest_status(import_export_status: str) -> list[str]:
-    if import_export_status in _MANIFEST_IO_READY_STATUSES:
-        return ["make mrms-render-candidate-sandbox-comparison-history --refresh"]
+def _next_commands_manifest_io_not_ready() -> list[str]:
     return [
         f"{SUGGESTED_IMPORT_EXPORT_COMMAND} --refresh",
         f"{SUGGESTED_LAYOUT_REVIEW_COMMAND} --refresh",
+        f"{SUGGESTED_COMMAND} --refresh",
+    ]
+
+
+def _next_commands_comparison(history_status: str) -> list[str]:
+    if history_status == HISTORY_READY:
+        return [f"{SUGGESTED_COMMAND} --refresh"]
+    return [
+        f"{SUGGESTED_COMPARISON_COMMAND} --refresh",
+        f"{SUGGESTED_IMPORT_EXPORT_COMMAND} --refresh",
+        f"{SUGGESTED_COMMAND} --refresh",
     ]
 
 
@@ -287,88 +312,92 @@ def _classify_review_status(
     sandbox_compact: dict[str, Any],
     manifest_io_skipped: bool,
     manifest_compact: dict[str, Any],
+    comparison_skipped: bool,
+    comparison_compact: dict[str, Any],
     blockers_compact: dict[str, Any],
 ) -> tuple[str, str, list[str]]:
     if preflight.get("preflight_level") != PREFLIGHT_CANDIDATE_READY:
         return (
             REVIEW_PREFLIGHT_BLOCKED,
-            "Preflight is not candidate_preflight_ready — manifest import/export not run.",
+            "Preflight is not candidate_preflight_ready — comparison history not run.",
             _next_commands_preflight_blocked(preflight=preflight, blockers=blockers_compact),
         )
 
     if dry_run_skipped or plan_compact.get("plan_status") != DRY_RUN_PLAN_READY:
         return (
             REVIEW_DRY_RUN_BLOCKED,
-            "Dry-run plan is not dry_run_plan_ready — manifest import/export not run.",
+            "Dry-run plan is not dry_run_plan_ready — comparison history not run.",
             _next_commands_dry_run_blocked(),
         )
 
     if scaffold_skipped or scaffold_compact.get("scaffold_status") != SCAFFOLD_READY:
         return (
             REVIEW_SCAFFOLD_BLOCKED,
-            "Scaffold is not scaffold_ready — manifest import/export not run.",
+            "Scaffold is not scaffold_ready — comparison history not run.",
             _next_commands_scaffold_blocked(),
         )
 
     if sandbox_skipped or not _sandbox_layout_ready(sandbox_compact):
         return (
-            REVIEW_LAYOUT_BLOCKED,
-            "Sandbox layout is not sandbox_layout_ready — manifest import/export not run.",
+            REVIEW_LAYOUT_NOT_READY,
+            "Sandbox layout is not sandbox_layout_ready — comparison history not run.",
             _next_commands_layout_blocked(),
         )
 
-    if manifest_io_skipped:
+    if manifest_io_skipped or comparison_skipped or not _manifest_io_ready(manifest_compact):
         return (
-            REVIEW_MANIFEST_IO_BLOCKED,
-            "Manifest import/export gate closed unexpectedly.",
-            _next_commands_layout_blocked(),
+            REVIEW_MANIFEST_IO_NOT_READY,
+            "Manifest import/export is not ready — comparison history not run.",
+            _next_commands_manifest_io_not_ready(),
         )
 
-    io_status = manifest_compact.get("import_export_status")
-    if io_status == STATUS_MISSING:
+    history_status = comparison_compact.get("history_status")
+    if history_status == HISTORY_BLOCKED:
         return (
-            REVIEW_MANIFEST_IO_MISSING,
-            "Manifest import/export missing inputs — review sandbox reports.",
-            _next_commands_manifest_status(str(io_status)),
+            REVIEW_COMPARISON_BLOCKED,
+            "Comparison history blocked — resolve blockers before advancing.",
+            _next_commands_comparison(str(history_status)),
         )
-    if io_status in {STATUS_BLOCKED, STATUS_INVALID}:
+    if history_status == HISTORY_MISSING:
         return (
-            REVIEW_MANIFEST_IO_BLOCKED,
-            "Manifest import/export blocked — resolve blockers before advancing.",
-            _next_commands_manifest_status(str(io_status or "blocked")),
+            REVIEW_COMPARISON_MISSING,
+            "Comparison history missing — run import/export workflow to record entries.",
+            _next_commands_comparison(str(history_status)),
         )
-    if io_status in _MANIFEST_IO_READY_STATUSES:
+    if history_status == HISTORY_READY:
         return (
-            REVIEW_MANIFEST_IO_READY,
-            "Manifest import/export ready (local advisory) — consider comparison history.",
-            _next_commands_manifest_status(str(io_status)),
+            REVIEW_COMPARISON_READY,
+            "Comparison history ready (local advisory) — consider trend hint review.",
+            _next_commands_comparison(str(history_status)),
         )
 
     return (
-        REVIEW_MANIFEST_IO_BLOCKED,
-        "Manifest import/export blocked — resolve blocking items before advancing.",
-        _next_commands_manifest_status(str(io_status or "blocked")),
+        REVIEW_COMPARISON_BLOCKED,
+        "Comparison history blocked — resolve blocking items before advancing.",
+        _next_commands_comparison(str(history_status or HISTORY_BLOCKED)),
     )
 
 
 def _next_phase_for_review(review_status: str) -> str:
-    if review_status == REVIEW_MANIFEST_IO_READY:
-        return NEXT_PHASE_COMPARISON
+    if review_status == REVIEW_COMPARISON_READY:
+        return NEXT_PHASE_TREND_HINT
     if review_status == REVIEW_PREFLIGHT_BLOCKED:
         return NEXT_PHASE_PREFLIGHT
     if review_status == REVIEW_DRY_RUN_BLOCKED:
         return NEXT_PHASE_DRY_RUN
     if review_status == REVIEW_SCAFFOLD_BLOCKED:
         return NEXT_PHASE_SCAFFOLD
-    if review_status == REVIEW_LAYOUT_BLOCKED:
+    if review_status == REVIEW_LAYOUT_NOT_READY:
         return NEXT_PHASE_LAYOUT
+    if review_status in {REVIEW_MANIFEST_IO_NOT_READY, REVIEW_COMPARISON_MISSING}:
+        return NEXT_PHASE_MANIFEST_IO
     return (
-        "Phase 96 — resolve manifest import/export or upstream gate blockers "
-        "(depending on gated manifest io report)"
+        "Phase 96 — resolve comparison history or upstream gate blockers "
+        "(depending on gated comparison history report)"
     )
 
 
-def review_gated_manifest_io(storage: LocalStorage) -> dict[str, Any]:
+def review_gated_comparison_history(storage: LocalStorage) -> dict[str, Any]:
     steps: list[dict[str, Any]] = []
 
     generate_render_candidate_preflight(storage)
@@ -535,6 +564,36 @@ def review_gated_manifest_io(storage: LocalStorage) -> dict[str, Any]:
             )
         )
 
+    comparison_skipped = manifest_io_skipped or not _manifest_io_ready(manifest_compact)
+
+    if comparison_skipped:
+        comparison_compact = compact_comparison_history(storage)
+        steps.append(
+            _step_record(
+                "comparison_history",
+                "(comparison history skipped — manifest import/export not ready)",
+                {
+                    "skipped": True,
+                    "existing_history_status": comparison_compact.get("history_status"),
+                },
+            )
+        )
+    else:
+        refresh_comparison_history_report(storage)
+        comparison_compact = compact_comparison_history(storage)
+        steps.append(
+            _step_record(
+                "comparison_history",
+                f"{SUGGESTED_COMPARISON_COMMAND} --refresh",
+                {
+                    "skipped": False,
+                    "history_status": comparison_compact.get("history_status"),
+                    "history_reason": comparison_compact.get("history_reason"),
+                    "history_count": comparison_compact.get("history_count"),
+                },
+            )
+        )
+
     review_status, next_operator_step, next_commands = _classify_review_status(
         preflight=preflight_compact,
         dry_run_skipped=dry_run_skipped,
@@ -545,6 +604,8 @@ def review_gated_manifest_io(storage: LocalStorage) -> dict[str, Any]:
         sandbox_compact=sandbox_compact,
         manifest_io_skipped=manifest_io_skipped,
         manifest_compact=manifest_compact,
+        comparison_skipped=comparison_skipped,
+        comparison_compact=comparison_compact,
         blockers_compact=blockers_compact,
     )
 
@@ -574,6 +635,12 @@ def review_gated_manifest_io(storage: LocalStorage) -> dict[str, Any]:
         "manifest_io_blockers": [] if manifest_io_skipped else (manifest_compact.get("blockers") or []),
         "manifest_io_warnings": [] if manifest_io_skipped else (manifest_compact.get("warnings") or []),
         "included_reports": [] if manifest_io_skipped else (manifest_compact.get("included_reports") or []),
+        "comparison_skipped": comparison_skipped,
+        "history_status": None if comparison_skipped else comparison_compact.get("history_status"),
+        "history_reason": None if comparison_skipped else comparison_compact.get("history_reason"),
+        "history_count": 0 if comparison_skipped else (comparison_compact.get("history_count") or 0),
+        "comparison_history_blockers": [] if comparison_skipped else (comparison_compact.get("blockers") or []),
+        "comparison_history_warnings": [] if comparison_skipped else (comparison_compact.get("warnings") or []),
         "resolution_status": blockers_compact.get("resolution_status"),
         "remaining_blockers": blockers_compact.get("remaining_blockers") or [],
         "next_operator_step": next_operator_step,
@@ -584,14 +651,14 @@ def review_gated_manifest_io(storage: LocalStorage) -> dict[str, Any]:
         "suggested_command": SUGGESTED_COMMAND,
         **_safety_fields(),
     }
-    return save_gated_manifest_io_report(storage, report)
+    return save_gated_comparison_history_report(storage, report)
 
 
 def build_review_markdown(report: dict[str, Any]) -> str:
     lines = [
-        "# Gated sandbox manifest import/export review",
+        "# Gated sandbox comparison history review",
         "",
-        "> **WARNING:** Local gated manifest import/export review only. Advisory metadata — does **NOT** "
+        "> **WARNING:** Local gated comparison history review only. Advisory metadata — does **NOT** "
         "verify MRMS, enable production rendering, clear alerts, or authorize production use.",
         "",
         f"- Reviewed at: {report.get('reviewed_at')}",
@@ -601,7 +668,10 @@ def build_review_markdown(report: dict[str, Any]) -> str:
         f"- Scaffold skipped: {report.get('scaffold_skipped')}",
         f"- Sandbox skipped: {report.get('sandbox_skipped')}",
         f"- Manifest IO skipped: {report.get('manifest_io_skipped')}",
+        f"- Comparison skipped: {report.get('comparison_skipped')}",
         f"- Import/export status: {report.get('import_export_status') or '—'}",
+        f"- History status: {report.get('history_status') or '—'}",
+        f"- History count: {report.get('history_count') if report.get('history_count') is not None else '—'}",
         f"- Next operator step: {report.get('next_operator_step')}",
         "",
         "## Preflight blockers",
@@ -637,6 +707,17 @@ def build_review_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- {item}")
         if not report.get("manifest_io_blockers"):
             lines.append("- none")
+    if not report.get("comparison_skipped"):
+        lines.extend(["", "## Comparison history blockers", ""])
+        for item in report.get("comparison_history_blockers") or []:
+            lines.append(f"- {item}")
+        if not report.get("comparison_history_blockers"):
+            lines.append("- none")
+        lines.extend(["", "## Comparison history warnings", ""])
+        for item in report.get("comparison_history_warnings") or []:
+            lines.append(f"- {item}")
+        if not report.get("comparison_history_warnings"):
+            lines.append("- none")
     lines.extend(["", "## Next commands", ""])
     for cmd in report.get("next_commands") or []:
         lines.append(f"- `{cmd}`")
@@ -644,7 +725,7 @@ def build_review_markdown(report: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def save_gated_manifest_io_report(storage: LocalStorage, report: dict[str, Any]) -> dict[str, Any]:
+def save_gated_comparison_history_report(storage: LocalStorage, report: dict[str, Any]) -> dict[str, Any]:
     json_path = _review_json_path(storage)
     md_path = _review_md_path(storage)
     storage.ensure_directories(json_path.rsplit("/", 1)[0])
@@ -666,7 +747,7 @@ def save_gated_manifest_io_report(storage: LocalStorage, report: dict[str, Any])
     return report
 
 
-def load_gated_manifest_io_report(storage: LocalStorage) -> Optional[dict[str, Any]]:
+def load_gated_comparison_history_report(storage: LocalStorage) -> Optional[dict[str, Any]]:
     abs_path = storage.absolute_path(_review_json_path(storage))
     if not abs_path.is_file():
         return None
@@ -679,8 +760,8 @@ def load_gated_manifest_io_report(storage: LocalStorage) -> Optional[dict[str, A
     return None
 
 
-def compact_gated_manifest_io(storage: LocalStorage) -> dict[str, Any]:
-    latest = load_gated_manifest_io_report(storage)
+def compact_gated_comparison_history(storage: LocalStorage) -> dict[str, Any]:
+    latest = load_gated_comparison_history_report(storage)
     if latest is None:
         preflight = compact_render_candidate_preflight(storage)
         plan = compact_render_candidate_dry_run_plan(storage)
@@ -697,9 +778,9 @@ def compact_gated_manifest_io(storage: LocalStorage) -> dict[str, Any]:
         elif skipped_scaffold:
             review_status = REVIEW_SCAFFOLD_BLOCKED
         elif skipped_layout:
-            review_status = REVIEW_LAYOUT_BLOCKED
+            review_status = REVIEW_LAYOUT_NOT_READY
         else:
-            review_status = REVIEW_MANIFEST_IO_BLOCKED
+            review_status = REVIEW_MANIFEST_IO_NOT_READY
         return {
             "available": False,
             "review_status": review_status,
@@ -708,11 +789,13 @@ def compact_gated_manifest_io(storage: LocalStorage) -> dict[str, Any]:
             "scaffold_skipped": skipped_plan,
             "sandbox_skipped": skipped_scaffold,
             "manifest_io_skipped": True,
+            "comparison_skipped": True,
+            "history_count": 0,
             "next_commands": _next_commands_preflight_blocked(
                 preflight=preflight,
                 blockers=compact_preflight_blockers(storage),
             ),
-            "next_operator_step": "Run gated manifest import/export after upstream gates open.",
+            "next_operator_step": "Run gated comparison history after upstream gates open.",
             "json_path": _review_json_path(storage),
             "markdown_path": _review_md_path(storage),
             "suggested_command": SUGGESTED_COMMAND,
@@ -745,6 +828,12 @@ def compact_gated_manifest_io(storage: LocalStorage) -> dict[str, Any]:
         "manifest_io_blockers": latest.get("manifest_io_blockers") or [],
         "manifest_io_warnings": latest.get("manifest_io_warnings") or [],
         "included_reports": latest.get("included_reports") or [],
+        "comparison_skipped": bool(latest.get("comparison_skipped")),
+        "history_status": latest.get("history_status"),
+        "history_reason": latest.get("history_reason"),
+        "history_count": latest.get("history_count") if latest.get("history_count") is not None else 0,
+        "comparison_history_blockers": latest.get("comparison_history_blockers") or [],
+        "comparison_history_warnings": latest.get("comparison_history_warnings") or [],
         "resolution_status": latest.get("resolution_status"),
         "remaining_blockers": latest.get("remaining_blockers") or [],
         "next_commands": latest.get("next_commands") or [],
@@ -758,9 +847,9 @@ def compact_gated_manifest_io(storage: LocalStorage) -> dict[str, Any]:
     }
 
 
-def build_gated_manifest_io_payload(storage: LocalStorage) -> dict[str, Any]:
+def build_gated_comparison_history_payload(storage: LocalStorage) -> dict[str, Any]:
     return {
         **_safety_fields(),
-        "latest": load_gated_manifest_io_report(storage),
-        "compact": compact_gated_manifest_io(storage),
+        "latest": load_gated_comparison_history_report(storage),
+        "compact": compact_gated_comparison_history(storage),
     }

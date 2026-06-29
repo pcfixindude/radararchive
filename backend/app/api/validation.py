@@ -59,6 +59,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateGatedScaffoldReviewResponse,
     MrmsRenderCandidateGatedSandboxLayoutResponse,
     MrmsRenderCandidateGatedManifestIoResponse,
+    MrmsRenderCandidateGatedComparisonHistoryResponse,
     MrmsRenderCandidateScaffoldResponse,
     MrmsRenderCandidateSandboxResponse,
     MrmsRenderCandidateSandboxImportExportResponse,
@@ -231,6 +232,10 @@ from backend.app.services.mrms_render_candidate_gated_sandbox_layout import (
 from backend.app.services.mrms_render_candidate_gated_manifest_io import (
     build_gated_manifest_io_payload,
     review_gated_manifest_io,
+)
+from backend.app.services.mrms_render_candidate_gated_comparison_history import (
+    build_gated_comparison_history_payload,
+    review_gated_comparison_history,
 )
 from backend.app.services.mrms_render_candidate_scaffold import (
     build_render_candidate_scaffold_payload,
@@ -803,6 +808,33 @@ def validation_mrms_render_candidate_gated_manifest_io_run() -> (
     review_gated_manifest_io(storage)
     payload = build_gated_manifest_io_payload(storage)
     return MrmsRenderCandidateGatedManifestIoResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/sandbox/gated-comparison-review",
+    response_model=MrmsRenderCandidateGatedComparisonHistoryResponse,
+)
+def validation_mrms_render_candidate_gated_comparison_history() -> (
+    MrmsRenderCandidateGatedComparisonHistoryResponse
+):
+    """Latest gated comparison history review report (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_gated_comparison_history_payload(storage)
+    return MrmsRenderCandidateGatedComparisonHistoryResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/sandbox/gated-comparison-review",
+    response_model=MrmsRenderCandidateGatedComparisonHistoryResponse,
+)
+def validation_mrms_render_candidate_gated_comparison_history_run() -> (
+    MrmsRenderCandidateGatedComparisonHistoryResponse
+):
+    """Dev/local only — review upstream gates and refresh comparison history when manifest_io_ready."""
+    storage = LocalStorage(settings.local_storage_root)
+    review_gated_comparison_history(storage)
+    payload = build_gated_comparison_history_payload(storage)
+    return MrmsRenderCandidateGatedComparisonHistoryResponse(**payload)
 
 
 @router.get(

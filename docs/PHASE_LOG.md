@@ -3107,3 +3107,30 @@ cd frontend && npm run build
 - Local dev result: `preflight_not_candidate_ready` — preflight `needs_review`; dry-run plan, scaffold, sandbox, and manifest IO skipped
 - Not production authorization
 
+## Phase 96 - Gated Sandbox Comparison History
+
+Run or review local sandbox comparison history only when manifest import/export is `manifest_io_ready`.
+
+### Backend
+- `mrms_render_candidate_gated_comparison_history.py` — refreshes upstream gates and refreshes comparison history only when manifest_io_ready
+- Paths: `mrms_render_candidate_gated_comparison_history_latest.json`, `mrms_render_candidate_gated_comparison_history_latest.md`
+- API: `GET/POST /api/validation/mrms-render-candidate/sandbox/gated-comparison-review`
+- CLI: `scripts/mrms_render_candidate_gated_comparison_history.py`; `make mrms-review-gated-comparison`
+
+### Frontend
+- **Review gated comparison history** button on MRMS render candidate sandbox comparison history collapsible
+
+### Run commands
+
+```bash
+make test
+make mrms-review-gated-comparison ARGS="--refresh"
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Does not run comparison history when any upstream gate is closed
+- Local dev result: `preflight_not_candidate_ready` — preflight `needs_review`; manifest IO and comparison skipped
+- Not production authorization
+

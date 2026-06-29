@@ -32,8 +32,8 @@ STATUS_INVALID = "invalid"
 STATUS_BLOCKED = "blocked"
 
 NEXT_PHASE_RECOMMENDATION = (
-    "Phase 96 — gated sandbox comparison history "
-    "(local comparison history rollup without production authorization)"
+    "Phase 97 — gated sandbox comparison trend hint "
+    "(local trend rollup without production authorization)"
 )
 
 INPUT_DEFINITIONS: tuple[dict[str, str], ...] = (

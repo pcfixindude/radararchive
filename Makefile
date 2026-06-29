@@ -217,6 +217,11 @@ mrms-render-candidate-gated-manifest-io:
 
 mrms-review-gated-manifest-io: mrms-render-candidate-gated-manifest-io
 
+mrms-render-candidate-gated-comparison-history:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_gated_comparison_history.py $(ARGS)
+
+mrms-review-gated-comparison: mrms-render-candidate-gated-comparison-history
+
 mrms-render-candidate-scaffold:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_scaffold.py $(ARGS)
 

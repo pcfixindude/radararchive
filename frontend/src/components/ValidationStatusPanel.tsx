@@ -18,6 +18,7 @@ import {
   refreshRenderCandidateGatedScaffoldReview,
   refreshRenderCandidateGatedSandboxLayout,
   refreshRenderCandidateGatedManifestIo,
+  refreshRenderCandidateGatedComparisonHistory,
   refreshRenderCandidateScaffold,
   refreshRenderCandidateSandbox,
   exportRenderCandidateSandbox,
@@ -139,6 +140,9 @@ export default function ValidationStatusPanel({
   const [gatedManifestIoRefreshing, setGatedManifestIoRefreshing] = useState(false);
   const [gatedManifestIoMessage, setGatedManifestIoMessage] = useState<string | null>(null);
   const [gatedManifestIoError, setGatedManifestIoError] = useState<string | null>(null);
+  const [gatedComparisonRefreshing, setGatedComparisonRefreshing] = useState(false);
+  const [gatedComparisonMessage, setGatedComparisonMessage] = useState<string | null>(null);
+  const [gatedComparisonError, setGatedComparisonError] = useState<string | null>(null);
   const [scaffoldRefreshing, setScaffoldRefreshing] = useState(false);
   const [scaffoldMessage, setScaffoldMessage] = useState<string | null>(null);
   const [scaffoldError, setScaffoldError] = useState<string | null>(null);
@@ -693,6 +697,24 @@ export default function ValidationStatusPanel({
     }
   }
 
+  async function handleGatedComparisonRefresh() {
+    setGatedComparisonMessage(null);
+    setGatedComparisonError(null);
+    setGatedComparisonRefreshing(true);
+    const result = await refreshRenderCandidateGatedComparisonHistory();
+    setGatedComparisonRefreshing(false);
+    if (!result.ok) {
+      setGatedComparisonError(result.error);
+      return;
+    }
+    setGatedComparisonMessage(
+      `Gated comparison history: ${result.data.compact.review_status ?? '—'} — preflight ${result.data.compact.preflight_level ?? '—'} — history ${result.data.compact.comparison_skipped ? 'skipped' : (result.data.compact.history_status ?? '—')}.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
   async function handleScaffoldRefresh() {
     setScaffoldMessage(null);
     setScaffoldError(null);
@@ -1226,6 +1248,8 @@ export default function ValidationStatusPanel({
     summary.mrms_render_candidate_gated_sandbox_layout ?? null;
   const mrmsRenderCandidateGatedManifestIo =
     summary.mrms_render_candidate_gated_manifest_io ?? null;
+  const mrmsRenderCandidateGatedComparisonHistory =
+    summary.mrms_render_candidate_gated_comparison_history ?? null;
   const mrmsRenderCandidateScaffold = summary.mrms_render_candidate_scaffold ?? null;
   const mrmsRenderCandidateSandbox = summary.mrms_render_candidate_sandbox ?? null;
   const mrmsRenderCandidateSandboxImportExport =
@@ -2880,6 +2904,51 @@ export default function ValidationStatusPanel({
           enable production rendering, download/decode/render, create or serve production tiles, clear
           alerts, or authorize production use. Imports are metadata/report-only.
         </p>
+        {mrmsRenderCandidateGatedComparisonHistory?.available ? (
+          <p className="validation-meta">
+            Latest gated comparison review: {mrmsRenderCandidateGatedComparisonHistory.review_status ?? '—'} —{' '}
+            preflight {mrmsRenderCandidateGatedComparisonHistory.preflight_level ?? '—'}
+            {mrmsRenderCandidateGatedComparisonHistory.comparison_skipped
+              ? ' — comparison skipped'
+              : ` — history ${mrmsRenderCandidateGatedComparisonHistory.history_status ?? '—'}`}
+          </p>
+        ) : null}
+        {(mrmsRenderCandidateGatedComparisonHistory?.preflight_blockers ?? []).length > 0 ? (
+          <div className="validation-meta">
+            <strong>Preflight blockers</strong>
+            <ul>
+              {(mrmsRenderCandidateGatedComparisonHistory?.preflight_blockers ?? []).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        {(mrmsRenderCandidateGatedComparisonHistory?.manifest_io_blockers ?? []).length > 0 ? (
+          <div className="validation-meta">
+            <strong>Manifest IO blockers</strong>
+            <ul>
+              {(mrmsRenderCandidateGatedComparisonHistory?.manifest_io_blockers ?? []).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        <button
+          type="button"
+          className="validation-action"
+          onClick={() => void handleGatedComparisonRefresh()}
+          disabled={gatedComparisonRefreshing}
+        >
+          {gatedComparisonRefreshing
+            ? 'Reviewing gated comparison history…'
+            : 'Review gated comparison history (upstream gates)'}
+        </button>
+        {gatedComparisonMessage ? (
+          <p className="validation-meta">{gatedComparisonMessage}</p>
+        ) : null}
+        {gatedComparisonError ? (
+          <p className="validation-warn">{gatedComparisonError}</p>
+        ) : null}
         {mrmsRenderCandidateSandboxComparisonHistory ? (
           <>
             <p className="validation-meta">
@@ -2945,6 +3014,14 @@ export default function ValidationStatusPanel({
         </button>
         {comparisonHistoryMessage ? <p className="validation-meta">{comparisonHistoryMessage}</p> : null}
         {comparisonHistoryError ? <p className="validation-warn">{comparisonHistoryError}</p> : null}
+        <CommandLine
+          command={
+            mrmsRenderCandidateGatedComparisonHistory?.suggested_command ??
+            'make mrms-review-gated-comparison --refresh'
+          }
+          label="Suggested gated comparison history command"
+          manualCopy
+        />
         <CommandLine
           command={
             mrmsRenderCandidateSandboxComparisonHistory?.suggested_command ??
