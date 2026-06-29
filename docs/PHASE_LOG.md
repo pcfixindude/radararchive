@@ -2972,3 +2972,30 @@ cd frontend && npm run build
 - Local dev result: `chain_ready_visual_blocked` — trend-hint chain ready; visual `no_sample_set` remains
 - Not production authorization
 
+## Phase 91 - Bootstrap Visual Review Sample Set
+
+Create local visual review sample set and acceptable annotations so visual sample readiness reaches `candidate_ready` and gated preflight can run.
+
+### Backend
+- `mrms_visual_review_sample_bootstrap.py` — ensures visual review manifest, sample set, bootstrap annotations, readiness refresh, blocker resolution
+- Paths: `mrms_visual_review_sample_bootstrap_latest.json`, `mrms_visual_review_sample_bootstrap_latest.md`
+- API: `GET/POST /api/validation/mrms-visual-review/sample-set/bootstrap`
+- CLI: `scripts/mrms_visual_review_sample_bootstrap.py`; `make mrms-bootstrap-visual-sample-set`
+
+### Frontend
+- **Bootstrap visual review sample set** button on Candidate review readiness collapsible
+
+### Run commands
+
+```bash
+make test
+make mrms-bootstrap-visual-sample-set ARGS="--refresh"
+cd frontend && npm test
+cd frontend && npm run build
+```
+
+### Known limitations
+- Bootstrap annotations are local drilldown only — not verified MRMS
+- Local dev result: `preflight_attempted` — visual `candidate_ready`; gated preflight ran with advisory result
+- Not production authorization
+

@@ -61,8 +61,8 @@ NEXT_PHASE_TREND_HINT = (
     "(trend-hint chain bootstrap complete; visual sample set still required)"
 )
 NEXT_PHASE_VISUAL = (
-    "Phase 91 — bootstrap visual review sample set "
-    "(create sample set and annotations for candidate_preflight_ready)"
+    "Phase 92 — complete MRMS preflight evidence "
+    "(review gated preflight attempt and remaining evidence blockers)"
 )
 NEXT_PHASE_DRY_RUN = (
     "Phase 92 — gated render candidate dry-run plan review "

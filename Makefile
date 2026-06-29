@@ -170,6 +170,11 @@ mrms-visual-review-sample-set:
 mrms-visual-review-readiness:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_visual_review_sample_readiness.py $(ARGS)
 
+mrms-visual-review-sample-bootstrap:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_visual_review_sample_bootstrap.py $(ARGS)
+
+mrms-bootstrap-visual-sample-set: mrms-visual-review-sample-bootstrap
+
 mrms-render-candidate-preflight:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_preflight.py $(ARGS)
 

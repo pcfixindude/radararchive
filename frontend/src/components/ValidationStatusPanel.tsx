@@ -12,6 +12,7 @@ import {
   refreshRenderCandidatePreflightAttempt,
   refreshRenderCandidatePreflightBlockers,
   refreshRenderCandidateTrendHintChainBootstrap,
+  refreshVisualReviewSampleBootstrap,
   refreshRenderCandidateDryRunPlan,
   refreshRenderCandidateScaffold,
   refreshRenderCandidateSandbox,
@@ -116,6 +117,9 @@ export default function ValidationStatusPanel({
   const [chainBootstrapRefreshing, setChainBootstrapRefreshing] = useState(false);
   const [chainBootstrapMessage, setChainBootstrapMessage] = useState<string | null>(null);
   const [chainBootstrapError, setChainBootstrapError] = useState<string | null>(null);
+  const [visualBootstrapRefreshing, setVisualBootstrapRefreshing] = useState(false);
+  const [visualBootstrapMessage, setVisualBootstrapMessage] = useState<string | null>(null);
+  const [visualBootstrapError, setVisualBootstrapError] = useState<string | null>(null);
   const [dryRunPlanRefreshing, setDryRunPlanRefreshing] = useState(false);
   const [dryRunPlanMessage, setDryRunPlanMessage] = useState<string | null>(null);
   const [dryRunPlanError, setDryRunPlanError] = useState<string | null>(null);
@@ -505,6 +509,24 @@ export default function ValidationStatusPanel({
     }
     setChainBootstrapMessage(
       `Chain bootstrap: ${result.data.compact.bootstrap_status ?? '—'} — rollup ${result.data.compact.rollup_status ?? '—'} — digest ${result.data.compact.digest_status ?? '—'}.`,
+    );
+    if (onRefresh) {
+      await onRefresh();
+    }
+  }
+
+  async function handleVisualSampleBootstrapRefresh() {
+    setVisualBootstrapMessage(null);
+    setVisualBootstrapError(null);
+    setVisualBootstrapRefreshing(true);
+    const result = await refreshVisualReviewSampleBootstrap();
+    setVisualBootstrapRefreshing(false);
+    if (!result.ok) {
+      setVisualBootstrapError(result.error);
+      return;
+    }
+    setVisualBootstrapMessage(
+      `Visual bootstrap: ${result.data.compact.bootstrap_status ?? '—'} — readiness ${result.data.compact.visual_readiness_level ?? '—'}.`,
     );
     if (onRefresh) {
       await onRefresh();
@@ -1100,6 +1122,7 @@ export default function ValidationStatusPanel({
   const mrmsVisualReviewHint = summary.mrms_visual_review_hint ?? null;
   const mrmsVisualReviewSampleSet = summary.mrms_visual_review_sample_set ?? null;
   const mrmsVisualReviewSampleReadiness = summary.mrms_visual_review_sample_readiness ?? null;
+  const mrmsVisualReviewSampleBootstrap = summary.mrms_visual_review_sample_bootstrap ?? null;
   const mrmsRenderCandidatePreflight = summary.mrms_render_candidate_preflight ?? null;
   const mrmsRenderCandidateReviewReadiness = summary.mrms_render_candidate_review_readiness ?? null;
   const mrmsRenderCandidatePreflightAttempt = summary.mrms_render_candidate_preflight_attempt ?? null;
@@ -1819,8 +1842,34 @@ export default function ValidationStatusPanel({
                 </ul>
               </div>
             ) : null}
+            {mrmsVisualReviewSampleBootstrap?.available ? (
+              <p className="validation-meta">
+                Latest visual bootstrap: {mrmsVisualReviewSampleBootstrap.bootstrap_status ?? '—'} —{' '}
+                readiness {mrmsVisualReviewSampleBootstrap.visual_readiness_level ?? '—'}
+              </p>
+            ) : null}
+            {(mrmsVisualReviewSampleBootstrap?.visual_blockers ?? []).length > 0 ? (
+              <div className="validation-meta">
+                <strong>Visual blockers</strong>
+                <ul>
+                  {(mrmsVisualReviewSampleBootstrap?.visual_blockers ?? []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </>
         ) : null}
+        <button
+          type="button"
+          className="validation-action"
+          disabled={visualBootstrapRefreshing}
+          onClick={() => void handleVisualSampleBootstrapRefresh()}
+        >
+          {visualBootstrapRefreshing
+            ? 'Bootstrapping visual sample set…'
+            : 'Bootstrap visual review sample set (local only)'}
+        </button>
         <button
           type="button"
           className="validation-action"
@@ -1869,6 +1918,10 @@ export default function ValidationStatusPanel({
           <p className="validation-meta">{chainBootstrapMessage}</p>
         ) : null}
         {chainBootstrapError ? <p className="validation-warn">{chainBootstrapError}</p> : null}
+        {visualBootstrapMessage ? (
+          <p className="validation-meta">{visualBootstrapMessage}</p>
+        ) : null}
+        {visualBootstrapError ? <p className="validation-warn">{visualBootstrapError}</p> : null}
         {preflightAttemptMessage ? (
           <p className="validation-meta">{preflightAttemptMessage}</p>
         ) : null}
@@ -1877,6 +1930,14 @@ export default function ValidationStatusPanel({
           <p className="validation-meta">{reviewReadinessMessage}</p>
         ) : null}
         {reviewReadinessError ? <p className="validation-warn">{reviewReadinessError}</p> : null}
+        <CommandLine
+          command={
+            mrmsVisualReviewSampleBootstrap?.suggested_command ??
+            'make mrms-bootstrap-visual-sample-set --refresh'
+          }
+          label="Suggested visual sample set bootstrap command"
+          manualCopy
+        />
         <CommandLine
           command={
             mrmsRenderCandidateTrendHintChainBootstrap?.suggested_command ??

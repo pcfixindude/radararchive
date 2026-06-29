@@ -1059,6 +1059,65 @@ class MrmsVisualReviewSampleReadinessResponse(BaseModel):
     compact: MrmsVisualReviewSampleReadinessCompact
 
 
+class MrmsVisualReviewSampleBootstrapCompact(BaseModel):
+    available: bool = False
+    bootstrap_status: Optional[str] = None
+    visual_readiness_level: Optional[str] = None
+    visual_readiness_reason: Optional[str] = None
+    visual_blockers: list[str] = Field(default_factory=list)
+    review_readiness_level: Optional[str] = None
+    chain_readiness_level: Optional[str] = None
+    preflight_not_run: bool = True
+    preflight_attempt_status: Optional[str] = None
+    preflight_level: Optional[str] = None
+    resolution_status: Optional[str] = None
+    remaining_blockers: list[str] = Field(default_factory=list)
+    annotations_seeded: Optional[int] = None
+    sample_set_entry_count: Optional[int] = None
+    next_commands: list[str] = Field(default_factory=list)
+    next_operator_step: Optional[str] = None
+    bootstrapped_at: Optional[str] = None
+    json_path: Optional[str] = None
+    markdown_path: Optional[str] = None
+    suggested_command: Optional[str] = None
+    next_phase_recommendation: Optional[str] = None
+    verified_mrms: bool = False
+    local_sample_bootstrap_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    candidate_ready_is_not_production_authorization: bool = True
+    gated_preflight_ready_is_not_production_authorization: bool = True
+    prototype: bool = True
+
+
+class MrmsVisualReviewSampleBootstrapResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_sample_bootstrap_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    candidate_ready_is_not_production_authorization: bool = True
+    gated_preflight_ready_is_not_production_authorization: bool = True
+    latest: Optional[dict[str, Any]] = None
+    compact: MrmsVisualReviewSampleBootstrapCompact
+
+
 class MrmsVisualReviewSampleAnnotationUpsertRequest(BaseModel):
     sample_key: str
     status: str = "unreviewed"
@@ -3420,6 +3479,7 @@ class ValidationSummaryResponse(BaseModel):
     mrms_visual_review_hint: Optional[MrmsVisualReviewHintCompact] = None
     mrms_visual_review_sample_set: Optional[MrmsVisualReviewSampleSetCompact] = None
     mrms_visual_review_sample_readiness: Optional[MrmsVisualReviewSampleReadinessCompact] = None
+    mrms_visual_review_sample_bootstrap: Optional[MrmsVisualReviewSampleBootstrapCompact] = None
     mrms_render_candidate_preflight: Optional[MrmsRenderCandidatePreflightCompact] = None
     mrms_render_candidate_review_readiness: Optional[MrmsRenderCandidateReviewReadinessCompact] = None
     mrms_render_candidate_preflight_attempt: Optional[MrmsRenderCandidatePreflightAttemptCompact] = None

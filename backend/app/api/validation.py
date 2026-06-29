@@ -46,6 +46,7 @@ from backend.app.schemas.validation import (
     MrmsVisualReviewSampleSetCreateResponse,
     MrmsVisualReviewSampleSetResponse,
     MrmsVisualReviewSampleReadinessResponse,
+    MrmsVisualReviewSampleBootstrapResponse,
     MrmsVisualReviewSampleAnnotationUpsertRequest,
     MrmsVisualReviewSampleAnnotationUpsertResponse,
     MrmsRenderCandidatePreflightResponse,
@@ -182,6 +183,10 @@ from backend.app.services.mrms_visual_review_sample_readiness import (
     compact_visual_review_sample_readiness,
     refresh_visual_review_sample_readiness,
     upsert_sample_annotation,
+)
+from backend.app.services.mrms_visual_review_sample_bootstrap import (
+    bootstrap_visual_sample_set,
+    build_visual_sample_bootstrap_payload,
 )
 from backend.app.services.mrms_render_candidate_preflight_blockers import (
     build_preflight_blockers_payload,
@@ -1509,6 +1514,31 @@ def validation_mrms_visual_review_sample_set_create(
         sample_set=sample_set,
         compact=compact,
     )
+
+
+@router.get(
+    "/mrms-visual-review/sample-set/bootstrap",
+    response_model=MrmsVisualReviewSampleBootstrapResponse,
+)
+def validation_mrms_visual_review_sample_bootstrap() -> MrmsVisualReviewSampleBootstrapResponse:
+    """Latest visual sample set bootstrap report (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_visual_sample_bootstrap_payload(storage)
+    return MrmsVisualReviewSampleBootstrapResponse(**payload)
+
+
+@router.post(
+    "/mrms-visual-review/sample-set/bootstrap",
+    response_model=MrmsVisualReviewSampleBootstrapResponse,
+)
+def validation_mrms_visual_review_sample_bootstrap_run(
+    db: Session = Depends(get_db),
+) -> MrmsVisualReviewSampleBootstrapResponse:
+    """Dev/local only — bootstrap sample set and readiness; does NOT force preflight when visual blocked."""
+    storage = LocalStorage(settings.local_storage_root)
+    bootstrap_visual_sample_set(storage, db)
+    payload = build_visual_sample_bootstrap_payload(storage)
+    return MrmsVisualReviewSampleBootstrapResponse(**payload)
 
 
 @router.get("/mrms-visual-review/hint", response_model=MrmsVisualReviewHintResponse)

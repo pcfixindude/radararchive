@@ -24,6 +24,9 @@ from backend.app.services.mrms_visual_review_sample_set import compact_visual_re
 from backend.app.services.mrms_visual_review_sample_readiness import (
     compact_visual_review_sample_readiness,
 )
+from backend.app.services.mrms_visual_review_sample_bootstrap import (
+    compact_visual_sample_bootstrap,
+)
 from backend.app.services.mrms_render_candidate_preflight_blockers import (
     compact_preflight_blockers,
 )
@@ -300,6 +303,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "mrms_visual_review_hint": compact_visual_review_hint(storage),
         "mrms_visual_review_sample_set": compact_visual_review_sample_set(storage),
         "mrms_visual_review_sample_readiness": compact_visual_review_sample_readiness(storage),
+        "mrms_visual_review_sample_bootstrap": compact_visual_sample_bootstrap(storage),
         "mrms_render_candidate_preflight": compact_render_candidate_preflight(storage),
         "mrms_render_candidate_review_readiness": compact_candidate_review_readiness(storage),
         "mrms_render_candidate_preflight_attempt": compact_preflight_attempt(storage),

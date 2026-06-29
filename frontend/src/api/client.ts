@@ -898,6 +898,42 @@ export type MrmsVisualReviewSampleReadinessCompact = {
   candidate_ready_is_not_production_authorization: boolean;
 };
 
+export type MrmsVisualReviewSampleBootstrapCompact = {
+  available?: boolean;
+  bootstrap_status?: string | null;
+  visual_readiness_level?: string | null;
+  visual_readiness_reason?: string | null;
+  visual_blockers?: string[];
+  review_readiness_level?: string | null;
+  chain_readiness_level?: string | null;
+  preflight_not_run?: boolean;
+  preflight_attempt_status?: string | null;
+  preflight_level?: string | null;
+  resolution_status?: string | null;
+  remaining_blockers?: string[];
+  annotations_seeded?: number | null;
+  sample_set_entry_count?: number | null;
+  next_commands?: string[];
+  next_operator_step?: string | null;
+  bootstrapped_at?: string | null;
+  suggested_command?: string | null;
+  next_phase_recommendation?: string | null;
+  verified_mrms: boolean;
+  local_sample_bootstrap_only: boolean;
+  advisory_only: boolean;
+  does_not_clear_alerts: boolean;
+  does_not_enable_production: boolean;
+  does_not_download_or_decode: boolean;
+  does_not_create_production_tiles: boolean;
+  does_not_serve_production_tiles: boolean;
+  does_not_delete_by_default: boolean;
+  binary_artifacts_included: boolean;
+  no_external_notifications: boolean;
+  does_not_authorize_production_use: boolean;
+  candidate_ready_is_not_production_authorization: boolean;
+  gated_preflight_ready_is_not_production_authorization: boolean;
+};
+
 export type MrmsVisualReviewSampleAnnotationUpsertRequest = {
   sample_key: string;
   status?: string;
@@ -2478,6 +2514,7 @@ export type ValidationSummary = {
   mrms_visual_review_hint?: MrmsVisualReviewHintCompact | null;
   mrms_visual_review_sample_set?: MrmsVisualReviewSampleSetCompact | null;
   mrms_visual_review_sample_readiness?: MrmsVisualReviewSampleReadinessCompact | null;
+  mrms_visual_review_sample_bootstrap?: MrmsVisualReviewSampleBootstrapCompact | null;
   mrms_render_candidate_preflight?: MrmsRenderCandidatePreflightCompact | null;
   mrms_render_candidate_review_readiness?: MrmsRenderCandidateReviewReadinessCompact | null;
   mrms_render_candidate_preflight_attempt?: MrmsRenderCandidatePreflightAttemptCompact | null;
@@ -2713,6 +2750,28 @@ export async function refreshVisualReviewSampleReadiness(): Promise<
       return { ok: false, error: `Sample readiness refresh failed (${response.status})` };
     }
     const data = (await response.json()) as { compact: MrmsVisualReviewSampleReadinessCompact };
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function refreshVisualReviewSampleBootstrap(): Promise<
+  | { ok: true; data: { compact: MrmsVisualReviewSampleBootstrapCompact } }
+  | { ok: false; error: string }
+> {
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/validation/mrms-visual-review/sample-set/bootstrap`,
+      { method: 'POST' },
+    );
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: `Visual sample set bootstrap failed (${response.status})`,
+      };
+    }
+    const data = (await response.json()) as { compact: MrmsVisualReviewSampleBootstrapCompact };
     return { ok: true, data };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
