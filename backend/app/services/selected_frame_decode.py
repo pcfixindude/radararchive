@@ -50,7 +50,7 @@ FRAME_STATUS_DECODER_MISSING = "decoder_missing"
 FRAME_STATUS_STUB_INPUT = "stub_input"
 
 DOWNLOAD_MRMS_COMMAND = (
-    "MRMS_SOURCE_MODE=real make download-mrms ARGS='--register-discovered --limit 5'"
+    "make mrms-bulk-local-ingest ARGS='--real --limit 8'"
 )
 
 

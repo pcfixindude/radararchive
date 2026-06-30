@@ -106,7 +106,8 @@ export default function DecodedOverlayPanel({
       ) : null}
       {overlay?.sync_status === 'no_local_candidate' ? (
         <p className="decoded-overlay-hint">
-          No local MRMS file for this timestamp. Try <code>MRMS_SOURCE_MODE=real make download-mrms</code> then Refresh.
+          No local MRMS file for this timestamp. Try{' '}
+          <code>make mrms-bulk-local-ingest ARGS=&apos;--real --limit 8&apos;</code> then Refresh.
         </p>
       ) : null}
       {!overlay?.artifact_available ? (

@@ -9,11 +9,11 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 109
-- Latest phase: Phase 109 — Multi frame playback animation
-- Latest commit: `a7b5241`
-- Latest tag: `phase-109-multi-frame-playback-animation`
-- Push status: pushed to `origin/main` with tag
+- Completed through phase: 110
+- Latest phase: Phase 110 — Bulk local MRMS catalog ingestion
+- Latest commit: (pending)
+- Latest tag: `phase-110-bulk-local-mrms-catalog-ingestion`
+- Push status: (pending)
 - Final git status: source clean after commit; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
@@ -26,37 +26,34 @@ Do not treat this file as verified MRMS proof or production authorization.
 
 ## Latest phase summary
 
-- Phase: **109**
-- Purpose: Multi-frame local playback animation using cached per-frame decodes; adjacent-frame prefetch; responsive decode status during play.
-- Playback controls exist? **Yes** — existing Play/Pause/step/speed controls; now show overlay playback status
-- Playback advances selected timestamps? **Yes** — `usePlayback` steps catalog frames; `useFrameOverlay` loads overlay per frame
-- Cached decoded frames animate on map? **Yes** — overlay tile/image source updates as `decodedOverlay` changes per timestamp
-- Adjacent-frame prefetch works? **Yes** — `GET /api/dev/decoded-overlay/prefetch?timestamps=` + client-side cache warm for prev/next
-- Missing-frame behavior:
-  - `frame_missing` / `no_local_candidate` / `stub_input` — overlay hidden, status in panel/playback controls
-  - `decode_failed` / `decoder_missing` — actionable commands shown
-  - `decoding` — non-blocking; playback timer continues; map badge shows decoding
-- Backend:
-  - `frame_playback.py` — `prefetch_frames()` for up to 3 adjacent timestamps
-  - `GET /api/dev/decoded-overlay/prefetch?timestamps=t1,t2,t3`
-- Frontend:
-  - `useFrameOverlay.ts` — per-frame load, in-memory cache, adjacent prefetch
-  - `framePlayback.ts` — status helpers (`playing`, `paused`, `decoding`, `frame_ready`, `frame_missing`, `decode_failed`)
-  - `PlaybackControls` — overlay playback status line
-  - `DecodedOverlayPanel` — playback status + loading indicator
-  - `WeatherMap` — decoding badge during frame load
-- Tests: backend 1190 passed; frontend 15 passed; `npm run build` ok
+- Phase: **110**
+- Purpose: Bulk download/register multiple real MRMS frames locally for multi-frame playback.
+- Bulk local MRMS ingest command exists? **Yes** — `make mrms-bulk-local-ingest ARGS='--real --limit 8'`
+- Multiple raw frames downloaded/found? **Yes** (when `--real` + network); default window limit **8** (max 20); discovers, selects latest window, registers catalog rows, downloads to `data/raw/mrms/reflectivity/`
+- Catalog/timeline registration works? **Yes** — reuses `register_discovered_files`; registered timestamps appear in catalog `list_times`
+- Playback steps through multiple real local frames? **Yes** — `App.tsx` merges full catalog + processed times for playback sequence; Phase 108/109 decode/prefetch apply per timestamp
+- Command(s):
+  - `make mrms-bulk-local-ingest ARGS='--real --limit 8'`
+  - Optional: `--start`, `--end`, `--force`, `--product`
+- Report paths:
+  - `data/dev/mrms_bulk_ingest_latest.json`
+  - `data/dev/mrms_bulk_ingest_latest.md`
+- Raw path: `data/raw/mrms/reflectivity/{token}_{filename}.grib2.gz`
+- Catalog: `mrms_discovered` rows, product `mrms_reflectivity`
+- Next commands in report: `make decode-retry`, `make backend && make frontend`
+- Backend: `mrms_bulk_ingest.py` — `plan_ingest_window()`, `run_bulk_local_ingest()`
+- Tests: backend 1195 passed; frontend 15 passed; `npm run build` ok
 
 ## Current focus
 
-Playback steps through catalog timestamps and updates decoded overlay per frame with prefetch for neighbors. Demo stubs show missing-frame states; real MRMS frames decode/cache and animate. Next: bulk local catalog ingestion or playback polish.
+Bulk ingest provides a bounded real-MRMS window for playback. Next: frame cache warming, playback polish, or ingestion robustness.
 
 ## Next recommended phase
 
-- Phase number: **110**
-- Phase title: Bulk local MRMS catalog ingestion
-- Goal: Download/register multiple real MRMS frames locally so playback has more than one decodable timestamp.
-- Why this is next: Playback works but demo catalog is mostly stubs; bulk ingestion unlocks meaningful multi-frame animation.
+- Phase number: **111**
+- Phase title: Frame cache warming for playback
+- Goal: After bulk ingest, prefetch/decode the ingested window into per-frame cache so playback starts without per-step decode delay.
+- Why this is next: Bulk ingest fills raw/catalog; warming cache makes Phase 109 playback smoother across multiple frames.
 - Safety boundaries:
   - local dev / prototype only
   - keep production tile serving off
@@ -66,8 +63,8 @@ Playback steps through catalog timestamps and updates decoded overlay per frame 
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 110 only.
-Bulk download and register multiple local MRMS catalog frames for playback.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 111 only.
+Warm per-frame decode cache for bulk-ingested MRMS timestamps to smooth playback.
 ```
 
 ## Key docs (read order for new work)

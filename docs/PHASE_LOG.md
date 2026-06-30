@@ -3490,3 +3490,32 @@ make frontend
 - Decode is async; playback timer does not wait for decode completion
 - Does not verify MRMS or enable production tile serving
 
+## Phase 110 - Bulk Local MRMS Catalog Ingestion
+
+Bounded bulk discover/register/download of real MRMS frames for multi-frame local playback.
+
+### Backend
+- `mrms_bulk_ingest.py` — `plan_ingest_window()`, `run_bulk_local_ingest()`
+- `scripts/mrms_bulk_local_ingest.py` — CLI with `--real`, `--limit`, `--start`, `--end`
+- `make mrms-bulk-local-ingest`
+
+### Frontend
+- `App.tsx` — playback merges full catalog + processed timestamps
+
+### Reports
+- `data/dev/mrms_bulk_ingest_latest.json`
+- `data/dev/mrms_bulk_ingest_latest.md`
+
+### Run commands
+
+```bash
+make test
+make mrms-bulk-local-ingest ARGS='--real --limit 8'
+make decode-retry
+```
+
+### Known limitations
+- Requires explicit `--real` for network download
+- Default limit 8 (max 20) — not a full archive ingest
+- Does not verify MRMS or enable production tile serving
+

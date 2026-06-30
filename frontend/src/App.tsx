@@ -72,7 +72,10 @@ export default function App() {
     [layers, selectedLayer],
   );
 
-  const playbackTimes = processedTimes.length > 0 ? processedTimes : times;
+  const playbackTimes = useMemo(() => {
+    const merged = [...new Set([...times, ...processedTimes])].sort();
+    return merged.length > 0 ? merged : [];
+  }, [times, processedTimes]);
 
   const {
     playing,

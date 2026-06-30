@@ -1,43 +1,43 @@
 # Next Steps
 
-## Phase 110 - Bulk local MRMS catalog ingestion (Draft)
+## Phase 111 - Frame cache warming for playback (Draft)
 
-Goal: Download and register multiple real MRMS frames locally so playback can animate across several decodable timestamps.
+Goal: After bulk ingest, decode/prefetch ingested timestamps into per-frame cache for smoother playback.
 
 ```bash
-MRMS_SOURCE_MODE=real make download-mrms ARGS='--register-discovered --limit 10'
+make mrms-bulk-local-ingest ARGS='--real --limit 8'
 make decode-retry
 make backend
 make frontend
 ```
 
-## Phase 109 verification commands
+## Phase 110 verification commands
 
 ```bash
 make test
-cd frontend && npm test
-cd frontend && npm run build
+make mrms-bulk-local-ingest ARGS='--real --limit 8'
+make decode-retry
 make backend
 make frontend
 ```
 
-Local result after Phase 109:
+Local result after Phase 110:
 
-- Press Play — timestamps advance; overlay fetches per frame
-- Adjacent frames prefetched (prev/next)
-- Panel/controls show: playing, paused, decoding, frame ready, frame missing, decode failed
-- Real MRMS timestamps animate decoded tiles when cached
+- Bulk ingest report under `data/dev/mrms_bulk_ingest_latest.json`
+- Multiple `.grib2.gz` under `data/raw/mrms/reflectivity/`
+- Catalog timestamps visible on time slider / playback
+- Playback merges catalog + processed times
+
+## Phase 109 verification commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+```
 
 ## Phase 108 verification commands
 
 ```bash
 make test
 make decode-retry
-```
-
-## Phase 107 verification commands
-
-```bash
-make test
-cd frontend && npm test && npm run build
 ```
