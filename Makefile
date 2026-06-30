@@ -237,6 +237,11 @@ mrms-render-candidate-gated-ack-history:
 
 mrms-review-gated-ack-history: mrms-render-candidate-gated-ack-history
 
+mrms-render-candidate-readiness-milestone-audit:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_readiness_milestone_audit.py $(ARGS)
+
+mrms-readiness-milestone-audit: mrms-render-candidate-readiness-milestone-audit
+
 mrms-render-candidate-scaffold:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_scaffold.py $(ARGS)
 

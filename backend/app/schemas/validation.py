@@ -2106,6 +2106,64 @@ class MrmsRenderCandidateGatedAckHistoryResponse(BaseModel):
     compact: MrmsRenderCandidateGatedAckHistoryCompact
 
 
+class MrmsRenderCandidateReadinessMilestoneAuditCompact(BaseModel):
+    available: bool = False
+    audit_status: Optional[str] = None
+    preflight_level: Optional[str] = None
+    preflight_reason: Optional[str] = None
+    preflight_ready: bool = False
+    root_gate: Optional[str] = None
+    blocker_category: Optional[str] = None
+    preflight_blockers: list[str] = Field(default_factory=list)
+    preflight_warnings: list[str] = Field(default_factory=list)
+    downstream_blocked_only_because_preflight: list[str] = Field(default_factory=list)
+    gates: list[dict[str, Any]] = Field(default_factory=list)
+    retry_commands: list[str] = Field(default_factory=list)
+    next_operator_step: Optional[str] = None
+    next_phase_recommendation: Optional[str] = None
+    next_phase_rationale: Optional[str] = None
+    add_gated_wrapper_recommended: bool = False
+    stop_gated_wrapper_loop: bool = True
+    audited_at: Optional[str] = None
+    json_path: Optional[str] = None
+    markdown_path: Optional[str] = None
+    suggested_command: Optional[str] = None
+    verified_mrms: bool = False
+    local_milestone_audit_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    milestone_audit_is_not_production_authorization: bool = True
+    prototype: bool = True
+
+
+class MrmsRenderCandidateReadinessMilestoneAuditResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_milestone_audit_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    milestone_audit_is_not_production_authorization: bool = True
+    stop_gated_wrapper_loop: bool = True
+    latest: Optional[dict[str, Any]] = None
+    compact: MrmsRenderCandidateReadinessMilestoneAuditCompact
+
+
 class MrmsRenderCandidateScaffoldCompact(BaseModel):
     available: bool = False
     scaffold_status: Optional[str] = None
@@ -4168,6 +4226,9 @@ class ValidationSummaryResponse(BaseModel):
     ] = None
     mrms_render_candidate_gated_ack_history: Optional[
         MrmsRenderCandidateGatedAckHistoryCompact
+    ] = None
+    mrms_render_candidate_readiness_milestone_audit: Optional[
+        MrmsRenderCandidateReadinessMilestoneAuditCompact
     ] = None
     mrms_render_candidate_scaffold: Optional[MrmsRenderCandidateScaffoldCompact] = None
     mrms_render_candidate_sandbox: Optional[MrmsRenderCandidateSandboxCompact] = None

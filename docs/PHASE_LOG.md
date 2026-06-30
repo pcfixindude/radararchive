@@ -3215,3 +3215,26 @@ cd frontend && npm run build
 - Local dev result: `preflight_not_candidate_ready` — preflight `needs_review`; ack and history skipped
 - Not production authorization
 
+## Phase 100 - MRMS Candidate Readiness Milestone Audit
+
+Consolidate the entire MRMS candidate readiness chain into one operator-facing milestone audit. Stops the recursive gated-wrapper loop by identifying the exact preflight blocker and which downstream gates are blocked only because preflight is blocked.
+
+### Backend
+- `mrms_render_candidate_readiness_milestone_audit.py` — refreshes existing gated chain on `--refresh`, consolidates gate snapshots, classifies blocker category, recommends next phase
+- Paths: `mrms_render_candidate_readiness_milestone_audit_latest.json`, `mrms_render_candidate_readiness_milestone_audit_latest.md`
+- API: `GET/POST /api/validation/mrms-render-candidate/readiness-milestone-audit`
+- CLI: `scripts/mrms_render_candidate_readiness_milestone_audit.py`; `make mrms-readiness-milestone-audit`
+
+### Run commands
+
+```bash
+make test
+make mrms-readiness-milestone-audit ARGS="--refresh"
+```
+
+### Known limitations
+- Does not verify MRMS or enable production rendering
+- Local dev result: `readiness_blocked` — preflight `needs_review`; root gate `preflight`; blocker category `operator_action`; all downstream gated steps skipped only because preflight is blocked
+- `add_gated_wrapper_recommended`: false — next work must resolve preflight blockers, not add another gated layer
+- Not production authorization
+

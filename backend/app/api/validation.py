@@ -63,6 +63,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateGatedTrendReviewResponse,
     MrmsRenderCandidateGatedComparisonAckResponse,
     MrmsRenderCandidateGatedAckHistoryResponse,
+    MrmsRenderCandidateReadinessMilestoneAuditResponse,
     MrmsRenderCandidateScaffoldResponse,
     MrmsRenderCandidateSandboxResponse,
     MrmsRenderCandidateSandboxImportExportResponse,
@@ -251,6 +252,10 @@ from backend.app.services.mrms_render_candidate_gated_comparison_ack import (
 from backend.app.services.mrms_render_candidate_gated_ack_history import (
     build_gated_ack_history_payload,
     review_gated_ack_history,
+)
+from backend.app.services.mrms_render_candidate_readiness_milestone_audit import (
+    build_readiness_milestone_audit_payload,
+    run_readiness_milestone_audit,
 )
 from backend.app.services.mrms_render_candidate_scaffold import (
     build_render_candidate_scaffold_payload,
@@ -931,6 +936,33 @@ def validation_mrms_render_candidate_gated_ack_history_run() -> (
     review_gated_ack_history(storage)
     payload = build_gated_ack_history_payload(storage)
     return MrmsRenderCandidateGatedAckHistoryResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/readiness-milestone-audit",
+    response_model=MrmsRenderCandidateReadinessMilestoneAuditResponse,
+)
+def validation_mrms_render_candidate_readiness_milestone_audit() -> (
+    MrmsRenderCandidateReadinessMilestoneAuditResponse
+):
+    """Latest MRMS candidate readiness milestone audit (read-only; does not verify MRMS)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_readiness_milestone_audit_payload(storage)
+    return MrmsRenderCandidateReadinessMilestoneAuditResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/readiness-milestone-audit",
+    response_model=MrmsRenderCandidateReadinessMilestoneAuditResponse,
+)
+def validation_mrms_render_candidate_readiness_milestone_audit_run() -> (
+    MrmsRenderCandidateReadinessMilestoneAuditResponse
+):
+    """Dev/local only — refresh gated chain and write milestone readiness audit."""
+    storage = LocalStorage(settings.local_storage_root)
+    run_readiness_milestone_audit(storage, refresh_chain=True)
+    payload = build_readiness_milestone_audit_payload(storage)
+    return MrmsRenderCandidateReadinessMilestoneAuditResponse(**payload)
 
 
 @router.get(

@@ -9,11 +9,11 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 99
-- Latest phase: Phase 99 — Gated sandbox acknowledgment history
-- Latest commit: `993336b`
-- Latest tag: `phase-99-gated-sandbox-acknowledgment-history`
-- Push status: pushed
+- Completed through phase: 100
+- Latest phase: Phase 100 — MRMS candidate readiness milestone audit
+- Latest commit: (pending)
+- Latest tag: `phase-100-mrms-candidate-readiness-milestone-audit`
+- Push status: (pending)
 - Final git status: source clean after commit; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
@@ -22,53 +22,48 @@ Do not treat this file as verified MRMS proof or production authorization.
 - `ENABLE_PRODUCTION_RADAR_TILES`: **false** by default
 - Placeholder tiles default: **true**
 - Production rendering: gated/off by default
-- Gated acknowledgment history: local advisory only; skips history when upstream gates are closed
+- Milestone audit: local advisory only; does not add another gated wrapper
 
 ## Latest phase summary
 
-- Phase: **99**
-- Purpose: Run or review local sandbox acknowledgment history only when all upstream gates are open through comparison acknowledgment (`comparison_ack_ready` or `comparison_ack_needs_acknowledgment`).
-- Main command added: `make mrms-review-gated-ack-history` (alias: `make mrms-render-candidate-gated-ack-history`)
-- API added: `GET/POST /api/validation/mrms-render-candidate/sandbox/gated-ack-history`
-- Local operator run result: **preflight_not_candidate_ready** — preflight `needs_review`; ack **skipped**; history **skipped**
-- Remaining follow-up: resolve preflight warnings/blockers until `candidate_preflight_ready`, then re-run gated reviews through acknowledgment history
-- Next commands for operators:
-  1. `make mrms-render-candidate-preflight --refresh`
-  2. `make mrms-resolve-preflight-blockers --refresh`
-  3. `make mrms-review-gated-dry-run-plan --refresh`
-  4. `make mrms-review-gated-scaffold --refresh`
-  5. `make mrms-review-gated-sandbox-layout --refresh`
-  6. `make mrms-review-gated-manifest-io --refresh`
-  7. `make mrms-review-gated-comparison --refresh`
-  8. `make mrms-review-gated-trend --refresh`
-  9. `make mrms-review-gated-ack --refresh`
-  10. `make mrms-review-gated-ack-history --refresh` (when comparison acknowledgment is ready)
-- Tests: backend 1129 passed; frontend vitest 8 passed; frontend build OK
+- Phase: **100**
+- Purpose: Consolidate the entire MRMS candidate readiness chain (preflight through gated ack history) into one operator-facing milestone audit that identifies the exact blocker preventing progress beyond preflight `needs_review`.
+- Main command added: `make mrms-readiness-milestone-audit` (alias: `make mrms-render-candidate-readiness-milestone-audit`)
+- API added: `GET/POST /api/validation/mrms-render-candidate/readiness-milestone-audit`
+- Local operator run result: **readiness_blocked** — preflight `needs_review`; root gate `preflight`; blocker category `operator_action`; all 8 downstream gated steps blocked only because preflight is blocked
+- `add_gated_wrapper_recommended`: **false** — stop the recursive gated-wrapper loop
+- Shortest safe retry after fixes:
+  1. `make operator-review-status ARGS="--refresh"`
+  2. `make mrms-render-candidate-preflight ARGS="--refresh"`
+  3. `make mrms-resolve-preflight-blockers ARGS="--refresh"`
+  4. `make mrms-readiness-milestone-audit ARGS="--refresh"` (re-audit when preflight may be ready)
+- Tests: backend 1137 passed
 
 ## Current focus
 
-Resolve preflight `needs_review` blockers, then re-run gated reviews when upstream gates open.
+Resolve preflight `needs_review` blockers (operator review attention items and tooling warnings). Do **not** add another gated downstream review phase until preflight reaches `candidate_preflight_ready`.
 
 Do **not** promote to verified MRMS yet.
 
 ## Next recommended phase
 
-- Phase number: **100**
-- Phase title: Gated sandbox acknowledgment trend hint
-- Goal: Run gated local sandbox acknowledgment trend hints when acknowledgment history is `ack_history_ready`.
-- Why this is next: Phase 99 correctly gates acknowledgment history on all upstream gates; once history is ready, trend hints are the next gated evaluation step.
+- Phase number: **101**
+- Phase title: Resolve operator review attention items for preflight
+- Goal: Clear open operator review attention items so preflight can advance from `needs_review` to `candidate_preflight_ready`.
+- Why this is next: Phase 100 milestone audit shows preflight is the root gate; all downstream gated steps are skipped only because preflight remains blocked. Operator review attention items are the primary actionable blocker category.
 - Safety boundaries:
-  - local sandbox metadata only
+  - local advisory metadata only
   - no MRMS verification claim
   - no production rendering or tile serving
   - no alert clearing
   - no gate mutation
+  - do not add another gated wrapper
 
 ## Suggested next Cursor prompt
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 100 only.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 101 only.
 ```
 
 ## Key docs (read order for new work)
