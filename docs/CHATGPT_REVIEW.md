@@ -11,9 +11,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 111
 - Latest phase: Phase 111 — Frame cache warming for playback
-- Latest commit: (pending)
+- Latest commit: `edc7619`
 - Latest tag: `phase-111-frame-cache-warming-for-playback`
-- Push status: (pending)
+- Push status: pushed to `origin/main` with tag
 - Final git status: source clean after commit; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
