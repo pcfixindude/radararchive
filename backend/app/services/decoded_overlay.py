@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from backend.app.config import settings
 from backend.app.services.color_scale import COLOR_SCALE_MODE
 from backend.app.services.decode_retry import load_decode_retry_report
+from backend.app.services.frame_cache_warmer import compact_cache_warm_status
 from backend.app.services.georef_overlay import resolve_georef_overlay
 from backend.app.services.mrms_local_render_pipeline import (
     PREVIEW_DIR,
@@ -293,6 +294,7 @@ def _build_from_frame_report(
         ),
         "refresh_commands": action_commands,
         **tile_fields,
+        **compact_cache_warm_status(storage),
         **_safety_fields(),
     }
 
@@ -402,6 +404,7 @@ def build_decoded_overlay(
         ),
         "refresh_commands": list(SUGGESTED_REFRESH_COMMANDS),
         **tile_fields,
+        **compact_cache_warm_status(storage),
         **_safety_fields(),
     }
 

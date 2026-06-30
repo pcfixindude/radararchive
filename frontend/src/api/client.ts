@@ -4281,6 +4281,11 @@ export type DecodedOverlayInfo = {
   nearest_decoded_timestamp?: string | null;
   georef_quality?: string;
   georef_notes?: string[];
+  cache_warm_available?: boolean;
+  cache_warm_status?: string | null;
+  cache_warm_matched?: number;
+  cache_warm_considered?: number;
+  playback_ready?: boolean;
   verified_mrms: boolean;
   local_dev_only: boolean;
   prototype: boolean;

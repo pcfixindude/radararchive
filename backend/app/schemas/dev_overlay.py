@@ -39,6 +39,11 @@ class DecodedOverlayResponse(BaseModel):
     nearest_decoded_timestamp: Optional[str] = None
     georef_quality: str = "prototype_bounds"
     georef_notes: list[str] = Field(default_factory=list)
+    cache_warm_available: bool = False
+    cache_warm_status: Optional[str] = None
+    cache_warm_matched: int = 0
+    cache_warm_considered: int = 0
+    playback_ready: bool = False
     verified_mrms: bool = False
     local_dev_only: bool = True
     prototype: bool = True

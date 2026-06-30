@@ -3519,3 +3519,34 @@ make decode-retry
 - Default limit 8 (max 20) — not a full archive ingest
 - Does not verify MRMS or enable production tile serving
 
+## Phase 111 - Frame Cache Warming for Playback
+
+Warm per-frame decode cache for a bounded MRMS window using Phase 108 selected-frame decode.
+
+### Backend
+- `frame_cache_warmer.py` — `select_cache_window()`, `run_cache_warm()`
+- `scripts/mrms_warm_frame_cache.py` — CLI with `--limit`, `--start`, `--end`, `--force`
+- `make mrms-warm-frame-cache`
+
+### Frontend
+- `DecodedOverlayPanel` — playback cache ready status from overlay API
+
+### Reports
+- `data/dev/mrms_cache_warm_latest.json`
+- `data/dev/mrms_cache_warm_latest.md`
+
+### Run commands
+
+```bash
+make test
+make mrms-bulk-local-ingest ARGS='--real --limit 8'
+make mrms-warm-frame-cache
+make backend
+make frontend
+```
+
+### Known limitations
+- Bounded default (8 frames); not full-catalog warm
+- Requires local raw MRMS files (run bulk ingest first)
+- Does not verify MRMS or enable production tile serving
+

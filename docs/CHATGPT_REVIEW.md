@@ -9,11 +9,11 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 110
-- Latest phase: Phase 110 — Bulk local MRMS catalog ingestion
-- Latest commit: `a7678d8`
-- Latest tag: `phase-110-bulk-local-mrms-catalog-ingestion`
-- Push status: pushed to `origin/main` with tag
+- Completed through phase: 111
+- Latest phase: Phase 111 — Frame cache warming for playback
+- Latest commit: (pending)
+- Latest tag: `phase-111-frame-cache-warming-for-playback`
+- Push status: (pending)
 - Final git status: source clean after commit; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
@@ -26,34 +26,34 @@ Do not treat this file as verified MRMS proof or production authorization.
 
 ## Latest phase summary
 
-- Phase: **110**
-- Purpose: Bulk download/register multiple real MRMS frames locally for multi-frame playback.
-- Bulk local MRMS ingest command exists? **Yes** — `make mrms-bulk-local-ingest ARGS='--real --limit 8'`
-- Multiple raw frames downloaded/found? **Yes** (when `--real` + network); default window limit **8** (max 20); discovers, selects latest window, registers catalog rows, downloads to `data/raw/mrms/reflectivity/`
-- Catalog/timeline registration works? **Yes** — reuses `register_discovered_files`; registered timestamps appear in catalog `list_times`
-- Playback steps through multiple real local frames? **Yes** — `App.tsx` merges full catalog + processed times for playback sequence; Phase 108/109 decode/prefetch apply per timestamp
-- Command(s):
-  - `make mrms-bulk-local-ingest ARGS='--real --limit 8'`
-  - Optional: `--start`, `--end`, `--force`, `--product`
+- Phase: **111**
+- Purpose: Warm per-frame decode cache after bulk ingest so playback avoids per-step decode delay.
+- Cache warming command exists? **Yes** — `make mrms-warm-frame-cache`
+- Warms bulk-ingested window? **Yes** — reads `data/dev/mrms_bulk_ingest_latest.json` timestamps first, falls back to catalog local real MRMS
+- Local run counts (typical stub test / when raw present): considered/skipped/decoded/failed reported in warm report; skips cached frames unless `--force`
+- Commands:
+  - `make mrms-warm-frame-cache`
+  - `make mrms-warm-frame-cache ARGS='--limit 8'`
+  - Optional: `--start`, `--end`, `--force`, `--product`, `--include-stubs`
 - Report paths:
-  - `data/dev/mrms_bulk_ingest_latest.json`
-  - `data/dev/mrms_bulk_ingest_latest.md`
-- Raw path: `data/raw/mrms/reflectivity/{token}_{filename}.grib2.gz`
-- Catalog: `mrms_discovered` rows, product `mrms_reflectivity`
-- Next commands in report: `make decode-retry`, `make backend && make frontend`
-- Backend: `mrms_bulk_ingest.py` — `plan_ingest_window()`, `run_bulk_local_ingest()`
-- Tests: backend 1195 passed; frontend 15 passed; `npm run build` ok
+  - `data/dev/mrms_cache_warm_latest.json`
+  - `data/dev/mrms_cache_warm_latest.md`
+- Cache paths: `data/dev/mrms_frame_cache/{timestamp_token}/` (preview PNG, tiles/, frame_manifest.json)
+- Playback starts smoothly from warmed cache? **Yes** — Phase 109 `useFrameOverlay` hits in-memory + disk cache via `resolve_selected_frame` fast path; panel shows `playback_ready` when warm report has matched frames
+- Backend: `frame_cache_warmer.py` — `select_cache_window()`, `run_cache_warm()`
+- Frontend: `DecodedOverlayPanel` — playback cache ready status from overlay API
+- Tests: backend 1199 passed; frontend 15 passed; `npm run build` ok
 
 ## Current focus
 
-Bulk ingest provides a bounded real-MRMS window for playback. Next: frame cache warming, playback polish, or ingestion robustness.
+Bulk ingest + cache warming prepare multi-frame playback offline. Next: playback polish, ingestion robustness, or georef improvement.
 
 ## Next recommended phase
 
-- Phase number: **111**
-- Phase title: Frame cache warming for playback
-- Goal: After bulk ingest, prefetch/decode the ingested window into per-frame cache so playback starts without per-step decode delay.
-- Why this is next: Bulk ingest fills raw/catalog; warming cache makes Phase 109 playback smoother across multiple frames.
+- Phase number: **112**
+- Phase title: Playback polish and cache status UI
+- Goal: Improve playback UX when cache is warm vs cold; show per-frame ready indicators on slider; optional auto-warm after bulk ingest.
+- Why this is next: Cache warming works; polish makes the warmed state obvious during play.
 - Safety boundaries:
   - local dev / prototype only
   - keep production tile serving off
@@ -63,8 +63,8 @@ Bulk ingest provides a bounded real-MRMS window for playback. Next: frame cache 
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 111 only.
-Warm per-frame decode cache for bulk-ingested MRMS timestamps to smooth playback.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 112 only.
+Polish playback UX with cache-ready indicators and smoother frame transitions.
 ```
 
 ## Key docs (read order for new work)

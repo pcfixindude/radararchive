@@ -79,6 +79,16 @@ export default function DecodedOverlayPanel({
           Nearest decoded: <code>{overlay.nearest_decoded_timestamp}</code>
         </p>
       ) : null}
+      {overlay?.playback_ready ? (
+        <p className="decoded-overlay-meta">
+          Playback cache: <code>ready ({overlay.cache_warm_matched}/{overlay.cache_warm_considered} warmed)</code>
+        </p>
+      ) : overlay?.cache_warm_available ? (
+        <p className="decoded-overlay-meta">
+          Playback cache: <code>{overlay.cache_warm_status ?? 'unknown'}</code>
+          {overlay.cache_warm_matched ? ` (${overlay.cache_warm_matched} warmed)` : ''}
+        </p>
+      ) : null}
       {overlay?.frame_status ? (
         <p className="decoded-overlay-meta">
           Frame: <code>{overlay.frame_status.replace(/_/g, ' ')}</code>
@@ -112,7 +122,8 @@ export default function DecodedOverlayPanel({
       ) : null}
       {!overlay?.artifact_available ? (
         <p className="decoded-overlay-hint">
-          Run <code>make decode-retry</code> or <code>make mrms-local-render-pipeline</code>, then Refresh.
+          Run <code>make mrms-bulk-local-ingest ARGS=&apos;--real --limit 8&apos;</code>, then{' '}
+          <code>make mrms-warm-frame-cache</code>, then Refresh.
         </p>
       ) : null}
       <ul className="decoded-overlay-commands">
