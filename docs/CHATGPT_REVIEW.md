@@ -11,9 +11,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 112
 - Latest phase: Phase 112 — Playback polish and cache status UI
-- Latest commit: (pending push)
+- Latest commit: `c77004c`
 - Latest tag: `phase-112-playback-polish-and-cache-status-ui`
-- Push status: pending
+- Push status: pushed to `origin/main` with tag
 - Final git status: source committed; local `data/dev/` runtime artifacts not committed
 
 ## Safety state
