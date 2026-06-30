@@ -3294,3 +3294,25 @@ make mrms-readiness-milestone-audit ARGS="--refresh"
 - Local dev result: `stub_mode_documented` — alert still `failed`; operator review `ok`; preflight `candidate_preflight_ready`; milestone audit `readiness_ready`
 - Not production authorization
 
+## Phase 103 - Fast Track Local MRMS Render Pipeline
+
+Practical local developer path: select MRMS candidate → check decoders → inspect → decode when possible → render preview PNG and write report under `data/dev/`. No new gated review wrapper.
+
+### Backend
+- `mrms_local_render_pipeline.py` — candidate selection, decoder check, inspect/decode/render steps, local report
+- Paths: `mrms_local_render_pipeline_latest.json`, `mrms_local_render_pipeline_latest.md`, `mrms_local_render_preview/preview_z0_x0_y0.png`
+- CLI: `scripts/mrms_local_render_pipeline.py`; `make mrms-local-render-pipeline`
+
+### Run commands
+
+```bash
+make test
+make mrms-local-render-pipeline
+```
+
+### Known limitations
+- Does not verify MRMS or enable production tile serving
+- Local dev result: `decoder_missing` — real `.grib2.gz` candidate found; placeholder preview produced because wgrib2/GDAL/rasterio not installed
+- Next fix: install decoder tooling and rerun decode + pipeline (Phase 104)
+- Not production authorization
+

@@ -252,6 +252,9 @@ mrms-render-candidate-validation-remediation:
 
 mrms-remediate-validation: mrms-render-candidate-validation-remediation
 
+mrms-local-render-pipeline:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_local_render_pipeline.py $(ARGS)
+
 mrms-render-candidate-scaffold:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_scaffold.py $(ARGS)
 

@@ -79,6 +79,9 @@ data/dev/mrms_render_candidate_preflight_attention_latest.json
 data/dev/mrms_render_candidate_preflight_attention_latest.md
 data/dev/mrms_render_candidate_validation_remediation_latest.json
 data/dev/mrms_render_candidate_validation_remediation_latest.md
+data/dev/mrms_local_render_pipeline_latest.json
+data/dev/mrms_local_render_pipeline_latest.md
+data/dev/mrms_local_render_preview/
 data/dev/mrms_render_candidate_scaffold.json
 data/dev/mrms_render_candidate_scaffold.md
 data/dev/mrms_render_candidate_sandbox/
