@@ -69,12 +69,40 @@ def test_build_decoded_overlay_with_preview(storage, monkeypatch):
     )
 
     overlay = build_decoded_overlay(storage)
-    assert overlay["available"] is True
-    assert overlay["overlay_status"] == OVERLAY_STATUS_DECODED_PROTOTYPE
-    assert overlay["preview_url"] == PREVIEW_API_PATH
+    assert overlay["artifact_available"] is True
+    assert overlay["available"] is False
+    assert overlay["overlay_visible"] is False
+    assert overlay["sync_status"] == "no_selection"
+    assert overlay["preview_url"] is None
     assert overlay["bounds"] == [-100.0, 30.0, -90.0, 40.0]
-    assert overlay["georef_mode"] == "rasterio_bounds"
+    assert overlay["georef_quality"] == "rasterio_bounds"
     assert "NOT verified MRMS" in overlay["labels"][1]
+
+
+def test_build_decoded_overlay_sync_matched(storage, monkeypatch):
+    _use_test_storage(monkeypatch, storage)
+    preview_path = storage.normalize_path(PREVIEW_DIR, "preview_z0_x0_y0.png")
+    storage.ensure_directories(PREVIEW_DIR)
+    storage.write_bytes(preview_path, generate_placeholder_tile_png())
+    pipeline_json = storage.normalize_path(PIPELINE_JSON)
+    storage.ensure_directories(pipeline_json.rsplit("/", 1)[0])
+    storage.absolute_path(pipeline_json).write_text(
+        json.dumps(
+            {
+                "ran_at": "2026-06-28T14:00:00Z",
+                "pipeline_status": "preview_ok",
+                "render_mode": "decoded_prototype",
+                "candidate": {"timestamp": "2026-06-28T13:26:38Z"},
+                "produced_local_artifact": True,
+                "preview_paths": [preview_path],
+            }
+        ),
+        encoding="utf-8",
+    )
+    overlay = build_decoded_overlay(storage, selected_timestamp="2026-06-28T13:26:38Z")
+    assert overlay["sync_status"] == "matched"
+    assert overlay["overlay_visible"] is True
+    assert overlay["available"] is True
 
 
 def test_build_decoded_overlay_with_tiles(storage, monkeypatch):
@@ -93,13 +121,14 @@ def test_build_decoded_overlay_with_tiles(storage, monkeypatch):
                 "color_scale_mode": "reflectivity_dbz",
                 "tile_mode": "local_raster_tiles",
                 "tile_preview": {"built": 5, "max_z": 1, "tile_mode": "local_raster_tiles"},
+                "candidate": {"timestamp": "2026-06-28T13:26:38Z"},
                 "produced_local_artifact": True,
                 "preview_paths": [preview_path],
             }
         ),
         encoding="utf-8",
     )
-    overlay = build_decoded_overlay(storage)
+    overlay = build_decoded_overlay(storage, selected_timestamp="2026-06-28T13:26:38Z")
     assert overlay["tile_mode"] == "local_raster_tiles"
     assert overlay["tile_url_template"] == "/api/dev/decoded-overlay/tiles/{z}/{x}/{y}.png"
     assert overlay["tile_count"] == 5
@@ -118,6 +147,7 @@ def test_decoded_overlay_api_json(client, storage, monkeypatch):
                 "ran_at": "2026-06-28T14:00:00Z",
                 "pipeline_status": "preview_ok",
                 "render_mode": "decoded_prototype",
+                "candidate": {"timestamp": "2026-06-28T13:26:38Z"},
                 "produced_local_artifact": True,
                 "preview_paths": [preview_path],
             }
@@ -125,11 +155,11 @@ def test_decoded_overlay_api_json(client, storage, monkeypatch):
         encoding="utf-8",
     )
 
-    response = client.get("/api/dev/decoded-overlay")
+    response = client.get("/api/dev/decoded-overlay?timestamp=2026-06-28T13:26:38Z")
     assert response.status_code == 200
     body = response.json()
-    assert body["available"] is True
-    assert body["overlay_status"] == OVERLAY_STATUS_DECODED_PROTOTYPE
+    assert body["sync_status"] == "matched"
+    assert body["overlay_visible"] is True
     assert body["verified_mrms"] is False
 
 

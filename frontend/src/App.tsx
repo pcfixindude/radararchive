@@ -47,10 +47,10 @@ export default function App() {
   const [decodedOverlay, setDecodedOverlay] = useState<DecodedOverlayInfo | null>(null);
   const [decodedOverlayRefreshing, setDecodedOverlayRefreshing] = useState(false);
 
-  const refreshDecodedOverlay = async () => {
+  const refreshDecodedOverlay = async (timestamp?: string) => {
     setDecodedOverlayRefreshing(true);
     try {
-      const overlay = await fetchDecodedOverlay();
+      const overlay = await fetchDecodedOverlay(timestamp ?? (selectedTime || undefined));
       setDecodedOverlay(overlay);
     } finally {
       setDecodedOverlayRefreshing(false);
@@ -210,7 +210,10 @@ export default function App() {
     let cancelled = false;
 
     async function loadDecodedOverlay() {
-      const overlay = await fetchDecodedOverlay();
+      if (loadState !== 'ready') {
+        return;
+      }
+      const overlay = await fetchDecodedOverlay(selectedTime || undefined);
       if (!cancelled) {
         setDecodedOverlay(overlay);
       }
@@ -220,7 +223,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [selectedTime, loadState]);
 
   useEffect(() => {
     let cancelled = false;
@@ -313,7 +316,8 @@ export default function App() {
           <PlanSelector plan={selectedPlan} accessInfo={accessInfo} onChange={setSelectedPlan} />
           <DecodedOverlayPanel
             overlay={decodedOverlay}
-            onRefresh={refreshDecodedOverlay}
+            selectedTime={selectedTime}
+            onRefresh={() => refreshDecodedOverlay()}
             refreshing={decodedOverlayRefreshing}
           />
           <ValidationStatusPanel

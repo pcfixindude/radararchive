@@ -28,6 +28,14 @@ class DecodedOverlayResponse(BaseModel):
     tile_max_z: int = 0
     tile_count: int = 0
     tile_root: Optional[str] = None
+    artifact_available: bool = False
+    overlay_visible: bool = False
+    candidate_timestamp: Optional[str] = None
+    selected_timestamp: Optional[str] = None
+    sync_status: str = "no_selection"
+    sync_message: Optional[str] = None
+    georef_quality: str = "prototype_bounds"
+    georef_notes: list[str] = Field(default_factory=list)
     verified_mrms: bool = False
     local_dev_only: bool = True
     prototype: bool = True

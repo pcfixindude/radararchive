@@ -18,6 +18,7 @@ from backend.app.services.grib2_inspector import (
     is_inspectable_grib2_path,
     stage_grib2_gz,
 )
+from backend.app.services.overlay_sync import extract_timestamp_from_raw_path
 from backend.app.services.render_metadata import (
     build_geo_metadata_for_decode,
     enrich_geo_metadata_from_rasterio,
@@ -292,6 +293,7 @@ def decode_grib2_file(
     geo = build_geo_metadata_for_decode(
         grid_width=int(decode_info.get("width") or 0),
         grid_height=int(decode_info.get("height") or 0),
+        valid_timestamp=extract_timestamp_from_raw_path(raw_path),
     )
     raster_repo_for_geo = None
     raster_name = decode_info.get("raster_path")

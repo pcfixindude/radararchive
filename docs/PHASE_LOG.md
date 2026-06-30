@@ -3401,3 +3401,34 @@ make decode-retry
 - `geo_accurate` false — prototype/rasterio bounds only
 - Not production authorization
 
+## Phase 107 - Time Synced Playback and Georef Overlay
+
+Sync decoded overlay with frontend time slider; improve georef metadata; show mismatch/stale state; refresh via decode-retry.
+
+### Backend
+- `overlay_sync.py` — candidate timestamp extraction, sync evaluation (`matched`, `mismatch`, `no_selection`, `no_candidate_timestamp`)
+- `georef_overlay.py` — bounds quality (`prototype_bounds`, `rasterio_bounds`, `rasterio_wgs84_affine`) + notes
+- `decoded_overlay.py` — `artifact_available`, `overlay_visible`, sync fields; tiles gated on sync
+- `GET /api/dev/decoded-overlay?timestamp=` — optional selected frame
+
+### Frontend
+- `App.tsx` — refetch overlay when `selectedTime` changes
+- `WeatherMap.tsx` — render overlay only when `overlay_visible`
+- `DecodedOverlayPanel.tsx` — sync status, timestamps, georef quality/notes
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make decode-retry
+make backend
+make frontend
+```
+
+### Known limitations
+- Only one local decoded frame — demo catalog times often mismatch
+- `geo_accurate` false — rasterio bounds/affine are prototype placement hints only
+- Does not verify MRMS or enable production tile serving
+- Not production authorization
+

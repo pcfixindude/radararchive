@@ -1,6 +1,8 @@
 """Local dev decoded map overlay API — prototype only, not verified MRMS."""
 
-from fastapi import APIRouter, HTTPException
+from typing import Optional
+
+from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import Response
 
 from backend.app.config import settings
@@ -27,9 +29,11 @@ def _storage() -> LocalStorage:
 
 
 @router.get("/decoded-overlay", response_model=DecodedOverlayResponse)
-def get_decoded_overlay() -> DecodedOverlayResponse:
+def get_decoded_overlay(
+    timestamp: Optional[str] = Query(None, description="Selected catalog timestamp for overlay sync"),
+) -> DecodedOverlayResponse:
     """Compact local decoded preview overlay metadata for the map shell."""
-    payload = build_decoded_overlay(_storage())
+    payload = build_decoded_overlay(_storage(), selected_timestamp=timestamp)
     return DecodedOverlayResponse(**payload)
 
 

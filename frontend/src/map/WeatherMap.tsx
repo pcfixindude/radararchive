@@ -56,7 +56,7 @@ export default function WeatherMap({
   const maxzoom = layerMeta?.maxzoom ?? undefined;
 
   const overlayActive =
-    Boolean(decodedOverlay?.available && decodedOverlay.bounds?.length === 4);
+    Boolean(decodedOverlay?.overlay_visible && decodedOverlay.bounds?.length === 4);
   const overlayTileTemplate = decodedOverlay ? decodedOverlayTileUrlTemplate(decodedOverlay) : null;
   const useOverlayTiles = Boolean(overlayActive && overlayTileTemplate);
   const overlayStatus = decodedOverlay?.overlay_status ?? 'missing';
@@ -301,13 +301,15 @@ export default function WeatherMap({
                   : 'Checking tile availability...';
 
   const overlayBadge =
-    overlayStatus === 'decoded_prototype'
+    decodedOverlay?.sync_status === 'matched'
       ? useOverlayTiles
-        ? 'Decoded color tiles — local dev only'
-        : 'Decoded color overlay — local dev only'
-      : overlayActive
-        ? `${overlayStatus.replace(/_/g, ' ')} overlay — local dev only`
-        : 'No decoded overlay — run make decode-retry';
+        ? 'Decoded color tiles synced — local dev only'
+        : 'Decoded color overlay synced — local dev only'
+      : decodedOverlay?.sync_status === 'mismatch'
+        ? 'Decoded overlay hidden — time mismatch'
+        : overlayActive
+          ? `${overlayStatus.replace(/_/g, ' ')} overlay — local dev only`
+          : 'Select matching catalog frame for decoded overlay';
 
   return (
     <section className="map-panel" aria-label="Weather map">

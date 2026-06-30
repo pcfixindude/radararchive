@@ -4270,15 +4270,24 @@ export type DecodedOverlayInfo = {
   tile_max_z?: number;
   tile_count?: number;
   tile_root?: string | null;
+  artifact_available?: boolean;
+  overlay_visible?: boolean;
+  candidate_timestamp?: string | null;
+  selected_timestamp?: string | null;
+  sync_status?: string;
+  sync_message?: string | null;
+  georef_quality?: string;
+  georef_notes?: string[];
   verified_mrms: boolean;
   local_dev_only: boolean;
   prototype: boolean;
   production_tile_serving: boolean;
 };
 
-export async function fetchDecodedOverlay(): Promise<DecodedOverlayInfo | null> {
+export async function fetchDecodedOverlay(selectedTimestamp?: string): Promise<DecodedOverlayInfo | null> {
   try {
-    const response = await fetch(`${API_BASE}/api/dev/decoded-overlay`);
+    const query = selectedTimestamp ? `?timestamp=${encodeURIComponent(selectedTimestamp)}` : '';
+    const response = await fetch(`${API_BASE}/api/dev/decoded-overlay${query}`);
     if (!response.ok) {
       return null;
     }

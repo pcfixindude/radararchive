@@ -8,6 +8,7 @@ from typing import Any, Optional
 from backend.app.config import settings
 from backend.app.services.color_scale import COLOR_SCALE_MODE
 from backend.app.services.decode_retry import load_decode_retry_report
+from backend.app.services.georef_overlay import resolve_georef_overlay
 from backend.app.services.mrms_local_render_pipeline import (
     PREVIEW_DIR,
     STATUS_DECODER_MISSING,
@@ -15,7 +16,11 @@ from backend.app.services.mrms_local_render_pipeline import (
     STATUS_STUB_INPUT,
     load_local_render_pipeline_report,
 )
-from backend.app.services.render_metadata import DEFAULT_MRMS_BOUNDS, load_geo_metadata
+from backend.app.services.overlay_sync import (
+    SYNC_MATCHED,
+    evaluate_overlay_sync,
+    extract_candidate_timestamp,
+)
 from backend.app.services.storage import LocalStorage
 from backend.app.services.tile_preview import (
     LOCAL_TILE_ROOT,
@@ -51,7 +56,12 @@ def _safety_fields() -> dict[str, Any]:
     }
 
 
-def _default_labels(*, overlay_status: str, color_scale_mode: Optional[str]) -> list[str]:
+def _default_labels(
+    *,
+    overlay_status: str,
+    color_scale_mode: Optional[str],
+    sync_status: str,
+) -> list[str]:
     labels = [
         "Local dev prototype overlay",
         "NOT verified MRMS",
@@ -59,6 +69,10 @@ def _default_labels(*, overlay_status: str, color_scale_mode: Optional[str]) -> 
     ]
     if color_scale_mode == COLOR_SCALE_MODE:
         labels.append("Reflectivity dBZ color scale (prototype)")
+    if sync_status == SYNC_MATCHED:
+        labels.append("Synced to selected catalog frame")
+    elif sync_status == "mismatch":
+        labels.append("Time mismatch — overlay hidden")
     if overlay_status == OVERLAY_STATUS_DECODED_PROTOTYPE:
         labels.append("Decoded prototype preview")
     elif overlay_status == OVERLAY_STATUS_PLACEHOLDER:
@@ -78,23 +92,6 @@ def _file_mtime_iso(storage: LocalStorage, repo_path: str) -> Optional[str]:
         return datetime.fromtimestamp(mtime, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     except OSError:
         return None
-
-
-def _resolve_georef(
-    storage: LocalStorage,
-    decode_output_dir: Optional[str],
-) -> tuple[list[float], str, bool]:
-    if not decode_output_dir:
-        return list(DEFAULT_MRMS_BOUNDS), "prototype_bounds", False
-
-    geo = load_geo_metadata(storage, decode_output_dir)
-    if geo is None or len(geo.bounds) != 4:
-        return list(DEFAULT_MRMS_BOUNDS), "prototype_bounds", False
-
-    georef_mode = "prototype_bounds"
-    if any("Enriched from rasterio" in note for note in geo.notes):
-        georef_mode = "rasterio_bounds"
-    return [float(v) for v in geo.bounds], georef_mode, bool(geo.geo_accurate)
 
 
 def _overlay_status_from_pipeline(pipeline: dict[str, Any]) -> str:
@@ -122,7 +119,7 @@ def resolve_preview_repo_path(storage: LocalStorage, pipeline: Optional[dict[str
     return None
 
 
-def _pipeline_tile_fields(pipeline: Optional[dict[str, Any]]) -> dict[str, Any]:
+def _pipeline_tile_fields(pipeline: Optional[dict[str, Any]], *, overlay_visible: bool) -> dict[str, Any]:
     if not pipeline:
         return {
             "color_scale_mode": None,
@@ -136,7 +133,7 @@ def _pipeline_tile_fields(pipeline: Optional[dict[str, Any]]) -> dict[str, Any]:
     tile_mode = pipeline.get("tile_mode") or tile_preview.get("tile_mode") or TILE_MODE_SINGLE_IMAGE
     tile_count = int(tile_preview.get("built") or 0)
     tile_max_z = int(tile_preview.get("max_z") or 0)
-    use_tiles = tile_mode == TILE_MODE_LOCAL_RASTER and tile_count > 0
+    use_tiles = overlay_visible and tile_mode == TILE_MODE_LOCAL_RASTER and tile_count > 0
     return {
         "color_scale_mode": pipeline.get("color_scale_mode"),
         "tile_mode": tile_mode if use_tiles else TILE_MODE_SINGLE_IMAGE,
@@ -147,12 +144,15 @@ def _pipeline_tile_fields(pipeline: Optional[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def build_decoded_overlay(storage: LocalStorage) -> dict[str, Any]:
+def build_decoded_overlay(
+    storage: LocalStorage,
+    *,
+    selected_timestamp: Optional[str] = None,
+) -> dict[str, Any]:
     pipeline = load_local_render_pipeline_report(storage)
     decode_retry = load_decode_retry_report(storage)
     preview_path = resolve_preview_repo_path(storage, pipeline)
     overlay_status = _overlay_status_from_pipeline(pipeline) if pipeline else OVERLAY_STATUS_MISSING
-    tile_fields = _pipeline_tile_fields(pipeline)
 
     decode_output_dir = None
     if pipeline:
@@ -160,40 +160,70 @@ def build_decoded_overlay(storage: LocalStorage) -> dict[str, Any]:
     if decode_retry and decode_retry.get("decode", {}).get("output_dir"):
         decode_output_dir = decode_retry["decode"]["output_dir"]
 
-    bounds, georef_mode, geo_accurate = _resolve_georef(storage, decode_output_dir)
-    preview_mtime = _file_mtime_iso(storage, preview_path) if preview_path else None
-    ran_at = (pipeline or {}).get("ran_at") or (decode_retry or {}).get("ran_at")
-
-    stale_hint = None
-    if preview_mtime and ran_at and preview_mtime < ran_at:
-        stale_hint = "Preview file older than last pipeline report — rerun make decode-retry"
-
-    available = bool(preview_path and storage.path_exists(preview_path))
     candidate_raw_path = None
     if pipeline and pipeline.get("candidate"):
         candidate_raw_path = pipeline["candidate"].get("raw_path")
     elif decode_retry and decode_retry.get("candidate"):
         candidate_raw_path = decode_retry["candidate"].get("raw_path")
 
+    from backend.app.services.render_metadata import load_geo_metadata
+
+    geo = load_geo_metadata(storage, decode_output_dir) if decode_output_dir else None
+    candidate_timestamp = extract_candidate_timestamp(
+        pipeline=pipeline,
+        decode_retry=decode_retry,
+        geo=geo,
+        candidate_raw_path=candidate_raw_path,
+    )
+    sync = evaluate_overlay_sync(
+        selected_timestamp=selected_timestamp,
+        candidate_timestamp=candidate_timestamp,
+    )
+    overlay_visible = bool(sync["overlay_visible"])
+
+    georef = resolve_georef_overlay(storage, decode_output_dir)
+    tile_fields = _pipeline_tile_fields(pipeline, overlay_visible=overlay_visible)
+
+    preview_mtime = _file_mtime_iso(storage, preview_path) if preview_path else None
+    ran_at = (pipeline or {}).get("ran_at") or (decode_retry or {}).get("ran_at")
+
+    stale_hint = None
+    if preview_mtime and ran_at and preview_mtime < ran_at:
+        stale_hint = "Preview file older than last pipeline report — rerun make decode-retry"
+    if sync["sync_status"] == "mismatch":
+        stale_hint = sync["sync_message"]
+
+    artifact_available = bool(preview_path and storage.path_exists(preview_path))
+    available = artifact_available and overlay_visible
+
     color_scale_mode = tile_fields.get("color_scale_mode")
     return {
         "available": available,
-        "overlay_status": overlay_status if available else OVERLAY_STATUS_MISSING,
+        "artifact_available": artifact_available,
+        "overlay_visible": overlay_visible,
+        "overlay_status": overlay_status if artifact_available else OVERLAY_STATUS_MISSING,
         "render_mode": (pipeline or {}).get("render_mode"),
         "pipeline_status": (pipeline or {}).get("pipeline_status"),
-        "preview_url": PREVIEW_API_PATH if available else None,
+        "preview_url": PREVIEW_API_PATH if artifact_available and overlay_visible else None,
         "preview_path": preview_path,
         "ran_at": ran_at,
         "preview_mtime": preview_mtime,
         "stale_hint": stale_hint,
-        "bounds": bounds,
-        "georef_mode": georef_mode,
-        "geo_accurate": geo_accurate,
+        "bounds": georef["bounds"],
+        "georef_mode": georef["georef_mode"],
+        "georef_quality": georef["georef_quality"],
+        "georef_notes": georef.get("georef_notes") or [],
+        "geo_accurate": georef["geo_accurate"],
+        "candidate_timestamp": sync.get("candidate_timestamp"),
+        "selected_timestamp": sync.get("selected_timestamp"),
+        "sync_status": sync["sync_status"],
+        "sync_message": sync["sync_message"],
         "candidate_raw_path": candidate_raw_path,
         "decode_output_dir": decode_output_dir,
         "labels": _default_labels(
-            overlay_status=overlay_status if available else OVERLAY_STATUS_MISSING,
+            overlay_status=overlay_status if artifact_available else OVERLAY_STATUS_MISSING,
             color_scale_mode=color_scale_mode,
+            sync_status=str(sync["sync_status"]),
         ),
         "refresh_commands": list(SUGGESTED_REFRESH_COMMANDS),
         **tile_fields,

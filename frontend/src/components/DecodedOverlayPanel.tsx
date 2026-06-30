@@ -10,17 +10,29 @@ function statusClass(status: string): string {
   return 'decoded-overlay-badge--placeholder';
 }
 
+function syncClass(syncStatus?: string): string {
+  if (syncStatus === 'matched') {
+    return 'decoded-overlay-badge--decoded';
+  }
+  if (syncStatus === 'mismatch') {
+    return 'decoded-overlay-badge--placeholder';
+  }
+  return 'decoded-overlay-badge--missing';
+}
+
 export default function DecodedOverlayPanel({
   overlay,
+  selectedTime,
   onRefresh,
   refreshing,
 }: {
   overlay: DecodedOverlayInfo | null;
+  selectedTime: string;
   onRefresh: () => void;
   refreshing: boolean;
 }) {
   const status = overlay?.overlay_status ?? 'missing';
-  const available = overlay?.available ?? false;
+  const syncStatus = overlay?.sync_status ?? 'no_selection';
 
   return (
     <section className="decoded-overlay-panel" aria-label="Decoded preview overlay">
@@ -31,13 +43,22 @@ export default function DecodedOverlayPanel({
         </button>
       </div>
       <p className={`decoded-overlay-badge ${statusClass(status)}`}>
-        {available ? status.replace(/_/g, ' ') : 'missing'}
+        {status.replace(/_/g, ' ')}
+      </p>
+      <p className={`decoded-overlay-badge ${syncClass(syncStatus)}`}>
+        sync: {syncStatus.replace(/_/g, ' ')}
       </p>
       <ul className="decoded-overlay-labels">
         {(overlay?.labels ?? ['Local dev prototype', 'NOT verified MRMS']).map((label) => (
           <li key={label}>{label}</li>
         ))}
       </ul>
+      <p className="decoded-overlay-meta">
+        Selected time: <code>{selectedTime || '—'}</code>
+      </p>
+      <p className="decoded-overlay-meta">
+        Decoded candidate: <code>{overlay?.candidate_timestamp ?? '—'}</code>
+      </p>
       <p className="decoded-overlay-meta">
         Render mode: <code>{overlay?.render_mode ?? '—'}</code>
       </p>
@@ -50,17 +71,15 @@ export default function DecodedOverlayPanel({
       </p>
       {overlay?.georef_mode ? (
         <p className="decoded-overlay-meta">
-          Georef: <code>{overlay.georef_mode}</code>
+          Georef: <code>{overlay.georef_quality ?? overlay.georef_mode}</code>
           {overlay.geo_accurate ? ' (geo-accurate)' : ' (prototype placement)'}
         </p>
       ) : null}
-      {overlay?.ran_at ? (
-        <p className="decoded-overlay-meta">
-          Pipeline ran: <code>{overlay.ran_at}</code>
-        </p>
+      {overlay?.sync_message ? <p className="decoded-overlay-warn">{overlay.sync_message}</p> : null}
+      {overlay?.stale_hint && overlay.sync_status !== 'mismatch' ? (
+        <p className="decoded-overlay-warn">{overlay.stale_hint}</p>
       ) : null}
-      {overlay?.stale_hint ? <p className="decoded-overlay-warn">{overlay.stale_hint}</p> : null}
-      {!available ? (
+      {!overlay?.artifact_available ? (
         <p className="decoded-overlay-hint">
           Run <code>make decode-retry</code> or <code>make mrms-local-render-pipeline</code>, then Refresh.
         </p>
