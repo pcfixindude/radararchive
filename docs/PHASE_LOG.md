@@ -3343,3 +3343,33 @@ make mrms-local-render-pipeline
 - wgrib2 not in default Homebrew; rasterio preferred
 - Not production authorization
 
+## Phase 105 - Wire Decoded Preview Map Overlay
+
+Wire local decoded_prototype preview PNG into the frontend map shell via dev API and MapLibre image overlay.
+
+### Backend
+- `decoded_overlay.py` — overlay metadata from pipeline report + geo_metadata bounds
+- `dev_overlay.py` API — `GET /api/dev/decoded-overlay`, `GET /api/dev/decoded-overlay/preview.png`
+- Georef: rasterio bounds when enriched; else prototype CONUS bounds
+
+### Frontend
+- `DecodedOverlayPanel.tsx` — status, labels, Refresh
+- `WeatherMap.tsx` — MapLibre image overlay layer
+- `fetchDecodedOverlay()` in `api/client.ts`
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make decode-retry
+make backend
+make frontend
+```
+
+### Known limitations
+- Does not verify MRMS or enable production tile serving
+- Overlay uses single preview tile (z0/x0/y0) — not full pyramid
+- `geo_accurate` false — prototype placement
+- Not production authorization
+

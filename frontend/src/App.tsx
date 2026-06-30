@@ -3,11 +3,13 @@ import {
   checkBackendHealth,
   DEFAULT_DEMO_PLAN,
   fetchAccessCurrent,
+  fetchDecodedOverlay,
   fetchLayers,
   fetchTimes,
   fetchTilesConfig,
   fetchRenderQueueSummary,
   fetchValidationSummary,
+  type DecodedOverlayInfo,
   type ValidationSummary,
   type AccessCurrentInfo,
   type DemoPlan,
@@ -21,6 +23,7 @@ import RadarOpacityControl from './components/RadarOpacityControl';
 import TimestampDisplay from './components/TimestampDisplay';
 import PlanSelector from './components/PlanSelector';
 import ValidationStatusPanel from './components/ValidationStatusPanel';
+import DecodedOverlayPanel from './components/DecodedOverlayPanel';
 import { usePlayback } from './hooks/usePlayback';
 import { DEFAULT_LAYER } from './map/layers';
 
@@ -41,6 +44,18 @@ export default function App() {
   const [renderJobHint, setRenderJobHint] = useState('');
   const [validationSummary, setValidationSummary] = useState<ValidationSummary | null>(null);
   const [validationRefreshing, setValidationRefreshing] = useState(false);
+  const [decodedOverlay, setDecodedOverlay] = useState<DecodedOverlayInfo | null>(null);
+  const [decodedOverlayRefreshing, setDecodedOverlayRefreshing] = useState(false);
+
+  const refreshDecodedOverlay = async () => {
+    setDecodedOverlayRefreshing(true);
+    try {
+      const overlay = await fetchDecodedOverlay();
+      setDecodedOverlay(overlay);
+    } finally {
+      setDecodedOverlayRefreshing(false);
+    }
+  };
 
   const refreshValidationSummary = async () => {
     setValidationRefreshing(true);
@@ -194,6 +209,22 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
 
+    async function loadDecodedOverlay() {
+      const overlay = await fetchDecodedOverlay();
+      if (!cancelled) {
+        setDecodedOverlay(overlay);
+      }
+    }
+
+    loadDecodedOverlay();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
     async function loadTimes() {
       if (loadState === 'backend_down') {
         return;
@@ -261,6 +292,7 @@ export default function App() {
           selectedOutsidePlan={selectedOutsidePlan}
           accessInfo={accessInfo}
           opacity={radarOpacity}
+          decodedOverlay={decodedOverlay}
         />
         <aside className="app-controls">
           {loadState === 'backend_down' ? (
@@ -279,6 +311,11 @@ export default function App() {
             <p className="warn-banner">Selected timestamp is not processed yet. Choose a processed frame or run process-once.</p>
           ) : null}
           <PlanSelector plan={selectedPlan} accessInfo={accessInfo} onChange={setSelectedPlan} />
+          <DecodedOverlayPanel
+            overlay={decodedOverlay}
+            onRefresh={refreshDecodedOverlay}
+            refreshing={decodedOverlayRefreshing}
+          />
           <ValidationStatusPanel
             summary={validationSummary}
             onRefresh={refreshValidationSummary}

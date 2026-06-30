@@ -4246,3 +4246,43 @@ export async function tileBlockedByPlan(layer: string, timestamp: string, plan: 
     return false;
   }
 }
+
+export type DecodedOverlayInfo = {
+  available: boolean;
+  overlay_status: string;
+  render_mode?: string | null;
+  pipeline_status?: string | null;
+  preview_url?: string | null;
+  preview_path?: string | null;
+  ran_at?: string | null;
+  preview_mtime?: string | null;
+  stale_hint?: string | null;
+  bounds: [number, number, number, number];
+  georef_mode: string;
+  geo_accurate: boolean;
+  candidate_raw_path?: string | null;
+  decode_output_dir?: string | null;
+  labels: string[];
+  refresh_commands: string[];
+  verified_mrms: boolean;
+  local_dev_only: boolean;
+  prototype: boolean;
+  production_tile_serving: boolean;
+};
+
+export async function fetchDecodedOverlay(): Promise<DecodedOverlayInfo | null> {
+  try {
+    const response = await fetch(`${API_BASE}/api/dev/decoded-overlay`);
+    if (!response.ok) {
+      return null;
+    }
+    return response.json() as Promise<DecodedOverlayInfo>;
+  } catch {
+    return null;
+  }
+}
+
+export function decodedOverlayPreviewUrl(overlay: DecodedOverlayInfo): string {
+  const version = encodeURIComponent(overlay.ran_at || overlay.preview_mtime || 'latest');
+  return `${API_BASE}${overlay.preview_url}?v=${version}`;
+}

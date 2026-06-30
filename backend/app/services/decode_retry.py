@@ -286,3 +286,16 @@ def save_decode_retry_report(storage: LocalStorage, report: dict[str, Any]) -> d
     )
     storage.absolute_path(md_path).write_text(build_retry_markdown(report), encoding="utf-8")
     return report
+
+
+def load_decode_retry_report(storage: LocalStorage) -> Optional[dict[str, Any]]:
+    abs_path = storage.absolute_path(storage.normalize_path(RETRY_JSON))
+    if not abs_path.is_file():
+        return None
+    try:
+        data = json.loads(abs_path.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            return data
+    except (json.JSONDecodeError, OSError):
+        pass
+    return None

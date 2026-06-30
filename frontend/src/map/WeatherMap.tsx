@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import type { AccessCurrentInfo, DemoPlan, Layer } from '../api/client';
-import { tileUrlTemplate, tilesAvailable, tileBlockedByPlan } from '../api/client';
+import type { AccessCurrentInfo, DecodedOverlayInfo, DemoPlan, Layer } from '../api/client';
+import { decodedOverlayPreviewUrl, tileUrlTemplate, tilesAvailable, tileBlockedByPlan } from '../api/client';
 import {
   BASEMAP_STYLE,
+  DECODED_OVERLAY_LAYER_ID,
+  DECODED_OVERLAY_SOURCE_ID,
   DEFAULT_CENTER,
   DEFAULT_ZOOM,
   RADAR_LAYER_ID,
@@ -25,6 +27,7 @@ export default function WeatherMap({
   selectedOutsidePlan,
   accessInfo,
   opacity,
+  decodedOverlay,
 }: {
   selectedTime: string;
   selectedLayer: string;
@@ -37,6 +40,7 @@ export default function WeatherMap({
   selectedOutsidePlan: boolean;
   accessInfo: AccessCurrentInfo | null;
   opacity: number;
+  decodedOverlay: DecodedOverlayInfo | null;
 }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -48,6 +52,10 @@ export default function WeatherMap({
   const bounds = layerMeta?.bounds ?? undefined;
   const minzoom = layerMeta?.minzoom ?? undefined;
   const maxzoom = layerMeta?.maxzoom ?? undefined;
+
+  const overlayActive =
+    Boolean(decodedOverlay?.available && decodedOverlay.preview_url && decodedOverlay.bounds?.length === 4);
+  const overlayStatus = decodedOverlay?.overlay_status ?? 'missing';
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) {
@@ -163,6 +171,50 @@ export default function WeatherMap({
 
   useEffect(() => {
     const map = mapRef.current;
+    if (!map || !mapReady) {
+      return;
+    }
+
+    const removeOverlay = () => {
+      if (map.getLayer(DECODED_OVERLAY_LAYER_ID)) {
+        map.removeLayer(DECODED_OVERLAY_LAYER_ID);
+      }
+      if (map.getSource(DECODED_OVERLAY_SOURCE_ID)) {
+        map.removeSource(DECODED_OVERLAY_SOURCE_ID);
+      }
+    };
+
+    if (!overlayActive || !decodedOverlay) {
+      removeOverlay();
+      return;
+    }
+
+    const [west, south, east, north] = decodedOverlay.bounds;
+    removeOverlay();
+
+    map.addSource(DECODED_OVERLAY_SOURCE_ID, {
+      type: 'image',
+      url: decodedOverlayPreviewUrl(decodedOverlay),
+      coordinates: [
+        [west, north],
+        [east, north],
+        [east, south],
+        [west, south],
+      ],
+    });
+
+    map.addLayer({
+      id: DECODED_OVERLAY_LAYER_ID,
+      type: 'raster',
+      source: DECODED_OVERLAY_SOURCE_ID,
+      paint: {
+        'raster-opacity': Math.min(1, opacity + 0.1),
+      },
+    });
+  }, [mapReady, overlayActive, decodedOverlay, opacity]);
+
+  useEffect(() => {
+    const map = mapRef.current;
     if (!map || !mapReady || !bounds) {
       return;
     }
@@ -183,6 +235,14 @@ export default function WeatherMap({
     map.setPaintProperty(RADAR_LAYER_ID, 'raster-opacity', opacity);
   }, [opacity, mapReady]);
 
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady || !map.getLayer(DECODED_OVERLAY_LAYER_ID)) {
+      return;
+    }
+    map.setPaintProperty(DECODED_OVERLAY_LAYER_ID, 'raster-opacity', Math.min(1, opacity + 0.1));
+  }, [opacity, mapReady]);
+
   const statusMessage = backendDown
     ? 'Backend unavailable.'
     : loading
@@ -201,10 +261,20 @@ export default function WeatherMap({
                   ? 'Placeholder tiles active'
                   : 'Checking tile availability...';
 
+  const overlayBadge =
+    overlayStatus === 'decoded_prototype'
+      ? 'Decoded prototype overlay — local dev only'
+      : overlayActive
+        ? `${overlayStatus.replace(/_/g, ' ')} overlay — local dev only`
+        : 'No decoded overlay — run make decode-retry';
+
   return (
     <section className="map-panel" aria-label="Weather map">
       <div ref={mapContainerRef} className="map-container" />
       <div className="map-badge">Placeholder tiles — not real radar</div>
+      <div className={`map-badge map-badge--overlay ${overlayActive ? 'map-badge--overlay-active' : ''}`}>
+        {overlayBadge}
+      </div>
       <p className="map-status">{statusMessage}</p>
     </section>
   );

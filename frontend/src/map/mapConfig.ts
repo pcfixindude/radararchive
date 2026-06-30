@@ -6,3 +6,6 @@ export const DEFAULT_ZOOM = 5;
 
 export const RADAR_SOURCE_ID = 'radar-placeholder';
 export const RADAR_LAYER_ID = 'radar-placeholder-layer';
+
+export const DECODED_OVERLAY_SOURCE_ID = 'decoded-overlay';
+export const DECODED_OVERLAY_LAYER_ID = 'decoded-overlay-layer';

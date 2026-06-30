@@ -21,6 +21,15 @@ html, body, #root { height: 100%; margin: 0; font-family: system-ui, -apple-syst
   font-size: 0.8rem;
   pointer-events: none;
 }
+.map-badge--overlay {
+  top: 2.35rem;
+  background: rgba(30, 64, 175, 0.92);
+  color: #dbeafe;
+}
+.map-badge--overlay-active {
+  background: rgba(22, 101, 52, 0.92);
+  color: #bbf7d0;
+}
 .map-status {
   position: absolute;
   left: 0.75rem;
@@ -272,6 +281,69 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
 .validation-status-badge--no_data {
   background: #334155;
   color: #cbd5e1;
+}
+.decoded-overlay-panel {
+  margin-top: 0.75rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #0f172a;
+}
+.decoded-overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.decoded-overlay-header h2 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+.decoded-overlay-refresh {
+  padding: 0.2rem 0.55rem;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  background: #1e293b;
+  color: #e2e8f0;
+  cursor: pointer;
+}
+.decoded-overlay-badge {
+  display: inline-block;
+  margin: 0.45rem 0 0.25rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: lowercase;
+}
+.decoded-overlay-badge--decoded {
+  background: #14532d;
+  color: #bbf7d0;
+}
+.decoded-overlay-badge--placeholder {
+  background: #78350f;
+  color: #fde68a;
+}
+.decoded-overlay-badge--missing {
+  background: #334155;
+  color: #cbd5e1;
+}
+.decoded-overlay-labels,
+.decoded-overlay-commands {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+}
+.decoded-overlay-meta,
+.decoded-overlay-hint,
+.decoded-overlay-warn {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+.decoded-overlay-warn {
+  color: #fde68a;
 }
 .validation-command-line {
   word-break: break-word;
