@@ -4308,6 +4308,48 @@ export type FramePrefetchResponse = {
   frames: FramePrefetchInfo[];
 };
 
+export type FrameCacheStatusItem = {
+  timestamp: string;
+  cache_state: string;
+};
+
+export type PlaybackCacheStatus = {
+  frames: FrameCacheStatusItem[];
+  frame_count: number;
+  warmed_count: number;
+  missing_count: number;
+  cold_count: number;
+  failed_count: number;
+  stub_count: number;
+  playback_ready: boolean;
+  cache_warm_available: boolean;
+  cache_warm_ran_at?: string | null;
+  cache_warm_status?: string | null;
+  next_commands: string[];
+};
+
+export async function fetchPlaybackCacheStatus(
+  timestamps: string[],
+): Promise<PlaybackCacheStatus | null> {
+  if (timestamps.length === 0) {
+    return null;
+  }
+  try {
+    const params = new URLSearchParams({
+      timestamps: timestamps.join(','),
+    });
+    const response = await fetch(
+      `${API_BASE}/api/dev/decoded-overlay/cache-status?${params.toString()}`,
+    );
+    if (!response.ok) {
+      return null;
+    }
+    return response.json() as Promise<PlaybackCacheStatus>;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchDecodedOverlay(
   selectedTimestamp?: string,
   options: { refresh?: boolean } = {},

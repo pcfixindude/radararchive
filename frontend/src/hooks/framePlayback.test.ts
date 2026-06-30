@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   adjacentTimestamps,
+  cacheStateLabel,
   overlayToFrameStatus,
   playbackStatusLabel,
 } from '../hooks/framePlayback';
@@ -49,5 +50,13 @@ describe('adjacentTimestamps', () => {
 describe('playbackStatusLabel', () => {
   it('labels decoding state', () => {
     expect(playbackStatusLabel('decoding')).toBe('decoding');
+  });
+});
+
+describe('cacheStateLabel', () => {
+  it('labels cache states for slider UI', () => {
+    expect(cacheStateLabel('ready')).toBe('cached');
+    expect(cacheStateLabel('cold_decodable')).toBe('cold');
+    expect(cacheStateLabel('missing_raw')).toBe('no raw');
   });
 });

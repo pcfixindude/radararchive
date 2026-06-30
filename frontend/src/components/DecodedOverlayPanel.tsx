@@ -1,5 +1,5 @@
-import type { DecodedOverlayInfo } from '../api/client';
-import { playbackStatusLabel, type PlaybackFrameStatus } from '../hooks/framePlayback';
+import type { DecodedOverlayInfo, PlaybackCacheStatus } from '../api/client';
+import { cacheStateLabel, playbackStatusLabel, type PlaybackFrameStatus } from '../hooks/framePlayback';
 
 function statusClass(status: string): string {
   if (status === 'decoded_prototype') {
@@ -28,17 +28,20 @@ export default function DecodedOverlayPanel({
   overlay,
   selectedTime,
   playbackFrameStatus = 'idle',
+  cacheStatus = null,
   onRefresh,
   refreshing,
 }: {
   overlay: DecodedOverlayInfo | null;
   selectedTime: string;
   playbackFrameStatus?: PlaybackFrameStatus;
+  cacheStatus?: PlaybackCacheStatus | null;
   onRefresh: () => void;
   refreshing: boolean;
 }) {
   const status = overlay?.overlay_status ?? 'missing';
   const syncStatus = overlay?.sync_status ?? 'no_selection';
+  const selectedCacheState = cacheStatus?.frames.find((frame) => frame.timestamp === selectedTime)?.cache_state;
 
   return (
     <section className="decoded-overlay-panel" aria-label="Decoded preview overlay">
@@ -79,9 +82,29 @@ export default function DecodedOverlayPanel({
           Nearest decoded: <code>{overlay.nearest_decoded_timestamp}</code>
         </p>
       ) : null}
-      {overlay?.playback_ready ? (
+      {cacheStatus ? (
         <p className="decoded-overlay-meta">
-          Playback cache: <code>ready ({overlay.cache_warm_matched}/{overlay.cache_warm_considered} warmed)</code>
+          Window cache: <code>{cacheStatus.warmed_count} ready</code>,{' '}
+          <code>{cacheStatus.cold_count} cold</code>,{' '}
+          <code>{cacheStatus.missing_count} missing</code>
+          {cacheStatus.cache_warm_ran_at ? (
+            <> (warm {cacheStatus.cache_warm_ran_at})</>
+          ) : null}
+        </p>
+      ) : null}
+      {selectedCacheState ? (
+        <p className="decoded-overlay-meta">
+          Frame cache: <code>{cacheStateLabel(selectedCacheState)}</code>
+        </p>
+      ) : null}
+      {!cacheStatus?.playback_ready && cacheStatus?.next_commands?.length ? (
+        <p className="decoded-overlay-hint">
+          Cold cache — run <code>{cacheStatus.next_commands[0]}</code>
+        </p>
+      ) : null}
+      {overlay?.playback_ready || cacheStatus?.playback_ready ? (
+        <p className="decoded-overlay-meta">
+          Playback cache: <code>ready ({overlay?.cache_warm_matched ?? cacheStatus?.warmed_count}/{overlay?.cache_warm_considered ?? cacheStatus?.frame_count} warmed)</code>
         </p>
       ) : overlay?.cache_warm_available ? (
         <p className="decoded-overlay-meta">

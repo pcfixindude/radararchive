@@ -31,6 +31,7 @@ export default function WeatherMap({
   accessInfo,
   opacity,
   decodedOverlay,
+  overlayTransitioning = false,
   playbackFrameStatus = 'idle',
 }: {
   selectedTime: string;
@@ -45,6 +46,7 @@ export default function WeatherMap({
   accessInfo: AccessCurrentInfo | null;
   opacity: number;
   decodedOverlay: DecodedOverlayInfo | null;
+  overlayTransitioning?: boolean;
   playbackFrameStatus?: PlaybackFrameStatus;
 }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
@@ -196,7 +198,9 @@ export default function WeatherMap({
     };
 
     if (!overlayActive || !decodedOverlay) {
-      removeOverlay();
+      if (!overlayTransitioning) {
+        removeOverlay();
+      }
       return;
     }
 
@@ -246,7 +250,7 @@ export default function WeatherMap({
         'raster-opacity': Math.min(1, opacity + 0.1),
       },
     });
-  }, [mapReady, overlayActive, useOverlayTiles, overlayTileTemplate, decodedOverlay, opacity]);
+  }, [mapReady, overlayActive, useOverlayTiles, overlayTileTemplate, decodedOverlay, opacity, overlayTransitioning]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -304,9 +308,11 @@ export default function WeatherMap({
                   : 'Checking tile availability...';
 
   const overlayBadge =
-    playbackFrameStatus === 'decoding'
-      ? 'Decoding selected frame…'
-      : decodedOverlay?.sync_status === 'matched'
+    overlayTransitioning
+      ? 'Loading next frame…'
+      : playbackFrameStatus === 'decoding'
+        ? 'Decoding selected frame…'
+        : decodedOverlay?.sync_status === 'matched'
       ? useOverlayTiles
         ? 'Decoded color tiles synced — local dev only'
         : 'Decoded color overlay synced — local dev only'

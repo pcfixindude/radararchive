@@ -24,6 +24,7 @@ import ValidationStatusPanel from './components/ValidationStatusPanel';
 import DecodedOverlayPanel from './components/DecodedOverlayPanel';
 import { usePlayback } from './hooks/usePlayback';
 import { useFrameOverlay } from './hooks/useFrameOverlay';
+import { usePlaybackCacheStatus } from './hooks/usePlaybackCacheStatus';
 import { DEFAULT_LAYER } from './map/layers';
 
 type LoadState = 'loading' | 'ready' | 'backend_down' | 'error';
@@ -90,11 +91,17 @@ export default function App() {
 
   const {
     decodedOverlay,
+    displayOverlay,
     frameStatus: playbackFrameStatus,
     refreshing: decodedOverlayRefreshing,
     refreshDecodedOverlay,
     clearFrameCache,
   } = useFrameOverlay(playbackTimes, selectedTime, playing, loadState === 'ready');
+
+  const { cacheStatus, refetchCacheStatus } = usePlaybackCacheStatus(
+    playbackTimes,
+    loadState === 'ready',
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -275,7 +282,8 @@ export default function App() {
           selectedOutsidePlan={selectedOutsidePlan}
           accessInfo={accessInfo}
           opacity={radarOpacity}
-          decodedOverlay={decodedOverlay}
+          decodedOverlay={displayOverlay}
+          overlayTransitioning={decodedOverlayRefreshing && playbackFrameStatus === 'decoding'}
           playbackFrameStatus={playbackFrameStatus}
         />
         <aside className="app-controls">
@@ -299,7 +307,11 @@ export default function App() {
             overlay={decodedOverlay}
             selectedTime={selectedTime}
             playbackFrameStatus={playbackFrameStatus}
-            onRefresh={() => refreshDecodedOverlay()}
+            cacheStatus={cacheStatus}
+            onRefresh={async () => {
+              await refreshDecodedOverlay();
+              refetchCacheStatus();
+            }}
             refreshing={decodedOverlayRefreshing}
           />
           <ValidationStatusPanel
@@ -314,8 +326,9 @@ export default function App() {
             totalCount={times.length}
           />
           <TimeSlider
-            times={times}
+            times={playbackTimes}
             selectedTime={selectedTime}
+            cacheStatus={cacheStatus}
             onSelect={(time) => {
               setPlaying(false);
               setSelectedTime(time);
@@ -329,6 +342,7 @@ export default function App() {
             playing={playing}
             speed={speed}
             playbackFrameStatus={playbackFrameStatus}
+            cacheStatus={cacheStatus}
             onTogglePlay={togglePlay}
             onStepBackward={() => {
               setPlaying(false);

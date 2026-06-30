@@ -9,6 +9,7 @@ import sys
 from backend.app.config import MRMS_SOURCE_MODE_REAL, settings
 from backend.app.database import get_session_factory, init_db
 from backend.app.demo.seed import catalog_is_empty, seed_demo_catalog
+from backend.app.services.frame_cache_warmer import run_cache_warm
 from backend.app.services.mrms_bulk_ingest import (
     DEFAULT_LIMIT,
     MAX_LIMIT,
@@ -52,6 +53,11 @@ def main() -> None:
         action="store_true",
         help="Re-download even when local raw file already exists",
     )
+    parser.add_argument(
+        "--warm-cache",
+        action="store_true",
+        help="After ingest, run bounded frame cache warm (optional, slower)",
+    )
     parser.add_argument("--json-report", action="store_true", help="Print full JSON report")
     args = parser.parse_args()
 
@@ -86,6 +92,24 @@ def main() -> None:
             limit=args.limit,
             force=args.force,
         )
+        if args.warm_cache and report.get("ingest_status") in {"ok", "partial"}:
+            warm_report = run_cache_warm(
+                session,
+                storage,
+                start_time=args.start,
+                end_time=args.end,
+                limit=args.limit,
+                force=False,
+                real_only=True,
+            )
+            report["auto_cache_warm"] = {
+                "enabled": True,
+                "warm_status": warm_report.get("warm_status"),
+                "frames_matched": warm_report.get("frames_matched"),
+                "frames_decoded": warm_report.get("frames_decoded"),
+                "frames_failed": warm_report.get("frames_failed"),
+                "json_path": warm_report.get("json_path"),
+            }
         session.commit()
     finally:
         session.close()
@@ -114,6 +138,11 @@ def main() -> None:
         print(f"  failure: {item.get('timestamp')} — {item.get('error')}")
     for cmd in report.get("next_commands") or []:
         print(f"  next: {cmd}")
+    auto_warm = report.get("auto_cache_warm") or {}
+    if auto_warm.get("enabled"):
+        print(f"  cache_warm_status: {auto_warm.get('warm_status')}")
+        print(f"  cache_warm_matched: {auto_warm.get('frames_matched')}")
+        print(f"  cache_warm_json: {auto_warm.get('json_path')}")
     print(f"  json_path: {report.get('json_path')}")
     print(f"  markdown_path: {report.get('markdown_path')}")
 

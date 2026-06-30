@@ -3550,3 +3550,39 @@ make frontend
 - Requires local raw MRMS files (run bulk ingest first)
 - Does not verify MRMS or enable production tile serving
 
+## Phase 112 - Playback Polish and Cache Status UI
+
+Make warm-vs-cold cache state visible during playback; smoother frame transitions; optional post-ingest warm.
+
+### Backend
+- `playback_cache_status.py` — `build_playback_cache_status()`, `resolve_frame_cache_state()`
+- `GET /api/dev/decoded-overlay/cache-status` — per-frame `cache_state` + window counts
+- `scripts/mrms_bulk_local_ingest.py` — optional `--warm-cache` after ingest
+- Ingest report hints: `make mrms-warm-frame-cache` and `--warm-cache` variant
+
+### Frontend
+- `TimeSlider` — per-frame cache dots + summary
+- `PlaybackControls` / `DecodedOverlayPanel` — window cache counts + warm hint
+- `usePlaybackCacheStatus` — cache-status API hook
+- `useFrameOverlay` — `displayOverlay` hold during decode
+- `WeatherMap` — transition badge; overlay hold during decode
+
+### Reports / cache
+- `data/dev/mrms_cache_warm_latest.json`
+- `data/dev/mrms_frame_cache/{timestamp_token}/`
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make mrms-bulk-local-ingest ARGS='--real --limit 8 --warm-cache'
+make backend
+make frontend
+```
+
+### Known limitations
+- Cache status is local-dev/prototype only — not verification
+- Auto-warm is optional and bounded (same limit as ingest)
+- Does not verify MRMS or enable production tile serving
+

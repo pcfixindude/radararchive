@@ -31,6 +31,7 @@ SUGGESTED_COMMAND = "make mrms-bulk-local-ingest ARGS='--real --limit 8'"
 NEXT_DECODE_COMMAND = "make decode-retry"
 NEXT_PLAYBACK_COMMAND = "make backend && make frontend"
 NEXT_CACHE_WARM_COMMAND = "make mrms-warm-frame-cache"
+NEXT_CACHE_WARM_INGEST_COMMAND = "make mrms-bulk-local-ingest ARGS='--real --limit 8 --warm-cache'"
 
 
 def _utc_now() -> str:
@@ -222,7 +223,12 @@ def run_bulk_local_ingest(
         "raw_paths": raw_paths,
         "failures": failures,
         "errors": [item["error"] for item in failures],
-        "next_commands": [NEXT_CACHE_WARM_COMMAND, NEXT_DECODE_COMMAND, NEXT_PLAYBACK_COMMAND],
+        "next_commands": [
+            NEXT_CACHE_WARM_COMMAND,
+            NEXT_CACHE_WARM_INGEST_COMMAND,
+            NEXT_DECODE_COMMAND,
+            NEXT_PLAYBACK_COMMAND,
+        ],
         "suggested_command": SUGGESTED_COMMAND,
         **_safety_fields(),
     }

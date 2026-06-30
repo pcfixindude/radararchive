@@ -68,3 +68,27 @@ class FramePrefetchResponse(BaseModel):
     local_dev_only: bool = True
     prototype: bool = True
     production_tile_serving: bool = False
+
+
+class FrameCacheStatusItem(BaseModel):
+    timestamp: str
+    cache_state: str
+
+
+class PlaybackCacheStatusResponse(BaseModel):
+    frames: list[FrameCacheStatusItem] = Field(default_factory=list)
+    frame_count: int = 0
+    warmed_count: int = 0
+    missing_count: int = 0
+    cold_count: int = 0
+    failed_count: int = 0
+    stub_count: int = 0
+    playback_ready: bool = False
+    cache_warm_available: bool = False
+    cache_warm_ran_at: Optional[str] = None
+    cache_warm_status: Optional[str] = None
+    next_commands: list[str] = Field(default_factory=list)
+    verified_mrms: bool = False
+    local_dev_only: bool = True
+    prototype: bool = True
+    production_tile_serving: bool = False

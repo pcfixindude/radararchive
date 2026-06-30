@@ -60,6 +60,31 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
 .speed-label { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.75rem; font-size: 0.9rem; }
 .timestamp-local { margin: 0.25rem 0; font-size: 1rem; font-weight: 600; }
 .timestamp-utc, .timestamp-meta, .playback-meta { margin: 0.25rem 0 0; color: #cbd5e1; font-size: 0.85rem; }
+.playback-hint { margin: 0.25rem 0 0; color: #fde68a; font-size: 0.8rem; }
+.time-slider-panel input[type="range"] { width: 100%; }
+.slider-cache-track {
+  display: flex;
+  gap: 2px;
+  margin: 0.35rem 0 0.25rem;
+  min-height: 8px;
+}
+.slider-cache-dot {
+  flex: 1;
+  min-width: 4px;
+  height: 8px;
+  border-radius: 2px;
+  background: #475569;
+}
+.slider-cache-dot--selected {
+  outline: 1px solid #f9fafb;
+  outline-offset: 1px;
+}
+.slider-cache--ready { background: #22c55e; }
+.slider-cache--cold_decodable { background: #eab308; }
+.slider-cache--missing_raw { background: #64748b; }
+.slider-cache--failed { background: #ef4444; }
+.slider-cache--stub { background: #a78bfa; }
+.slider-cache-summary { margin: 0.25rem 0 0; color: #94a3b8; font-size: 0.8rem; }
 .plan-note, .plan-meta, .plan-upgrade { margin: 0.35rem 0 0; color: #cbd5e1; font-size: 0.85rem; }
 .plan-upgrade { color: #fde68a; }
 .plan-panel select { width: 100%; margin-top: 0.35rem; }

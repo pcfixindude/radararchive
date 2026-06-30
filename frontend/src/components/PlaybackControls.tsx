@@ -1,5 +1,6 @@
 import { PLAYBACK_SPEEDS } from '../hooks/usePlayback';
 import { playbackStatusLabel, type PlaybackFrameStatus } from '../hooks/framePlayback';
+import type { PlaybackCacheStatus } from '../api/client';
 
 export default function PlaybackControls({
   times,
@@ -8,6 +9,7 @@ export default function PlaybackControls({
   playing,
   speed,
   playbackFrameStatus = 'idle',
+  cacheStatus = null,
   onTogglePlay,
   onStepBackward,
   onStepForward,
@@ -20,6 +22,7 @@ export default function PlaybackControls({
   playing: boolean;
   speed: number;
   playbackFrameStatus?: PlaybackFrameStatus;
+  cacheStatus?: PlaybackCacheStatus | null;
   onTogglePlay: () => void;
   onStepBackward: () => void;
   onStepForward: () => void;
@@ -65,6 +68,22 @@ export default function PlaybackControls({
       <p className={`playback-meta playback-status playback-status--${playbackFrameStatus}`}>
         Overlay: {playbackStatusLabel(playbackFrameStatus)}
       </p>
+      {cacheStatus ? (
+        <p className="playback-meta">
+          Cache: <code>{cacheStatus.warmed_count} ready</code> / {cacheStatus.frame_count}
+          {cacheStatus.failed_count ? (
+            <>, <code>{cacheStatus.failed_count} failed</code></>
+          ) : null}
+          {cacheStatus.missing_count ? (
+            <>, <code>{cacheStatus.missing_count} missing</code></>
+          ) : null}
+        </p>
+      ) : null}
+      {!cacheStatus?.playback_ready && cacheStatus?.next_commands?.[0] ? (
+        <p className="playback-meta playback-hint">
+          Warm cache: <code>{cacheStatus.next_commands[0]}</code>
+        </p>
+      ) : null}
     </section>
   );
 }

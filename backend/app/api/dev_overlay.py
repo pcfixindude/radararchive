@@ -8,13 +8,18 @@ from sqlalchemy.orm import Session
 
 from backend.app.config import settings
 from backend.app.database import get_db
-from backend.app.schemas.dev_overlay import DecodedOverlayResponse, FramePrefetchResponse
+from backend.app.schemas.dev_overlay import (
+    DecodedOverlayResponse,
+    FramePrefetchResponse,
+    PlaybackCacheStatusResponse,
+)
 from backend.app.services.decoded_overlay import (
     build_decoded_overlay,
     load_overlay_tile_png,
     load_preview_png_bytes,
 )
 from backend.app.services.frame_playback import prefetch_frames
+from backend.app.services.playback_cache_status import build_playback_cache_status
 from backend.app.services.storage import LocalStorage
 
 router = APIRouter(prefix="/dev", tags=["dev-local"])
@@ -56,6 +61,17 @@ def prefetch_decoded_overlay_frames(
     ts_list = [part.strip() for part in timestamps.split(",") if part.strip()]
     payload = prefetch_frames(session, _storage(), ts_list)
     return FramePrefetchResponse(**payload)
+
+
+@router.get("/decoded-overlay/cache-status", response_model=PlaybackCacheStatusResponse)
+def get_playback_cache_status(
+    timestamps: str = Query(..., description="Comma-separated playback timestamps"),
+    session: Session = Depends(get_db),
+) -> PlaybackCacheStatusResponse:
+    """Cache readiness summary for playback window."""
+    ts_list = [part.strip() for part in timestamps.split(",") if part.strip()]
+    payload = build_playback_cache_status(session, _storage(), ts_list)
+    return PlaybackCacheStatusResponse(**payload)
 
 
 @router.get("/decoded-overlay/preview.png")

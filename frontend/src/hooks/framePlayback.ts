@@ -68,3 +68,31 @@ export function adjacentTimestamps(times: string[], selectedTime: string): strin
   }
   return [times[index - 1], times[index + 1]].filter((value): value is string => Boolean(value));
 }
+
+export type FrameCacheState =
+  | 'ready'
+  | 'missing_raw'
+  | 'cold_decodable'
+  | 'failed'
+  | 'stub';
+
+export function cacheStateLabel(state: FrameCacheState | string): string {
+  switch (state) {
+    case 'ready':
+      return 'cached';
+    case 'missing_raw':
+      return 'no raw';
+    case 'cold_decodable':
+      return 'cold';
+    case 'failed':
+      return 'failed';
+    case 'stub':
+      return 'stub';
+    default:
+      return state;
+  }
+}
+
+export function cacheStateClass(state: FrameCacheState | string): string {
+  return `slider-cache--${state}`;
+}

@@ -18,11 +18,18 @@ export function useFrameOverlay(
   enabled: boolean,
 ) {
   const [decodedOverlay, setDecodedOverlay] = useState<DecodedOverlayInfo | null>(null);
+  const [displayOverlay, setDisplayOverlay] = useState<DecodedOverlayInfo | null>(null);
   const [frameStatus, setFrameStatus] = useState<PlaybackFrameStatus>('idle');
   const [refreshing, setRefreshing] = useState(false);
   const frameCacheRef = useRef(new Map<string, DecodedOverlayInfo>());
   const loadTokenRef = useRef(0);
   const prefetchTokenRef = useRef(0);
+  const holdOverlayRef = useRef<DecodedOverlayInfo | null>(null);
+  const displayOverlayRef = useRef<DecodedOverlayInfo | null>(null);
+
+  useEffect(() => {
+    displayOverlayRef.current = displayOverlay;
+  }, [displayOverlay]);
 
   const playbackStatus = combinePlaybackStatus(playing, frameStatus);
 
@@ -31,6 +38,24 @@ export function useFrameOverlay(
       frameCacheRef.current.set(timestamp, overlay);
     }
   }, []);
+
+  const applyOverlay = useCallback(
+    (overlay: DecodedOverlayInfo | null, timestamp: string) => {
+      setDecodedOverlay(overlay);
+      warmCache(overlay, timestamp);
+      if (overlay?.overlay_visible) {
+        setDisplayOverlay(overlay);
+        holdOverlayRef.current = null;
+        return;
+      }
+      if (holdOverlayRef.current?.overlay_visible) {
+        setDisplayOverlay(holdOverlayRef.current);
+        return;
+      }
+      setDisplayOverlay(overlay);
+    },
+    [warmCache],
+  );
 
   const loadFrame = useCallback(
     async (timestamp: string, options: { refresh?: boolean } = {}) => {
@@ -42,9 +67,14 @@ export function useFrameOverlay(
         const cached = frameCacheRef.current.get(timestamp);
         if (cached) {
           setDecodedOverlay(cached);
+          setDisplayOverlay(cached.overlay_visible ? cached : holdOverlayRef.current ?? cached);
           setFrameStatus(overlayToFrameStatus(cached));
           return cached;
         }
+      }
+
+      if (displayOverlayRef.current?.overlay_visible) {
+        holdOverlayRef.current = displayOverlayRef.current;
       }
 
       setRefreshing(true);
@@ -54,17 +84,19 @@ export function useFrameOverlay(
         if (token !== loadTokenRef.current) {
           return overlay;
         }
-        warmCache(overlay, timestamp);
-        setDecodedOverlay(overlay);
+        applyOverlay(overlay, timestamp);
         setFrameStatus(overlayToFrameStatus(overlay));
         return overlay;
       } finally {
         if (token === loadTokenRef.current) {
           setRefreshing(false);
+          if (!holdOverlayRef.current?.overlay_visible) {
+            holdOverlayRef.current = null;
+          }
         }
       }
     },
-    [enabled, warmCache],
+    [enabled, applyOverlay],
   );
 
   const prefetchAdjacent = useCallback(
@@ -110,6 +142,7 @@ export function useFrameOverlay(
       if (!target) {
         return;
       }
+      holdOverlayRef.current = null;
       await loadFrame(target, { refresh: true });
       await prefetchAdjacent(target);
     },
@@ -118,10 +151,14 @@ export function useFrameOverlay(
 
   return {
     decodedOverlay,
+    displayOverlay,
     frameStatus: playbackStatus,
     rawFrameStatus: frameStatus,
     refreshing,
     refreshDecodedOverlay,
-    clearFrameCache: () => frameCacheRef.current.clear(),
+    clearFrameCache: () => {
+      frameCacheRef.current.clear();
+      holdOverlayRef.current = null;
+    },
   };
 }
