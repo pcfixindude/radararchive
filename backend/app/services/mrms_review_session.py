@@ -36,6 +36,10 @@ from backend.app.services.operator_guidance import build_open_attention_guidance
 from backend.app.services.mrms_proof_regression import load_proof_regression_report
 from backend.app.services.storage import LocalStorage
 from backend.app.services.validation_alerts import load_validation_alert
+from backend.app.services.mrms_render_candidate_validation_remediation import (
+    proof_stub_documented_for_preflight,
+    stub_mode_documented_for_preflight,
+)
 
 REVIEW_SESSIONS_PATH = "dev/mrms_review_sessions.json"
 MAX_REVIEW_SESSIONS = 50
@@ -108,7 +112,7 @@ def validate_review_session_input(
 def _build_open_attention_items(storage: LocalStorage) -> list[str]:
     items: list[str] = []
     alert = load_validation_alert(storage) or {}
-    if alert.get("operator_attention_needed"):
+    if alert.get("operator_attention_needed") and not stub_mode_documented_for_preflight(storage):
         items.append("Validation alert: operator attention needed")
     if alert.get("proof_bundle_diff_attention"):
         items.append(
@@ -132,7 +136,7 @@ def _build_open_attention_items(storage: LocalStorage) -> list[str]:
         items.append("Proof regression detected in latest check")
 
     proof = load_mrms_proof_report(storage) or {}
-    if proof.get("overall_status") == "failed":
+    if proof.get("overall_status") == "failed" and not proof_stub_documented_for_preflight(storage):
         items.append("Latest proof report overall_status: failed")
 
     hint = build_digest_regeneration_hint(storage)

@@ -4283,6 +4283,7 @@ class ValidationSummaryResponse(BaseModel):
     mrms_render_candidate_preflight_attention: Optional[
         MrmsRenderCandidatePreflightAttentionCompact
     ] = None
+    mrms_render_candidate_validation_remediation: Optional[dict[str, Any]] = None
     mrms_render_candidate_scaffold: Optional[MrmsRenderCandidateScaffoldCompact] = None
     mrms_render_candidate_sandbox: Optional[MrmsRenderCandidateSandboxCompact] = None
     mrms_render_candidate_sandbox_import_export: Optional[

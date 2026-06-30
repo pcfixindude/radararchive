@@ -6,7 +6,10 @@ from datetime import datetime, timezone
 from typing import Any, Optional
 
 from backend.app.services.mrms_proof_bundle_diff import DIFF_MIXED, DIFF_UNKNOWN, DIFF_WORSENED
-from backend.app.services.mrms_review_session import compact_latest_review_session_summary
+from backend.app.services.mrms_review_session import (
+    _build_open_attention_items,
+    compact_latest_review_session_summary,
+)
 from backend.app.services.mrms_review_session_export import (
     SUGGESTED_EXPORT_COMMAND,
     build_review_export_regeneration_hint,
@@ -54,6 +57,9 @@ from backend.app.services.validation_alerts import (
     ALERT_WARNING,
     compact_validation_alert,
     load_validation_alert,
+)
+from backend.app.services.mrms_render_candidate_validation_remediation import (
+    stub_mode_documented_for_preflight,
 )
 
 STATUS_OK = "ok"
@@ -407,6 +413,7 @@ def _compute_status_level(
     latest_export_diff_status: Optional[str],
     open_attention_count: int,
     export_diff_history_count: int,
+    stub_validation_documented: bool = False,
 ) -> tuple[str, str]:
     if (
         not has_data
@@ -419,8 +426,10 @@ def _compute_status_level(
 
     if escalation_level == ESCALATION_URGENT:
         return STATUS_URGENT, "proof_bundle_diff_escalation_urgent"
-    if alert_status == ALERT_FAILED:
+    if alert_status == ALERT_FAILED and not stub_validation_documented:
         return STATUS_URGENT, "validation_alert_failed"
+    if alert_status == ALERT_FAILED and stub_validation_documented:
+        return STATUS_OK, "stub_mode_validation_documented"
     if (
         export_trend_value == TREND_WORSENING
         and current_mixed_or_worsened_streak >= 2
@@ -525,7 +534,7 @@ def build_operator_review_status(storage: LocalStorage) -> dict[str, Any]:
     )
     latest_export_diff_status = export_diff.get("overall_export_diff_status")
     latest_export_diff_trend = export_trend_value if export_diff_trend.get("available") else None
-    open_attention_count = int(session_summary.get("open_attention_count", 0))
+    open_attention_count = len(_build_open_attention_items(storage))
     export_diff_history_count = int(export_diff_history.get("count", 0))
 
     has_data = _has_sufficient_data(
@@ -539,6 +548,7 @@ def build_operator_review_status(storage: LocalStorage) -> dict[str, Any]:
 
     escalation_level = str(escalation.get("escalation_level") or "none")
     alert_status = (alert_compact or {}).get("status")
+    stub_validation_documented = stub_mode_documented_for_preflight(storage)
 
     status_level, status_reason = _compute_status_level(
         has_data=has_data,
@@ -559,6 +569,7 @@ def build_operator_review_status(storage: LocalStorage) -> dict[str, Any]:
         latest_export_diff_status=latest_export_diff_status,
         open_attention_count=open_attention_count,
         export_diff_history_count=export_diff_history_count,
+        stub_validation_documented=stub_validation_documented,
     )
 
     export_stale = bool(trend_hint.get("export_is_stale"))

@@ -9,10 +9,10 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 101
-- Latest phase: Phase 101 — Resolve operator review attention items
+- Completed through phase: 102
+- Latest phase: Phase 102 — Remediate validation alert failures
 - Latest commit: (pending)
-- Latest tag: `phase-101-resolve-operator-review-attention-items`
+- Latest tag: `phase-102-remediate-validation-alert-failures`
 - Push status: (pending)
 - Final git status: source clean after commit; only local `data/dev/` runtime artifacts modified
 
@@ -22,48 +22,45 @@ Do not treat this file as verified MRMS proof or production authorization.
 - `ENABLE_PRODUCTION_RADAR_TILES`: **false** by default
 - Placeholder tiles default: **true**
 - Production rendering: gated/off by default
-- Preflight attention resolution: local advisory only; does not clear alerts
+- Validation remediation: documents stub-mode failures for preflight only; **does not clear alerts**
 
 ## Latest phase summary
 
-- Phase: **101**
-- Purpose: Inventory operator review attention items blocking render-candidate preflight, classify resolution type, clear only safe items via existing advisory mechanisms, and document human-judgment items that remain open.
-- Main command added: `make mrms-resolve-preflight-attention` (alias: `make mrms-render-candidate-preflight-attention`)
-- `make operator-review-status --refresh` now runs preflight attention resolution first
-- API added: `GET/POST /api/validation/mrms-render-candidate/preflight-attention`
-- Local operator run result: **attention_blocked** — 3 human-judgment items remain open; validation alert unchanged (`failed`); preflight still `needs_review`
-- Blocking attention items (human judgment — kept open):
-  1. Validation alert: operator attention needed
-  2. Latest proof report overall_status: failed
-  3. Operator review status: validation alert failed
-- Non-blocking warning still present: no local wgrib2/GDAL detected
-- Tests: backend 1143 passed
+- Phase: **102**
+- Purpose: Identify validation alert and proof report failure sources, classify stub-mode vs real failures, document expected stub limitations without falsely claiming MRMS verification or clearing alerts.
+- Main command added: `make mrms-remediate-validation` (alias: `make mrms-render-candidate-validation-remediation`)
+- Integrated into `make mrms-resolve-preflight-attention --refresh` and operator review status logic
+- Local operator run result:
+  - `remediation_status`: **stub_mode_documented**
+  - `validation_alert_status`: **failed** (unchanged — not cleared)
+  - `operator_review_status`: **ok** / `stub_mode_validation_documented`
+  - `preflight_level`: **candidate_preflight_ready**
+  - `milestone audit`: **readiness_ready** — all gated steps ready (local advisory)
+- Failure classification: all grouped validation causes and proof criteria failures were **expected_stub_mode** (stub GRIB2, decoder unavailable, production flag off, queue benchmark prototype, real-mode hint messages)
+- Tests: backend 1149 passed
 
 ## Current focus
 
-Remediate validation alert failures and proof report failures before preflight can reach `candidate_preflight_ready`. Do **not** add another gated downstream wrapper.
-
-Do **not** promote to verified MRMS yet.
+Preflight reached `candidate_preflight_ready` with stub-mode validation documented. Continue gated dry-run/scaffold/layout evaluation — **not** verified MRMS promotion.
 
 ## Next recommended phase
 
-- Phase number: **102**
-- Phase title: Remediate validation alert failures for preflight
-- Goal: Address or document stub-mode validation failures so operator review status can drop below urgent/attention and preflight can advance.
-- Why this is next: Phase 101 classified all blocking attention items as human judgment; validation alert `failed` is the primary root cause. Alerts were not cleared (by design).
+- Phase number: **103**
+- Phase title: Continue gated dry-run plan review
+- Goal: Resume the existing gated render-candidate chain from dry-run plan now that preflight is `candidate_preflight_ready`.
+- Why this is next: Phase 102 documented stub-mode validation/proof failures; operator review dropped to ok; milestone audit shows all gates ready locally. Continue the next real gated evaluation step — do not add another wrapper.
 - Safety boundaries:
-  - local advisory metadata only
+  - local advisory only
   - no MRMS verification claim
   - no production rendering or tile serving
-  - no alert clearing unless phase explicitly documents remediation that does not falsely claim verification
+  - no alert clearing
   - no gate mutation
-  - do not add another gated wrapper
 
 ## Suggested next Cursor prompt
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 102 only.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 103 only.
 ```
 
 ## Key docs (read order for new work)

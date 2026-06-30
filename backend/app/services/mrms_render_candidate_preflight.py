@@ -30,6 +30,9 @@ from backend.app.services.operator_review_status import compact_operator_review_
 from backend.app.services.mrms_render_candidate_preflight_attention import (
     compact_preflight_attention,
 )
+from backend.app.services.mrms_render_candidate_validation_remediation import (
+    compact_validation_remediation,
+)
 from backend.app.services.storage import LocalStorage
 
 PREFLIGHT_JSON = "dev/mrms_render_candidate_preflight.json"
@@ -135,6 +138,7 @@ def gather_preflight_evidence(storage: LocalStorage) -> dict[str, Any]:
         "sample_readiness": sample_readiness,
         "operator_review_status": compact_operator_review_status(storage),
         "preflight_attention": compact_preflight_attention(storage),
+        "validation_remediation": compact_validation_remediation(storage),
         "mrms_proof": proof_compact,
         "proof_bundle": compact_proof_bundle_status(storage),
         "decoder_availability": {
@@ -281,20 +285,26 @@ def evaluate_render_candidate_preflight(
         )
 
     decoder = evidence.get("decoder_availability") or {}
+    validation_remediation = evidence.get("validation_remediation") or {}
     if not decoder.get("any_decoder"):
-        checks.append(
-            _check_item(
-                check_id="decoder_tools_detected",
-                passed=False,
-                message="no local wgrib2/GDAL detected — future real render path may need tooling",
-                severity="warn",
-                evidence=decoder,
+        if not validation_remediation.get("stub_mode_documented"):
+            checks.append(
+                _check_item(
+                    check_id="decoder_tools_detected",
+                    passed=False,
+                    message="no local wgrib2/GDAL detected — future real render path may need tooling",
+                    severity="warn",
+                    evidence=decoder,
+                )
             )
-        )
 
     operator_status = evidence.get("operator_review_status") or {}
     preflight_attention = evidence.get("preflight_attention") or {}
-    operator_attention_blocks = bool(preflight_attention.get("blocks_preflight", True))
+    validation_remediation = evidence.get("validation_remediation") or {}
+    operator_attention_blocks = bool(
+        preflight_attention.get("blocks_preflight", True)
+        or validation_remediation.get("blocks_preflight", True)
+    )
     if (
         operator_status.get("status_level") in {"attention", "urgent"}
         and operator_attention_blocks

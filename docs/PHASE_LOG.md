@@ -3267,3 +3267,30 @@ make mrms-readiness-milestone-audit ARGS="--refresh"
 - Preflight remains `needs_review` until validation/proof remediation
 - Not production authorization
 
+## Phase 102 - Remediate Validation Alert Failures
+
+Identify validation alert and proof report failure sources; classify stub-mode vs real failures; document expected stub limitations without clearing alerts or claiming verified MRMS.
+
+### Backend
+- `mrms_render_candidate_validation_remediation.py` — analyzes grouped validation causes and proof criteria; documents stub-mode for preflight
+- Operator review status uses live open attention count and `stub_mode_validation_documented` when remediation saved
+- Preflight skips decoder tooling warning when stub mode documented
+- Paths: `mrms_render_candidate_validation_remediation_latest.json`, `mrms_render_candidate_validation_remediation_latest.md`
+- CLI: `scripts/mrms_render_candidate_validation_remediation.py`; `make mrms-remediate-validation`
+- Integrated into preflight attention refresh
+
+### Run commands
+
+```bash
+make test
+make mrms-remediate-validation ARGS="--refresh"
+make mrms-resolve-preflight-attention ARGS="--refresh"
+make mrms-render-candidate-preflight ARGS="--refresh"
+make mrms-readiness-milestone-audit ARGS="--refresh"
+```
+
+### Known limitations
+- Does not clear validation alerts or verify MRMS
+- Local dev result: `stub_mode_documented` — alert still `failed`; operator review `ok`; preflight `candidate_preflight_ready`; milestone audit `readiness_ready`
+- Not production authorization
+

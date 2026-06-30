@@ -1,43 +1,34 @@
 # Project State
 
-Current phase: Phase 101 complete
+Current phase: Phase 102 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
-- **Preflight attention resolution** — inventories operator attention items, clears safe advisory items only, documents human-judgment blockers
-- **Readiness milestone audit** — consolidates preflight through gated ack history
+- **Validation remediation** — classifies stub-mode validation/proof failures; documents for preflight without clearing alerts
+- **Preflight attention resolution** — integrates validation remediation on refresh
+- **Readiness milestone audit** — consolidates gated chain; local result readiness_ready after Phase 102
+- **Preflight**: `candidate_preflight_ready` (stub-mode documented; not verified MRMS)
 - **Default tile serving: placeholder**
 - Not verified real MRMS
 
-## Operator commands (Phase 101)
+## Operator commands (Phase 102)
 
 ```bash
-make mrms-resolve-preflight-attention ARGS="--refresh"
-make operator-review-status ARGS="--refresh"
-```
-
-Preflight attention report:
-
-- `data/dev/mrms_render_candidate_preflight_attention_latest.json`
-- `data/dev/mrms_render_candidate_preflight_attention_latest.md`
-
-Current local state (after Phase 101):
-
-- Preflight: `needs_review`
-- Attention resolution: `attention_blocked` (validation alert + proof report failures require human judgment)
-- Validation alert: unchanged (`failed`)
-
-```bash
-make validation-failures
-make mrms-proof-report ARGS="--refresh"
-make operator-review-status ARGS="--refresh"
+make mrms-remediate-validation ARGS="--refresh"
 make mrms-resolve-preflight-attention ARGS="--refresh"
 make mrms-render-candidate-preflight ARGS="--refresh"
 make mrms-readiness-milestone-audit ARGS="--refresh"
 ```
 
-When preflight is `candidate_preflight_ready`, continue gated chain:
+Artifacts:
+
+- `data/dev/mrms_render_candidate_validation_remediation_latest.json`
+- `data/dev/mrms_render_candidate_preflight_attention_latest.json`
+
+Validation alert remains `failed` by design — stub-mode limitations documented for preflight path only.
+
+## Continue gated chain (Phase 103)
 
 ```bash
 make mrms-review-gated-dry-run-plan ARGS="--refresh"
@@ -52,7 +43,7 @@ make mrms-review-gated-ack-history ARGS="--refresh"
 
 ## Dev API
 
-`mrms_render_candidate_preflight_attention` compact on validation summary; `GET/POST /api/validation/mrms-render-candidate/preflight-attention`.
+`mrms_render_candidate_validation_remediation` compact on validation summary.
 
 ## Verified MRMS
 

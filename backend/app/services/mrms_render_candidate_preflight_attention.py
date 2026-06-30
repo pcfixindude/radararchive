@@ -25,6 +25,11 @@ from backend.app.services.proof_bundle_diff_escalation_digest_diff import (
 )
 from backend.app.services.storage import LocalStorage
 from backend.app.services.validation_alerts import ALERT_FAILED, load_validation_alert
+from backend.app.services.mrms_render_candidate_validation_remediation import (
+    remediate_validation_failures,
+    save_validation_remediation_report,
+    stub_mode_documented_for_preflight,
+)
 
 ATTENTION_JSON = "dev/mrms_render_candidate_preflight_attention_latest.json"
 ATTENTION_MD = "dev/mrms_render_candidate_preflight_attention_latest.md"
@@ -88,22 +93,45 @@ def _normalize_item_key(text: str) -> str:
     return lowered.strip("_")[:80] or "attention_item"
 
 
-def _classify_attention_item(text: str) -> tuple[str, bool, str]:
+def _classify_attention_item(text: str, *, stub_documented: bool = False) -> tuple[str, bool, str]:
     """Return resolution_type, blocks_preflight, operator_action."""
     lowered = text.lower()
     if "validation alert" in lowered and "operator attention" in lowered:
+        if stub_documented:
+            return (
+                TYPE_ADVISORY_ACK,
+                False,
+                "Stub-mode validation failures documented for preflight — alert status unchanged.",
+            )
         return (
             TYPE_HUMAN_JUDGMENT,
             True,
-            "Review `make validation-failures` and scheduled validation output; "
-            "address real failures or document stub-mode limitations — does not clear alerts.",
+            "Review `make validation-failures` or run make mrms-remediate-validation — does not clear alerts.",
         )
     if "proof report" in lowered and "failed" in lowered:
+        if stub_documented:
+            return (
+                TYPE_ADVISORY_ACK,
+                False,
+                "Stub-mode proof failures documented for preflight — not verified MRMS.",
+            )
         return (
             TYPE_HUMAN_JUDGMENT,
             True,
             "Run `make mrms-proof-report` and review proof criteria; "
             "failed proof is not verified MRMS.",
+        )
+    if "validation alert failed" in lowered:
+        if stub_documented:
+            return (
+                TYPE_ADVISORY_ACK,
+                False,
+                "Stub-mode validation documented — operator status may improve for preflight only.",
+            )
+        return (
+            TYPE_HUMAN_JUDGMENT,
+            True,
+            "Run make mrms-remediate-validation after reviewing validation failures.",
         )
     if "proof regression" in lowered:
         return (
@@ -170,6 +198,7 @@ def _status_reason_items(status: dict[str, Any]) -> list[str]:
 
 def gather_operator_attention_inventory(storage: LocalStorage) -> list[dict[str, Any]]:
     status = build_operator_review_status(storage)
+    stub_documented = stub_mode_documented_for_preflight(storage)
     seen: set[str] = set()
     inventory: list[dict[str, Any]] = []
 
@@ -178,7 +207,9 @@ def gather_operator_attention_inventory(storage: LocalStorage) -> list[dict[str,
         if key in seen:
             return
         seen.add(key)
-        resolution_type, blocks_preflight, operator_action = _classify_attention_item(text)
+        resolution_type, blocks_preflight, operator_action = _classify_attention_item(
+            text, stub_documented=stub_documented
+        )
         inventory.append(
             {
                 "item_id": key,
@@ -283,7 +314,21 @@ def resolve_preflight_operator_attention(
     refresh_steps: list[dict[str, Any]] = []
 
     if refresh:
+        save_validation_remediation_report(
+            storage,
+            remediate_validation_failures(storage, refresh=True),
+        )
+        inventory = gather_operator_attention_inventory(storage)
         for index, item in enumerate(inventory):
+            if item.get("resolution_type") == TYPE_ADVISORY_ACK:
+                item["status"] = RESOLUTION_ACKNOWLEDGED
+                item["notes"] = "Documented via validation remediation for preflight path only."
+                item["attempted_commands"] = ["make mrms-remediate-validation --refresh"]
+                inventory[index] = item
+                refresh_steps.append(
+                    {"item_id": item["item_id"], "action": RESOLUTION_ACKNOWLEDGED}
+                )
+                continue
             if item.get("resolution_type") == TYPE_HUMAN_JUDGMENT:
                 continue
             if item.get("resolution_type") == TYPE_TOOLING:
@@ -306,12 +351,11 @@ def resolve_preflight_operator_attention(
                 )
             inventory[index] = updated
 
-        remaining_open = _build_open_attention_items(storage)
         refresh_steps.append(
             {
                 "action": "rebuild_open_attention_items",
-                "remaining_count": len(remaining_open),
-                "remaining_items": remaining_open,
+                "remaining_count": len(_build_open_attention_items(storage)),
+                "remaining_items": _build_open_attention_items(storage),
             }
         )
 
@@ -410,7 +454,7 @@ def _next_phase_recommendation(
     status_after: dict[str, Any],
 ) -> str:
     if not blocks_preflight:
-        return "Phase 102 — continue gated dry-run plan review (preflight attention resolved)"
+        return "Phase 103 — continue gated dry-run plan review (preflight attention resolved)"
 
     if open_blocking:
         text = str(open_blocking[0].get("text", "")).lower()

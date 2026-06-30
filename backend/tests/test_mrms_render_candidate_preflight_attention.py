@@ -22,6 +22,11 @@ from backend.app.services.mrms_render_candidate_preflight_attention import (
     resolve_preflight_operator_attention,
     save_preflight_attention_report,
 )
+from backend.app.services.mrms_render_candidate_validation_remediation import (
+    REMEDIATION_STUB_DOCUMENTED,
+    remediate_validation_failures,
+    save_validation_remediation_report,
+)
 from backend.app.services.validation_alerts import ALERT_FAILED, load_validation_alert, save_validation_alert
 
 
@@ -91,6 +96,15 @@ def test_preflight_skips_operator_warn_when_attention_resolved(storage, monkeypa
             "resolution_status": STATUS_RESOLVED,
             "open_attention_items": [],
             "open_blocking_items": [],
+        },
+    )
+    save_validation_remediation_report(
+        storage,
+        {
+            **remediate_validation_failures(storage, refresh=False),
+            "blocks_preflight": False,
+            "stub_mode_documented": True,
+            "remediation_status": REMEDIATION_STUB_DOCUMENTED,
         },
     )
     evidence = gather_preflight_evidence(storage)

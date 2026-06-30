@@ -247,6 +247,11 @@ mrms-render-candidate-preflight-attention:
 
 mrms-resolve-preflight-attention: mrms-render-candidate-preflight-attention
 
+mrms-render-candidate-validation-remediation:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_validation_remediation.py $(ARGS)
+
+mrms-remediate-validation: mrms-render-candidate-validation-remediation
+
 mrms-render-candidate-scaffold:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_scaffold.py $(ARGS)
 

@@ -79,6 +79,9 @@ from backend.app.services.mrms_render_candidate_readiness_milestone_audit import
 from backend.app.services.mrms_render_candidate_preflight_attention import (
     compact_preflight_attention,
 )
+from backend.app.services.mrms_render_candidate_validation_remediation import (
+    compact_validation_remediation,
+)
 from backend.app.services.mrms_render_candidate_scaffold import (
     compact_render_candidate_scaffold,
 )
@@ -350,6 +353,7 @@ def build_validation_summary(session: Session, storage: LocalStorage) -> dict[st
         "mrms_render_candidate_gated_ack_history": compact_gated_ack_history(storage),
         "mrms_render_candidate_readiness_milestone_audit": compact_readiness_milestone_audit(storage),
         "mrms_render_candidate_preflight_attention": compact_preflight_attention(storage),
+        "mrms_render_candidate_validation_remediation": compact_validation_remediation(storage),
         "mrms_render_candidate_scaffold": compact_render_candidate_scaffold(storage),
         "mrms_render_candidate_sandbox": compact_render_candidate_sandbox(storage),
         "mrms_render_candidate_sandbox_import_export": compact_render_candidate_sandbox_import_export(
