@@ -11,9 +11,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 107
 - Latest phase: Phase 107 — Time synced playback and georef overlay
-- Latest commit: (pending)
+- Latest commit: `f558136`
 - Latest tag: `phase-107-time-synced-playback-and-georef-overlay`
-- Push status: (pending)
+- Push status: pushed to `origin/main` with tag
 - Final git status: source clean after commit; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
