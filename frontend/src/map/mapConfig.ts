@@ -9,3 +9,5 @@ export const RADAR_LAYER_ID = 'radar-placeholder-layer';
 
 export const DECODED_OVERLAY_SOURCE_ID = 'decoded-overlay';
 export const DECODED_OVERLAY_LAYER_ID = 'decoded-overlay-layer';
+export const DECODED_OVERLAY_TILE_SOURCE_ID = 'decoded-overlay-tiles';
+export const DECODED_OVERLAY_TILE_LAYER_ID = 'decoded-overlay-tiles-layer';

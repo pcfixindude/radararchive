@@ -25,6 +25,14 @@ from backend.app.services.raw_file_classifier import (
     is_real_grib2_raw_kind,
 )
 from backend.app.services.storage import LocalStorage
+from backend.app.services.color_scale import COLOR_SCALE_MODE
+from backend.app.services.tile_preview import (
+    TILE_MODE_LOCAL_RASTER,
+    TILE_MODE_SINGLE_IMAGE,
+    build_local_tile_preview,
+    compact_tile_preview,
+    render_color_preview_from_artifact,
+)
 from backend.app.services.tile_service import generate_placeholder_tile_png
 from backend.app.sources.mrms import MRMS_CATALOG_SOURCE
 
@@ -180,7 +188,7 @@ def _next_retry_commands(
 
 def _next_phase_recommendation(pipeline_status: str) -> str:
     if pipeline_status == STATUS_PREVIEW_OK:
-        return "Phase 105 — wire decoded preview into map overlay (color scale / georef / tile slice)"
+        return "Phase 107 — time-synced playback and geo-accurate overlay"
     if pipeline_status == STATUS_DECODER_MISSING:
         return "Phase 105 — install rasterio via make install-decoders and rerun make decode-retry"
     if pipeline_status == STATUS_STUB_INPUT:
@@ -352,9 +360,14 @@ def run_local_render_pipeline(
                 warnings.append("Decode succeeded but manifest could not be loaded for preview render.")
                 steps.append({"step": STEP_RENDER, "status": "skipped"})
             else:
-                png_bytes = render_decoded_prototype_tile(
-                    storage, artifact, z=z, x=x, y=y
-                )
+                png_bytes = render_color_preview_from_artifact(storage, artifact, z=z, x=x, y=y)
+                color_scale_mode = COLOR_SCALE_MODE
+                tile_preview_result = None
+                if png_bytes is None:
+                    png_bytes = render_decoded_prototype_tile(
+                        storage, artifact, z=z, x=x, y=y
+                    )
+                    color_scale_mode = "grayscale_fallback"
                 if png_bytes is None:
                     pipeline_status = STATUS_DECODE_OK
                     blocker = "preview_render_failed"
@@ -366,13 +379,16 @@ def run_local_render_pipeline(
                     render_mode = "decoded_prototype"
                     pipeline_status = STATUS_PREVIEW_OK
                     blocker = None
+                    tile_preview_result = build_local_tile_preview(storage, artifact, z_levels=[0, 1], xy_limit=2)
                     steps.append(
                         {
                             "step": STEP_RENDER,
                             "status": "ok",
                             "render_mode": render_mode,
+                            "color_scale_mode": color_scale_mode,
                             "preview_path": preview_path,
                             "artifact_output_dir": artifact.output_dir,
+                            "tile_preview": compact_tile_preview(tile_preview_result),
                         }
                     )
 
@@ -383,6 +399,18 @@ def run_local_render_pipeline(
         if errors
         else "partial"
     )
+
+    tile_preview_compact = None
+    color_scale_mode = None
+    tile_mode = TILE_MODE_SINGLE_IMAGE
+    for step in steps:
+        if step.get("step") == STEP_RENDER and step.get("tile_preview"):
+            tile_preview_compact = step["tile_preview"]
+            color_scale_mode = step.get("color_scale_mode")
+            if tile_preview_compact.get("tile_mode") == TILE_MODE_LOCAL_RASTER:
+                tile_mode = TILE_MODE_LOCAL_RASTER
+        elif step.get("step") == STEP_RENDER and step.get("color_scale_mode"):
+            color_scale_mode = step.get("color_scale_mode")
 
     report = {
         "ran_at": _utc_now(),
@@ -396,6 +424,9 @@ def run_local_render_pipeline(
         },
         "decode": decode_result,
         "render_mode": render_mode,
+        "color_scale_mode": color_scale_mode,
+        "tile_mode": tile_mode,
+        "tile_preview": tile_preview_compact,
         "render_attempt_status": render_attempt_status,
         "preview_paths": preview_paths,
         "preview_dir": _preview_dir(storage),

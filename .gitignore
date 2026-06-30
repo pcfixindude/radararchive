@@ -84,6 +84,7 @@ data/dev/mrms_render_candidate_validation_remediation_latest.md
 data/dev/mrms_local_render_pipeline_latest.json
 data/dev/mrms_local_render_pipeline_latest.md
 data/dev/mrms_local_render_preview/
+data/dev/mrms_local_render_tiles/
 data/dev/decoder_setup_latest.json
 data/dev/decoder_setup_latest.md
 data/dev/decode_retry_latest.json

@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { AccessCurrentInfo, DecodedOverlayInfo, DemoPlan, Layer } from '../api/client';
-import { decodedOverlayPreviewUrl, tileUrlTemplate, tilesAvailable, tileBlockedByPlan } from '../api/client';
+import { decodedOverlayPreviewUrl, decodedOverlayTileUrlTemplate, tileUrlTemplate, tilesAvailable, tileBlockedByPlan } from '../api/client';
 import {
   BASEMAP_STYLE,
   DECODED_OVERLAY_LAYER_ID,
   DECODED_OVERLAY_SOURCE_ID,
+  DECODED_OVERLAY_TILE_LAYER_ID,
+  DECODED_OVERLAY_TILE_SOURCE_ID,
   DEFAULT_CENTER,
   DEFAULT_ZOOM,
   RADAR_LAYER_ID,
@@ -54,7 +56,9 @@ export default function WeatherMap({
   const maxzoom = layerMeta?.maxzoom ?? undefined;
 
   const overlayActive =
-    Boolean(decodedOverlay?.available && decodedOverlay.preview_url && decodedOverlay.bounds?.length === 4);
+    Boolean(decodedOverlay?.available && decodedOverlay.bounds?.length === 4);
+  const overlayTileTemplate = decodedOverlay ? decodedOverlayTileUrlTemplate(decodedOverlay) : null;
+  const useOverlayTiles = Boolean(overlayActive && overlayTileTemplate);
   const overlayStatus = decodedOverlay?.overlay_status ?? 'missing';
 
   useEffect(() => {
@@ -176,11 +180,15 @@ export default function WeatherMap({
     }
 
     const removeOverlay = () => {
-      if (map.getLayer(DECODED_OVERLAY_LAYER_ID)) {
-        map.removeLayer(DECODED_OVERLAY_LAYER_ID);
+      for (const layerId of [DECODED_OVERLAY_LAYER_ID, DECODED_OVERLAY_TILE_LAYER_ID]) {
+        if (map.getLayer(layerId)) {
+          map.removeLayer(layerId);
+        }
       }
-      if (map.getSource(DECODED_OVERLAY_SOURCE_ID)) {
-        map.removeSource(DECODED_OVERLAY_SOURCE_ID);
+      for (const sourceId of [DECODED_OVERLAY_SOURCE_ID, DECODED_OVERLAY_TILE_SOURCE_ID]) {
+        if (map.getSource(sourceId)) {
+          map.removeSource(sourceId);
+        }
       }
     };
 
@@ -191,6 +199,30 @@ export default function WeatherMap({
 
     const [west, south, east, north] = decodedOverlay.bounds;
     removeOverlay();
+
+    if (useOverlayTiles && overlayTileTemplate) {
+      map.addSource(DECODED_OVERLAY_TILE_SOURCE_ID, {
+        type: 'raster',
+        tiles: [overlayTileTemplate],
+        tileSize: 256,
+        bounds: [west, south, east, north],
+        minzoom: 0,
+        maxzoom: decodedOverlay.tile_max_z ?? 1,
+      });
+      map.addLayer({
+        id: DECODED_OVERLAY_TILE_LAYER_ID,
+        type: 'raster',
+        source: DECODED_OVERLAY_TILE_SOURCE_ID,
+        paint: {
+          'raster-opacity': Math.min(1, opacity + 0.1),
+        },
+      });
+      return;
+    }
+
+    if (!decodedOverlay.preview_url) {
+      return;
+    }
 
     map.addSource(DECODED_OVERLAY_SOURCE_ID, {
       type: 'image',
@@ -211,21 +243,22 @@ export default function WeatherMap({
         'raster-opacity': Math.min(1, opacity + 0.1),
       },
     });
-  }, [mapReady, overlayActive, decodedOverlay, opacity]);
+  }, [mapReady, overlayActive, useOverlayTiles, overlayTileTemplate, decodedOverlay, opacity]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapReady || !bounds) {
+    if (!map || !mapReady || !decodedOverlay?.bounds?.length) {
       return;
     }
+    const [west, south, east, north] = decodedOverlay.bounds;
     map.fitBounds(
       [
-        [bounds[0], bounds[1]],
-        [bounds[2], bounds[3]],
+        [west, south],
+        [east, north],
       ],
       { padding: 24, duration: 0 },
     );
-  }, [mapReady, bounds]);
+  }, [mapReady, decodedOverlay?.bounds]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -237,10 +270,16 @@ export default function WeatherMap({
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapReady || !map.getLayer(DECODED_OVERLAY_LAYER_ID)) {
+    if (!map || !mapReady) {
       return;
     }
-    map.setPaintProperty(DECODED_OVERLAY_LAYER_ID, 'raster-opacity', Math.min(1, opacity + 0.1));
+    const overlayOpacity = Math.min(1, opacity + 0.1);
+    if (map.getLayer(DECODED_OVERLAY_LAYER_ID)) {
+      map.setPaintProperty(DECODED_OVERLAY_LAYER_ID, 'raster-opacity', overlayOpacity);
+    }
+    if (map.getLayer(DECODED_OVERLAY_TILE_LAYER_ID)) {
+      map.setPaintProperty(DECODED_OVERLAY_TILE_LAYER_ID, 'raster-opacity', overlayOpacity);
+    }
   }, [opacity, mapReady]);
 
   const statusMessage = backendDown
@@ -263,7 +302,9 @@ export default function WeatherMap({
 
   const overlayBadge =
     overlayStatus === 'decoded_prototype'
-      ? 'Decoded prototype overlay — local dev only'
+      ? useOverlayTiles
+        ? 'Decoded color tiles — local dev only'
+        : 'Decoded color overlay — local dev only'
       : overlayActive
         ? `${overlayStatus.replace(/_/g, ' ')} overlay — local dev only`
         : 'No decoded overlay — run make decode-retry';

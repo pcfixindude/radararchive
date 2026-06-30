@@ -9,10 +9,10 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 105
-- Latest phase: Phase 105 — Wire decoded preview map overlay
+- Completed through phase: 106
+- Latest phase: Phase 106 — Improve decoded preview color scale and tile slicing
 - Latest commit: (pending)
-- Latest tag: `phase-105-wire-decoded-preview-map-overlay`
+- Latest tag: `phase-106-improve-decoded-preview-color-scale-and-tile-slicing`
 - Push status: (pending)
 - Final git status: source clean after commit; only local `data/dev/` runtime artifacts modified
 
@@ -22,49 +22,51 @@ Do not treat this file as verified MRMS proof or production authorization.
 - `ENABLE_PRODUCTION_RADAR_TILES`: **false** by default
 - Placeholder tiles default: **true**
 - Production rendering: gated/off by default
-- Decoded map overlay: local dev prototype only — not verified MRMS, not production tile serving
+- Color preview + local tiles: prototype/local dev only — not verified MRMS
 
 ## Latest phase summary
 
-- Phase: **105**
-- Purpose: Wire local `decoded_prototype` preview into the frontend map shell for local development.
+- Phase: **106**
+- Purpose: Reflectivity dBZ color table for decoded previews; local color tile pyramid; map overlay prefers raster tiles when available.
+- Colorized reflectivity preview works? **Yes** — `color_scale_mode: reflectivity_dbz`, no-data (≤-900 dBZ) transparent
+- Local decoded tile slicing works? **Yes** — `tile_mode: local_raster_tiles`, 8 tiles (z0–z1, 2×2 per level) under `data/dev/mrms_local_render_tiles/`
 - Backend:
-  - `GET /api/dev/decoded-overlay` — overlay metadata (status, bounds, labels, refresh commands)
-  - `GET /api/dev/decoded-overlay/preview.png` — serves latest preview PNG from `data/dev/`
-  - Service: `backend/app/services/decoded_overlay.py`
+  - `color_scale.py` — dBZ color breaks, PNG encoder
+  - `tile_preview.py` — local color tile pyramid builder
+  - `GET /api/dev/decoded-overlay/tiles/{z}/{x}/{y}.png` — local dev color tiles
+  - Updated `mrms_local_render_pipeline.py` — color preview default, grayscale fallback
 - Frontend:
-  - `DecodedOverlayPanel` — status, labels, Refresh button
-  - `WeatherMap` — MapLibre `image` source overlay when preview available
-- Decoded preview visible in local map shell? **Yes** (when `make decode-retry` has produced preview)
-- Georef: **rasterio_bounds** when `geo_metadata.json` was enriched from rasterio; otherwise **prototype_bounds** (DEFAULT_MRMS_BOUNDS). `geo_accurate` remains false.
-- Preview paths:
-  - PNG: `data/dev/mrms_local_render_preview/preview_z0_x0_y0.png`
-  - API image: `/api/dev/decoded-overlay/preview.png`
-  - Metadata: `/api/dev/decoded-overlay`
-- Refresh workflow: run `make decode-retry` or `make mrms-local-render-pipeline`, then click **Refresh** in the Local decoded preview panel
-- Tests: backend 1165 passed; frontend 9 passed; `npm run build` ok
+  - `WeatherMap` — MapLibre raster tile source when `tile_mode=local_raster_tiles`, else color image overlay
+  - `DecodedOverlayPanel` — shows render mode, color scale mode, tile mode/status, georef accuracy
+- Output paths:
+  - Color preview: `data/dev/mrms_local_render_preview/preview_z0_x0_y0.png`
+  - Local tiles: `data/dev/mrms_local_render_tiles/{z}/{x}/{y}.png`
+  - Overlay API: `/api/dev/decoded-overlay`, `/api/dev/decoded-overlay/preview.png`, `/api/dev/decoded-overlay/tiles/{z}/{x}/{y}.png`
+- Georef: `rasterio_bounds` from enriched `geo_metadata.json`; `geo_accurate` false
+- Local run: `make decode-retry` → `preview_ok`, `reflectivity_dbz`, `local_raster_tiles`
+- Tests: backend 1173 passed; frontend 11 passed; `npm run build` ok
 
 ## Current focus
 
-Decoded prototype is visible on the local map overlay. Next: improve color scale, tile slicing, or time-synced playback — **not** another gated wrapper.
+Colorized decoded preview and local tile pyramid work. Next: time-synced playback, geo-accurate overlay, or catalog-frame tile sync — **not** another gated wrapper.
 
 ## Next recommended phase
 
-- Phase number: **106**
-- Phase title: Improve decoded preview color scale and tile slicing
-- Goal: Replace prototype grayscale sampling with reflectivity color table, slice decoded grid into multiple preview tiles or enable `ENABLE_DECODED_TILES` for catalog frame locally (still prototype, still not verified MRMS).
-- Why this is next: Overlay is wired and georef-placed; visual fidelity and multi-zoom preview are the practical next improvements.
+- Phase number: **107**
+- Phase title: Time-synced playback and geo-accurate overlay
+- Goal: Sync decoded overlay with time slider selection; improve georef accuracy or tie overlay to selected catalog timestamp.
+- Why this is next: Color preview and local tiles render; playback/georef alignment is the practical next visual improvement.
 - Safety boundaries:
   - local dev / prototype only
-  - keep production tile serving off by default
+  - keep production tile serving off
   - no verified MRMS claim
 
 ## Suggested next Cursor prompt
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 106 only.
-Improve decoded preview color scale and tile slicing for local dev.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 107 only.
+Sync decoded overlay with time slider and improve geo-accurate placement for local dev.
 ```
 
 ## Key docs (read order for new work)

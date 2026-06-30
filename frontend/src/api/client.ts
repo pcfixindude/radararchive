@@ -4264,6 +4264,12 @@ export type DecodedOverlayInfo = {
   decode_output_dir?: string | null;
   labels: string[];
   refresh_commands: string[];
+  color_scale_mode?: string | null;
+  tile_mode?: string;
+  tile_url_template?: string | null;
+  tile_max_z?: number;
+  tile_count?: number;
+  tile_root?: string | null;
   verified_mrms: boolean;
   local_dev_only: boolean;
   prototype: boolean;
@@ -4285,4 +4291,12 @@ export async function fetchDecodedOverlay(): Promise<DecodedOverlayInfo | null> 
 export function decodedOverlayPreviewUrl(overlay: DecodedOverlayInfo): string {
   const version = encodeURIComponent(overlay.ran_at || overlay.preview_mtime || 'latest');
   return `${API_BASE}${overlay.preview_url}?v=${version}`;
+}
+
+export function decodedOverlayTileUrlTemplate(overlay: DecodedOverlayInfo): string | null {
+  if (!overlay.tile_url_template || overlay.tile_mode !== 'local_raster_tiles') {
+    return null;
+  }
+  const version = encodeURIComponent(overlay.ran_at || overlay.preview_mtime || 'latest');
+  return `${API_BASE}${overlay.tile_url_template}?v=${version}`;
 }

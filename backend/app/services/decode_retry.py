@@ -67,12 +67,12 @@ def _next_phase_recommendation(
     render_mode: Optional[str],
 ) -> str:
     if decode_success and pipeline_status == STATUS_PREVIEW_OK and render_mode == "decoded_prototype":
-        return "Phase 105 — wire decoded preview into map overlay (color scale / georef / tile slice)"
+        return "Phase 107 — time-synced playback and geo-accurate overlay"
     if pipeline_status == STATUS_DECODER_MISSING:
-        return "Phase 105 — install rasterio via make install-decoders and rerun make decode-retry"
+        return "Phase 107 — install rasterio via make install-decoders and rerun make decode-retry"
     if not decode_success:
-        return "Phase 105 — fix decode failure (see decode_retry report stderr/error)"
-    return "Phase 105 — improve decoded preview rendering (color scale / georef)"
+        return "Phase 107 — fix decode failure (see decode_retry report stderr/error)"
+    return "Phase 107 — improve decoded preview playback and georef"
 
 
 def run_decode_retry(session: Session, storage: LocalStorage) -> dict[str, Any]:

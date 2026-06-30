@@ -38,6 +38,16 @@ export default function DecodedOverlayPanel({
           <li key={label}>{label}</li>
         ))}
       </ul>
+      <p className="decoded-overlay-meta">
+        Render mode: <code>{overlay?.render_mode ?? '—'}</code>
+      </p>
+      <p className="decoded-overlay-meta">
+        Color scale: <code>{overlay?.color_scale_mode ?? '—'}</code>
+      </p>
+      <p className="decoded-overlay-meta">
+        Tile mode: <code>{overlay?.tile_mode ?? 'single_image'}</code>
+        {overlay?.tile_count ? ` (${overlay.tile_count} tiles, z≤${overlay.tile_max_z ?? 0})` : ''}
+      </p>
       {overlay?.georef_mode ? (
         <p className="decoded-overlay-meta">
           Georef: <code>{overlay.georef_mode}</code>

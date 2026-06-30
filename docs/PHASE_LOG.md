@@ -3373,3 +3373,31 @@ make frontend
 - `geo_accurate` false — prototype placement
 - Not production authorization
 
+## Phase 106 - Improve Decoded Preview Color Scale and Tile Slicing
+
+Reflectivity dBZ color table for local decoded previews; small local color tile pyramid; map overlay prefers raster tiles.
+
+### Backend
+- `color_scale.py` — dBZ breaks, no-data transparency, PNG encoder
+- `tile_preview.py` — local color tiles under `data/dev/mrms_local_render_tiles/`
+- Pipeline prefers `reflectivity_dbz` color preview; grayscale fallback
+- API: `GET /api/dev/decoded-overlay/tiles/{z}/{x}/{y}.png`
+
+### Frontend
+- `WeatherMap` — raster tile overlay when `local_raster_tiles`; color image fallback
+- `DecodedOverlayPanel` — color scale mode, tile mode/status
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make decode-retry
+```
+
+### Known limitations
+- Does not verify MRMS or enable production tile serving
+- Local dev result: colorized preview + 8 local tiles (z0–z1)
+- `geo_accurate` false — prototype/rasterio bounds only
+- Not production authorization
+

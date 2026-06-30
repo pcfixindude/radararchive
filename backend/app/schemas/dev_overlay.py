@@ -22,6 +22,12 @@ class DecodedOverlayResponse(BaseModel):
     decode_output_dir: Optional[str] = None
     labels: list[str] = Field(default_factory=list)
     refresh_commands: list[str] = Field(default_factory=list)
+    color_scale_mode: Optional[str] = None
+    tile_mode: str = "single_image"
+    tile_url_template: Optional[str] = None
+    tile_max_z: int = 0
+    tile_count: int = 0
+    tile_root: Optional[str] = None
     verified_mrms: bool = False
     local_dev_only: bool = True
     prototype: bool = True
