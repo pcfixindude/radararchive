@@ -3432,3 +3432,32 @@ make frontend
 - Does not verify MRMS or enable production tile serving
 - Not production authorization
 
+## Phase 108 - Decode on Selected Catalog Frame
+
+Resolve, decode, and cache preview/tiles for the catalog-selected MRMS timestamp.
+
+### Backend
+- `selected_frame_decode.py` — catalog/filesystem candidate lookup, on-demand decode, per-frame cache
+- `decoded_overlay.py` — selected-frame path when `timestamp` + session; latest pipeline fallback
+- `tile_preview.py` — `build_local_tile_preview_at_root()` for per-frame tile directories
+- API: `?timestamp=` on overlay, preview.png, tiles; `?refresh=true` to force re-decode
+
+### Frontend
+- `DecodedOverlayPanel` — frame status, nearest timestamps, no-local/decode-failed hints
+- Preview/tile URLs include selected timestamp query
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make backend
+make frontend
+```
+
+### Known limitations
+- Demo catalog uses stub raw files — real MRMS requires download
+- On-demand decode can be slow on first selection
+- `geo_accurate` false — prototype placement only
+- Does not verify MRMS or enable production tile serving
+

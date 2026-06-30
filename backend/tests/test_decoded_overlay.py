@@ -16,6 +16,7 @@ from backend.app.services.mrms_local_render_pipeline import (
     PREVIEW_DIR,
     save_local_render_pipeline_report,
 )
+from backend.app.services.selected_frame_decode import FRAME_STATUS_MATCHED, save_frame_cache
 from backend.app.services.render_metadata import GeoRenderMetadata, write_geo_metadata
 from backend.app.services.tile_service import generate_placeholder_tile_png
 
@@ -23,6 +24,27 @@ from backend.app.services.tile_service import generate_placeholder_tile_png
 def _use_test_storage(monkeypatch, storage):
     monkeypatch.setattr(settings, "local_storage_root", str(storage.storage_root))
     monkeypatch.setattr(settings, "enable_production_radar_tiles", False)
+
+
+def _seed_frame_cache(storage, timestamp: str, preview_path: str, **extra) -> None:
+    save_frame_cache(
+        storage,
+        timestamp,
+        {
+            "frame_status": FRAME_STATUS_MATCHED,
+            "selected_timestamp": timestamp,
+            "candidate_timestamp": timestamp,
+            "preview_paths": [preview_path],
+            "tile_mode": extra.get("tile_mode", "single_image"),
+            "tile_preview": extra.get("tile_preview"),
+            "tile_root": extra.get("tile_root"),
+            "color_scale_mode": extra.get("color_scale_mode"),
+            "render_mode": "decoded_prototype",
+            "pipeline_status": "preview_ok",
+            "sync_message": "test cache",
+            **{k: v for k, v in extra.items() if k not in {"tile_mode", "tile_preview", "tile_root", "color_scale_mode"}},
+        },
+    )
 
 
 def test_build_decoded_overlay_missing(storage, monkeypatch):
@@ -79,82 +101,53 @@ def test_build_decoded_overlay_with_preview(storage, monkeypatch):
     assert "NOT verified MRMS" in overlay["labels"][1]
 
 
-def test_build_decoded_overlay_sync_matched(storage, monkeypatch):
+def test_build_decoded_overlay_sync_matched(storage, db_session, monkeypatch):
     _use_test_storage(monkeypatch, storage)
     preview_path = storage.normalize_path(PREVIEW_DIR, "preview_z0_x0_y0.png")
     storage.ensure_directories(PREVIEW_DIR)
     storage.write_bytes(preview_path, generate_placeholder_tile_png())
-    pipeline_json = storage.normalize_path(PIPELINE_JSON)
-    storage.ensure_directories(pipeline_json.rsplit("/", 1)[0])
-    storage.absolute_path(pipeline_json).write_text(
-        json.dumps(
-            {
-                "ran_at": "2026-06-28T14:00:00Z",
-                "pipeline_status": "preview_ok",
-                "render_mode": "decoded_prototype",
-                "candidate": {"timestamp": "2026-06-28T13:26:38Z"},
-                "produced_local_artifact": True,
-                "preview_paths": [preview_path],
-            }
-        ),
-        encoding="utf-8",
+    _seed_frame_cache(storage, "2026-06-28T13:26:38Z", preview_path)
+    overlay = build_decoded_overlay(
+        storage,
+        selected_timestamp="2026-06-28T13:26:38Z",
+        session=db_session,
     )
-    overlay = build_decoded_overlay(storage, selected_timestamp="2026-06-28T13:26:38Z")
     assert overlay["sync_status"] == "matched"
     assert overlay["overlay_visible"] is True
     assert overlay["available"] is True
 
 
-def test_build_decoded_overlay_with_tiles(storage, monkeypatch):
+def test_build_decoded_overlay_with_tiles(storage, db_session, monkeypatch):
     _use_test_storage(monkeypatch, storage)
     preview_path = storage.normalize_path(PREVIEW_DIR, "preview_z0_x0_y0.png")
     storage.ensure_directories(PREVIEW_DIR)
     storage.write_bytes(preview_path, generate_placeholder_tile_png())
-    pipeline_json = storage.normalize_path("dev/mrms_local_render_pipeline_latest.json")
-    storage.ensure_directories(pipeline_json.rsplit("/", 1)[0])
-    storage.absolute_path(pipeline_json).write_text(
-        json.dumps(
-            {
-                "ran_at": "2026-06-28T14:00:00Z",
-                "pipeline_status": "preview_ok",
-                "render_mode": "decoded_prototype",
-                "color_scale_mode": "reflectivity_dbz",
-                "tile_mode": "local_raster_tiles",
-                "tile_preview": {"built": 5, "max_z": 1, "tile_mode": "local_raster_tiles"},
-                "candidate": {"timestamp": "2026-06-28T13:26:38Z"},
-                "produced_local_artifact": True,
-                "preview_paths": [preview_path],
-            }
-        ),
-        encoding="utf-8",
+    tile_root = storage.normalize_path("dev/mrms_frame_cache", "20260628T132638Z", "tiles")
+    _seed_frame_cache(
+        storage,
+        "2026-06-28T13:26:38Z",
+        preview_path,
+        tile_mode="local_raster_tiles",
+        tile_root=tile_root,
+        tile_preview={"built": 5, "max_z": 1, "tile_mode": "local_raster_tiles"},
+        color_scale_mode="reflectivity_dbz",
     )
-    overlay = build_decoded_overlay(storage, selected_timestamp="2026-06-28T13:26:38Z")
+    overlay = build_decoded_overlay(
+        storage,
+        selected_timestamp="2026-06-28T13:26:38Z",
+        session=db_session,
+    )
     assert overlay["tile_mode"] == "local_raster_tiles"
     assert overlay["tile_url_template"] == "/api/dev/decoded-overlay/tiles/{z}/{x}/{y}.png"
     assert overlay["tile_count"] == 5
 
 
-def test_decoded_overlay_api_json(client, storage, monkeypatch):
+def test_decoded_overlay_api_json(client, storage, db_session, monkeypatch):
     _use_test_storage(monkeypatch, storage)
     preview_path = storage.normalize_path(PREVIEW_DIR, "preview_z0_x0_y0.png")
     storage.ensure_directories(PREVIEW_DIR)
     storage.write_bytes(preview_path, generate_placeholder_tile_png())
-    pipeline_json = storage.normalize_path(PIPELINE_JSON)
-    storage.ensure_directories(pipeline_json.rsplit("/", 1)[0])
-    storage.absolute_path(pipeline_json).write_text(
-        json.dumps(
-            {
-                "ran_at": "2026-06-28T14:00:00Z",
-                "pipeline_status": "preview_ok",
-                "render_mode": "decoded_prototype",
-                "candidate": {"timestamp": "2026-06-28T13:26:38Z"},
-                "produced_local_artifact": True,
-                "preview_paths": [preview_path],
-            }
-        ),
-        encoding="utf-8",
-    )
-
+    _seed_frame_cache(storage, "2026-06-28T13:26:38Z", preview_path)
     response = client.get("/api/dev/decoded-overlay?timestamp=2026-06-28T13:26:38Z")
     assert response.status_code == 200
     body = response.json()

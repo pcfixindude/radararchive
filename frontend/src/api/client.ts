@@ -4276,6 +4276,9 @@ export type DecodedOverlayInfo = {
   selected_timestamp?: string | null;
   sync_status?: string;
   sync_message?: string | null;
+  frame_status?: string | null;
+  nearest_raw_timestamp?: string | null;
+  nearest_decoded_timestamp?: string | null;
   georef_quality?: string;
   georef_notes?: string[];
   verified_mrms: boolean;
@@ -4299,7 +4302,10 @@ export async function fetchDecodedOverlay(selectedTimestamp?: string): Promise<D
 
 export function decodedOverlayPreviewUrl(overlay: DecodedOverlayInfo): string {
   const version = encodeURIComponent(overlay.ran_at || overlay.preview_mtime || 'latest');
-  return `${API_BASE}${overlay.preview_url}?v=${version}`;
+  const ts = overlay.selected_timestamp
+    ? `&timestamp=${encodeURIComponent(overlay.selected_timestamp)}`
+    : '';
+  return `${API_BASE}${overlay.preview_url}?v=${version}${ts}`;
 }
 
 export function decodedOverlayTileUrlTemplate(overlay: DecodedOverlayInfo): string | null {
@@ -4307,5 +4313,8 @@ export function decodedOverlayTileUrlTemplate(overlay: DecodedOverlayInfo): stri
     return null;
   }
   const version = encodeURIComponent(overlay.ran_at || overlay.preview_mtime || 'latest');
-  return `${API_BASE}${overlay.tile_url_template}?v=${version}`;
+  const ts = overlay.selected_timestamp
+    ? `&timestamp=${encodeURIComponent(overlay.selected_timestamp)}`
+    : '';
+  return `${API_BASE}${overlay.tile_url_template}?v=${version}${ts}`;
 }

@@ -14,8 +14,11 @@ function syncClass(syncStatus?: string): string {
   if (syncStatus === 'matched') {
     return 'decoded-overlay-badge--decoded';
   }
-  if (syncStatus === 'mismatch') {
+  if (syncStatus === 'mismatch' || syncStatus === 'stale_latest_fallback') {
     return 'decoded-overlay-badge--placeholder';
+  }
+  if (syncStatus === 'no_local_candidate' || syncStatus === 'decode_failed') {
+    return 'decoded-overlay-badge--missing';
   }
   return 'decoded-overlay-badge--missing';
 }
@@ -59,6 +62,21 @@ export default function DecodedOverlayPanel({
       <p className="decoded-overlay-meta">
         Decoded candidate: <code>{overlay?.candidate_timestamp ?? '—'}</code>
       </p>
+      {overlay?.nearest_raw_timestamp ? (
+        <p className="decoded-overlay-meta">
+          Nearest local raw: <code>{overlay.nearest_raw_timestamp}</code>
+        </p>
+      ) : null}
+      {overlay?.nearest_decoded_timestamp ? (
+        <p className="decoded-overlay-meta">
+          Nearest decoded: <code>{overlay.nearest_decoded_timestamp}</code>
+        </p>
+      ) : null}
+      {overlay?.frame_status ? (
+        <p className="decoded-overlay-meta">
+          Frame: <code>{overlay.frame_status.replace(/_/g, ' ')}</code>
+        </p>
+      ) : null}
       <p className="decoded-overlay-meta">
         Render mode: <code>{overlay?.render_mode ?? '—'}</code>
       </p>
@@ -76,8 +94,13 @@ export default function DecodedOverlayPanel({
         </p>
       ) : null}
       {overlay?.sync_message ? <p className="decoded-overlay-warn">{overlay.sync_message}</p> : null}
-      {overlay?.stale_hint && overlay.sync_status !== 'mismatch' ? (
+      {overlay?.stale_hint && overlay.sync_status !== 'mismatch' && overlay.sync_status !== 'matched' ? (
         <p className="decoded-overlay-warn">{overlay.stale_hint}</p>
+      ) : null}
+      {overlay?.sync_status === 'no_local_candidate' ? (
+        <p className="decoded-overlay-hint">
+          No local MRMS file for this timestamp. Try <code>MRMS_SOURCE_MODE=real make download-mrms</code> then Refresh.
+        </p>
       ) : null}
       {!overlay?.artifact_available ? (
         <p className="decoded-overlay-hint">

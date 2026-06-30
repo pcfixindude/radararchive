@@ -34,6 +34,9 @@ class DecodedOverlayResponse(BaseModel):
     selected_timestamp: Optional[str] = None
     sync_status: str = "no_selection"
     sync_message: Optional[str] = None
+    frame_status: Optional[str] = None
+    nearest_raw_timestamp: Optional[str] = None
+    nearest_decoded_timestamp: Optional[str] = None
     georef_quality: str = "prototype_bounds"
     georef_notes: list[str] = Field(default_factory=list)
     verified_mrms: bool = False

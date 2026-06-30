@@ -1,14 +1,30 @@
 # Next Steps
 
-## Phase 108 - Decode-on-selected catalog frame (Draft)
+## Phase 109 - Multi-frame playback animation (Draft)
 
-Goal: Resolve or decode preview for the catalog-selected MRMS timestamp so playback can advance beyond a single local decode.
+Goal: Prefetch/decode adjacent catalog frames and animate decoded overlay during time-slider playback.
 
 ```bash
-make decode-retry
 make backend
 make frontend
 ```
+
+## Phase 108 verification commands
+
+```bash
+make test
+cd frontend && npm test
+cd frontend && npm run build
+make backend
+make frontend
+```
+
+Local result after Phase 108:
+
+- Select timestamp with local real `.grib2.gz` → decode + preview/tiles cached and shown
+- Demo stub timestamps → `stub_input` / actionable download hint
+- Unknown timestamp → `no_local_candidate` with nearest local timestamps
+- Frame cache under `data/dev/mrms_frame_cache/`
 
 ## Phase 107 verification commands
 
@@ -17,36 +33,11 @@ make test
 cd frontend && npm test
 cd frontend && npm run build
 make decode-retry
-make backend
-make frontend
 ```
-
-Local result after Phase 107:
-
-- Overlay sync: `sync_status` `matched` when slider/catalog time equals candidate (`2026-06-28T13:26:38Z`)
-- Mismatch: demo slider times show `mismatch` — overlay hidden, panel explains stale state
-- `georef_quality`: rasterio bounds/affine notes; `geo_accurate` false
-- Refresh: panel **Refresh** or `make decode-retry` then refetch overlay metadata
 
 ## Phase 106 verification commands
 
 ```bash
 make test
-cd frontend && npm test
-cd frontend && npm run build
 make decode-retry
-```
-
-Local result after Phase 106:
-
-- `color_scale_mode`: `reflectivity_dbz`
-- `tile_mode`: `local_raster_tiles`
-- `tile_count`: 8 (z0–z1, 2×2 per level)
-
-## Phase 105 verification commands
-
-```bash
-make decode-retry
-make backend
-make frontend
 ```

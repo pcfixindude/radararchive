@@ -128,8 +128,9 @@ def render_color_preview_from_artifact(
     return render_color_preview_tile(dbz_grid, z=z, x=x, y=y)
 
 
-def _local_tile_path(storage: LocalStorage, *, z: int, x: int, y: int) -> str:
-    return storage.normalize_path(LOCAL_TILE_ROOT, str(z), str(x), f"{y}.png")
+def _local_tile_path(storage: LocalStorage, *, z: int, x: int, y: int, tile_root: Optional[str] = None) -> str:
+    root = tile_root or LOCAL_TILE_ROOT
+    return storage.normalize_path(root, str(z), str(x), f"{y}.png")
 
 
 def build_local_tile_preview(
@@ -138,8 +139,27 @@ def build_local_tile_preview(
     *,
     z_levels: Optional[list[int]] = None,
     xy_limit: int = 2,
+    tile_root: Optional[str] = None,
 ) -> LocalTilePreviewResult:
     """Build a small local color tile pyramid under data/dev/."""
+    return build_local_tile_preview_at_root(
+        storage,
+        artifact,
+        tile_root=tile_root or LOCAL_TILE_ROOT,
+        z_levels=z_levels,
+        xy_limit=xy_limit,
+    )
+
+
+def build_local_tile_preview_at_root(
+    storage: LocalStorage,
+    artifact: DecodeArtifact,
+    *,
+    tile_root: str,
+    z_levels: Optional[list[int]] = None,
+    xy_limit: int = 2,
+) -> LocalTilePreviewResult:
+    """Build a small local color tile pyramid at a custom tile root."""
     z_levels = z_levels or [0, 1]
     result = LocalTilePreviewResult(max_z=max(z_levels) if z_levels else 0)
     dbz_grid = read_artifact_dbz_grid(storage, artifact)
@@ -147,12 +167,12 @@ def build_local_tile_preview(
         result.notes.append("Could not read dBZ grid for local tile preview.")
         return result
 
-    storage.ensure_directories(LOCAL_TILE_ROOT)
+    storage.ensure_directories(tile_root)
     for z in z_levels:
         for x in range(xy_limit):
             for y in range(xy_limit):
                 png = render_color_preview_tile(dbz_grid, z=z, x=x, y=y)
-                tile_path = _local_tile_path(storage, z=z, x=x, y=y)
+                tile_path = _local_tile_path(storage, z=z, x=x, y=y, tile_root=tile_root)
                 storage.ensure_directories(tile_path.rsplit("/", 1)[0])
                 storage.write_bytes(tile_path, png, overwrite=True)
                 result.built += 1
@@ -160,12 +180,19 @@ def build_local_tile_preview(
 
     if result.built > 0:
         result.tile_mode = TILE_MODE_LOCAL_RASTER
-        result.notes.append(f"Built {result.built} local color tiles under {LOCAL_TILE_ROOT}/")
+        result.notes.append(f"Built {result.built} local color tiles under {tile_root}/")
     return result
 
 
-def load_local_tile_png(storage: LocalStorage, *, z: int, x: int, y: int) -> Optional[bytes]:
-    tile_path = _local_tile_path(storage, z=z, x=x, y=y)
+def load_local_tile_png(
+    storage: LocalStorage,
+    *,
+    z: int,
+    x: int,
+    y: int,
+    tile_root: Optional[str] = None,
+) -> Optional[bytes]:
+    tile_path = _local_tile_path(storage, z=z, x=x, y=y, tile_root=tile_root)
     if not storage.path_exists(tile_path):
         return None
     try:

@@ -12,6 +12,11 @@ SYNC_MATCHED = "matched"
 SYNC_MISMATCH = "mismatch"
 SYNC_NO_SELECTION = "no_selection"
 SYNC_NO_CANDIDATE = "no_candidate_timestamp"
+SYNC_NO_LOCAL_CANDIDATE = "no_local_candidate"
+SYNC_DECODE_FAILED = "decode_failed"
+SYNC_DECODER_MISSING = "decoder_missing"
+SYNC_STUB_INPUT = "stub_input"
+SYNC_STALE_LATEST_FALLBACK = "stale_latest_fallback"
 
 _FILENAME_TS_RE = re.compile(r"(\d{8}T\d{6}Z)")
 
