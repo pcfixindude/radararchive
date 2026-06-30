@@ -11,9 +11,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 108
 - Latest phase: Phase 108 — Decode on selected catalog frame
-- Latest commit: (pending)
+- Latest commit: `db2efaa`
 - Latest tag: `phase-108-decode-on-selected-catalog-frame`
-- Push status: (pending)
+- Push status: pushed to `origin/main` with tag
 - Final git status: source clean after commit; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
