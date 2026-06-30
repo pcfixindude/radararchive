@@ -43,3 +43,23 @@ class DecodedOverlayResponse(BaseModel):
     local_dev_only: bool = True
     prototype: bool = True
     production_tile_serving: bool = False
+
+
+class FramePrefetchItem(BaseModel):
+    timestamp: Optional[str] = None
+    frame_status: Optional[str] = None
+    cached: bool = False
+    overlay_visible: bool = False
+    sync_status: Optional[str] = None
+    sync_message: Optional[str] = None
+
+
+class FramePrefetchResponse(BaseModel):
+    requested: int = 0
+    prefetched: int = 0
+    matched: int = 0
+    frames: list[FramePrefetchItem] = Field(default_factory=list)
+    verified_mrms: bool = False
+    local_dev_only: bool = True
+    prototype: bool = True
+    production_tile_serving: bool = False

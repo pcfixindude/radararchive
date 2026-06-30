@@ -3,6 +3,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { AccessCurrentInfo, DecodedOverlayInfo, DemoPlan, Layer } from '../api/client';
 import { decodedOverlayPreviewUrl, decodedOverlayTileUrlTemplate, tileUrlTemplate, tilesAvailable, tileBlockedByPlan } from '../api/client';
+import { playbackStatusLabel, type PlaybackFrameStatus } from '../hooks/framePlayback';
 import {
   BASEMAP_STYLE,
   DECODED_OVERLAY_LAYER_ID,
@@ -30,6 +31,7 @@ export default function WeatherMap({
   accessInfo,
   opacity,
   decodedOverlay,
+  playbackFrameStatus = 'idle',
 }: {
   selectedTime: string;
   selectedLayer: string;
@@ -43,6 +45,7 @@ export default function WeatherMap({
   accessInfo: AccessCurrentInfo | null;
   opacity: number;
   decodedOverlay: DecodedOverlayInfo | null;
+  playbackFrameStatus?: PlaybackFrameStatus;
 }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -301,7 +304,9 @@ export default function WeatherMap({
                   : 'Checking tile availability...';
 
   const overlayBadge =
-    decodedOverlay?.sync_status === 'matched'
+    playbackFrameStatus === 'decoding'
+      ? 'Decoding selected frame…'
+      : decodedOverlay?.sync_status === 'matched'
       ? useOverlayTiles
         ? 'Decoded color tiles synced — local dev only'
         : 'Decoded color overlay synced — local dev only'

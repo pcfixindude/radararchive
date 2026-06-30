@@ -4287,14 +4287,58 @@ export type DecodedOverlayInfo = {
   production_tile_serving: boolean;
 };
 
-export async function fetchDecodedOverlay(selectedTimestamp?: string): Promise<DecodedOverlayInfo | null> {
+export type FramePrefetchInfo = {
+  timestamp?: string | null;
+  frame_status?: string | null;
+  cached?: boolean;
+  overlay_visible?: boolean;
+  sync_status?: string | null;
+  sync_message?: string | null;
+};
+
+export type FramePrefetchResponse = {
+  requested: number;
+  prefetched: number;
+  matched: number;
+  frames: FramePrefetchInfo[];
+};
+
+export async function fetchDecodedOverlay(
+  selectedTimestamp?: string,
+  options: { refresh?: boolean } = {},
+): Promise<DecodedOverlayInfo | null> {
   try {
-    const query = selectedTimestamp ? `?timestamp=${encodeURIComponent(selectedTimestamp)}` : '';
+    const params = new URLSearchParams();
+    if (selectedTimestamp) {
+      params.set('timestamp', selectedTimestamp);
+    }
+    if (options.refresh) {
+      params.set('refresh', 'true');
+    }
+    const query = params.toString() ? `?${params.toString()}` : '';
     const response = await fetch(`${API_BASE}/api/dev/decoded-overlay${query}`);
     if (!response.ok) {
       return null;
     }
     return response.json() as Promise<DecodedOverlayInfo>;
+  } catch {
+    return null;
+  }
+}
+
+export async function prefetchDecodedFrames(timestamps: string[]): Promise<FramePrefetchResponse | null> {
+  if (timestamps.length === 0) {
+    return null;
+  }
+  try {
+    const params = new URLSearchParams({
+      timestamps: timestamps.join(','),
+    });
+    const response = await fetch(`${API_BASE}/api/dev/decoded-overlay/prefetch?${params.toString()}`);
+    if (!response.ok) {
+      return null;
+    }
+    return response.json() as Promise<FramePrefetchResponse>;
   } catch {
     return null;
   }

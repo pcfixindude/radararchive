@@ -1,4 +1,5 @@
 import { PLAYBACK_SPEEDS } from '../hooks/usePlayback';
+import { playbackStatusLabel, type PlaybackFrameStatus } from '../hooks/framePlayback';
 
 export default function PlaybackControls({
   times,
@@ -6,6 +7,7 @@ export default function PlaybackControls({
   disabled = false,
   playing,
   speed,
+  playbackFrameStatus = 'idle',
   onTogglePlay,
   onStepBackward,
   onStepForward,
@@ -17,6 +19,7 @@ export default function PlaybackControls({
   disabled?: boolean;
   playing: boolean;
   speed: number;
+  playbackFrameStatus?: PlaybackFrameStatus;
   onTogglePlay: () => void;
   onStepBackward: () => void;
   onStepForward: () => void;
@@ -58,6 +61,9 @@ export default function PlaybackControls({
       </label>
       <p className="playback-meta">
         Frame {times.length === 0 ? 0 : index + 1} of {times.length}
+      </p>
+      <p className={`playback-meta playback-status playback-status--${playbackFrameStatus}`}>
+        Overlay: {playbackStatusLabel(playbackFrameStatus)}
       </p>
     </section>
   );

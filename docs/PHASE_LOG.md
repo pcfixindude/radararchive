@@ -3461,3 +3461,32 @@ make frontend
 - `geo_accurate` false — prototype placement only
 - Does not verify MRMS or enable production tile serving
 
+## Phase 109 - Multi Frame Playback Animation
+
+Wire playback controls to per-frame decoded overlay loading with adjacent prefetch and playback status UI.
+
+### Backend
+- `frame_playback.py` — `prefetch_frames()` for adjacent catalog timestamps (max 3)
+- `GET /api/dev/decoded-overlay/prefetch?timestamps=t1,t2,t3`
+
+### Frontend
+- `useFrameOverlay.ts` — per-frame overlay load, in-memory cache, prefetch on time change
+- `framePlayback.ts` — playback status helpers
+- `PlaybackControls` — overlay status during play
+- `DecodedOverlayPanel` — playback + decoding indicator
+- `WeatherMap` — decoding badge on map
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make backend
+make frontend
+```
+
+### Known limitations
+- Demo catalog mostly stubs — missing-frame states common during playback
+- Decode is async; playback timer does not wait for decode completion
+- Does not verify MRMS or enable production tile serving
+

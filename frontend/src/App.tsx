@@ -3,13 +3,11 @@ import {
   checkBackendHealth,
   DEFAULT_DEMO_PLAN,
   fetchAccessCurrent,
-  fetchDecodedOverlay,
   fetchLayers,
   fetchTimes,
   fetchTilesConfig,
   fetchRenderQueueSummary,
   fetchValidationSummary,
-  type DecodedOverlayInfo,
   type ValidationSummary,
   type AccessCurrentInfo,
   type DemoPlan,
@@ -25,6 +23,7 @@ import PlanSelector from './components/PlanSelector';
 import ValidationStatusPanel from './components/ValidationStatusPanel';
 import DecodedOverlayPanel from './components/DecodedOverlayPanel';
 import { usePlayback } from './hooks/usePlayback';
+import { useFrameOverlay } from './hooks/useFrameOverlay';
 import { DEFAULT_LAYER } from './map/layers';
 
 type LoadState = 'loading' | 'ready' | 'backend_down' | 'error';
@@ -44,18 +43,6 @@ export default function App() {
   const [renderJobHint, setRenderJobHint] = useState('');
   const [validationSummary, setValidationSummary] = useState<ValidationSummary | null>(null);
   const [validationRefreshing, setValidationRefreshing] = useState(false);
-  const [decodedOverlay, setDecodedOverlay] = useState<DecodedOverlayInfo | null>(null);
-  const [decodedOverlayRefreshing, setDecodedOverlayRefreshing] = useState(false);
-
-  const refreshDecodedOverlay = async (timestamp?: string) => {
-    setDecodedOverlayRefreshing(true);
-    try {
-      const overlay = await fetchDecodedOverlay(timestamp ?? (selectedTime || undefined));
-      setDecodedOverlay(overlay);
-    } finally {
-      setDecodedOverlayRefreshing(false);
-    }
-  };
 
   const refreshValidationSummary = async () => {
     setValidationRefreshing(true);
@@ -97,6 +84,14 @@ export default function App() {
     jumpToLatest,
     setPlaying,
   } = usePlayback(playbackTimes, selectedTime, setSelectedTime);
+
+  const {
+    decodedOverlay,
+    frameStatus: playbackFrameStatus,
+    refreshing: decodedOverlayRefreshing,
+    refreshDecodedOverlay,
+    clearFrameCache,
+  } = useFrameOverlay(playbackTimes, selectedTime, playing, loadState === 'ready');
 
   useEffect(() => {
     let cancelled = false;
@@ -209,25 +204,6 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
 
-    async function loadDecodedOverlay() {
-      if (loadState !== 'ready') {
-        return;
-      }
-      const overlay = await fetchDecodedOverlay(selectedTime || undefined);
-      if (!cancelled) {
-        setDecodedOverlay(overlay);
-      }
-    }
-
-    loadDecodedOverlay();
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedTime, loadState]);
-
-  useEffect(() => {
-    let cancelled = false;
-
     async function loadTimes() {
       if (loadState === 'backend_down') {
         return;
@@ -247,6 +223,7 @@ export default function App() {
           setLoadState('ready');
           setError('');
           setPlaying(false);
+          clearFrameCache();
         }
       } catch (err) {
         if (!cancelled) {
@@ -263,7 +240,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [selectedLayer, selectedPlan, setPlaying]);
+  }, [selectedLayer, selectedPlan, setPlaying, clearFrameCache]);
 
   const controlsDisabled = loadState !== 'ready' || times.length === 0;
   const noProcessedTiles = loadState === 'ready' && times.length > 0 && processedTimes.length === 0;
@@ -296,6 +273,7 @@ export default function App() {
           accessInfo={accessInfo}
           opacity={radarOpacity}
           decodedOverlay={decodedOverlay}
+          playbackFrameStatus={playbackFrameStatus}
         />
         <aside className="app-controls">
           {loadState === 'backend_down' ? (
@@ -317,6 +295,7 @@ export default function App() {
           <DecodedOverlayPanel
             overlay={decodedOverlay}
             selectedTime={selectedTime}
+            playbackFrameStatus={playbackFrameStatus}
             onRefresh={() => refreshDecodedOverlay()}
             refreshing={decodedOverlayRefreshing}
           />
@@ -346,6 +325,7 @@ export default function App() {
             disabled={controlsDisabled || playbackTimes.length === 0}
             playing={playing}
             speed={speed}
+            playbackFrameStatus={playbackFrameStatus}
             onTogglePlay={togglePlay}
             onStepBackward={() => {
               setPlaying(false);

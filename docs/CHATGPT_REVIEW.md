@@ -9,11 +9,11 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 108
-- Latest phase: Phase 108 — Decode on selected catalog frame
-- Latest commit: `db2efaa`
-- Latest tag: `phase-108-decode-on-selected-catalog-frame`
-- Push status: pushed to `origin/main` with tag
+- Completed through phase: 109
+- Latest phase: Phase 109 — Multi frame playback animation
+- Latest commit: (pending)
+- Latest tag: `phase-109-multi-frame-playback-animation`
+- Push status: (pending)
 - Final git status: source clean after commit; only local `data/dev/` runtime artifacts modified
 
 ## Safety state
@@ -26,40 +26,37 @@ Do not treat this file as verified MRMS proof or production authorization.
 
 ## Latest phase summary
 
-- Phase: **108**
-- Purpose: When user selects a catalog timestamp, resolve/decode/preview that specific local MRMS frame or return actionable no-local-decode state; cache per-frame artifacts.
-- Selected timestamp resolves matching local MRMS frame? **Yes** — catalog lookup + filesystem scan for `data/raw/mrms/reflectivity/*{token}*.grib2.gz`
-- Selected-frame decode works? **Yes** — decodes if needed via existing `decode_grib2_file`, caches under `data/dev/mrms_frame_cache/{token}/`
-- Selected-frame preview/tiles render? **Yes** — when `frame_status: matched`, overlay visible with per-frame preview/tiles; preview/tile APIs accept `?timestamp=`
-- No-local-frame behavior:
-  - `sync_status: no_local_candidate` — no local `.grib2.gz`; shows nearest raw/decoded timestamps + `MRMS_SOURCE_MODE=real make download-mrms` command
-  - `sync_status: stub_input` — demo/catalog stub only
-  - `sync_status: decode_failed` / `decoder_missing` — actionable retry commands
-  - `sync_status: stale_latest_fallback` — latest pipeline preview exists for different frame
-  - `sync_status: no_selection` — no timestamp (latest metadata only, overlay hidden)
+- Phase: **109**
+- Purpose: Multi-frame local playback animation using cached per-frame decodes; adjacent-frame prefetch; responsive decode status during play.
+- Playback controls exist? **Yes** — existing Play/Pause/step/speed controls; now show overlay playback status
+- Playback advances selected timestamps? **Yes** — `usePlayback` steps catalog frames; `useFrameOverlay` loads overlay per frame
+- Cached decoded frames animate on map? **Yes** — overlay tile/image source updates as `decodedOverlay` changes per timestamp
+- Adjacent-frame prefetch works? **Yes** — `GET /api/dev/decoded-overlay/prefetch?timestamps=` + client-side cache warm for prev/next
+- Missing-frame behavior:
+  - `frame_missing` / `no_local_candidate` / `stub_input` — overlay hidden, status in panel/playback controls
+  - `decode_failed` / `decoder_missing` — actionable commands shown
+  - `decoding` — non-blocking; playback timer continues; map badge shows decoding
 - Backend:
-  - `selected_frame_decode.py` — `resolve_selected_frame()`, per-frame cache manifest
-  - `decoded_overlay.py` — prefers selected-frame resolve when `timestamp` + DB session provided
-  - `tile_preview.py` — `build_local_tile_preview_at_root()` for per-frame tile roots
-  - `GET /api/dev/decoded-overlay?timestamp=&refresh=` — decode/resolve selected frame
-  - `GET /api/dev/decoded-overlay/preview.png?timestamp=`
-  - `GET /api/dev/decoded-overlay/tiles/{z}/{x}/{y}.png?timestamp=`
+  - `frame_playback.py` — `prefetch_frames()` for up to 3 adjacent timestamps
+  - `GET /api/dev/decoded-overlay/prefetch?timestamps=t1,t2,t3`
 - Frontend:
-  - `DecodedOverlayPanel` — frame status, nearest timestamps, no-local hints
-  - `decodedOverlayPreviewUrl` / tile template — pass `timestamp` query
-- Frame cache: `data/dev/mrms_frame_cache/{timestamp_token}/frame_manifest.json`, preview PNG, `tiles/`
-- Tests: backend 1188 passed; frontend 11 passed; `npm run build` ok
+  - `useFrameOverlay.ts` — per-frame load, in-memory cache, adjacent prefetch
+  - `framePlayback.ts` — status helpers (`playing`, `paused`, `decoding`, `frame_ready`, `frame_missing`, `decode_failed`)
+  - `PlaybackControls` — overlay playback status line
+  - `DecodedOverlayPanel` — playback status + loading indicator
+  - `WeatherMap` — decoding badge during frame load
+- Tests: backend 1190 passed; frontend 15 passed; `npm run build` ok
 
 ## Current focus
 
-Selecting a catalog timestamp now triggers on-demand local decode/preview when a matching raw MRMS file exists. Demo stub timestamps show stub/no-local states. Next: multi-frame playback animation or bulk local catalog ingestion.
+Playback steps through catalog timestamps and updates decoded overlay per frame with prefetch for neighbors. Demo stubs show missing-frame states; real MRMS frames decode/cache and animate. Next: bulk local catalog ingestion or playback polish.
 
 ## Next recommended phase
 
-- Phase number: **109**
-- Phase title: Multi-frame playback animation
-- Goal: Wire time-slider playback to prefetch/decode adjacent catalog frames and animate decoded overlay across cached frames.
-- Why this is next: Phase 108 decodes one selected frame; playback needs frame queueing and smooth transitions.
+- Phase number: **110**
+- Phase title: Bulk local MRMS catalog ingestion
+- Goal: Download/register multiple real MRMS frames locally so playback has more than one decodable timestamp.
+- Why this is next: Playback works but demo catalog is mostly stubs; bulk ingestion unlocks meaningful multi-frame animation.
 - Safety boundaries:
   - local dev / prototype only
   - keep production tile serving off
@@ -69,8 +66,8 @@ Selecting a catalog timestamp now triggers on-demand local decode/preview when a
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 109 only.
-Add multi-frame playback animation using cached per-frame decodes from the time slider.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 110 only.
+Bulk download and register multiple local MRMS catalog frames for playback.
 ```
 
 ## Key docs (read order for new work)

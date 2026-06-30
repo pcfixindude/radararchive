@@ -8,12 +8,13 @@ from sqlalchemy.orm import Session
 
 from backend.app.config import settings
 from backend.app.database import get_db
-from backend.app.schemas.dev_overlay import DecodedOverlayResponse
+from backend.app.schemas.dev_overlay import DecodedOverlayResponse, FramePrefetchResponse
 from backend.app.services.decoded_overlay import (
     build_decoded_overlay,
     load_overlay_tile_png,
     load_preview_png_bytes,
 )
+from backend.app.services.frame_playback import prefetch_frames
 from backend.app.services.storage import LocalStorage
 
 router = APIRouter(prefix="/dev", tags=["dev-local"])
@@ -44,6 +45,17 @@ def get_decoded_overlay(
         force_refresh=refresh,
     )
     return DecodedOverlayResponse(**payload)
+
+
+@router.get("/decoded-overlay/prefetch", response_model=FramePrefetchResponse)
+def prefetch_decoded_overlay_frames(
+    timestamps: str = Query(..., description="Comma-separated catalog timestamps to prefetch"),
+    session: Session = Depends(get_db),
+) -> FramePrefetchResponse:
+    """Prefetch adjacent decoded frames for playback (max 3)."""
+    ts_list = [part.strip() for part in timestamps.split(",") if part.strip()]
+    payload = prefetch_frames(session, _storage(), ts_list)
+    return FramePrefetchResponse(**payload)
 
 
 @router.get("/decoded-overlay/preview.png")

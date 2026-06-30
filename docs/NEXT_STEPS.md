@@ -1,43 +1,43 @@
 # Next Steps
 
-## Phase 109 - Multi-frame playback animation (Draft)
+## Phase 110 - Bulk local MRMS catalog ingestion (Draft)
 
-Goal: Prefetch/decode adjacent catalog frames and animate decoded overlay during time-slider playback.
+Goal: Download and register multiple real MRMS frames locally so playback can animate across several decodable timestamps.
 
 ```bash
+MRMS_SOURCE_MODE=real make download-mrms ARGS='--register-discovered --limit 10'
+make decode-retry
 make backend
 make frontend
 ```
+
+## Phase 109 verification commands
+
+```bash
+make test
+cd frontend && npm test
+cd frontend && npm run build
+make backend
+make frontend
+```
+
+Local result after Phase 109:
+
+- Press Play — timestamps advance; overlay fetches per frame
+- Adjacent frames prefetched (prev/next)
+- Panel/controls show: playing, paused, decoding, frame ready, frame missing, decode failed
+- Real MRMS timestamps animate decoded tiles when cached
 
 ## Phase 108 verification commands
 
 ```bash
 make test
-cd frontend && npm test
-cd frontend && npm run build
-make backend
-make frontend
+make decode-retry
 ```
-
-Local result after Phase 108:
-
-- Select timestamp with local real `.grib2.gz` → decode + preview/tiles cached and shown
-- Demo stub timestamps → `stub_input` / actionable download hint
-- Unknown timestamp → `no_local_candidate` with nearest local timestamps
-- Frame cache under `data/dev/mrms_frame_cache/`
 
 ## Phase 107 verification commands
 
 ```bash
 make test
-cd frontend && npm test
-cd frontend && npm run build
-make decode-retry
-```
-
-## Phase 106 verification commands
-
-```bash
-make test
-make decode-retry
+cd frontend && npm test && npm run build
 ```

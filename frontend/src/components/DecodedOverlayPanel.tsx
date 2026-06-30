@@ -1,4 +1,5 @@
 import type { DecodedOverlayInfo } from '../api/client';
+import { playbackStatusLabel, type PlaybackFrameStatus } from '../hooks/framePlayback';
 
 function statusClass(status: string): string {
   if (status === 'decoded_prototype') {
@@ -26,11 +27,13 @@ function syncClass(syncStatus?: string): string {
 export default function DecodedOverlayPanel({
   overlay,
   selectedTime,
+  playbackFrameStatus = 'idle',
   onRefresh,
   refreshing,
 }: {
   overlay: DecodedOverlayInfo | null;
   selectedTime: string;
+  playbackFrameStatus?: PlaybackFrameStatus;
   onRefresh: () => void;
   refreshing: boolean;
 }) {
@@ -50,6 +53,10 @@ export default function DecodedOverlayPanel({
       </p>
       <p className={`decoded-overlay-badge ${syncClass(syncStatus)}`}>
         sync: {syncStatus.replace(/_/g, ' ')}
+      </p>
+      <p className="decoded-overlay-meta">
+        Playback: <code>{playbackStatusLabel(playbackFrameStatus)}</code>
+        {refreshing ? ' (loading)' : ''}
       </p>
       <ul className="decoded-overlay-labels">
         {(overlay?.labels ?? ['Local dev prototype', 'NOT verified MRMS']).map((label) => (

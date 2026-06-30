@@ -50,7 +50,11 @@ html, body, #root { height: 100%; margin: 0; font-family: system-ui, -apple-syst
 label { display: block; margin: 0.5rem 0; }
 .disabled { color: #64748b; }
 .controls { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-.playback-buttons button { min-width: 3rem; }
+.playback-status--decoding { color: #fbbf24; }
+.playback-status--frame_missing,
+.playback-status--decode_failed { color: #f87171; }
+.playback-status--playing,
+.playback-status--frame_ready { color: #86efac; }
 button, select { padding: 0.55rem 0.75rem; border-radius: 8px; border: none; font-size: 0.95rem; }
 button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
 .speed-label { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.75rem; font-size: 0.9rem; }
