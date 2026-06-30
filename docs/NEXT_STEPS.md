@@ -1,54 +1,46 @@
 # Next Steps
 
-## Phase 104 - Install wgrib2/GDAL and retry real MRMS decode (Draft)
+## Phase 105 - Wire decoded preview into map overlay (Draft)
 
-Goal: Unblock local decoded preview for the existing real `.grib2.gz` candidate found in Phase 103.
+Goal: Display local decoded_prototype preview on the map shell (color scale / georef / tile slice) while production tile serving stays off.
 
 ```bash
-# install decoder tooling (example)
-brew install wgrib2
-# or install rasterio/GDAL in the venv
+make decode-retry
+# then frontend work to overlay data/dev/mrms_local_render_preview/ or decoded tile endpoint
+```
 
+## Phase 104 verification commands
+
+```bash
+make test
+make check-decoders
+make install-decoders
 make decode-grib2 ARGS="--latest-mrms"
+make decode-retry
 make mrms-local-render-pipeline
 ```
 
-Success criteria:
+Local result after Phase 104:
 
+- `decode_success`: true
+- `decoder_used`: rasterio
+- `decode_grid`: 7000 x 3500
 - `pipeline_status`: `preview_ok`
 - `render_mode`: `decoded_prototype`
-- Preview at `data/dev/mrms_local_render_preview/preview_z0_x0_y0.png` from decoded grid (still not verified MRMS / not production)
+- `produced_decoded_preview`: true
+- Preview: `data/dev/mrms_local_render_preview/preview_z0_x0_y0.png`
+- Decode output: `data/staging/grib2_decode/20260628T132638Z_MRMS_ReflectivityAtLowestAltitude_00.50_20260628-132638/`
+
+Decoder install (Mac, project venv only):
+
+```bash
+make install-decoders
+```
+
+Note: `wgrib2` is not in default Homebrew; rasterio wheels are the preferred path documented in `requirements-optional-decoders.txt`.
 
 ## Phase 103 verification commands
 
 ```bash
-make test
 make mrms-local-render-pipeline
-```
-
-Local result after Phase 103 local render pipeline:
-
-- `pipeline_status`: `decoder_missing`
-- `render_attempt_status`: `preview_produced`
-- `produced_local_artifact`: true (placeholder — decoder missing)
-- `blocker`: `decoder_missing`
-- Candidate: `data/raw/mrms/reflectivity/20260628T132638Z_MRMS_ReflectivityAtLowestAltitude_00.50_20260628-132638.grib2.gz`
-- Preview: `data/dev/mrms_local_render_preview/preview_z0_x0_y0.png`
-
-Retry sequence when decoders are installed:
-
-```bash
-make decode-grib2 ARGS="--latest-mrms"
-make mrms-local-render-pipeline
-make build-tile-cache
-```
-
-## Phase 102 verification commands
-
-```bash
-make mrms-remediate-validation ARGS="--refresh"
-make mrms-resolve-preflight-attention ARGS="--refresh"
-make operator-review-status ARGS="--refresh"
-make mrms-render-candidate-preflight ARGS="--refresh"
-make mrms-readiness-milestone-audit ARGS="--refresh"
 ```

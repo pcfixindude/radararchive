@@ -3316,3 +3316,30 @@ make mrms-local-render-pipeline
 - Next fix: install decoder tooling and rerun decode + pipeline (Phase 104)
 - Not production authorization
 
+## Phase 104 - Install Decoders and Retry MRMS Decode
+
+Install optional decoder tooling (rasterio in `.venv`), decode real local MRMS candidate, rerun local render pipeline for decoded_prototype preview.
+
+### Backend
+- `decoder_setup.py` — decoder detection, Mac setup instructions, optional venv install helper
+- `decode_retry.py` — decode latest MRMS + rerun local render pipeline with combined report
+- `requirements-optional-decoders.txt` — rasterio + numpy (not part of `make setup`)
+- Paths: `decoder_setup_latest.json`, `decode_retry_latest.json`
+- CLI: `scripts/decoder_setup.py`, `scripts/decode_retry.py`
+- Make: `check-decoders`, `install-decoders`, `decode-retry`
+
+### Run commands
+
+```bash
+make test
+make install-decoders
+make decode-retry
+make mrms-local-render-pipeline
+```
+
+### Known limitations
+- Does not verify MRMS or enable production tile serving
+- Local dev result: rasterio decode success (7000×3500); `decoded_prototype` preview at `data/dev/mrms_local_render_preview/preview_z0_x0_y0.png`
+- wgrib2 not in default Homebrew; rasterio preferred
+- Not production authorization
+

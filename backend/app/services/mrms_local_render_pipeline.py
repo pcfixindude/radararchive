@@ -180,14 +180,14 @@ def _next_retry_commands(
 
 def _next_phase_recommendation(pipeline_status: str) -> str:
     if pipeline_status == STATUS_PREVIEW_OK:
-        return "Phase 104 — wire decoded preview into map overlay (local dev only)"
+        return "Phase 105 — wire decoded preview into map overlay (color scale / georef / tile slice)"
     if pipeline_status == STATUS_DECODER_MISSING:
-        return "Phase 104 — install wgrib2/GDAL and retry real MRMS decode"
+        return "Phase 105 — install rasterio via make install-decoders and rerun make decode-retry"
     if pipeline_status == STATUS_STUB_INPUT:
-        return "Phase 104 — download real MRMS GRIB2 and rerun local render pipeline"
+        return "Phase 105 — download real MRMS GRIB2 and rerun local render pipeline"
     if pipeline_status == STATUS_DECODE_FAILED:
-        return "Phase 104 — fix decode failure for local render pipeline"
-    return "Phase 104 — obtain decodable MRMS input for local render pipeline"
+        return "Phase 105 — fix decode failure for local render pipeline"
+    return "Phase 105 — obtain decodable MRMS input for local render pipeline"
 
 
 def run_local_render_pipeline(

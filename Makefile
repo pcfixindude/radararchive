@@ -252,6 +252,16 @@ mrms-render-candidate-validation-remediation:
 
 mrms-remediate-validation: mrms-render-candidate-validation-remediation
 
+check-decoders:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/decoder_setup.py $(ARGS)
+
+install-decoders:
+	. .venv/bin/activate && pip install -r requirements-optional-decoders.txt
+	. .venv/bin/activate && PYTHONPATH=. python scripts/decoder_setup.py
+
+decode-retry:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/decode_retry.py $(ARGS)
+
 mrms-local-render-pipeline:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_local_render_pipeline.py $(ARGS)
 

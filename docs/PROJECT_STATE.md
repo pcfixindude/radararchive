@@ -1,42 +1,36 @@
 # Project State
 
-Current phase: Phase 103 complete
+Current phase: Phase 104 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
-- **Local render pipeline** — fast-track candidate → inspect → decode → preview path with local report under `data/dev/`
-- **Validation remediation** — classifies stub-mode validation/proof failures; documents for preflight without clearing alerts
-- **Preflight**: `candidate_preflight_ready` (stub-mode documented; not verified MRMS)
-- **Default tile serving: placeholder**
+- **Local decode + preview** — rasterio decode of real MRMS `.grib2.gz`; decoded_prototype preview PNG under `data/dev/`
+- **Decoder setup** — `make check-decoders`, `make install-decoders`, `make decode-retry`
+- **Local render pipeline** — `make mrms-local-render-pipeline`
+- **Default tile serving: placeholder** (production off)
 - Not verified real MRMS
 
-## Operator commands (Phase 103)
+## Operator commands (Phase 104)
 
 ```bash
-make mrms-local-render-pipeline
+make check-decoders
+make install-decoders
 make decode-grib2 ARGS="--latest-mrms"
-make build-tile-cache
+make decode-retry
+make mrms-local-render-pipeline
 ```
 
 Artifacts:
 
-- `data/dev/mrms_local_render_pipeline_latest.json`
-- `data/dev/mrms_local_render_pipeline_latest.md`
+- `data/staging/grib2_decode/20260628T132638Z_MRMS_ReflectivityAtLowestAltitude_00.50_20260628-132638/`
 - `data/dev/mrms_local_render_preview/preview_z0_x0_y0.png`
+- `data/dev/decode_retry_latest.json`
+- `data/dev/decoder_setup_latest.json`
 
-Local Phase 103 result: real `.grib2.gz` candidate selected; **decoder_missing**; placeholder preview PNG produced (not real radar imagery).
+Local Phase 104 result: **decode success** (rasterio, 7000×3500); **decoded_prototype preview** produced.
 
-## Prior operator commands (Phase 102)
-
-```bash
-make mrms-remediate-validation ARGS="--refresh"
-make mrms-resolve-preflight-attention ARGS="--refresh"
-make mrms-render-candidate-preflight ARGS="--refresh"
-make mrms-readiness-milestone-audit ARGS="--refresh"
-```
-
-Validation alert remains `failed` by design — stub-mode limitations documented for preflight path only.
+Optional decoders: `requirements-optional-decoders.txt` (not part of `make setup`).
 
 ## Verified MRMS
 

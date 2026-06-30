@@ -12,6 +12,8 @@ dist/
 data/raw/*
 data/processed/*
 data/tiles/*
+data/staging/grib2_decode/
+data/staging/grib2_inspect/
 data/*.sqlite
 !data/raw/.gitkeep
 !data/processed/.gitkeep
@@ -82,6 +84,10 @@ data/dev/mrms_render_candidate_validation_remediation_latest.md
 data/dev/mrms_local_render_pipeline_latest.json
 data/dev/mrms_local_render_pipeline_latest.md
 data/dev/mrms_local_render_preview/
+data/dev/decoder_setup_latest.json
+data/dev/decoder_setup_latest.md
+data/dev/decode_retry_latest.json
+data/dev/decode_retry_latest.md
 data/dev/mrms_render_candidate_scaffold.json
 data/dev/mrms_render_candidate_scaffold.md
 data/dev/mrms_render_candidate_sandbox/

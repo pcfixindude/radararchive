@@ -41,7 +41,11 @@ def test_build_wgrib2_inventory_command():
     ]
 
 
-def test_detect_decoder_availability_no_tools():
+def test_detect_decoder_availability_no_tools(monkeypatch):
+    monkeypatch.setattr(
+        "backend.app.services.grib2_inspector._module_available",
+        lambda _name: False,
+    )
     availability = detect_decoder_availability(which=lambda _name: None)
     assert availability.any_decoder is False
     assert "No GRIB2 decoder" in availability.summary_message()

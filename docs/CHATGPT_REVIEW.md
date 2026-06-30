@@ -9,10 +9,10 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 103
-- Latest phase: Phase 103 — Fast track local MRMS render pipeline
+- Completed through phase: 104
+- Latest phase: Phase 104 — Install decoders and retry MRMS decode
 - Latest commit: (pending)
-- Latest tag: `phase-103-fast-track-local-mrms-render-pipeline`
+- Latest tag: `phase-104-install-decoders-and-retry-mrms-decode`
 - Push status: (pending)
 - Final git status: source clean after commit; only local `data/dev/` runtime artifacts modified
 
@@ -22,49 +22,56 @@ Do not treat this file as verified MRMS proof or production authorization.
 - `ENABLE_PRODUCTION_RADAR_TILES`: **false** by default
 - Placeholder tiles default: **true**
 - Production rendering: gated/off by default
-- Local render pipeline: prototype only — does not enable production serving or claim verified MRMS
+- Local decoded preview: prototype only — not verified MRMS, not production tile serving
 
 ## Latest phase summary
 
-- Phase: **103**
-- Purpose: Fast-track end-to-end local MRMS render path (candidate → inspect → decode → preview) without another gated review wrapper.
-- Main command: `make mrms-local-render-pipeline`
-- Service: `backend/app/services/mrms_local_render_pipeline.py`
-- Local run result:
-  - `pipeline_status`: **decoder_missing**
-  - `render_attempt_status`: **preview_produced**
-  - `produced_local_artifact`: **true** (placeholder preview PNG — not real radar imagery)
-  - `render_mode`: `placeholder_decoder_missing`
-  - `blocker`: **decoder_missing** — no wgrib2/GDAL/rasterio detected locally
-  - Candidate used: `data/raw/mrms/reflectivity/20260628T132638Z_MRMS_ReflectivityAtLowestAltitude_00.50_20260628-132638.grib2.gz` (real `.grib2.gz` on disk)
-  - Preview output: `data/dev/mrms_local_render_preview/preview_z0_x0_y0.png`
-  - Report: `data/dev/mrms_local_render_pipeline_latest.json` / `.md`
-- Did local rendering produce a real radar artifact? **No** — placeholder preview only because decoders are missing. A real GRIB2 candidate was selected; decode was skipped with a clear blocker message.
-- Tests: backend 1154 passed
+- Phase: **104**
+- Purpose: Install/wire optional decoder tooling, decode real local MRMS candidate, produce decoded_prototype preview PNG.
+- Commands added:
+  - `make check-decoders` — report wgrib2/GDAL/rasterio status
+  - `make install-decoders` — pip install `requirements-optional-decoders.txt` into `.venv`
+  - `make decode-retry` — decode latest MRMS + rerun local render pipeline
+- Real decode succeeded? **Yes** — `rasterio` decoder, grid **7000 x 3500**, value range -999 .. 64.5 dBZ (prototype normalized)
+- Decoded prototype preview produced? **Yes**
+  - `render_mode`: `decoded_prototype`
+  - `pipeline_status`: `preview_ok`
+  - `decode_retry_status`: `preview_ok`
+- Tooling status (local Mac):
+  - **rasterio**: installed in project `.venv` (`pip install -r requirements-optional-decoders.txt`)
+  - **wgrib2**: not installed (not in default Homebrew formulae)
+  - **gdal (python)**: not detected
+  - **pygrib / cfgrib**: not installed
+- Output paths:
+  - Decode artifact: `data/staging/grib2_decode/20260628T132638Z_MRMS_ReflectivityAtLowestAltitude_00.50_20260628-132638/`
+  - Manifest: `.../decode_manifest.json`, raster: `.../normalized.tif`
+  - Preview PNG: `data/dev/mrms_local_render_preview/preview_z0_x0_y0.png`
+  - Reports: `data/dev/decode_retry_latest.json`, `data/dev/decoder_setup_latest.json`, `data/dev/mrms_local_render_pipeline_latest.json`
+- Candidate: `data/raw/mrms/reflectivity/20260628T132638Z_MRMS_ReflectivityAtLowestAltitude_00.50_20260628-132638.grib2.gz`
+- Tests: backend 1160 passed
 
 ## Current focus
 
-Local render pipeline path exists and documents failures actionably. Next step is a practical dependency/decode fix — **not** another gated review wrapper.
+Local decode + decoded_prototype preview works. Next: wire preview into map overlay or improve color scale/georef/tile slicing — **not** another gated wrapper.
 
 ## Next recommended phase
 
-- Phase number: **104**
-- Phase title: Install wgrib2/GDAL and retry real MRMS decode for local preview
-- Goal: Install decoder tooling (or rasterio/GDAL), run `make decode-grib2 ARGS='--latest-mrms'`, rerun `make mrms-local-render-pipeline`, and produce a **decoded_prototype** preview PNG from the existing real `.grib2.gz` candidate.
-- Why this is next: Phase 103 found a real MRMS file locally and wrote a placeholder preview because no decoder is installed. The pipeline, report, and retry commands are ready; the blocker is environmental, not architectural.
+- Phase number: **105**
+- Phase title: Wire decoded preview into map overlay (local dev)
+- Goal: Show the decoded_prototype preview on the local map (color scale, basic georef or tile slice) while keeping production tile serving off and `verified_mrms` false.
+- Why this is next: Phase 104 produced a real decoded grid and local preview PNG; the gap is visual integration on the frontend map shell.
 - Safety boundaries:
-  - local dev only
-  - keep `verified_mrms` false
-  - keep production tile serving off
+  - local dev / prototype only
+  - keep `ENABLE_PRODUCTION_RADAR_TILES` false
+  - no verified MRMS claim
   - no alert clearing
-  - artifacts under `data/dev/` unless existing docs say otherwise
 
 ## Suggested next Cursor prompt
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 104 only.
-Install or wire wgrib2/GDAL decode for the existing local MRMS candidate and rerun make mrms-local-render-pipeline until decoded_prototype preview is produced.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 105 only.
+Wire the local decoded_prototype preview into the map overlay for local dev.
 ```
 
 ## Key docs (read order for new work)
