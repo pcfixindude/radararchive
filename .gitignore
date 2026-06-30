@@ -75,6 +75,8 @@ data/dev/mrms_render_candidate_gated_ack_history_latest.json
 data/dev/mrms_render_candidate_gated_ack_history_latest.md
 data/dev/mrms_render_candidate_readiness_milestone_audit_latest.json
 data/dev/mrms_render_candidate_readiness_milestone_audit_latest.md
+data/dev/mrms_render_candidate_preflight_attention_latest.json
+data/dev/mrms_render_candidate_preflight_attention_latest.md
 data/dev/mrms_render_candidate_scaffold.json
 data/dev/mrms_render_candidate_scaffold.md
 data/dev/mrms_render_candidate_sandbox/

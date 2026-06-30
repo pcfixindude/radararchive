@@ -71,6 +71,9 @@ from backend.app.services.mrms_render_candidate_preflight import (
     compact_render_candidate_preflight,
     generate_render_candidate_preflight,
 )
+from backend.app.services.mrms_render_candidate_preflight_attention import (
+    compact_preflight_attention,
+)
 from backend.app.services.mrms_render_candidate_preflight_blockers import (
     RESOLUTION_PREFLIGHT_CANDIDATE_READY,
     SUGGESTED_COMMAND as SUGGESTED_BLOCKERS_COMMAND,
@@ -400,32 +403,43 @@ def _commands_for_category(category: str) -> list[str]:
 
 def _next_phase_for_audit(
     *,
+    storage: LocalStorage,
     preflight_ready: bool,
     root_gate: str,
     blocker_category: str,
     gates: list[dict[str, Any]],
 ) -> tuple[str, str, bool]:
     if not preflight_ready:
-        if blocker_category == CATEGORY_DATA:
+        if blocker_category == CATEGORY_OPERATOR_ACTION:
+            attention = compact_preflight_attention(storage)
+            if attention.get("next_phase_recommendation"):
+                return (
+                    str(attention["next_phase_recommendation"]),
+                    str(
+                        attention.get("next_operator_step")
+                        or "Preflight operator attention items remain open."
+                    ),
+                    False,
+                )
             return (
-                "Phase 101 — resolve local decode tooling evidence for preflight",
-                "Preflight remains needs_review because local wgrib2/GDAL tooling evidence is missing.",
+                "Phase 102 — resolve remaining operator attention items for preflight",
+                "Preflight remains needs_review because operator review status has open attention items.",
                 False,
             )
-        if blocker_category == CATEGORY_OPERATOR_ACTION:
+        if blocker_category == CATEGORY_DATA:
             return (
-                "Phase 101 — resolve operator review attention items",
-                "Preflight remains needs_review because operator review status has open attention items.",
+                "Phase 102 — resolve local decode tooling evidence for preflight",
+                "Preflight remains needs_review because local wgrib2/GDAL tooling evidence is missing.",
                 False,
             )
         if blocker_category == CATEGORY_VISUAL_EVIDENCE:
             return (
-                "Phase 101 — resolve visual sample evidence for preflight",
+                "Phase 102 — resolve visual sample evidence for preflight",
                 "Preflight remains needs_review because visual/sample/manifest evidence is incomplete.",
                 False,
             )
         return (
-            "Phase 101 — resolve preflight evidence blockers",
+            "Phase 102 — resolve preflight evidence blockers",
             "Preflight is not candidate_preflight_ready; fix preflight evidence before adding gated wrappers.",
             False,
         )
@@ -436,13 +450,13 @@ def _next_phase_for_audit(
         if gate["ready"]:
             continue
         return (
-            f"Phase 101 — continue {gate['label'].lower()}",
+            f"Phase 102 — continue {gate['label'].lower()}",
             f"Preflight is candidate_preflight_ready; continue existing gated step: {gate['command']}",
             False,
         )
 
     return (
-        "Phase 101 — continue gated dry-run plan review",
+        "Phase 102 — continue gated dry-run plan review",
         "Preflight is candidate_preflight_ready; continue the next gated evaluation step.",
         False,
     )
@@ -508,6 +522,7 @@ def build_readiness_milestone_audit(storage: LocalStorage) -> dict[str, Any]:
         add_gated_wrapper = False
 
     next_phase, next_phase_rationale, _ = _next_phase_for_audit(
+        storage=storage,
         preflight_ready=preflight_ready,
         root_gate=root_gate,
         blocker_category=blocker_category,

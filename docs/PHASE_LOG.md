@@ -3238,3 +3238,32 @@ make mrms-readiness-milestone-audit ARGS="--refresh"
 - `add_gated_wrapper_recommended`: false — next work must resolve preflight blockers, not add another gated layer
 - Not production authorization
 
+## Phase 101 - Resolve Operator Review Attention Items
+
+Inventory operator review attention items blocking render-candidate preflight, classify resolution type, clear safe items via existing advisory mechanisms, and document human-judgment items.
+
+### Backend
+- `mrms_render_candidate_preflight_attention.py` — attention inventory, safe clears, preflight `blocks_preflight` signal
+- Preflight operator check uses `blocks_preflight` from attention compact (not raw urgent status alone)
+- `operator_review_status.py` — fix `latest_review_session_at` to use `latest_created_at`
+- Paths: `mrms_render_candidate_preflight_attention_latest.json`, `mrms_render_candidate_preflight_attention_latest.md`
+- API: `GET/POST /api/validation/mrms-render-candidate/preflight-attention`
+- CLI: `scripts/mrms_render_candidate_preflight_attention.py`; `make mrms-resolve-preflight-attention`
+- `operator-review-status --refresh` runs attention resolution first
+
+### Run commands
+
+```bash
+make test
+make operator-review-status ARGS="--refresh"
+make mrms-resolve-preflight-attention ARGS="--refresh"
+make mrms-render-candidate-preflight ARGS="--refresh"
+make mrms-readiness-milestone-audit ARGS="--refresh"
+```
+
+### Known limitations
+- Does not clear validation alerts or verify MRMS
+- Local dev result: `attention_blocked` — validation alert `failed` and proof report `failed` remain open (human judgment)
+- Preflight remains `needs_review` until validation/proof remediation
+- Not production authorization
+

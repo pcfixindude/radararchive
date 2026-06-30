@@ -27,6 +27,9 @@ from backend.app.services.mrms_proof_bundle import compact_proof_bundle_status
 from backend.app.services.mrms_proof_report import compact_mrms_proof_report
 from backend.app.services.operator_guidance import RUNBOOK_PATH, VERIFIED_CRITERIA_PATH
 from backend.app.services.operator_review_status import compact_operator_review_status
+from backend.app.services.mrms_render_candidate_preflight_attention import (
+    compact_preflight_attention,
+)
 from backend.app.services.storage import LocalStorage
 
 PREFLIGHT_JSON = "dev/mrms_render_candidate_preflight.json"
@@ -131,6 +134,7 @@ def gather_preflight_evidence(storage: LocalStorage) -> dict[str, Any]:
         "sample_set": compact_visual_review_sample_set(storage),
         "sample_readiness": sample_readiness,
         "operator_review_status": compact_operator_review_status(storage),
+        "preflight_attention": compact_preflight_attention(storage),
         "mrms_proof": proof_compact,
         "proof_bundle": compact_proof_bundle_status(storage),
         "decoder_availability": {
@@ -289,7 +293,12 @@ def evaluate_render_candidate_preflight(
         )
 
     operator_status = evidence.get("operator_review_status") or {}
-    if operator_status.get("status_level") in {"attention", "urgent"}:
+    preflight_attention = evidence.get("preflight_attention") or {}
+    operator_attention_blocks = bool(preflight_attention.get("blocks_preflight", True))
+    if (
+        operator_status.get("status_level") in {"attention", "urgent"}
+        and operator_attention_blocks
+    ):
         checks.append(
             _check_item(
                 check_id="operator_review_status_clear",
@@ -299,6 +308,8 @@ def evaluate_render_candidate_preflight(
                 evidence={
                     "status_level": operator_status.get("status_level"),
                     "status_reason": operator_status.get("status_reason"),
+                    "blocks_preflight": operator_attention_blocks,
+                    "open_blocking_count": preflight_attention.get("open_blocking_count"),
                 },
             )
         )

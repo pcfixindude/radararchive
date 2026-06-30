@@ -242,6 +242,11 @@ mrms-render-candidate-readiness-milestone-audit:
 
 mrms-readiness-milestone-audit: mrms-render-candidate-readiness-milestone-audit
 
+mrms-render-candidate-preflight-attention:
+	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_preflight_attention.py $(ARGS)
+
+mrms-resolve-preflight-attention: mrms-render-candidate-preflight-attention
+
 mrms-render-candidate-scaffold:
 	. .venv/bin/activate && PYTHONPATH=. python scripts/mrms_render_candidate_scaffold.py $(ARGS)
 

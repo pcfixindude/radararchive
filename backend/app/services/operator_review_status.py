@@ -598,7 +598,7 @@ def build_operator_review_status(storage: LocalStorage) -> dict[str, Any]:
             "visual_review_regeneration_recommended": visual_review_regeneration_recommended,
             "visual_review_hint_reason": visual_review_hint_reason,
             "evidence_trend": evidence_trend,
-            "latest_review_session_at": session_summary.get("created_at"),
+            "latest_review_session_at": session_summary.get("latest_created_at"),
             "latest_review_export_at": export_summary.get("created_at"),
             "latest_digest_at": digest_hint.get("latest_digest_at"),
             "latest_visual_review_at": visual_review.get("created_at")

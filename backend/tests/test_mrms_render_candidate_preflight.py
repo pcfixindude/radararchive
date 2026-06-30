@@ -94,6 +94,10 @@ def _seed_candidate_ready_chain(storage, monkeypatch):
         lambda _storage: {"status_level": "ok", "status_reason": "ok"},
     )
     monkeypatch.setattr(
+        "backend.app.services.mrms_render_candidate_preflight.compact_preflight_attention",
+        lambda _storage: {"blocks_preflight": False, "resolution_status": "attention_resolved_for_preflight"},
+    )
+    monkeypatch.setattr(
         "backend.app.services.mrms_render_candidate_preflight.load_mrms_proof_report",
         lambda _storage: {"generated_at": "2026-06-28T20:00:00Z", "overall_status": "pass"},
     )

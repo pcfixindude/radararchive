@@ -1,36 +1,52 @@
 # Next Steps
 
-## Phase 101 - Resolve operator review attention items for preflight (Draft)
+## Phase 102 - Remediate validation alert failures for preflight (Draft)
 
-Goal: Clear open operator review attention items so preflight can advance from `needs_review` to `candidate_preflight_ready`.
+Goal: Address or document stub-mode validation failures so operator review status can improve and preflight can advance toward `candidate_preflight_ready`.
 
 ```bash
+make validation-failures
+make mrms-proof-report ARGS="--refresh"
 make operator-review-status ARGS="--refresh"
 make mrms-render-candidate-preflight ARGS="--refresh"
-make mrms-resolve-preflight-blockers ARGS="--refresh"
 make mrms-readiness-milestone-audit ARGS="--refresh"
 ```
 
-## Phase 100 verification commands
+## Phase 101 verification commands
 
 ```bash
 make test
+make operator-review-status ARGS="--refresh"
+make mrms-resolve-preflight-attention ARGS="--refresh"
+make mrms-render-candidate-preflight ARGS="--refresh"
 make mrms-readiness-milestone-audit ARGS="--refresh"
 ```
 
-Local result after Phase 100 milestone audit:
+Local result after Phase 101 attention resolution:
 
-- `audit_status`: `readiness_blocked`
-- `preflight_level`: `needs_review`
-- `root_gate`: `preflight`
-- `blocker_category`: `operator_action`
+- `resolution_status`: `attention_blocked`
+- `blocks_preflight`: `true`
+- `preflight_level`: `needs_review` (unchanged)
+- `validation_alert_unchanged`: `true` (alert still `failed`)
 - `add_gated_wrapper_recommended`: `false`
-- All downstream gated steps (`dry_run_plan` through `ack_history`) blocked only because preflight is blocked
 
-Shortest safe retry after fixes:
+Blocking attention items (human judgment — kept open):
+
+1. Validation alert: operator attention needed — review `make validation-failures`
+2. Latest proof report overall_status: failed — run `make mrms-proof-report`
+3. Operator review status: validation alert failed
+
+Remaining preflight warning:
+
+- no local wgrib2/GDAL detected — tooling warning (non-blocking for attention resolution)
+
+Retry after remediation:
 
 ```bash
+make validation-failures
+make mrms-proof-report ARGS="--refresh"
 make operator-review-status ARGS="--refresh"
+make mrms-resolve-preflight-attention ARGS="--refresh"
 make mrms-render-candidate-preflight ARGS="--refresh"
 make mrms-resolve-preflight-blockers ARGS="--refresh"
 make mrms-readiness-milestone-audit ARGS="--refresh"
@@ -48,9 +64,3 @@ make mrms-review-gated-trend ARGS="--refresh"
 make mrms-review-gated-ack ARGS="--refresh"
 make mrms-review-gated-ack-history ARGS="--refresh"
 ```
-
-Remaining blockers/warnings (local dev):
-
-- Blocker: preflight level is `needs_review` (need `candidate_preflight_ready`)
-- Warning: no local wgrib2/GDAL detected — future real render path may need tooling
-- Warning: operator review status indicates open attention items

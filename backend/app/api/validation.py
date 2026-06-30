@@ -64,6 +64,7 @@ from backend.app.schemas.validation import (
     MrmsRenderCandidateGatedComparisonAckResponse,
     MrmsRenderCandidateGatedAckHistoryResponse,
     MrmsRenderCandidateReadinessMilestoneAuditResponse,
+    MrmsRenderCandidatePreflightAttentionResponse,
     MrmsRenderCandidateScaffoldResponse,
     MrmsRenderCandidateSandboxResponse,
     MrmsRenderCandidateSandboxImportExportResponse,
@@ -256,6 +257,11 @@ from backend.app.services.mrms_render_candidate_gated_ack_history import (
 from backend.app.services.mrms_render_candidate_readiness_milestone_audit import (
     build_readiness_milestone_audit_payload,
     run_readiness_milestone_audit,
+)
+from backend.app.services.mrms_render_candidate_preflight_attention import (
+    build_preflight_attention_payload,
+    resolve_preflight_operator_attention,
+    save_preflight_attention_report,
 )
 from backend.app.services.mrms_render_candidate_scaffold import (
     build_render_candidate_scaffold_payload,
@@ -963,6 +969,36 @@ def validation_mrms_render_candidate_readiness_milestone_audit_run() -> (
     run_readiness_milestone_audit(storage, refresh_chain=True)
     payload = build_readiness_milestone_audit_payload(storage)
     return MrmsRenderCandidateReadinessMilestoneAuditResponse(**payload)
+
+
+@router.get(
+    "/mrms-render-candidate/preflight-attention",
+    response_model=MrmsRenderCandidatePreflightAttentionResponse,
+)
+def validation_mrms_render_candidate_preflight_attention() -> (
+    MrmsRenderCandidatePreflightAttentionResponse
+):
+    """Latest preflight operator attention resolution report (read-only)."""
+    storage = LocalStorage(settings.local_storage_root)
+    payload = build_preflight_attention_payload(storage)
+    return MrmsRenderCandidatePreflightAttentionResponse(**payload)
+
+
+@router.post(
+    "/mrms-render-candidate/preflight-attention",
+    response_model=MrmsRenderCandidatePreflightAttentionResponse,
+)
+def validation_mrms_render_candidate_preflight_attention_run() -> (
+    MrmsRenderCandidatePreflightAttentionResponse
+):
+    """Dev/local only — resolve safe operator attention items for preflight."""
+    storage = LocalStorage(settings.local_storage_root)
+    save_preflight_attention_report(
+        storage,
+        resolve_preflight_operator_attention(storage, refresh=True),
+    )
+    payload = build_preflight_attention_payload(storage)
+    return MrmsRenderCandidatePreflightAttentionResponse(**payload)
 
 
 @router.get(

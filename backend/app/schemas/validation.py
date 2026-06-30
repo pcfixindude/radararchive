@@ -2164,6 +2164,56 @@ class MrmsRenderCandidateReadinessMilestoneAuditResponse(BaseModel):
     compact: MrmsRenderCandidateReadinessMilestoneAuditCompact
 
 
+class MrmsRenderCandidatePreflightAttentionCompact(BaseModel):
+    available: bool = False
+    resolution_status: Optional[str] = None
+    blocks_preflight: bool = True
+    open_attention_count: int = 0
+    open_blocking_count: int = 0
+    open_blocking_items: list[dict[str, Any]] = Field(default_factory=list)
+    remaining_open_attention_items: list[str] = Field(default_factory=list)
+    next_operator_step: Optional[str] = None
+    next_phase_recommendation: Optional[str] = None
+    retry_commands: list[str] = Field(default_factory=list)
+    resolved_at: Optional[str] = None
+    json_path: Optional[str] = None
+    markdown_path: Optional[str] = None
+    suggested_command: Optional[str] = None
+    verified_mrms: bool = False
+    local_preflight_attention_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    preflight_attention_is_not_production_authorization: bool = True
+    prototype: bool = True
+
+
+class MrmsRenderCandidatePreflightAttentionResponse(BaseModel):
+    prototype: bool = True
+    verified_mrms: bool = False
+    local_preflight_attention_only: bool = True
+    advisory_only: bool = True
+    does_not_clear_alerts: bool = True
+    does_not_enable_production: bool = True
+    does_not_download_or_decode: bool = True
+    does_not_create_production_tiles: bool = True
+    does_not_serve_production_tiles: bool = True
+    does_not_delete_by_default: bool = True
+    binary_artifacts_included: bool = False
+    no_external_notifications: bool = True
+    does_not_authorize_production_use: bool = True
+    preflight_attention_is_not_production_authorization: bool = True
+    latest: Optional[dict[str, Any]] = None
+    compact: MrmsRenderCandidatePreflightAttentionCompact
+
+
 class MrmsRenderCandidateScaffoldCompact(BaseModel):
     available: bool = False
     scaffold_status: Optional[str] = None
@@ -4229,6 +4279,9 @@ class ValidationSummaryResponse(BaseModel):
     ] = None
     mrms_render_candidate_readiness_milestone_audit: Optional[
         MrmsRenderCandidateReadinessMilestoneAuditCompact
+    ] = None
+    mrms_render_candidate_preflight_attention: Optional[
+        MrmsRenderCandidatePreflightAttentionCompact
     ] = None
     mrms_render_candidate_scaffold: Optional[MrmsRenderCandidateScaffoldCompact] = None
     mrms_render_candidate_sandbox: Optional[MrmsRenderCandidateSandboxCompact] = None

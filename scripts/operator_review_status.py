@@ -8,6 +8,10 @@ import sys
 
 from backend.app.config import settings
 from backend.app.services.operator_review_status import build_operator_review_status_payload
+from backend.app.services.mrms_render_candidate_preflight_attention import (
+    resolve_preflight_operator_attention,
+    save_preflight_attention_report,
+)
 from backend.app.services.storage import LocalStorage
 
 
@@ -16,6 +20,11 @@ def main() -> None:
         description="Show consolidated operator review status (Phase 49 — local review only)."
     )
     parser.add_argument("--json", action="store_true", help="Print JSON payload")
+    parser.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Resolve preflight attention items then rebuild operator review status",
+    )
     args = parser.parse_args()
 
     print(
@@ -25,6 +34,11 @@ def main() -> None:
     )
 
     storage = LocalStorage(settings.local_storage_root)
+    if args.refresh:
+        save_preflight_attention_report(
+            storage,
+            resolve_preflight_operator_attention(storage, refresh=True),
+        )
     payload = build_operator_review_status_payload(storage)
     status = payload.get("status") or {}
 
