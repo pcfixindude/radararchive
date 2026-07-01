@@ -480,3 +480,21 @@ curl "http://127.0.0.1:8000/api/dev/frame-catalog?limit=20"
 curl "http://127.0.0.1:8000/api/dev/frame-catalog?timestamps=2026-06-28T13:00:00Z,2026-06-28T13:26:38Z"
 ```
 
+### GET /api/dev/playback-export
+
+Export a bounded replay range as a local clip manifest. Status/plan only — no ingest or decode work.
+
+Query parameters:
+- `range_start`, `range_end` — required replay range endpoints (UTC ISO)
+- `layer` — catalog layer id (default `mrms_reflectivity`)
+- `loop` — whether loop playback is active for this range (default false)
+- `timestamps` — comma-separated playback timestamps; when set, selects frames between start/end
+
+Response includes `clip_id`, per-frame cache/decode flags, optional `preview_paths`, and summary counts.
+
+Example:
+```bash
+curl "http://127.0.0.1:8000/api/dev/playback-export?range_start=2026-06-28T13:00:00Z&range_end=2026-06-28T13:26:38Z&timestamps=2026-06-28T13:00:00Z,2026-06-28T13:13:00Z,2026-06-28T13:26:38Z"
+make playback-export ARGS="--start 2026-06-28T13:00:00Z --end 2026-06-28T13:26:38Z --timestamps 2026-06-28T13:00:00Z,2026-06-28T13:26:38Z"
+```
+

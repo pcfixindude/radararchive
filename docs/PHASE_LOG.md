@@ -3922,3 +3922,43 @@ make frontend
 - `verified_mrms` remains false
 - `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
 
+## Phase 123 - Playback Export Clip
+
+Export bounded replay ranges as local clip manifests for sharing or offline review.
+
+### Backend
+- `playback_export.py` service — `build_playback_export()`, `resolve_clip_timestamps()`
+- `GET /api/dev/playback-export` — status/plan only; requires `range_start`/`range_end`; optional `timestamps`, `loop`
+- Reuses frame cache status, decode readiness, preview paths from frame cache manifests
+
+### CLI
+- `scripts/playback_export.py`, `make playback-export`
+- Writes `data/dev/playback_export_latest.json` (gitignored)
+
+### Frontend
+- `PlaybackExportPanel.tsx` in Range & loop panel — Export clip, summary, copy/download JSON
+- `playbackExport.ts`, `usePlaybackExport.ts` — fetch, format summary, clipboard/download helpers
+
+### Tests
+- `test_playback_export.py`, `playbackExport.test.ts`
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make playback-export ARGS="--start ... --end ..."
+make backend
+make frontend
+```
+
+### Known limitations
+- Manifest is JSON metadata only — does not bundle preview PNG files
+- Max 200 frames per clip export
+- Does not trigger decode or cache warm on request
+
+### Safety notes
+- Status-only API/CLI — no silent downloads or unbounded ingest
+- `verified_mrms` remains false
+- `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
+

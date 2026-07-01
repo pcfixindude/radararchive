@@ -13,35 +13,34 @@ Required docs to read first:
 8. docs/API_SPEC.md, if API schemas or endpoint contracts are touched
 9. docs/ARCHITECTURE.md, only if architecture changes
 Current completed phase and latest commit/tag/push status from docs/CHATGPT_REVIEW.md:
-* Completed through phase: 122
-* Latest phase: Phase 122 — Frame catalog browser
+* Completed through phase: 123
+* Latest phase: Phase 123 — Playback export clip
 * Latest commit: (see CHATGPT_REVIEW.md)
-* Latest tag: phase-122-frame-catalog-browser
+* Latest tag: phase-123-playback-export-clip
 * Push status: see CHATGPT_REVIEW.md
 Important direction:
 This is for my own local use right now. I want meaningful, visible progress toward a usable historical radar replay app. Do not make this a tiny safety-wrapper phase. Keep the safety boundaries, but work aggressively inside the local-dev/prototype lane.
 Implement the next phase only:
-Phase 123 — Playback export clip
-Short name: playback-export-clip
+Phase 124 — Frame quality drill-down
+Short name: frame-quality-drilldown
 Goal:
-Export the active replay range (start/end frames) as a bounded local clip manifest the operator can save or share — frame list, timestamps, cache/decode status, and optional preview paths — without running new ingest or decode in the request.
+Show per-frame quality/readiness detail in the replay UI for a selected catalog or clip frame — decode status, cache path hints, preview availability, and suggested remediation commands — without running new ingest or decode in the request.
 Current project state relevant to this phase:
+* Phase 123 added playback export clip (API, CLI, UI)
 * Phase 122 added frame catalog browser with jump-to-frame
 * Phase 121 added one-shot local replay setup
-* Phase 118 added playback range and loop
-* Phase 117 added replay session workflow
 * Existing APIs/services to reuse where possible:
-  * `build_frame_catalog` / frame cache status
-  * replay range state from frontend hooks
-  * decode preview paths from frame cache manifests
+  * `build_frame_catalog` / frame cache manifests
+  * `frame_quality.py` or similar quality helpers if present
+  * decode retry / local render pipeline suggested commands
 Required implementation work:
-1. Add a dev-oriented export API if needed, e.g. `GET /api/dev/playback-export` accepting range timestamps and returning a clip manifest — status/plan only, no long-running work.
-2. Add optional CLI `make playback-export` writing manifest JSON under `data/dev/` (gitignored).
-3. Add **Export clip** action in replay UI (range & loop or replay session panel):
-   * requires complete start/end range
-   * shows clip summary (frame count, cache/decode counts)
-   * copy manifest JSON or download locally
-4. Add/update tests for backend manifest payload and frontend export UX.
+1. Add or extend a dev-oriented quality API if needed, e.g. `GET /api/dev/frame-quality` for one or more timestamps — status/plan only.
+2. Add optional CLI `make frame-quality` writing report JSON under `data/dev/` (gitignored).
+3. Add **Frame detail** drill-down in replay UI (frame catalog or export summary):
+   * select a frame to inspect
+   * show decode/cache/quality breakdown
+   * show suggested next commands for cold/missing/failed frames
+4. Add/update tests for backend quality payload and frontend drill-down UX.
 5. Update docs:
    * docs/CHATGPT_REVIEW.md
    * docs/PROJECT_STATE.md
@@ -68,7 +67,7 @@ cd frontend && npm run build
 Phase-relevant local run commands:
 make backend
 make frontend
-make local-replay-ready
+make playback-export ARGS="--start ... --end ..."
 Git requirements:
 Before committing:
 * git status --short
@@ -77,8 +76,8 @@ Before committing:
 * do not stage data/dev runtime artifacts
 Then:
 * git add .
-* git commit -m "phase 123: playback export clip"
-* git tag phase-123-playback-export-clip
+* git commit -m "phase 124: frame quality drill-down"
+* git tag phase-124-frame-quality-drilldown
 * git push origin main --tags
 End-of-phase requirements:
 * update docs/CHATGPT_REVIEW.md with completion state, commit, tag, push status, safety state, and next recommended phase

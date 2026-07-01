@@ -36,6 +36,7 @@ import { useReplayKeyboardShortcuts } from './hooks/useReplayKeyboardShortcuts';
 import { useReplayBookmarks } from './hooks/useReplayBookmarks';
 import { useLocalReplayReady } from './hooks/useLocalReplayReady';
 import { useFrameCatalog } from './hooks/useFrameCatalog';
+import { usePlaybackExport } from './hooks/usePlaybackExport';
 import { useReplayRange } from './hooks/useReplayRange';
 import { usePlayback } from './hooks/usePlayback';
 import { useFrameOverlay } from './hooks/useFrameOverlay';
@@ -133,6 +134,24 @@ export default function App() {
   );
 
   const frameCatalog = useFrameCatalog(playbackTimes, loadState === 'ready');
+  const playbackExport = usePlaybackExport();
+
+  const handleExportClip = useCallback(async () => {
+    if (!replayRange.resolvedRange) {
+      return;
+    }
+    await playbackExport.exportClip({
+      rangeStart: replayRange.resolvedRange.start,
+      rangeEnd: replayRange.resolvedRange.end,
+      playbackTimes,
+      loopActive: replayRange.loopActive,
+    });
+  }, [
+    playbackExport,
+    playbackTimes,
+    replayRange.loopActive,
+    replayRange.resolvedRange,
+  ]);
 
   useEffect(() => {
     let cancelled = false;
@@ -524,7 +543,19 @@ export default function App() {
             form={ingestForm}
             onFormChange={handleIngestFormChange}
           />
-          <ReplayRangeControls disabled={controlsDisabled} range={replayRange} />
+          <ReplayRangeControls
+            disabled={controlsDisabled}
+            range={replayRange}
+            exportState={{
+              manifest: playbackExport.manifest,
+              loading: playbackExport.loading,
+              error: playbackExport.error,
+              copyNotice: playbackExport.copyNotice,
+              exportClip: handleExportClip,
+              clearExport: playbackExport.clearExport,
+              markCopied: playbackExport.markCopied,
+            }}
+          />
           <PlanSelector plan={selectedPlan} accessInfo={accessInfo} onChange={setSelectedPlan} />
           <ReplayMapControls
             display={replayDisplay}

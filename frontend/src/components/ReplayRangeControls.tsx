@@ -1,11 +1,17 @@
 import type { ReplayRangeState } from '../hooks/useReplayRange';
+import PlaybackExportPanel from './PlaybackExportPanel';
+import type { PlaybackExportState } from './playbackExport';
+
+export type { PlaybackExportState } from './playbackExport';
 
 export default function ReplayRangeControls({
   disabled = false,
   range,
+  exportState,
 }: {
   disabled?: boolean;
   range: ReplayRangeState;
+  exportState: PlaybackExportState;
 }) {
   const loopDisabled = disabled || !range.hasCompleteRange;
 
@@ -63,6 +69,12 @@ export default function ReplayRangeControls({
           {range.rangeNotice}
         </p>
       ) : null}
+      <PlaybackExportPanel
+        disabled={disabled}
+        hasCompleteRange={range.hasCompleteRange}
+        rangeLabel={range.rangeLabel}
+        exportState={exportState}
+      />
     </section>
   );
 }

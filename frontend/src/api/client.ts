@@ -4443,6 +4443,66 @@ export async function fetchFrameCatalog(
   return response.json() as Promise<FrameCatalogStatus>;
 }
 
+export type PlaybackExportFrame = {
+  timestamp: string;
+  index: number;
+  cache_state: string;
+  cache_ready: boolean;
+  decode_ready: boolean;
+  decode_status?: string | null;
+  preview_paths: string[];
+  preview_path_count: number;
+};
+
+export type PlaybackExportManifest = {
+  clip_id: string;
+  export_kind: string;
+  layer_id: string;
+  range_start: string;
+  range_end: string;
+  range_order_adjusted: boolean;
+  loop_suggested: boolean;
+  frame_count: number;
+  cache_ready_count: number;
+  decode_ready_count: number;
+  missing_cache_count: number;
+  cold_count: number;
+  failed_count: number;
+  frames: PlaybackExportFrame[];
+  exported_at: string;
+  status: string;
+  verified_mrms: boolean;
+  local_dev_only: boolean;
+  prototype: boolean;
+  production_tile_serving: boolean;
+};
+
+export async function fetchPlaybackExport({
+  rangeStart,
+  rangeEnd,
+  playbackTimes,
+  loopActive = false,
+}: {
+  rangeStart: string;
+  rangeEnd: string;
+  playbackTimes: string[];
+  loopActive?: boolean;
+}): Promise<PlaybackExportManifest> {
+  const params = new URLSearchParams({
+    range_start: rangeStart,
+    range_end: rangeEnd,
+    loop: String(loopActive),
+  });
+  if (playbackTimes.length > 0) {
+    params.set('timestamps', playbackTimes.join(','));
+  }
+  const response = await fetch(`${API_BASE}/api/dev/playback-export?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error(`Playback export failed with ${response.status}`);
+  }
+  return response.json() as Promise<PlaybackExportManifest>;
+}
+
 export async function fetchDecodedOverlay(
   selectedTimestamp?: string,
   options: { refresh?: boolean } = {},

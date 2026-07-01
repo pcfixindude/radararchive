@@ -11,10 +11,10 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 122
-- Latest phase: Phase 122 — Frame catalog browser
+- Completed through phase: 123
+- Latest phase: Phase 123 — Playback export clip
 - Latest commit: `(pending commit)`
-- Latest tag: `phase-122-frame-catalog-browser`
+- Latest tag: `phase-123-playback-export-clip`
 - Push status: pending push to `origin/main` with tag
 - Final git status: source committed; local `data/dev/` runtime artifacts not committed
 
@@ -28,24 +28,24 @@ Do not treat this file as verified MRMS proof or production authorization.
 
 ## Latest phase summary
 
-- Phase: **122**
-- Purpose: Browse local MRMS frames with cache/decode readiness and jump-to-frame in replay UI.
-- CLI? **No** — status API only; no long-running work in request
-- API? **Yes** — `GET /api/dev/frame-catalog` returns frames with cache/decode flags and counts
-- UI? **Yes** — Frame catalog panel lists frames (newest first), filter by timestamp, click to jump playback
-- Checks: cache_state, cache_ready, decode_ready per frame; summary counts
-- Tests: backend frame catalog tests added; frontend frameCatalog.test.ts added
+- Phase: **123**
+- Purpose: Export bounded replay ranges as local clip manifests for sharing or offline review.
+- CLI? **Yes** — `make playback-export` writes manifest JSON under `data/dev/` (gitignored)
+- API? **Yes** — `GET /api/dev/playback-export` returns clip manifest (status only)
+- UI? **Yes** — Export clip action in Range & loop panel with summary, copy JSON, download JSON
+- Checks: frame list, cache/decode counts, optional preview paths from frame cache
+- Tests: backend `test_playback_export.py`; frontend `playbackExport.test.ts`
 
 ## Current focus
 
-Frame catalog browser lets operators see cache/decode readiness and jump directly to frames. Next: playback export clip or frame quality drill-down.
+Operators can export storm-segment clip manifests from the replay UI or CLI. Next: frame quality drill-down or clip import/replay from saved manifest.
 
 ## Next recommended phase
 
-- Phase number: **123**
-- Phase title: Playback export clip
-- Goal: Export a bounded replay range as a local clip (frames list + optional preview bundle) for sharing or offline review.
-- Why this is next: Navigation and setup are streamlined; exporting storm segments completes the local replay workflow loop.
+- Phase number: **124**
+- Phase title: Frame quality drill-down
+- Goal: Per-frame quality/readiness detail panel in replay UI — decode status, cache path hints, and remediation commands for frames in the active clip or catalog selection.
+- Why this is next: Export completes the share/save loop; drill-down helps operators fix cold/missing frames before replay or re-export.
 - Safety boundaries:
   - local dev / prototype only
   - no silent real MRMS download
@@ -55,8 +55,8 @@ Frame catalog browser lets operators see cache/decode readiness and jump directl
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 123 only.
-Add playback export clip for bounded local replay ranges.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 124 only.
+Add frame quality drill-down for catalog/clip frames in replay UI.
 ```
 
 ## Key docs (read order for new work)
