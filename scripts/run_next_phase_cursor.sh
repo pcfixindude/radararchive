@@ -14,6 +14,12 @@ if [ ! -f "$PROMPT_FILE" ]; then
   exit 1
 fi
 
+if ! command -v cursor-agent >/dev/null 2>&1; then
+  echo "ERROR: cursor-agent command not found."
+  echo "Open Cursor and install/enable the Cursor CLI, then try again."
+  exit 1
+fi
+
 echo "Checking Cursor Agent authentication..."
 if ! agent status >/dev/null 2>&1; then
   echo
@@ -38,10 +44,8 @@ echo
 if [ -n "$(git status --short)" ]; then
   echo "WARNING: Your repo has uncommitted changes."
   echo
-  echo "This may be fine if they are expected runtime artifacts or new scripts,"
-  echo "but the agent should not commit unrelated files."
-  echo
   echo "Review the status above before continuing."
+  echo "The agent should not commit unrelated runtime artifacts."
   echo
   read -r -p "Continue anyway? Type yes to continue: " answer
   if [ "$answer" != "yes" ]; then
@@ -54,4 +58,10 @@ echo
 echo "Starting Cursor Agent with $PROMPT_FILE..."
 echo
 
-cursor-agent "$(cat "$PROMPT_FILE")"
+if [ "${CURSOR_AGENT_FORCE:-0}" = "1" ]; then
+  echo "Force mode enabled: cursor-agent --trust -f"
+  cursor-agent --trust -f "$(cat "$PROMPT_FILE")"
+else
+  echo "Interactive mode: cursor-agent --trust"
+  cursor-agent --trust "$(cat "$PROMPT_FILE")"
+fi
