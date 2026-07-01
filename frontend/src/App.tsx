@@ -33,6 +33,7 @@ import { DEFAULT_REPLAY_DISPLAY, overlayReadyForMap, type ReplayDisplayState } f
 import type { ReplayShortcutAction } from './hooks/keyboardShortcuts';
 import { useReplayKeyboardShortcuts } from './hooks/useReplayKeyboardShortcuts';
 import { useReplayBookmarks } from './hooks/useReplayBookmarks';
+import { useLocalReplayReady } from './hooks/useLocalReplayReady';
 import { useReplayRange } from './hooks/useReplayRange';
 import { usePlayback } from './hooks/usePlayback';
 import { useFrameOverlay } from './hooks/useFrameOverlay';
@@ -61,6 +62,7 @@ export default function App() {
   const [ingestForm, setIngestForm] = useState<IngestWindowFormState>(DEFAULT_INGEST_WINDOW_STATE);
 
   const replayBookmarks = useReplayBookmarks();
+  const localReplayReady = useLocalReplayReady(loadState === 'ready');
 
   const refreshValidationSummary = async () => {
     setValidationRefreshing(true);
@@ -481,7 +483,13 @@ export default function App() {
           {selectedNotProcessed ? (
             <p className="warn-banner">Selected timestamp is not processed yet. Choose a processed frame or run process-once.</p>
           ) : null}
-          <ReplaySessionPanel summary={sessionSummary} />
+          <ReplaySessionPanel
+            summary={sessionSummary}
+            setupStatus={localReplayReady.status}
+            setupLoading={localReplayReady.loading}
+            setupError={localReplayReady.error}
+            onRefreshSetup={localReplayReady.refresh}
+          />
           <ReplayBookmarksPanel
             disabled={controlsDisabled}
             bookmarks={replayBookmarks.bookmarks}

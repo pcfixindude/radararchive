@@ -123,14 +123,14 @@ function buildSessionHints(
     return hints;
   }
   if (frameCount === 0) {
-    hints.push('Use Load frames to build a bounded ingest command, then run it in your terminal.');
+    hints.push('Use Load frames, then run make local-replay-ready after ingest.');
     return hints;
   }
   if (overlay?.sync_status === 'no_local_candidate') {
     hints.push('No local MRMS file for this timestamp — use Load frames to ingest.');
   }
   if (!cacheStatus?.playback_ready && cacheStatus && cacheStatus.cold_count > 0) {
-    hints.push('Cache is cold — warming speeds up frame stepping.');
+    hints.push('Cache is cold — run make local-replay-ready RUN=1 or make mrms-warm-frame-cache.');
   }
   if (!overlay?.artifact_available || overlay?.sync_status === 'decode_failed') {
     hints.push('Decoded artifacts missing or stale — run decode-retry.');

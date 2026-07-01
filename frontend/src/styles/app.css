@@ -131,6 +131,36 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
   flex-wrap: wrap;
 }
 .replay-session-panel h2 { margin: 0; }
+.local-replay-setup {
+  margin: 0.5rem 0;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  background: #0b1220;
+  border: 1px solid #1e293b;
+}
+.local-replay-setup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.local-replay-setup h3 {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #e2e8f0;
+}
+.local-replay-setup-refresh {
+  padding: 0.15rem 0.45rem;
+  font-size: 0.75rem;
+}
+.local-replay-setup-status--ready { color: #86efac; }
+.local-replay-setup-checklist { margin-top: 0.35rem; }
+.local-replay-setup-hint {
+  margin: 0.35rem 0 0;
+  padding-left: 0;
+  list-style: none;
+  font-size: 0.78rem;
+}
 .session-readiness-badge {
   padding: 0.2rem 0.5rem;
   border-radius: 999px;

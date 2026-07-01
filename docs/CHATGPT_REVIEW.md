@@ -9,10 +9,10 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 120
-- Latest phase: Phase 120 — Saved replay bookmarks
-- Latest commit: `49a1783`
-- Latest tag: `phase-120-saved-replay-bookmarks`
+- Completed through phase: 121
+- Latest phase: Phase 121 — One-shot local replay setup
+- Latest commit: (see end-of-phase report)
+- Latest tag: `phase-121-one-shot-local-replay-setup`
 - Push status: pushed to `origin/main` with tag
 - Final git status: source committed; local `data/dev/` runtime artifacts not committed
 
@@ -26,26 +26,24 @@ Do not treat this file as verified MRMS proof or production authorization.
 
 ## Latest phase summary
 
-- Phase: **120**
-- Purpose: Save and reload named storm-segment replay setups in browser local storage for fast local session resume.
-- Bookmarks panel? **Yes** — save/load/rename/delete; compact list with active bookmark highlight
-- Stored fields: range start/end, loop, selected layer/frame, ingest preset/window, limit, warm-cache
-- Ingest command from bookmark? **Yes** — “Ingest cmd” shows copyable bounded bulk command per bookmark
-- Storage: `radararchive.replayBookmarks.v1` with schema version, validation, max 20 bookmarks
-- Restore hints when saved timestamps missing from timeline
-- Frontend-only; no backend persistence or cloud sync
-- Tests: backend 1241 passed; frontend 63 passed; `npm run build` ok
+- Phase: **121**
+- Purpose: Guided one-shot post-ingest setup chaining bounded warm/decode readiness checks.
+- CLI? **Yes** — `make local-replay-ready` dry-run default; `RUN=1` executes local warm/decode only (never real ingest)
+- API? **Yes** — `GET /api/dev/local-replay-ready` returns checklist/status/next command
+- UI? **Yes** — Replay session panel shows **Local replay setup** checklist with refresh
+- Checks: local frames, frame cache, decoded artifacts, open UI step
+- Tests: backend 1248 passed; frontend 67 passed; `npm run build` ok
 
 ## Current focus
 
-Local replay sessions can be bookmarked and restored quickly. Next: one-shot local replay setup or frame catalog browser.
+Post-ingest setup is one command away from replay-ready status. Next: frame catalog browser or playback export clip.
 
 ## Next recommended phase
 
-- Phase number: **121**
-- Phase title: One-shot local replay setup
-- Goal: Add a guided `make local-replay-ready` (or UI checklist) that chains bounded warm/decode status checks with clear next commands after ingest.
-- Why this is next: Ingest, bookmarks, and range/loop exist; a single setup path reduces operator friction after loading frames.
+- Phase number: **122**
+- Phase title: Frame catalog browser
+- Goal: Browse available local MRMS frames with cache/decode status and jump-to-frame for faster local replay navigation.
+- Why this is next: Setup workflow is streamlined; browsing frames in the UI reduces hunting on the time slider alone.
 - Safety boundaries:
   - local dev / prototype only
   - no silent real MRMS download
@@ -55,8 +53,8 @@ Local replay sessions can be bookmarked and restored quickly. Next: one-shot loc
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 121 only.
-Add one-shot local replay setup with bounded warm/decode readiness checks.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 122 only.
+Add a frame catalog browser for local replay navigation.
 ```
 
 ## Key docs (read order for new work)

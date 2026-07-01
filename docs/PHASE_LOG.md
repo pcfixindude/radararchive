@@ -3847,3 +3847,42 @@ make frontend
 - `verified_mrms` remains false
 - `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
 
+## Phase 121 - One-Shot Local Replay Setup
+
+Guided post-ingest readiness checklist with optional bounded local warm/decode.
+
+### Backend / CLI
+- `local_replay_ready.py` — assess frames, cache, decode artifacts; compose next commands
+- `scripts/local_replay_ready.py` — dry-run default; `RUN=1` runs warm/decode only
+- `GET /api/dev/local-replay-ready` — dev-only status/plan endpoint
+- `make local-replay-ready`
+
+### Frontend
+- `useLocalReplayReady.ts`, `localReplayReady.ts` — fetch and display setup checklist
+- `ReplaySessionPanel.tsx` — Local replay setup section with refresh
+
+### Tests
+- `test_local_replay_ready.py`, `localReplayReady.test.ts`
+- Backend 1248 passed; frontend 67 passed; `npm run build` ok
+
+### Run commands
+
+```bash
+make test
+make local-replay-ready
+make local-replay-ready RUN=1
+cd frontend && npm test && npm run build
+make backend
+make frontend
+```
+
+### Known limitations
+- Does not run real MRMS ingest/download
+- `RUN=1` may take time on large windows — still bounded by existing warm/decode limits
+- Does not verify MRMS or enable production tile serving
+
+### Safety notes
+- Real ingest must still use explicit `make mrms-ingest-window ... RUN=1 REAL=1`
+- `verified_mrms` remains false
+- `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
+

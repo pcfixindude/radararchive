@@ -4397,6 +4397,16 @@ export async function fetchIngestWindowPlan(
   return response.json() as Promise<IngestWindowPlan>;
 }
 
+export type { LocalReplayReadyStatus } from '../components/localReplayReady';
+
+export async function fetchLocalReplayReady(limit = 8): Promise<import('../components/localReplayReady').LocalReplayReadyStatus> {
+  const response = await fetch(`${API_BASE}/api/dev/local-replay-ready?limit=${limit}`);
+  if (!response.ok) {
+    throw new Error(`Local replay setup status failed with ${response.status}`);
+  }
+  return response.json() as Promise<import('../components/localReplayReady').LocalReplayReadyStatus>;
+}
+
 export async function fetchDecodedOverlay(
   selectedTimestamp?: string,
   options: { refresh?: boolean } = {},
