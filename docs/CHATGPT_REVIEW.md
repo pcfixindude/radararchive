@@ -13,9 +13,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 127
 - Latest phase: Phase 127 — Import clip frame list sync
-- Latest commit: (pending — phase 127 commit)
+- Latest commit: `39f408d` — phase 127: import clip frame list sync
 - Latest tag: `phase-127-import-clip-frame-list-sync`
-- Push status: pending
+- Push status: pushed to `origin/main` with tag
 - Final git status: clean except untracked `data/dev/agent_logs/` (not committed)
 
 ## Safety state
