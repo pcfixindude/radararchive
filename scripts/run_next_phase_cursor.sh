@@ -14,26 +14,24 @@ if [ ! -f "$PROMPT_FILE" ]; then
   exit 1
 fi
 
-if command -v agent >/dev/null 2>&1; then
-  AGENT_BIN="agent"
-elif command -v agent >/dev/null 2>&1; then
-  AGENT_BIN="agent"
-else
-  echo "ERROR: neither agent nor agent was found."
+if ! command -v agent >/dev/null 2>&1; then
+  echo "ERROR: Cursor Agent CLI command 'agent' was not found."
   echo
-  echo "Try opening Cursor and installing/enabling the Cursor CLI."
-  echo "Then verify with:"
-  echo "  agent status"
-  echo "  agent --help"
+  echo "Install it with:"
+  echo "  curl https://cursor.com/install -fsS | bash"
+  echo
+  echo "Then restart Terminal or run:"
+  echo '  export PATH="$HOME/.local/bin:$PATH"'
   exit 1
 fi
 
-echo "Using agent command: $AGENT_BIN"
+echo "Using agent command: $(command -v agent)"
 echo
 
 echo "Checking Cursor Agent authentication..."
 if ! agent status >/dev/null 2>&1; then
   echo "ERROR: Cursor Agent is not authenticated."
+  echo
   echo "Run:"
   echo "  agent login"
   exit 1
@@ -62,9 +60,12 @@ echo "Starting Cursor Agent with $PROMPT_FILE..."
 echo
 
 if [ "${CURSOR_AGENT_FORCE:-0}" = "1" ]; then
-  echo "Force mode enabled."
-  "$AGENT_BIN" --trust -f "$(cat "$PROMPT_FILE")"
+  echo "Mode: headless trusted force mode"
+  agent -p --trust -f "$(cat "$PROMPT_FILE")"
 else
-  echo "Interactive trusted mode."
-  "$AGENT_BIN" --trust "$(cat "$PROMPT_FILE")"
+  echo "Mode: headless trusted mode"
+  echo "Tip: if it pauses for approvals, rerun with:"
+  echo "  CURSOR_AGENT_FORCE=1 ./scripts/run_next_phase_cursor.sh"
+  echo
+  agent -p --trust "$(cat "$PROMPT_FILE")"
 fi
