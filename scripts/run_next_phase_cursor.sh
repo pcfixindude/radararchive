@@ -14,23 +14,28 @@ if [ ! -f "$PROMPT_FILE" ]; then
   exit 1
 fi
 
-if ! command -v cursor-agent >/dev/null 2>&1; then
-  echo "ERROR: cursor-agent command not found."
-  echo "Open Cursor and install/enable the Cursor CLI, then try again."
+if command -v agent >/dev/null 2>&1; then
+  AGENT_BIN="agent"
+elif command -v agent >/dev/null 2>&1; then
+  AGENT_BIN="agent"
+else
+  echo "ERROR: neither agent nor agent was found."
+  echo
+  echo "Try opening Cursor and installing/enabling the Cursor CLI."
+  echo "Then verify with:"
+  echo "  agent status"
+  echo "  agent --help"
   exit 1
 fi
 
+echo "Using agent command: $AGENT_BIN"
+echo
+
 echo "Checking Cursor Agent authentication..."
 if ! agent status >/dev/null 2>&1; then
-  echo
-  echo "Cursor Agent does not appear to be authenticated."
-  echo
-  echo "Run this first:"
+  echo "ERROR: Cursor Agent is not authenticated."
+  echo "Run:"
   echo "  agent login"
-  echo
-  echo "Or for API-key/headless use:"
-  echo "  export CURSOR_API_KEY=your_key_here"
-  echo
   exit 1
 fi
 
@@ -42,26 +47,24 @@ git status --short
 echo
 
 if [ -n "$(git status --short)" ]; then
-  echo "WARNING: Your repo has uncommitted changes."
-  echo
-  echo "Review the status above before continuing."
-  echo "The agent should not commit unrelated runtime artifacts."
-  echo
-  read -r -p "Continue anyway? Type yes to continue: " answer
-  if [ "$answer" != "yes" ]; then
-    echo "Canceled."
+  if [ "${CURSOR_AGENT_ALLOW_DIRTY:-0}" != "1" ]; then
+    echo "ERROR: Repo has uncommitted changes."
+    echo
+    echo "Clean, commit, or intentionally allow dirty state with:"
+    echo "  CURSOR_AGENT_ALLOW_DIRTY=1 ./scripts/run_next_phase_cursor.sh"
+    echo
+    echo "Current uncommitted files are listed above."
     exit 1
   fi
 fi
 
-echo
 echo "Starting Cursor Agent with $PROMPT_FILE..."
 echo
 
 if [ "${CURSOR_AGENT_FORCE:-0}" = "1" ]; then
-  echo "Force mode enabled: cursor-agent --trust -f"
-  cursor-agent --trust -f "$(cat "$PROMPT_FILE")"
+  echo "Force mode enabled."
+  "$AGENT_BIN" --trust -f "$(cat "$PROMPT_FILE")"
 else
-  echo "Interactive mode: cursor-agent --trust"
-  cursor-agent --trust "$(cat "$PROMPT_FILE")"
+  echo "Interactive trusted mode."
+  "$AGENT_BIN" --trust "$(cat "$PROMPT_FILE")"
 fi
