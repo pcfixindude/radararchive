@@ -11,7 +11,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 118
 - Latest phase: Phase 118 — Playback range and loop
-- Latest commit: (see end-of-phase report)
+- Latest commit: `768a3f5`
 - Latest tag: `phase-118-playback-range-and-loop`
 - Push status: pushed to `origin/main` with tag
 - Final git status: source committed; local `data/dev/` runtime artifacts not committed
