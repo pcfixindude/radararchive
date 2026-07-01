@@ -2,6 +2,8 @@
 
 Concise continuation state for ChatGPT. After each phase, Cursor updates this file so you can ask: **“Read docs/CHATGPT_REVIEW.md and give me the next phase.”**
 
+For Cursor, paste the ready-to-run prompt from **`docs/NEXT_PHASE_PROMPT.md`** (updated at the end of every completed phase).
+
 Do not treat this file as verified MRMS proof or production authorization.
 
 ## Current state
@@ -59,7 +61,8 @@ Add a frame catalog browser for local replay navigation.
 
 ## Key docs (read order for new work)
 
-1. `docs/CHATGPT_REVIEW.md` (this file)
-2. `docs/PROJECT_STATE.md`
-3. `docs/NEXT_STEPS.md`
-4. `docs/PHASE_LOG.md`
+1. `docs/NEXT_PHASE_PROMPT.md` — paste into Cursor to start the next phase
+2. `docs/CHATGPT_REVIEW.md` (this file)
+3. `docs/PROJECT_STATE.md`
+4. `docs/NEXT_STEPS.md`
+5. `docs/PHASE_LOG.md`

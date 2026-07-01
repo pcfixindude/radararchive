@@ -61,8 +61,9 @@ Before commit:
 
 1. Run `git status --short` and verify only intended phase files changed.
 2. Update `docs/CHATGPT_REVIEW.md` with current phase state, commit hash, tag, push result, and next recommended phase.
-3. Do **not** commit if unexpected unrelated files are in the working tree.
-4. Do **not** commit or push if any required test or build command fails.
+3. Write the next self-contained Cursor phase prompt to `docs/NEXT_PHASE_PROMPT.md` (ready to paste for the following phase).
+4. Do **not** commit if unexpected unrelated files are in the working tree.
+5. Do **not** commit or push if any required test or build command fails.
 
 ## Git workflow (after checks pass)
 
@@ -79,6 +80,7 @@ git push origin main --tags
 Update as applicable:
 
 - `docs/CHATGPT_REVIEW.md` — **required before every phase commit**; concise handoff for ChatGPT continuation (phase number, commit, tag, safety state, next phase)
+- `docs/NEXT_PHASE_PROMPT.md` — **required before every phase commit**; self-contained ready-to-paste Cursor prompt for the next phase only
 - `docs/PHASE_LOG.md` — what changed in this phase
 - `docs/PROJECT_STATE.md` — current status
 - `docs/NEXT_STEPS.md` — next recommended phase
@@ -102,16 +104,18 @@ End every phase with:
 8. Tile/render mode behavior (placeholders default, production disabled, `verified_mrms` false)
 9. Known limitations
 10. Next recommended phase
-11. Commit hash
-12. Tag name
-13. Push result
-14. Final `git status --short`
+11. `docs/NEXT_PHASE_PROMPT.md` updated for the following phase
+12. Commit hash
+13. Tag name
+14. Push result
+15. Final `git status --short`
 
 ## Read-first docs (typical phase)
 
 Before implementing a phase, read:
 
 - `docs/CHATGPT_REVIEW.md` — current handoff state and next recommended phase
+- `docs/NEXT_PHASE_PROMPT.md` — ready-to-run Cursor prompt for the phase you are implementing (if present)
 - `README.md`
 - `docs/CURSOR_RULES.md`
 - `docs/PHASE_WORKFLOW_RULES.md` (this file)
