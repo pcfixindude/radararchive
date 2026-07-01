@@ -25,11 +25,14 @@ import DecodedOverlayPanel from './components/DecodedOverlayPanel';
 import ReplayMapControls from './components/ReplayMapControls';
 import ReplayRangeControls from './components/ReplayRangeControls';
 import IngestWindowPanel from './components/IngestWindowPanel';
+import ReplayBookmarksPanel from './components/ReplayBookmarksPanel';
 import ReplaySessionPanel from './components/ReplaySessionPanel';
+import { DEFAULT_INGEST_WINDOW_STATE, type IngestWindowFormState } from './components/ingestWindow';
 import { buildReplaySessionSummary } from './components/replaySessionSummary';
 import { DEFAULT_REPLAY_DISPLAY, overlayReadyForMap, type ReplayDisplayState } from './components/replayDisplay';
 import type { ReplayShortcutAction } from './hooks/keyboardShortcuts';
 import { useReplayKeyboardShortcuts } from './hooks/useReplayKeyboardShortcuts';
+import { useReplayBookmarks } from './hooks/useReplayBookmarks';
 import { useReplayRange } from './hooks/useReplayRange';
 import { usePlayback } from './hooks/usePlayback';
 import { useFrameOverlay } from './hooks/useFrameOverlay';
@@ -55,6 +58,9 @@ export default function App() {
   const [validationRefreshing, setValidationRefreshing] = useState(false);
   const [replayDisplay, setReplayDisplay] = useState<ReplayDisplayState>(DEFAULT_REPLAY_DISPLAY);
   const [fitBoundsToken, setFitBoundsToken] = useState(0);
+  const [ingestForm, setIngestForm] = useState<IngestWindowFormState>(DEFAULT_INGEST_WINDOW_STATE);
+
+  const replayBookmarks = useReplayBookmarks();
 
   const refreshValidationSummary = async () => {
     setValidationRefreshing(true);
@@ -382,6 +388,53 @@ export default function App() {
     onAction: handleShortcutAction,
   });
 
+  const handleIngestFormChange = useCallback((patch: Partial<IngestWindowFormState>) => {
+    setIngestForm((current) => ({ ...current, ...patch }));
+  }, []);
+
+  const handleSaveBookmark = useCallback(
+    (name: string) => {
+      replayBookmarks.saveBookmark(name, {
+        selectedLayer,
+        selectedTime: selectedTime || null,
+        rangeStart: replayRange.rangeStart,
+        rangeEnd: replayRange.rangeEnd,
+        loopRange: replayRange.loopRange,
+        ingest: ingestForm,
+      });
+    },
+    [
+      replayBookmarks,
+      selectedLayer,
+      selectedTime,
+      replayRange.rangeStart,
+      replayRange.rangeEnd,
+      replayRange.loopRange,
+      ingestForm,
+    ],
+  );
+
+  const handleLoadBookmark = useCallback(
+    (id: string) => {
+      const plan = replayBookmarks.planBookmarkRestore(id, playbackTimes);
+      if (!plan) {
+        return;
+      }
+      setSelectedLayer(plan.selectedLayer);
+      replayRange.loadRangeState({
+        rangeStart: plan.rangeStart,
+        rangeEnd: plan.rangeEnd,
+        loopRange: plan.loopRange,
+      });
+      setIngestForm(plan.ingest);
+      if (plan.selectedTime) {
+        setSelectedTime(plan.selectedTime);
+      }
+      setPlaying(false);
+    },
+    [replayBookmarks, playbackTimes, replayRange, setPlaying],
+  );
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -429,10 +482,23 @@ export default function App() {
             <p className="warn-banner">Selected timestamp is not processed yet. Choose a processed frame or run process-once.</p>
           ) : null}
           <ReplaySessionPanel summary={sessionSummary} />
+          <ReplayBookmarksPanel
+            disabled={controlsDisabled}
+            bookmarks={replayBookmarks.bookmarks}
+            storageWarning={replayBookmarks.storageWarning}
+            lastLoadedId={replayBookmarks.lastLoadedId}
+            restoreHints={replayBookmarks.restoreHints}
+            onSave={handleSaveBookmark}
+            onLoad={handleLoadBookmark}
+            onDelete={replayBookmarks.deleteBookmark}
+            onRename={replayBookmarks.renameBookmark}
+          />
           <IngestWindowPanel
             disabled={controlsDisabled}
             replayRangeStart={replayRange.resolvedRange?.start ?? null}
             replayRangeEnd={replayRange.resolvedRange?.end ?? null}
+            form={ingestForm}
+            onFormChange={handleIngestFormChange}
           />
           <ReplayRangeControls disabled={controlsDisabled} range={replayRange} />
           <PlanSelector plan={selectedPlan} accessInfo={accessInfo} onChange={setSelectedPlan} />

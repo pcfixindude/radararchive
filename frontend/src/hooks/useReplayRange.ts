@@ -78,6 +78,24 @@ export function useReplayRange(times: string[], selectedTime: string) {
     ? formatRangePosition(selectedTime, resolvedRange, times)
     : null;
 
+  const loadRangeState = useCallback(
+    ({
+      rangeStart: nextStart,
+      rangeEnd: nextEnd,
+      loopRange: nextLoop,
+    }: {
+      rangeStart: string | null;
+      rangeEnd: string | null;
+      loopRange: boolean;
+    }) => {
+      setRangeStart(nextStart);
+      setRangeEnd(nextEnd);
+      setLoopRange(nextLoop);
+      setOperatorNotice(null);
+    },
+    [],
+  );
+
   return {
     rangeStart,
     rangeEnd,
@@ -94,6 +112,7 @@ export function useReplayRange(times: string[], selectedTime: string) {
     clearRange,
     toggleLoopRange,
     setLoopRange,
+    loadRangeState,
   };
 }
 

@@ -16,24 +16,33 @@ export default function IngestWindowPanel({
   disabled = false,
   replayRangeStart = null,
   replayRangeEnd = null,
+  form: controlledForm,
+  onFormChange,
 }: {
   disabled?: boolean;
   replayRangeStart?: string | null;
   replayRangeEnd?: string | null;
+  form?: IngestWindowFormState;
+  onFormChange?: (patch: Partial<IngestWindowFormState>) => void;
 }) {
-  const [form, setForm] = useState<IngestWindowFormState>(DEFAULT_INGEST_WINDOW_STATE);
+  const [internalForm, setInternalForm] = useState<IngestWindowFormState>(DEFAULT_INGEST_WINDOW_STATE);
+  const form = controlledForm ?? internalForm;
   const [plan, setPlan] = useState<IngestWindowPlan | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    setForm((current) => ({
-      ...current,
+    const patch = {
       replayStart: replayRangeStart,
       replayEnd: replayRangeEnd,
-    }));
-  }, [replayRangeStart, replayRangeEnd]);
+    };
+    if (onFormChange) {
+      onFormChange(patch);
+    } else {
+      setInternalForm((current) => ({ ...current, ...patch }));
+    }
+  }, [replayRangeStart, replayRangeEnd, onFormChange]);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,7 +74,12 @@ export default function IngestWindowPanel({
   }, [form]);
 
   const updateForm = (patch: Partial<IngestWindowFormState>) => {
-    setForm((current) => ({ ...current, ...patch }));
+    if (onFormChange) {
+      onFormChange(patch);
+      setCopied(false);
+      return;
+    }
+    setInternalForm((current) => ({ ...current, ...patch }));
     setCopied(false);
   };
 

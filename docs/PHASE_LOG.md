@@ -3809,3 +3809,41 @@ make frontend
 - `verified_mrms` remains false
 - `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
 
+## Phase 120 - Saved Replay Bookmarks
+
+Browser-local saved replay setups for fast session resume.
+
+### Frontend
+- `replayBookmarks.ts`, `useReplayBookmarks.ts` — versioned localStorage, validation, restore planning
+- `ReplayBookmarksPanel.tsx` — save/load/rename/delete, ingest command per bookmark
+- `useReplayRange.ts` — `loadRangeState` for bookmark restore
+- `IngestWindowPanel.tsx` — controlled ingest form from App for bookmark sync
+- `App.tsx` — wires bookmark save/load into range, ingest, layer, and frame state
+
+### Backend
+- No changes
+
+### Tests
+- `replayBookmarks.test.ts`
+- Backend 1241 passed; frontend 63 passed; `npm run build` ok
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make backend
+make frontend
+```
+
+### Known limitations
+- Bookmarks are browser-local only — no sync across machines or browsers
+- Max 20 bookmarks; no export/import yet
+- Does not auto-run ingest from a bookmark
+- Does not verify MRMS or enable production tile serving
+
+### Safety notes
+- Bookmarks never trigger real MRMS download — operator copies/runs commands explicitly
+- `verified_mrms` remains false
+- `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
+

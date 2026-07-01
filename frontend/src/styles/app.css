@@ -276,6 +276,79 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
   font-size: 0.78rem;
   color: #94a3b8;
 }
+.replay-bookmarks-panel h2 { margin: 0 0 0.35rem; }
+.replay-bookmarks-intro {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+.replay-bookmarks-save {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+.replay-bookmarks-save input {
+  flex: 1;
+}
+.replay-bookmarks-warning,
+.replay-bookmarks-hints {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: #fde68a;
+}
+.replay-bookmarks-hints {
+  padding-left: 1.1rem;
+  color: #cbd5e1;
+}
+.replay-bookmarks-empty {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  color: #94a3b8;
+}
+.replay-bookmarks-list {
+  margin: 0.35rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.replay-bookmark-item {
+  margin: 0.35rem 0;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  background: #0f172a;
+}
+.replay-bookmark-item--active {
+  outline: 1px solid #38bdf8;
+}
+.replay-bookmark-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+}
+.replay-bookmark-actions,
+.replay-bookmark-rename {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+.replay-bookmark-command {
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  background: #0f172a;
+}
+.replay-bookmark-command code {
+  display: block;
+  margin: 0.35rem 0;
+  word-break: break-word;
+}
+.replay-bookmark-command-label {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
 .playback-playback-state {
   color: #e2e8f0;
   font-weight: 500;
