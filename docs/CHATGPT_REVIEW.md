@@ -9,11 +9,11 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 116
-- Latest phase: Phase 116 — Usable local radar replay
-- Latest commit: `6ab5981`
-- Latest tag: `phase-116-usable-local-radar-replay`
-- Push status: pushed to `origin/main` with tag
+- Completed through phase: 117
+- Latest phase: Phase 117 — Local replay session workflow
+- Latest commit: (pending — see end-of-phase report)
+- Latest tag: `phase-117-local-replay-session-workflow`
+- Push status: (pending — see end-of-phase report)
 - Final git status: source committed; local `data/dev/` runtime artifacts not committed
 
 ## Safety state
@@ -26,26 +26,27 @@ Do not treat this file as verified MRMS proof or production authorization.
 
 ## Latest phase summary
 
-- Phase: **116**
-- Purpose: Make local personal radar replay more usable with map controls and clearer operator feedback.
-- Replay map controls exist? **Yes** — `ReplayMapControls`: toggle decoded overlay, bounds outline, georef debug, frame quality details; explicit fit-to-bounds button
-- Auto fit-to-bounds removed? **Yes** — map only fits on operator “Fit map to overlay bounds” click
-- Panel improvements? **Yes** — selected frame summary, next-command hint, compact quality summary when details hidden, clearer cache/playback text
+- Phase: **117**
+- Purpose: Make local radar replay feel like a usable operator workflow — keyboard shortcuts plus replay readiness/session summary.
+- Replay session panel? **Yes** — `ReplaySessionPanel`: readiness badge, frame checklist, next-command hint, practical hints
+- Keyboard shortcuts? **Yes** — Space play/pause, ←/→ step, O overlay, B bounds, F fit bounds; help in collapsible list
+- Shortcuts ignore inputs? **Yes** — `isEditableTarget` skips inputs/textareas/selects
 - Frontend files:
-  - `ReplayMapControls.tsx`, `replayDisplay.ts`, `DecodedOverlayGeorefDebug.tsx`, `DecodedOverlayQualityDetails.tsx`
-  - `App.tsx`, `WeatherMap.tsx`, `DecodedOverlayPanel.tsx`, `PlaybackControls.tsx`, `app.css`
-- Tests: backend 1229 passed; frontend 25 passed; `npm run build` ok
+  - `keyboardShortcuts.ts`, `useReplayKeyboardShortcuts.ts`, `KeyboardShortcutsHelp.tsx`
+  - `replaySessionSummary.ts`, `ReplaySessionPanel.tsx`
+  - `App.tsx`, `app.css`
+- Tests: backend 1229 passed; frontend 34 passed; `npm run build` ok
 
 ## Current focus
 
-Local replay is more controllable and readable. Next: expand ingest window UX, playback keyboard shortcuts, or tile/projection hardening.
+Local replay has keyboard controls and a session summary that shows what is ready, what is missing, and what command to run next. Next: playback range/loop or ingest window UX.
 
 ## Next recommended phase
 
-- Phase number: **117**
-- Phase title: Playback keyboard shortcuts
-- Goal: Add practical keyboard controls for play/pause, step, and overlay toggles during local replay.
-- Why this is next: Map/display controls exist; keyboard shortcuts make hands-on replay faster.
+- Phase number: **118**
+- Phase title: Playback range and loop
+- Goal: Let the operator set a start/end frame range and loop playback within that window for hands-on local replay.
+- Why this is next: Session workflow and shortcuts exist; range/loop makes replaying a storm segment practical without manual stepping.
 - Safety boundaries:
   - local dev / prototype only
   - keep production tile serving off
@@ -55,8 +56,8 @@ Local replay is more controllable and readable. Next: expand ingest window UX, p
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 117 only.
-Add keyboard shortcuts for local playback controls.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 118 only.
+Add playback range selection and loop controls for local replay.
 ```
 
 ## Key docs (read order for new work)

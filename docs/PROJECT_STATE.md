@@ -1,11 +1,12 @@
 # Project State
 
-Current phase: Phase 116 complete
+Current phase: Phase 117 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
-- **Usable local radar replay** — map/overlay toggles, fit-to-bounds, selected-frame summary, next-command hints
+- **Local replay session workflow** — replay session panel, readiness badge, next-command hints, keyboard shortcuts
+- **Usable local radar replay** — map/overlay toggles, fit-to-bounds, selected-frame summary
 - **Frame quality checks** — diagnostic status on decoded overlay API and panel
 - **Georef improvement** — rasterio WGS84 bounds; optional bounds outline toggle
 - **Ingestion robustness** — bounded retries, `--retry-failed`, `--repair`
@@ -14,7 +15,7 @@ Current status:
 - **Default tile serving: placeholder** (production off)
 - Not verified real MRMS
 
-## Operator workflow (Phase 116)
+## Operator workflow (Phase 117)
 
 ```bash
 make mrms-bulk-local-ingest ARGS='--real --limit 8'
@@ -24,7 +25,10 @@ make backend
 make frontend
 ```
 
-In the UI: use **Map & overlay** to toggle decoded overlay, bounds outline, debug sections, and fit map to overlay bounds on demand.
+In the UI:
+- **Replay session** panel shows frame readiness, cache/quality/bounds status, and the next command to run
+- **Keyboard shortcuts**: Space play/pause, ←/→ step, O toggle overlay, B toggle bounds, F fit map to bounds
+- **Map & overlay** toggles decoded overlay, bounds outline, debug sections, and fit map to overlay bounds on demand
 
 ## Verified MRMS
 

@@ -120,6 +120,60 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
   color: #e2e8f0;
   font-size: 0.85rem;
 }
+.replay-session-panel .replay-session-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.replay-session-panel h2 { margin: 0; }
+.session-readiness-badge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.session-readiness--ready { background: #14532d; color: #bbf7d0; }
+.session-readiness--needs_action { background: #422006; color: #fde68a; }
+.session-readiness--backend_down { background: #450a0a; color: #fecaca; }
+.session-readiness--loading { background: #1e293b; color: #cbd5e1; }
+.replay-session-meta { margin: 0.35rem 0; font-size: 0.85rem; color: #cbd5e1; }
+.replay-session-checklist {
+  margin: 0.35rem 0;
+  padding-left: 1.1rem;
+  font-size: 0.82rem;
+}
+.replay-session-checklist .session-ok { color: #86efac; }
+.replay-session-checklist .session-warn { color: #fde68a; }
+.replay-session-next { margin: 0.35rem 0; font-size: 0.82rem; color: #fde68a; }
+.replay-session-next--ready { color: #86efac; }
+.replay-session-hints {
+  margin: 0.25rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+.keyboard-shortcuts-help {
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+.keyboard-shortcuts-help summary { cursor: pointer; color: #cbd5e1; }
+.keyboard-shortcuts-help ul {
+  margin: 0.35rem 0 0;
+  padding-left: 0;
+  list-style: none;
+}
+.keyboard-shortcuts-help kbd {
+  display: inline-block;
+  min-width: 2.5rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  font-size: 0.75rem;
+}
 .plan-note, .plan-meta, .plan-upgrade { margin: 0.35rem 0 0; color: #cbd5e1; font-size: 0.85rem; }
 .plan-upgrade { color: #fde68a; }
 .plan-panel select { width: 100%; margin-top: 0.35rem; }

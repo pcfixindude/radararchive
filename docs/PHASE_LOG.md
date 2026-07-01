@@ -3695,3 +3695,40 @@ make frontend
 - UI preferences are session-only (not persisted)
 - Does not verify MRMS or enable production tile serving
 
+## Phase 117 - Local Replay Session Workflow
+
+Keyboard shortcuts and replay session summary for practical local operator workflow.
+
+### Frontend
+- `keyboardShortcuts.ts`, `useReplayKeyboardShortcuts.ts` — Space/arrow/O/B/F shortcuts; skip editable targets
+- `KeyboardShortcutsHelp.tsx` — collapsible shortcut list
+- `replaySessionSummary.ts`, `ReplaySessionPanel.tsx` — readiness badge, checklist, next-command hints
+- `App.tsx` — wires session summary and keyboard handler into playback/replay display state
+- `app.css` — session panel and shortcut help styles
+
+### Backend
+- No changes
+
+### Tests
+- `keyboardShortcuts.test.ts`, `replaySessionSummary.test.ts`
+- Backend 1229 passed; frontend 34 passed; `npm run build` ok
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make backend
+make frontend
+```
+
+### Known limitations
+- Session readiness is advisory; does not auto-run ingest/decode/warm commands
+- Keyboard shortcuts are session-only (not configurable)
+- Does not verify MRMS or enable production tile serving
+
+### Safety notes
+- `verified_mrms` remains false
+- `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
+- Decoded overlays remain local-dev/prototype only
+

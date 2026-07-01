@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   checkBackendHealth,
   DEFAULT_DEMO_PLAN,
@@ -23,7 +23,11 @@ import PlanSelector from './components/PlanSelector';
 import ValidationStatusPanel from './components/ValidationStatusPanel';
 import DecodedOverlayPanel from './components/DecodedOverlayPanel';
 import ReplayMapControls from './components/ReplayMapControls';
+import ReplaySessionPanel from './components/ReplaySessionPanel';
+import { buildReplaySessionSummary } from './components/replaySessionSummary';
 import { DEFAULT_REPLAY_DISPLAY, overlayReadyForMap, type ReplayDisplayState } from './components/replayDisplay';
+import type { ReplayShortcutAction } from './hooks/keyboardShortcuts';
+import { useReplayKeyboardShortcuts } from './hooks/useReplayKeyboardShortcuts';
 import { usePlayback } from './hooks/usePlayback';
 import { useFrameOverlay } from './hooks/useFrameOverlay';
 import { usePlaybackCacheStatus } from './hooks/usePlaybackCacheStatus';
@@ -263,6 +267,87 @@ export default function App() {
   const selectedOutsidePlan =
     loadState === 'ready' && Boolean(selectedTime) && times.length > 0 && !times.includes(selectedTime);
   const overlayMapReady = overlayReadyForMap(displayOverlay ?? decodedOverlay);
+  const canFitBounds = overlayMapReady && Boolean(replayDisplay.showDecodedOverlay);
+
+  const sessionSummary = useMemo(
+    () =>
+      buildReplaySessionSummary({
+        loadState,
+        selectedTime,
+        overlay: decodedOverlay,
+        cacheStatus,
+        playbackFrameStatus,
+        playing,
+        frameCount: playbackTimes.length,
+      }),
+    [
+      loadState,
+      selectedTime,
+      decodedOverlay,
+      cacheStatus,
+      playbackFrameStatus,
+      playing,
+      playbackTimes.length,
+    ],
+  );
+
+  const handleShortcutAction = useCallback(
+    (action: ReplayShortcutAction) => {
+      switch (action) {
+        case 'togglePlay':
+          if (!controlsDisabled && playbackTimes.length > 0) {
+            togglePlay();
+          }
+          break;
+        case 'stepBackward':
+          setPlaying(false);
+          stepBackward();
+          break;
+        case 'stepForward':
+          setPlaying(false);
+          stepForward();
+          break;
+        case 'toggleOverlay':
+          if (overlayMapReady) {
+            setReplayDisplay((current) => ({
+              ...current,
+              showDecodedOverlay: !current.showDecodedOverlay,
+            }));
+          }
+          break;
+        case 'toggleBounds':
+          setReplayDisplay((current) => ({
+            ...current,
+            showBoundsOutline: !current.showBoundsOutline,
+          }));
+          break;
+        case 'fitBounds':
+          if (canFitBounds) {
+            setFitBoundsToken((token) => token + 1);
+          }
+          break;
+        default:
+          break;
+      }
+    },
+    [
+      controlsDisabled,
+      playbackTimes.length,
+      togglePlay,
+      setPlaying,
+      stepBackward,
+      stepForward,
+      overlayMapReady,
+      canFitBounds,
+    ],
+  );
+
+  useReplayKeyboardShortcuts({
+    enabled: loadState === 'ready',
+    canStep: !controlsDisabled && playbackTimes.length > 0,
+    canFitBounds,
+    onAction: handleShortcutAction,
+  });
 
   return (
     <div className="app-shell">
@@ -310,6 +395,7 @@ export default function App() {
           {selectedNotProcessed ? (
             <p className="warn-banner">Selected timestamp is not processed yet. Choose a processed frame or run process-once.</p>
           ) : null}
+          <ReplaySessionPanel summary={sessionSummary} />
           <PlanSelector plan={selectedPlan} accessInfo={accessInfo} onChange={setSelectedPlan} />
           <ReplayMapControls
             display={replayDisplay}
