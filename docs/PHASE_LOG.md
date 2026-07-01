@@ -4047,3 +4047,42 @@ make frontend
 - `verified_mrms` remains false
 - `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
 
+## Phase 126 - Imported clip batch remediation plan
+
+From imported clip problem frames, generate a bounded warm/decode command plan (copy-ready checklist) in replay UI and CLI — without auto-running ingest, decode, or real MRMS downloads.
+
+### Backend
+- `backend/app/services/clip_remediation.py` — groups problem frames by readiness type; emits bounded copy-ready warm/decode/ingest commands (max 8 frames default)
+- `backend/app/schemas/clip_remediation.py` — plan/group/command step schemas
+- `POST /api/dev/clip-remediation` — build plan from manifest or existing import report
+- `POST /api/dev/clip-import` response now includes `remediation_plan`
+- `scripts/clip_remediation.py`, `make clip-remediation` — reads import report or manifest; writes `data/dev/clip_remediation_latest.json`
+
+### Frontend
+- **Remediation plan** section in Import clip panel — grouped cold/missing/failed summary, copy-ready command block, step list, explicit not-auto-run note
+- `clipRemediation.ts`, `clipRemediation.test.ts` — plan formatting helpers
+
+### Tests
+- `test_clip_remediation.py`, `clipRemediation.test.ts`, updated `clipImport.test.ts`
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make clip-import ARGS="--file data/dev/playback_export_latest.json"
+make clip-remediation ARGS="--file data/dev/clip_import_latest.json"
+make backend
+make frontend
+```
+
+### Known limitations
+- Plan suggests commands only — operator must copy/run manually in terminal
+- Bounded to 8 problem frames by default (max 20 via `--limit`)
+- Does not track which remediation steps were executed
+
+### Safety notes
+- No silent MRMS downloads; ingest commands require explicit `REAL=1`
+- No auto warm/decode from UI
+- `verified_mrms` remains false
+

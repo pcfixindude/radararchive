@@ -1,10 +1,11 @@
 # Project State
 
-Current phase: Phase 125 complete
+Current phase: Phase 126 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
+- **Imported clip batch remediation plan** — bounded warm/decode command checklist from import problem frames
 - **Clip manifest import replay** — import saved clip JSON; restore range/loop; readiness summary and remediation hints
 - **Frame quality drill-down** — per-frame cache/decode/quality detail in replay UI; CLI/API status reports
 - **Playback export clip** — export replay range as local clip manifest (API, CLI, UI copy/download)
@@ -17,7 +18,7 @@ Current status:
 - **Default tile serving: placeholder** (production off)
 - Not verified real MRMS
 
-## Operator workflow (Phase 125)
+## Operator workflow (Phase 126)
 
 ```bash
 make mrms-ingest-window PRESET=last_3h LIMIT=8
@@ -26,14 +27,16 @@ make local-replay-ready
 make local-replay-ready RUN=1
 make playback-export ARGS="--start 2026-06-28T13:00:00Z --end 2026-06-28T13:26:38Z"
 make clip-import ARGS="--file data/dev/playback_export_latest.json"
+make clip-remediation ARGS="--file data/dev/clip_import_latest.json"
 make frame-quality ARGS="--timestamps 2026-06-28T13:00:00Z,2026-06-28T13:26:38Z"
 make backend
 make frontend
 ```
 
 In the UI:
+- **Range & loop → Import clip → Remediation plan** — grouped problem summary, copy-ready warm/decode checklist (not auto-run)
 - **Range & loop → Import clip** — paste/upload exported JSON, validate, apply range and loop suggestion
-- **Import clip → Problem frames** — inspect cold/missing frames; batch remediation command hints
+- **Import clip → Problem frames** — inspect cold/missing frames; link to frame detail
 - **Frame detail** — inspect selected/catalog/export/import frame; path hints, quality checks, suggested commands
 - **Range & loop → Export clip** — manifest summary, copy JSON, download JSON
 - **Frame catalog** — browse frames, see cache/decode readiness, click to jump

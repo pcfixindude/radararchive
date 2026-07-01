@@ -4,6 +4,12 @@ import {
   importStatusLabel,
   problemFrameLabel,
 } from './clipImport';
+import {
+  formatRemediationGroupSummary,
+  hasRemediationCommands,
+  remediationPlanStatusLabel,
+} from './clipRemediation';
+import CommandLine from './validation/CommandLine';
 
 export type { ClipImportApplyPayload } from './clipImport';
 
@@ -132,16 +138,49 @@ export default function ClipImportPanel({
                   {applyNotice}
                 </p>
               ) : null}
-              {report.suggested_commands.length > 0 ? (
-                <div className="clip-import-remediation">
-                  <h4>Batch remediation hints</h4>
-                  <ul>
-                    {report.suggested_commands.map((command) => (
-                      <li key={command}>
-                        <code>{command}</code>
-                      </li>
-                    ))}
-                  </ul>
+              {report.remediation_plan ? (
+                <div className="clip-import-remediation-plan">
+                  <h4>Remediation plan</h4>
+                  <p className="clip-import-meta">
+                    <strong>{remediationPlanStatusLabel(report.remediation_plan.plan_status)}</strong>
+                    {' — '}
+                    {formatRemediationGroupSummary(report.remediation_plan.group_summary)}
+                    {report.remediation_plan.truncated ? ' · bounded to plan limit' : ''}
+                  </p>
+                  {report.remediation_plan.problem_groups.length > 0 ? (
+                    <ul className="clip-import-remediation-groups">
+                      {report.remediation_plan.problem_groups.map((group) => (
+                        <li key={group.readiness_type}>
+                          <strong>{group.label}:</strong> {group.count}
+                          {group.truncated ? ` (${group.assessed_count} in plan)` : ''}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  <p className="clip-import-remediation-note">
+                    Commands are not auto-run — copy and paste into your terminal manually.
+                  </p>
+                  {hasRemediationCommands(report.remediation_plan) ? (
+                    <>
+                      <CommandLine
+                        command={report.remediation_plan.command_block}
+                        label="Copy-ready command checklist"
+                        manualCopy
+                      />
+                      <ol className="clip-import-remediation-steps">
+                        {report.remediation_plan.commands.map((step) => (
+                          <li key={step.step}>
+                            <span className="clip-import-remediation-step-label">
+                              Step {step.step}: {step.label}
+                            </span>
+                            <code>{step.command}</code>
+                          </li>
+                        ))}
+                      </ol>
+                    </>
+                  ) : (
+                    <p className="clip-import-meta">{report.remediation_plan.operator_note}</p>
+                  )}
                 </div>
               ) : null}
               {report.problem_frames.length > 0 && onInspectFrame ? (

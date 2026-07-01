@@ -1,5 +1,7 @@
 import type { PlaybackExportManifest } from './playbackExport';
 
+import type { ClipRemediationPlan } from './clipRemediation';
+
 export const CLIP_EXPORT_KIND = 'playback_clip_manifest';
 
 export type ClipImportReadinessSummary = {
@@ -33,6 +35,7 @@ export type ClipImportReport = {
   readiness_summary: ClipImportReadinessSummary;
   problem_frames: ClipImportProblemFrame[];
   suggested_commands: string[];
+  remediation_plan: ClipRemediationPlan;
   assessed_at?: string;
   verified_mrms: boolean;
   local_dev_only: boolean;

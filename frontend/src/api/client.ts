@@ -4556,6 +4556,57 @@ export async function fetchPlaybackExport({
   return response.json() as Promise<PlaybackExportManifest>;
 }
 
+export type ClipRemediationProblemGroup = {
+  readiness_type: string;
+  label: string;
+  count: number;
+  assessed_count: number;
+  truncated: boolean;
+  timestamps: string[];
+};
+
+export type ClipRemediationGroupSummary = {
+  total_problem_count: number;
+  assessed_count: number;
+  cold_count: number;
+  missing_count: number;
+  failed_count: number;
+  stub_count: number;
+  partial_count: number;
+  invalid_count: number;
+};
+
+export type ClipRemediationCommandStep = {
+  step: number;
+  category: string;
+  label: string;
+  command: string;
+  frame_count?: number | null;
+  note?: string | null;
+};
+
+export type ClipRemediationPlan = {
+  clip_id?: string | null;
+  valid: boolean;
+  plan_status: string;
+  problem_groups: ClipRemediationProblemGroup[];
+  group_summary: ClipRemediationGroupSummary;
+  commands: ClipRemediationCommandStep[];
+  command_block: string;
+  operator_note: string;
+  bounded_frame_limit: number;
+  truncated: boolean;
+  assessed_at?: string;
+  verified_mrms: boolean;
+  local_dev_only: boolean;
+  prototype: boolean;
+  status_only: boolean;
+  does_not_run_ingest: boolean;
+  does_not_run_decode: boolean;
+  does_not_run_real_downloads: boolean;
+  commands_not_auto_run: boolean;
+};
+
 export type ClipImportReadinessSummary = {
   frame_count: number;
   cache_ready_count: number;
@@ -4587,6 +4638,7 @@ export type ClipImportReport = {
   readiness_summary: ClipImportReadinessSummary;
   problem_frames: ClipImportProblemFrame[];
   suggested_commands: string[];
+  remediation_plan: ClipRemediationPlan;
   assessed_at?: string;
   verified_mrms: boolean;
   local_dev_only: boolean;

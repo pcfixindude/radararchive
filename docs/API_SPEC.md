@@ -522,7 +522,7 @@ Validate an imported playback clip manifest JSON and refresh local readiness sum
 Request body:
 - `manifest` — playback clip JSON object from `GET /api/dev/playback-export` or UI export
 
-Response includes `valid`, `import_status`, refreshed `readiness_summary`, `problem_frames`, batch `suggested_commands`, and normalized `manifest` (range, loop, frames).
+Response includes `valid`, `import_status`, refreshed `readiness_summary`, `problem_frames`, batch `suggested_commands`, `remediation_plan` (bounded warm/decode command checklist), and normalized `manifest` (range, loop, frames).
 
 Example:
 ```bash
@@ -530,5 +530,25 @@ curl -X POST http://127.0.0.1:8000/api/dev/clip-import \
   -H 'Content-Type: application/json' \
   -d '{"manifest": {"export_kind":"playback_clip_manifest","range_start":"2026-06-28T13:00:00Z","range_end":"2026-06-28T13:26:38Z","frames":[]}}'
 make clip-import ARGS="--file data/dev/playback_export_latest.json"
+```
+
+### POST /api/dev/clip-remediation
+
+Build a bounded warm/decode remediation plan from an imported clip manifest or existing clip import report. Status/plan only — commands are not auto-run.
+
+Request body:
+- `manifest` — playback clip JSON (builds import report first), or
+- `import_report` — existing clip import report JSON from `make clip-import`
+- `limit` — max problem frames to assess for commands (default 8, max 20)
+
+Response includes `plan_status`, `problem_groups`, `group_summary` (cold/missing/failed counts), `commands` (step list), and `command_block` (copy-ready checklist).
+
+Example:
+```bash
+curl -X POST http://127.0.0.1:8000/api/dev/clip-remediation \
+  -H 'Content-Type: application/json' \
+  -d '{"import_report": {"valid": true, "problem_frames": [], "manifest": {"clip_id":"clip_x"}}}'
+make clip-remediation ARGS="--file data/dev/clip_import_latest.json"
+make clip-remediation ARGS="--file data/dev/playback_export_latest.json --limit 8"
 ```
 

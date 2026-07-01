@@ -11,10 +11,10 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 125
-- Latest phase: Phase 125 — Clip manifest import replay
+- Completed through phase: 126
+- Latest phase: Phase 126 — Imported clip batch remediation plan
 - Latest commit: `(pending commit — run git commit after tests pass)`
-- Latest tag: `phase-125-clip-manifest-import-replay`
+- Latest tag: `phase-126-imported-clip-batch-remediation`
 - Push status: pending push to `origin/main` with tag
 - Final git status: source ready; local `data/dev/` runtime artifacts not committed
 
@@ -28,24 +28,24 @@ Do not treat this file as verified MRMS proof or production authorization.
 
 ## Latest phase summary
 
-- Phase: **125**
-- Purpose: Import saved playback clip JSON to restore replay range, loop suggestion, and frame list with clip-level readiness summary and batch remediation hints.
-- CLI? **Yes** — `make clip-import` validates manifest file and writes report under `data/dev/` (gitignored)
-- API? **Yes** — `POST /api/dev/clip-import` validates manifest and refreshes readiness (status only)
-- UI? **Yes** — Import clip in Range & loop panel; paste/upload JSON, apply range, inspect problem frames
-- Checks: manifest validation, refreshed cache/decode counts, problem_frames, suggested_commands
-- Tests: backend `test_clip_import.py`; frontend `clipImport.test.ts`
+- Phase: **126**
+- Purpose: From imported clip problem frames, generate a bounded warm/decode command plan (copy-ready checklist) in replay UI and CLI without auto-running ingest or decode.
+- CLI? **Yes** — `make clip-remediation` reads import report or manifest; writes plan under `data/dev/` (gitignored)
+- API? **Yes** — `POST /api/dev/clip-remediation`; `POST /api/dev/clip-import` includes `remediation_plan`
+- UI? **Yes** — Import clip panel **Remediation plan** section with grouped summary and copy-ready command block
+- Checks: problem frame grouping (cold/missing/failed), bounded commands (max 8 default), explicit not-auto-run note
+- Tests: backend `test_clip_remediation.py`; frontend `clipRemediation.test.ts`
 
 ## Current focus
 
-Operators can export a clip, import it later or on another machine, apply range/loop to replay, and inspect problem frames with batch remediation hints. Next: one-click bounded remediation plan from imported clip problem frames.
+Operators can import a clip, inspect problem frames, and copy a structured warm/decode remediation checklist. Next: sync playback timestamp list when applying imported clip (not just range endpoints).
 
 ## Next recommended phase
 
-- Phase number: **126**
-- Phase title: Imported clip batch remediation plan
-- Goal: From imported clip problem frames, generate a bounded warm/decode command plan (copy-ready) without running ingest or decode automatically.
-- Why this is next: Import surfaces problem frames and hints; a structured remediation plan closes the fix loop for cold/missing frames.
+- Phase number: **127**
+- Phase title: Import clip frame list sync
+- Goal: When applying an imported clip, restore manifest frame timestamps to playback (not just range/loop).
+- Why this is next: Remediation closes the fix loop; frame list sync makes apply match the exported clip sequence for replay.
 - Safety boundaries:
   - local dev / prototype only
   - no silent real MRMS download
@@ -55,8 +55,8 @@ Operators can export a clip, import it later or on another machine, apply range/
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 126 only.
-Add bounded batch remediation plan from imported clip problem frames.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 127 only.
+Sync playback timestamp list when applying imported clip manifest frames.
 ```
 
 ## Key docs (read order for new work)

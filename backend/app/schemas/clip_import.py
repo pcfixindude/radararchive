@@ -6,6 +6,7 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
+from backend.app.schemas.clip_remediation import ClipRemediationPlan
 from backend.app.schemas.playback_export import PlaybackExportResponse
 
 
@@ -44,6 +45,7 @@ class ClipImportResponse(BaseModel):
     readiness_summary: ClipImportReadinessSummary = Field(default_factory=ClipImportReadinessSummary)
     problem_frames: list[ClipImportProblemFrame] = Field(default_factory=list)
     suggested_commands: list[str] = Field(default_factory=list)
+    remediation_plan: ClipRemediationPlan = Field(default_factory=ClipRemediationPlan)
     assessed_at: Optional[str] = None
     verified_mrms: bool = False
     local_dev_only: bool = True
