@@ -11,7 +11,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 121
 - Latest phase: Phase 121 — One-shot local replay setup
-- Latest commit: (see end-of-phase report)
+- Latest commit: `547216f`
 - Latest tag: `phase-121-one-shot-local-replay-setup`
 - Push status: pushed to `origin/main` with tag
 - Final git status: source committed; local `data/dev/` runtime artifacts not committed
