@@ -11,9 +11,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 114
 - Latest phase: Phase 114 — Georef improvement
-- Latest commit: (pending)
+- Latest commit: `72c2562`
 - Latest tag: `phase-114-georef-improvement`
-- Push status: pending
+- Push status: pushed to `origin/main` with tag
 - Final git status: source committed; local `data/dev/` runtime artifacts not committed
 
 ## Safety state
