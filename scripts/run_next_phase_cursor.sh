@@ -61,11 +61,11 @@ echo
 
 if [ "${CURSOR_AGENT_FORCE:-0}" = "1" ]; then
   echo "Mode: headless trusted force mode"
-  agent -p --trust -f "$(cat "$PROMPT_FILE")"
+  agent -p --trust --output-format stream-json --stream-partial-output -f "$(cat "$PROMPT_FILE")"
 else
   echo "Mode: headless trusted mode"
   echo "Tip: if it pauses for approvals, rerun with:"
   echo "  CURSOR_AGENT_FORCE=1 ./scripts/run_next_phase_cursor.sh"
   echo
-  agent -p --trust "$(cat "$PROMPT_FILE")"
+  agent -p --trust --output-format stream-json --stream-partial-output "$(cat "$PROMPT_FILE")"
 fi
