@@ -58,7 +58,7 @@ describe('buildReplaySessionSummary', () => {
       playing: false,
       frameCount: 0,
     });
-    expect(summary.nextCommand).toContain('mrms-bulk-local-ingest');
+    expect(summary.nextCommand).toContain('mrms-ingest-window');
   });
 
   it('suggests backend when API is down', () => {

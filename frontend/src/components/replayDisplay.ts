@@ -1,6 +1,8 @@
 import type { DecodedOverlayInfo, PlaybackCacheStatus } from '../api/client';
 import { cacheStateLabel } from '../hooks/framePlayback';
 
+export const GUIDED_INGEST_COMMAND = 'make mrms-ingest-window PRESET=last_3h LIMIT=8';
+
 export type ReplayDisplayState = {
   showDecodedOverlay: boolean;
   showBoundsOutline: boolean;
@@ -58,7 +60,7 @@ export function suggestNextCommand(
   cacheStatus: PlaybackCacheStatus | null,
 ): string | null {
   if (overlay?.sync_status === 'no_local_candidate') {
-    return "make mrms-bulk-local-ingest ARGS='--real --limit 8'";
+    return GUIDED_INGEST_COMMAND;
   }
   if (overlay?.sync_status === 'decode_failed' || overlay?.sync_status === 'decoder_missing') {
     return 'make decode-retry';
@@ -71,7 +73,7 @@ export function suggestNextCommand(
     return cacheStatus.next_commands[0];
   }
   if (!overlay?.artifact_available) {
-    return "make mrms-bulk-local-ingest ARGS='--real --limit 8'";
+    return GUIDED_INGEST_COMMAND;
   }
   if (overlay?.sync_status !== 'matched') {
     return 'make decode-retry';

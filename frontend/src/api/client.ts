@@ -4369,6 +4369,34 @@ export async function fetchPlaybackCacheStatus(
   }
 }
 
+export type IngestWindowPlan = {
+  preset: string;
+  preset_label: string;
+  start_time: string | null;
+  end_time: string | null;
+  limit: number;
+  warm_cache: boolean;
+  estimated_frames_in_window: number | null;
+  ready: boolean;
+  warnings: string[];
+  bulk_ingest_command: string | null;
+  guided_command: string;
+  next_commands: string[];
+  operator_steps: string[];
+  verified_mrms: boolean;
+  requires_real_flag: boolean;
+};
+
+export async function fetchIngestWindowPlan(
+  query: URLSearchParams,
+): Promise<IngestWindowPlan> {
+  const response = await fetch(`${API_BASE}/api/dev/ingest-window/plan?${query.toString()}`);
+  if (!response.ok) {
+    throw new Error(`Ingest window plan failed with ${response.status}`);
+  }
+  return response.json() as Promise<IngestWindowPlan>;
+}
+
 export async function fetchDecodedOverlay(
   selectedTimestamp?: string,
   options: { refresh?: boolean } = {},

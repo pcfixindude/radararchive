@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.config import settings
 from backend.app.services.frame_cache_warmer import load_cache_warm_report
+from backend.app.services.mrms_ingest_window import SUGGESTED_GUIDED_COMMAND
 from backend.app.services.frame_playback import is_frame_cached
 from backend.app.services.overlay_sync import normalize_timestamp_iso
 from backend.app.services.selected_frame_decode import (
@@ -129,7 +130,7 @@ def build_playback_cache_status(
     if cold > 0 or (warmed == 0 and counts[CACHE_STATE_MISSING_RAW] == 0):
         next_commands.append(SUGGESTED_WARM_COMMAND)
     if counts[CACHE_STATE_MISSING_RAW] > 0:
-        next_commands.append("make mrms-bulk-local-ingest ARGS='--real --limit 8'")
+        next_commands.append(SUGGESTED_GUIDED_COMMAND)
 
     return {
         "frames": frames,

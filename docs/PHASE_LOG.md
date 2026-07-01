@@ -3770,3 +3770,42 @@ make frontend
 - `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
 - Decoded overlays remain local-dev/prototype only
 
+## Phase 119 - Ingest Date Window UX
+
+Guided bounded MRMS ingest window planning with presets and visible commands.
+
+### Backend / CLI
+- `mrms_ingest_window.py` — preset windows, validation, command generation
+- `scripts/mrms_ingest_window.py` — dry-run CLI; `--run --real` required to download
+- `GET /api/dev/ingest-window/plan` — returns ingest plan without network download
+- `make mrms-ingest-window`
+
+### Frontend
+- `IngestWindowPanel.tsx`, `ingestWindow.ts` — Load frames UI with copy command
+- `fetchIngestWindowPlan` in API client
+- Replay session / next-command hints updated for guided ingest
+
+### Tests
+- `test_mrms_ingest_window.py`, `ingestWindow.test.ts`
+- Backend 1241 passed; frontend 55 passed; `npm run build` ok
+
+### Run commands
+
+```bash
+make test
+make mrms-ingest-window PRESET=last_3h LIMIT=8
+cd frontend && npm test && npm run build
+make backend
+make frontend
+```
+
+### Known limitations
+- UI does not auto-run ingest — operator must copy/run command with explicit `--real`
+- Ingest window is plan-only in API; no background ingest worker
+- Does not verify MRMS or enable production tile serving
+
+### Safety notes
+- Real MRMS download requires explicit `--real` (CLI) or copied bulk command
+- `verified_mrms` remains false
+- `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
+

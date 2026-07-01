@@ -24,6 +24,7 @@ import ValidationStatusPanel from './components/ValidationStatusPanel';
 import DecodedOverlayPanel from './components/DecodedOverlayPanel';
 import ReplayMapControls from './components/ReplayMapControls';
 import ReplayRangeControls from './components/ReplayRangeControls';
+import IngestWindowPanel from './components/IngestWindowPanel';
 import ReplaySessionPanel from './components/ReplaySessionPanel';
 import { buildReplaySessionSummary } from './components/replaySessionSummary';
 import { DEFAULT_REPLAY_DISPLAY, overlayReadyForMap, type ReplayDisplayState } from './components/replayDisplay';
@@ -428,6 +429,11 @@ export default function App() {
             <p className="warn-banner">Selected timestamp is not processed yet. Choose a processed frame or run process-once.</p>
           ) : null}
           <ReplaySessionPanel summary={sessionSummary} />
+          <IngestWindowPanel
+            disabled={controlsDisabled}
+            replayRangeStart={replayRange.resolvedRange?.start ?? null}
+            replayRangeEnd={replayRange.resolvedRange?.end ?? null}
+          />
           <ReplayRangeControls disabled={controlsDisabled} range={replayRange} />
           <PlanSelector plan={selectedPlan} accessInfo={accessInfo} onChange={setSelectedPlan} />
           <ReplayMapControls

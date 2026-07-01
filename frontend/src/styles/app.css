@@ -206,6 +206,76 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
   font-size: 0.8rem;
   color: #fde68a;
 }
+.ingest-window-panel h2 { margin: 0 0 0.35rem; }
+.ingest-window-intro {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+.ingest-window-field {
+  display: block;
+  margin: 0.35rem 0;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+}
+.ingest-window-field select,
+.ingest-window-field input[type='number'],
+.ingest-window-field input[type='datetime-local'] {
+  display: block;
+  width: 100%;
+  margin-top: 0.2rem;
+}
+.ingest-window-custom {
+  display: grid;
+  gap: 0.35rem;
+}
+.ingest-window-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.35rem 0;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+}
+.ingest-window-actions {
+  display: flex;
+  gap: 0.35rem;
+  margin: 0.35rem 0;
+}
+.ingest-window-meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+}
+.ingest-window-warning,
+.ingest-window-error {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: #fde68a;
+}
+.ingest-window-error { color: #fca5a5; }
+.ingest-window-command {
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  background: #0f172a;
+}
+.ingest-window-command code {
+  display: block;
+  margin: 0.35rem 0;
+  word-break: break-word;
+}
+.ingest-window-command-label {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+.ingest-window-next {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
 .playback-playback-state {
   color: #e2e8f0;
   font-weight: 500;

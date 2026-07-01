@@ -1,6 +1,6 @@
 import type { DecodedOverlayInfo, PlaybackCacheStatus } from '../api/client';
 import { cacheStateLabel, type PlaybackFrameStatus } from '../hooks/framePlayback';
-import { hasValidOverlayBounds, overlayReadyForMap, suggestNextCommand } from './replayDisplay';
+import { hasValidOverlayBounds, overlayReadyForMap, suggestNextCommand, GUIDED_INGEST_COMMAND } from './replayDisplay';
 
 export type SessionReadiness = 'ready' | 'needs_action' | 'backend_down' | 'loading';
 
@@ -103,7 +103,7 @@ function resolveSessionNextCommand(
     return null;
   }
   if (frameCount === 0) {
-    return "make mrms-bulk-local-ingest ARGS='--real --limit 8'";
+    return GUIDED_INGEST_COMMAND;
   }
   return suggestNextCommand(overlay, cacheStatus);
 }
@@ -123,11 +123,11 @@ function buildSessionHints(
     return hints;
   }
   if (frameCount === 0) {
-    hints.push('Ingest real local frames before replay.');
+    hints.push('Use Load frames to build a bounded ingest command, then run it in your terminal.');
     return hints;
   }
   if (overlay?.sync_status === 'no_local_candidate') {
-    hints.push('No local MRMS file for this timestamp — bulk ingest first.');
+    hints.push('No local MRMS file for this timestamp — use Load frames to ingest.');
   }
   if (!cacheStatus?.playback_ready && cacheStatus && cacheStatus.cold_count > 0) {
     hints.push('Cache is cold — warming speeds up frame stepping.');

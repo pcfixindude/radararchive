@@ -56,7 +56,7 @@ describe('suggestNextCommand', () => {
         { ...matchedOverlay, sync_status: 'no_local_candidate', artifact_available: false },
         null,
       ),
-    ).toContain('mrms-bulk-local-ingest');
+    ).toContain('mrms-ingest-window');
   });
 
   it('suggests warm cache when cold', () => {
