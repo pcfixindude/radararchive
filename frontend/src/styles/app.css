@@ -161,6 +161,93 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
   list-style: none;
   font-size: 0.78rem;
 }
+.frame-catalog-panel h2 { margin: 0; }
+.frame-catalog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.frame-catalog-refresh {
+  padding: 0.15rem 0.45rem;
+  font-size: 0.75rem;
+}
+.frame-catalog-intro {
+  margin: 0.35rem 0;
+  font-size: 0.82rem;
+  color: #94a3b8;
+}
+.frame-catalog-meta {
+  margin: 0.35rem 0;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+}
+.frame-catalog-meta--empty { color: #94a3b8; }
+.frame-catalog-error {
+  margin: 0.35rem 0;
+  font-size: 0.82rem;
+  color: #fca5a5;
+}
+.frame-catalog-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0.35rem 0;
+  font-size: 0.82rem;
+}
+.frame-catalog-filter input {
+  padding: 0.35rem 0.45rem;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+.frame-catalog-list {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  max-height: 14rem;
+  overflow-y: auto;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+}
+.frame-catalog-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.35rem;
+  align-items: center;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border: none;
+  border-bottom: 1px solid #1e293b;
+  background: #0b1220;
+  color: #e2e8f0;
+  font-size: 0.78rem;
+  text-align: left;
+  cursor: pointer;
+}
+.frame-catalog-row:last-child { border-bottom: none; }
+.frame-catalog-row:hover:not(:disabled) { background: #111827; }
+.frame-catalog-row:disabled { opacity: 0.55; cursor: not-allowed; }
+.frame-catalog-row--selected {
+  background: #1e293b;
+  outline: 1px solid #475569;
+}
+.frame-catalog-row--ready .frame-catalog-status { color: #86efac; }
+.frame-catalog-row--partial .frame-catalog-status { color: #fde68a; }
+.frame-catalog-row--missing .frame-catalog-status { color: #fca5a5; }
+.frame-catalog-row--failed .frame-catalog-status { color: #f87171; }
+.frame-catalog-time {
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+}
+.frame-catalog-status { font-size: 0.72rem; }
+.frame-catalog-jump {
+  font-size: 0.7rem;
+  color: #64748b;
+  text-transform: uppercase;
+}
+.frame-catalog-row--selected .frame-catalog-jump { color: #86efac; }
 .session-readiness-badge {
   padding: 0.2rem 0.5rem;
   border-radius: 999px;

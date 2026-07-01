@@ -1,8 +1,8 @@
 # Next Steps
 
-## Phase 122 - Frame catalog browser (Draft)
+## Phase 123 - Playback export clip (Draft)
 
-Goal: Browse local MRMS frames with cache/decode status and jump-to-frame in the UI.
+Goal: Export a bounded replay range as a local clip manifest for sharing or offline review.
 
 ```bash
 make test
@@ -10,6 +10,22 @@ cd frontend && npm test && npm run build
 make backend
 make frontend
 ```
+
+## Phase 122 verification commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make backend
+make frontend
+```
+
+Local result after Phase 122:
+
+- `GET /api/dev/frame-catalog` returns local frames with cache/decode flags (status only)
+- Frame catalog panel lists frames newest-first with text filter
+- Click a frame row to jump playback (updates slider and selected frame)
+- Range highlights on time slider unchanged
 
 ## Phase 121 verification commands
 
@@ -36,12 +52,4 @@ make test
 cd frontend && npm test && npm run build
 make backend
 make frontend
-```
-
-## Phase 119 verification commands
-
-```bash
-make test
-make mrms-ingest-window PRESET=last_3h LIMIT=8
-cd frontend && npm test && npm run build
 ```

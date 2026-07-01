@@ -451,6 +451,32 @@ Tile response headers when placeholders are served:
 
 Example:
 ```bash
-curl "http://127.0.0.1:8000/api/sources/mrms/processing-status"
 curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:00:00Z/0/0/0.png"
 ```
+
+## Local replay dev APIs (Phase 121–122 — prototype only)
+
+All endpoints below are local-dev/prototype only. `verified_mrms: false`. No silent ingest or decode work in request handlers.
+
+### GET /api/dev/local-replay-ready
+
+Post-ingest readiness checklist (frames, cache, decode, UI). Query: `limit` (default 8, max from warmer).
+
+### GET /api/dev/frame-catalog
+
+Frame catalog browser payload for replay navigation. Status/plan only.
+
+Query parameters:
+- `layer` — catalog layer id (default `mrms_reflectivity`)
+- `limit` — max frames (default 8, max from warmer)
+- `start_time`, `end_time` — optional UTC ISO window
+- `timestamps` — comma-separated playback timestamps; when set, assesses that window
+
+Response includes per-frame `cache_state`, `cache_ready`, `decode_ready`, `decode_status`, plus summary counts.
+
+Example:
+```bash
+curl "http://127.0.0.1:8000/api/dev/frame-catalog?limit=20"
+curl "http://127.0.0.1:8000/api/dev/frame-catalog?timestamps=2026-06-28T13:00:00Z,2026-06-28T13:26:38Z"
+```
+

@@ -3886,3 +3886,39 @@ make frontend
 - `verified_mrms` remains false
 - `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
 
+## Phase 122 - Frame Catalog Browser
+
+Local frame catalog with cache/decode readiness and jump-to-frame in replay UI.
+
+### Backend
+- `frame_catalog.py` service — `build_frame_catalog()`, `resolve_frame_decode_state()`
+- `GET /api/dev/frame-catalog` — status/plan only; optional `timestamps`, `start_time`, `end_time`, `limit`
+- Reuses `select_cache_window`, `build_playback_cache_status`, frame cache manifests
+
+### Frontend
+- `FrameCatalogPanel.tsx` — scrollable frame list, text filter, jump-to-frame button rows
+- `frameCatalog.ts`, `useFrameCatalog.ts` — fetch, filter, readiness labels
+- Wired into `App.tsx` after replay session panel; jump stops playback and updates selected frame
+
+### Tests
+- `test_frame_catalog.py`, `frameCatalog.test.ts`
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make backend
+make frontend
+```
+
+### Known limitations
+- Catalog assesses playback window timestamps when provided; otherwise uses local MRMS window
+- Does not trigger decode or cache warm on request
+- Does not verify MRMS or enable production tile serving
+
+### Safety notes
+- Status-only API — no silent downloads or unbounded ingest
+- `verified_mrms` remains false
+- `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
+

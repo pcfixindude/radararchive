@@ -27,6 +27,7 @@ import ReplayRangeControls from './components/ReplayRangeControls';
 import IngestWindowPanel from './components/IngestWindowPanel';
 import ReplayBookmarksPanel from './components/ReplayBookmarksPanel';
 import ReplaySessionPanel from './components/ReplaySessionPanel';
+import FrameCatalogPanel from './components/FrameCatalogPanel';
 import { DEFAULT_INGEST_WINDOW_STATE, type IngestWindowFormState } from './components/ingestWindow';
 import { buildReplaySessionSummary } from './components/replaySessionSummary';
 import { DEFAULT_REPLAY_DISPLAY, overlayReadyForMap, type ReplayDisplayState } from './components/replayDisplay';
@@ -34,6 +35,7 @@ import type { ReplayShortcutAction } from './hooks/keyboardShortcuts';
 import { useReplayKeyboardShortcuts } from './hooks/useReplayKeyboardShortcuts';
 import { useReplayBookmarks } from './hooks/useReplayBookmarks';
 import { useLocalReplayReady } from './hooks/useLocalReplayReady';
+import { useFrameCatalog } from './hooks/useFrameCatalog';
 import { useReplayRange } from './hooks/useReplayRange';
 import { usePlayback } from './hooks/usePlayback';
 import { useFrameOverlay } from './hooks/useFrameOverlay';
@@ -129,6 +131,8 @@ export default function App() {
     playbackTimes,
     loadState === 'ready',
   );
+
+  const frameCatalog = useFrameCatalog(playbackTimes, loadState === 'ready');
 
   useEffect(() => {
     let cancelled = false;
@@ -489,6 +493,18 @@ export default function App() {
             setupLoading={localReplayReady.loading}
             setupError={localReplayReady.error}
             onRefreshSetup={localReplayReady.refresh}
+          />
+          <FrameCatalogPanel
+            disabled={controlsDisabled}
+            catalog={frameCatalog.catalog}
+            loading={frameCatalog.loading}
+            error={frameCatalog.error}
+            selectedTime={selectedTime}
+            onSelectFrame={(time) => {
+              setPlaying(false);
+              setSelectedTime(time);
+            }}
+            onRefresh={frameCatalog.refresh}
           />
           <ReplayBookmarksPanel
             disabled={controlsDisabled}

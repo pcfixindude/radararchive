@@ -13,38 +13,35 @@ Required docs to read first:
 8. docs/API_SPEC.md, if API schemas or endpoint contracts are touched
 9. docs/ARCHITECTURE.md, only if architecture changes
 Current completed phase and latest commit/tag/push status from docs/CHATGPT_REVIEW.md:
-* Completed through phase: 121
-* Latest phase: Phase 121 — One-shot local replay setup
-* Latest commit: 547216f
-* Latest tag: phase-121-one-shot-local-replay-setup
-* Push status: pushed to origin/main with tag
+* Completed through phase: 122
+* Latest phase: Phase 122 — Frame catalog browser
+* Latest commit: (see CHATGPT_REVIEW.md)
+* Latest tag: phase-122-frame-catalog-browser
+* Push status: see CHATGPT_REVIEW.md
 Important direction:
 This is for my own local use right now. I want meaningful, visible progress toward a usable historical radar replay app. Do not make this a tiny safety-wrapper phase. Keep the safety boundaries, but work aggressively inside the local-dev/prototype lane.
 Implement the next phase only:
-Phase 122 — Frame catalog browser
-Short name: frame-catalog-browser
+Phase 123 — Playback export clip
+Short name: playback-export-clip
 Goal:
-Add a local frame catalog browser in the replay UI so the operator can see available MRMS frames with cache/decode readiness and jump directly to a frame without hunting on the time slider alone.
+Export the active replay range (start/end frames) as a bounded local clip manifest the operator can save or share — frame list, timestamps, cache/decode status, and optional preview paths — without running new ingest or decode in the request.
 Current project state relevant to this phase:
-* Phase 121 added one-shot local replay setup (`make local-replay-ready`, `GET /api/dev/local-replay-ready`, replay session checklist)
-* Phase 120 added saved replay bookmarks
-* Phase 119 added ingest date window UX
+* Phase 122 added frame catalog browser with jump-to-frame
+* Phase 121 added one-shot local replay setup
 * Phase 118 added playback range and loop
 * Phase 117 added replay session workflow
 * Existing APIs/services to reuse where possible:
-  * layer timestamps from catalog routes
-  * `build_playback_cache_status` / dev overlay cache status
-  * decode retry / frame quality artifacts if already exposed
-  * `local_replay_ready` frame selection patterns
+  * `build_frame_catalog` / frame cache status
+  * replay range state from frontend hooks
+  * decode preview paths from frame cache manifests
 Required implementation work:
-1. Add a dev-oriented frame catalog status API if needed, e.g. `GET /api/dev/frame-catalog` returning local frames with cache/decode flags and counts — status/plan only, no long-running work in the request.
-2. Add a **Frame catalog** panel (or section) in the replay UI:
-   * list local frames for the active layer/window
-   * show cache ready / decode ready / missing indicators
-   * click or button to jump playback to that frame
-   * compact sort/filter (newest first; optional text filter on timestamp)
-3. Wire jump-to-frame into existing playback state (selected frame, slider, range highlights unchanged unless helpful).
-4. Add/update tests for backend catalog payload and frontend list/jump behavior.
+1. Add a dev-oriented export API if needed, e.g. `GET /api/dev/playback-export` accepting range timestamps and returning a clip manifest — status/plan only, no long-running work.
+2. Add optional CLI `make playback-export` writing manifest JSON under `data/dev/` (gitignored).
+3. Add **Export clip** action in replay UI (range & loop or replay session panel):
+   * requires complete start/end range
+   * shows clip summary (frame count, cache/decode counts)
+   * copy manifest JSON or download locally
+4. Add/update tests for backend manifest payload and frontend export UX.
 5. Update docs:
    * docs/CHATGPT_REVIEW.md
    * docs/PROJECT_STATE.md
@@ -80,8 +77,8 @@ Before committing:
 * do not stage data/dev runtime artifacts
 Then:
 * git add .
-* git commit -m "phase 122: frame catalog browser"
-* git tag phase-122-frame-catalog-browser
+* git commit -m "phase 123: playback export clip"
+* git tag phase-123-playback-export-clip
 * git push origin main --tags
 End-of-phase requirements:
 * update docs/CHATGPT_REVIEW.md with completion state, commit, tag, push status, safety state, and next recommended phase

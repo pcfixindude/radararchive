@@ -11,11 +11,11 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 121
-- Latest phase: Phase 121 — One-shot local replay setup
-- Latest commit: `547216f`
-- Latest tag: `phase-121-one-shot-local-replay-setup`
-- Push status: pushed to `origin/main` with tag
+- Completed through phase: 122
+- Latest phase: Phase 122 — Frame catalog browser
+- Latest commit: `(pending commit)`
+- Latest tag: `phase-122-frame-catalog-browser`
+- Push status: pending push to `origin/main` with tag
 - Final git status: source committed; local `data/dev/` runtime artifacts not committed
 
 ## Safety state
@@ -28,24 +28,24 @@ Do not treat this file as verified MRMS proof or production authorization.
 
 ## Latest phase summary
 
-- Phase: **121**
-- Purpose: Guided one-shot post-ingest setup chaining bounded warm/decode readiness checks.
-- CLI? **Yes** — `make local-replay-ready` dry-run default; `RUN=1` executes local warm/decode only (never real ingest)
-- API? **Yes** — `GET /api/dev/local-replay-ready` returns checklist/status/next command
-- UI? **Yes** — Replay session panel shows **Local replay setup** checklist with refresh
-- Checks: local frames, frame cache, decoded artifacts, open UI step
-- Tests: backend 1248 passed; frontend 67 passed; `npm run build` ok
+- Phase: **122**
+- Purpose: Browse local MRMS frames with cache/decode readiness and jump-to-frame in replay UI.
+- CLI? **No** — status API only; no long-running work in request
+- API? **Yes** — `GET /api/dev/frame-catalog` returns frames with cache/decode flags and counts
+- UI? **Yes** — Frame catalog panel lists frames (newest first), filter by timestamp, click to jump playback
+- Checks: cache_state, cache_ready, decode_ready per frame; summary counts
+- Tests: backend frame catalog tests added; frontend frameCatalog.test.ts added
 
 ## Current focus
 
-Post-ingest setup is one command away from replay-ready status. Next: frame catalog browser or playback export clip.
+Frame catalog browser lets operators see cache/decode readiness and jump directly to frames. Next: playback export clip or frame quality drill-down.
 
 ## Next recommended phase
 
-- Phase number: **122**
-- Phase title: Frame catalog browser
-- Goal: Browse available local MRMS frames with cache/decode status and jump-to-frame for faster local replay navigation.
-- Why this is next: Setup workflow is streamlined; browsing frames in the UI reduces hunting on the time slider alone.
+- Phase number: **123**
+- Phase title: Playback export clip
+- Goal: Export a bounded replay range as a local clip (frames list + optional preview bundle) for sharing or offline review.
+- Why this is next: Navigation and setup are streamlined; exporting storm segments completes the local replay workflow loop.
 - Safety boundaries:
   - local dev / prototype only
   - no silent real MRMS download
@@ -55,8 +55,8 @@ Post-ingest setup is one command away from replay-ready status. Next: frame cata
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 122 only.
-Add a frame catalog browser for local replay navigation.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 123 only.
+Add playback export clip for bounded local replay ranges.
 ```
 
 ## Key docs (read order for new work)

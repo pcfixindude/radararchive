@@ -4407,6 +4407,42 @@ export async function fetchLocalReplayReady(limit = 8): Promise<import('../compo
   return response.json() as Promise<import('../components/localReplayReady').LocalReplayReadyStatus>;
 }
 
+export type FrameCatalogItem = {
+  timestamp: string;
+  cache_state: string;
+  cache_ready: boolean;
+  decode_ready: boolean;
+  decode_status?: string | null;
+};
+
+export type FrameCatalogStatus = {
+  layer_id: string;
+  frame_count: number;
+  cache_ready_count: number;
+  decode_ready_count: number;
+  missing_count: number;
+  cold_count: number;
+  failed_count: number;
+  window_source: string;
+  frames: FrameCatalogItem[];
+  playback_ready: boolean;
+};
+
+export async function fetchFrameCatalog(
+  timestamps: string[],
+  limit = 50,
+): Promise<FrameCatalogStatus> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (timestamps.length > 0) {
+    params.set('timestamps', timestamps.join(','));
+  }
+  const response = await fetch(`${API_BASE}/api/dev/frame-catalog?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error(`Frame catalog failed with ${response.status}`);
+  }
+  return response.json() as Promise<FrameCatalogStatus>;
+}
+
 export async function fetchDecodedOverlay(
   selectedTimestamp?: string,
   options: { refresh?: boolean } = {},
