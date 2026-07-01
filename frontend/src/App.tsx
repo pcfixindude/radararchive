@@ -39,6 +39,7 @@ import { useLocalReplayReady } from './hooks/useLocalReplayReady';
 import { useFrameCatalog } from './hooks/useFrameCatalog';
 import { useFrameQuality } from './hooks/useFrameQuality';
 import { usePlaybackExport } from './hooks/usePlaybackExport';
+import { useClipImport } from './hooks/useClipImport';
 import { useReplayRange } from './hooks/useReplayRange';
 import { usePlayback } from './hooks/usePlayback';
 import { useFrameOverlay } from './hooks/useFrameOverlay';
@@ -139,6 +140,7 @@ export default function App() {
   const frameCatalog = useFrameCatalog(playbackTimes, loadState === 'ready');
   const frameQuality = useFrameQuality(inspectTimestamp, loadState === 'ready' && Boolean(inspectTimestamp));
   const playbackExport = usePlaybackExport();
+  const clipImport = useClipImport();
 
   useEffect(() => {
     if (selectedTime) {
@@ -162,6 +164,23 @@ export default function App() {
     replayRange.loopActive,
     replayRange.resolvedRange,
   ]);
+
+  const handleApplyClipImport = useCallback(() => {
+    const payload = clipImport.buildApply();
+    if (!payload) {
+      return;
+    }
+    replayRange.loadRangeState({
+      rangeStart: payload.rangeStart,
+      rangeEnd: payload.rangeEnd,
+      loopRange: payload.loopSuggested,
+    });
+    clipImport.markApplied(
+      payload.loopSuggested
+        ? 'Clip range and loop suggestion applied to replay.'
+        : 'Clip range applied to replay.',
+    );
+  }, [clipImport, replayRange]);
 
   useEffect(() => {
     let cancelled = false;
@@ -568,6 +587,8 @@ export default function App() {
             range={replayRange}
             inspectTimestamp={inspectTimestamp}
             onInspectFrame={setInspectTimestamp}
+            clipImport={clipImport}
+            onApplyClipImport={handleApplyClipImport}
             exportState={{
               manifest: playbackExport.manifest,
               loading: playbackExport.loading,

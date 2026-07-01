@@ -1,4 +1,6 @@
 import type { ReplayRangeState } from '../hooks/useReplayRange';
+import type { ClipImportHookState } from '../hooks/useClipImport';
+import ClipImportPanel from './ClipImportPanel';
 import PlaybackExportPanel from './PlaybackExportPanel';
 import type { PlaybackExportState } from './playbackExport';
 
@@ -8,14 +10,18 @@ export default function ReplayRangeControls({
   disabled = false,
   range,
   exportState,
+  clipImport,
   inspectTimestamp,
   onInspectFrame,
+  onApplyClipImport,
 }: {
   disabled?: boolean;
   range: ReplayRangeState;
   exportState: PlaybackExportState;
+  clipImport: ClipImportHookState;
   inspectTimestamp?: string;
   onInspectFrame?: (timestamp: string) => void;
+  onApplyClipImport: () => void;
 }) {
   const loopDisabled = disabled || !range.hasCompleteRange;
 
@@ -80,6 +86,13 @@ export default function ReplayRangeControls({
         exportState={exportState}
         inspectTimestamp={inspectTimestamp}
         onInspectFrame={onInspectFrame}
+      />
+      <ClipImportPanel
+        disabled={disabled}
+        clipImport={clipImport}
+        inspectTimestamp={inspectTimestamp}
+        onInspectFrame={onInspectFrame}
+        onApply={onApplyClipImport}
       />
     </section>
   );

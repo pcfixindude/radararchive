@@ -1,15 +1,34 @@
 # Next Steps
 
-## Phase 125 - Clip manifest import replay (Draft)
+## Phase 126 - Imported clip batch remediation plan (Draft)
 
-Goal: Load saved playback clip JSON to restore range, loop, and frame list in replay UI with clip-level readiness summary.
+Goal: From imported clip problem frames, generate a bounded warm/decode command plan (copy-ready) without auto-running ingest or decode.
 
 ```bash
 make test
 cd frontend && npm test && npm run build
 make backend
 make frontend
+make clip-import ARGS="--file data/dev/playback_export_latest.json"
 ```
+
+## Phase 125 verification commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make backend
+make frontend
+make playback-export ARGS="--start 2026-06-28T13:00:00Z --end 2026-06-28T13:26:38Z --timestamps 2026-06-28T13:00:00Z,2026-06-28T13:26:38Z"
+make clip-import ARGS="--file data/dev/playback_export_latest.json"
+```
+
+Local result after Phase 125:
+
+- `POST /api/dev/clip-import` validates manifest and returns refreshed readiness summary (status only)
+- `make clip-import` writes `data/dev/clip_import_latest.json` (gitignored)
+- Range & loop panel shows Import clip with paste/upload, validate, apply to replay
+- Problem frames link to frame detail inspect; batch remediation hints shown
 
 ## Phase 124 verification commands
 

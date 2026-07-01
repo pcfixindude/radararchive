@@ -4556,6 +4556,58 @@ export async function fetchPlaybackExport({
   return response.json() as Promise<PlaybackExportManifest>;
 }
 
+export type ClipImportReadinessSummary = {
+  frame_count: number;
+  cache_ready_count: number;
+  decode_ready_count: number;
+  missing_count: number;
+  cold_count: number;
+  failed_count: number;
+  stub_count: number;
+  partial_count: number;
+  ready_count: number;
+  problem_count: number;
+  truncated: boolean;
+};
+
+export type ClipImportProblemFrame = {
+  timestamp: string;
+  readiness_summary: string;
+  cache_state: string;
+  decode_ready: boolean;
+  sync_message?: string | null;
+};
+
+export type ClipImportReport = {
+  valid: boolean;
+  import_status: string;
+  errors: string[];
+  warnings: string[];
+  manifest: PlaybackExportManifest | null;
+  readiness_summary: ClipImportReadinessSummary;
+  problem_frames: ClipImportProblemFrame[];
+  suggested_commands: string[];
+  assessed_at?: string;
+  verified_mrms: boolean;
+  local_dev_only: boolean;
+  prototype: boolean;
+  status_only: boolean;
+  does_not_run_ingest: boolean;
+  does_not_run_decode: boolean;
+};
+
+export async function fetchClipImport(manifest: Record<string, unknown>): Promise<ClipImportReport> {
+  const response = await fetch(`${API_BASE}/api/dev/clip-import`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ manifest }),
+  });
+  if (!response.ok) {
+    throw new Error(`Clip import failed with ${response.status}`);
+  }
+  return response.json() as Promise<ClipImportReport>;
+}
+
 export async function fetchDecodedOverlay(
   selectedTimestamp?: string,
   options: { refresh?: boolean } = {},

@@ -13,35 +13,34 @@ Required docs to read first:
 8. docs/API_SPEC.md, if API schemas or endpoint contracts are touched
 9. docs/ARCHITECTURE.md, only if architecture changes
 Current completed phase and latest commit/tag/push status from docs/CHATGPT_REVIEW.md:
-* Completed through phase: 124
-* Latest phase: Phase 124 — Frame quality drill-down
+* Completed through phase: 125
+* Latest phase: Phase 125 — Clip manifest import replay
 * Latest commit: (see CHATGPT_REVIEW.md)
-* Latest tag: phase-124-frame-quality-drilldown
+* Latest tag: phase-125-clip-manifest-import-replay
 * Push status: see CHATGPT_REVIEW.md
 Important direction:
 This is for my own local use right now. I want meaningful, visible progress toward a usable historical radar replay app. Do not make this a tiny safety-wrapper phase. Keep the safety boundaries, but work aggressively inside the local-dev/prototype lane.
 Implement the next phase only:
-Phase 125 — Clip manifest import replay
-Short name: clip-manifest-import-replay
+Phase 126 — Imported clip batch remediation plan
+Short name: imported-clip-batch-remediation
 Goal:
-Load a saved playback clip JSON (from Phase 123 export) to restore replay range, loop suggestion, and frame list in the replay UI — with clip-level readiness summary and batch remediation hints — without running ingest or decode.
+From imported clip problem frames, generate a bounded warm/decode command plan (copy-ready checklist) in the replay UI and CLI — without auto-running ingest, decode, or real MRMS downloads.
 Current project state relevant to this phase:
-* Phase 124 added frame quality drill-down (API, CLI, UI)
-* Phase 123 added playback export clip (API, CLI, UI)
-* Phase 122 added frame catalog browser with jump-to-frame
+* Phase 125 added clip manifest import replay (API, CLI, UI)
+* Phase 124 added frame quality drill-down with per-frame suggested_commands
+* Phase 123 added playback export clip
 * Existing APIs/services to reuse where possible:
-  * `build_playback_export` / clip manifest schema
-  * `build_frame_quality_report` for batch readiness
-  * replay range/loop state in frontend (`useReplayRange`)
+  * `build_clip_import_report` / problem_frames / suggested_commands
+  * `build_frame_quality_report` for per-frame remediation detail
+  * `make mrms-warm-frame-cache`, `make decode-grib2`, ingest window presets
 Required implementation work:
-1. Add clip import validation helper (backend or shared) if needed, e.g. parse/validate exported clip JSON shape.
-2. Add optional CLI `make clip-import` to validate a manifest file and print readiness summary (writes report under `data/dev/`, gitignored).
-3. Add **Import clip** in Range & loop panel:
-   * paste JSON or upload file from Phase 123 export
-   * restore range start/end and loop suggestion
-   * show clip readiness summary (cache/decode counts, cold/missing frames)
-   * link to frame detail inspect for problem frames
-4. Add/update tests for import validation and frontend import UX.
+1. Add remediation plan builder (backend) that groups problem frames by readiness type and emits bounded copy-ready commands (max N frames).
+2. Add optional CLI `make clip-remediation` reading clip import report or manifest file; writes plan under `data/dev/` (gitignored).
+3. Add **Remediation plan** section in Import clip panel (or adjacent):
+   * show grouped problem summary (cold/missing/failed counts)
+   * copy-ready command block for bounded warm/decode steps
+   * explicit note that commands are not auto-run
+4. Add/update tests for plan builder and frontend remediation UX.
 5. Update docs:
    * docs/CHATGPT_REVIEW.md
    * docs/PROJECT_STATE.md
@@ -50,7 +49,7 @@ Required implementation work:
    * docs/NEXT_PHASE_PROMPT.md — write the next self-contained phase prompt when this phase completes
 Things to avoid:
 * Do not silently run real MRMS downloads
-* Do not add unbounded ingest
+* Do not add unbounded ingest or auto-execute warm/decode from UI
 * Do not add cloud workers, auth, billing, alerts, or new weather layers
 * Do not mutate catalog/render gates or claim verified MRMS
 * Do not commit generated data/dev artifacts
@@ -68,7 +67,7 @@ cd frontend && npm run build
 Phase-relevant local run commands:
 make backend
 make frontend
-make playback-export ARGS="--start ... --end ..."
+make clip-import ARGS="--file data/dev/playback_export_latest.json"
 make frame-quality ARGS="--timestamps ..."
 Git requirements:
 Before committing:
@@ -78,8 +77,8 @@ Before committing:
 * do not stage data/dev runtime artifacts
 Then:
 * git add .
-* git commit -m "phase 125: clip manifest import replay"
-* git tag phase-125-clip-manifest-import-replay
+* git commit -m "phase 126: imported clip batch remediation plan"
+* git tag phase-126-imported-clip-batch-remediation
 * git push origin main --tags
 End-of-phase requirements:
 * update docs/CHATGPT_REVIEW.md with completion state, commit, tag, push status, safety state, and next recommended phase

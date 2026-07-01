@@ -4004,3 +4004,46 @@ make frontend
 - `verified_mrms` remains false
 - `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
 
+## Phase 125 - Clip Manifest Import Replay
+
+Import saved playback clip JSON to restore replay range, loop suggestion, and frame readiness in the UI.
+
+### Backend
+- `clip_import.py` service — `validate_clip_manifest()`, `build_clip_import_report()`
+- Reuses `build_frame_quality_report` to refresh readiness against current local cache/decode state
+- `POST /api/dev/clip-import` — validate manifest JSON; status/plan only
+
+### CLI
+- `scripts/clip_import.py`, `make clip-import`
+- Writes `data/dev/clip_import_latest.json` (gitignored)
+
+### Frontend
+- `ClipImportPanel.tsx` in Range & loop panel — paste/upload JSON, validate, apply range/loop
+- `clipImport.ts`, `useClipImport.ts` — parse/validate helpers, API fetch, apply payload
+- Problem frames list with inspect links; batch remediation command hints
+
+### Tests
+- `test_clip_import.py`, `clipImport.test.ts`
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make playback-export ARGS="--start ... --end ..."
+make clip-import ARGS="--file data/dev/playback_export_latest.json"
+make backend
+make frontend
+```
+
+### Known limitations
+- Import validates and refreshes readiness only — does not run warm/decode/ingest
+- Apply restores range endpoints and loop suggestion; does not change playback timestamp list
+- Max 200 frames per manifest (same as export)
+
+### Safety notes
+- Status-only API/CLI — no silent downloads or unbounded ingest
+- Rejects manifests claiming `verified_mrms=true`
+- `verified_mrms` remains false
+- `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
+

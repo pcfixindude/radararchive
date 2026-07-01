@@ -503,6 +503,143 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
   color: #86efac;
   font-size: 0.74rem;
 }
+.clip-import {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #1f2937;
+}
+.clip-import-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+.clip-import-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+.clip-import-intro {
+  margin: 0 0 0.45rem;
+  color: #94a3b8;
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+.clip-import-field {
+  display: block;
+  margin: 0.35rem 0;
+  font-size: 0.76rem;
+  color: #cbd5e1;
+}
+.clip-import-field span {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+.clip-import-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  padding: 0.45rem 0.5rem;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 0.35rem;
+  color: #e2e8f0;
+  resize: vertical;
+}
+.clip-import-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+.clip-import-action {
+  font-size: 0.74rem;
+  padding: 0.28rem 0.55rem;
+}
+.clip-import-action--muted { opacity: 0.75; }
+.clip-import-action--apply { background: #166534; border-color: #15803d; }
+.clip-import-file-label { cursor: pointer; }
+.clip-import-file-input { display: none; }
+.clip-import-meta {
+  margin: 0.25rem 0;
+  font-size: 0.76rem;
+  color: #cbd5e1;
+}
+.clip-import-error {
+  margin: 0.35rem 0 0;
+  color: #fca5a5;
+  font-size: 0.76rem;
+}
+.clip-import-summary {
+  margin-top: 0.45rem;
+  padding: 0.55rem 0.65rem;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 0.35rem;
+}
+.clip-import-notice {
+  margin: 0.4rem 0 0;
+  color: #86efac;
+  font-size: 0.74rem;
+}
+.clip-import-warnings,
+.clip-import-errors {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.74rem;
+  color: #fde68a;
+}
+.clip-import-errors { color: #fca5a5; }
+.clip-import-remediation,
+.clip-import-problems,
+.clip-import-frames {
+  margin-top: 0.55rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid #1e293b;
+}
+.clip-import-remediation h4,
+.clip-import-problems h4,
+.clip-import-frames h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+.clip-import-remediation ul,
+.clip-import-problems ul,
+.clip-import-frames ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.clip-import-remediation li {
+  margin: 0.25rem 0;
+  font-size: 0.72rem;
+  color: #cbd5e1;
+}
+.clip-import-problem-frame,
+.clip-import-frame {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.65rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.35rem 0.45rem;
+  margin: 0.2rem 0;
+  background: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 0.3rem;
+  font-size: 0.72rem;
+  color: #cbd5e1;
+  cursor: pointer;
+}
+.clip-import-problem-frame:hover:not(:disabled),
+.clip-import-frame:hover:not(:disabled) { background: #1e293b; }
+.clip-import-problem-frame--inspecting,
+.clip-import-frame--inspecting {
+  border-color: #38bdf8;
+  background: #0c4a6e33;
+}
 .ingest-window-panel h2 { margin: 0 0 0.35rem; }
 .ingest-window-intro {
   margin: 0 0 0.5rem;

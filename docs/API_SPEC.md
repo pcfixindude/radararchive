@@ -515,3 +515,20 @@ curl "http://127.0.0.1:8000/api/dev/frame-quality?timestamps=2026-06-28T13:00:00
 make frame-quality ARGS="--timestamps 2026-06-28T13:00:00Z,2026-06-28T13:26:38Z"
 ```
 
+### POST /api/dev/clip-import
+
+Validate an imported playback clip manifest JSON and refresh local readiness summary. Status/plan only — no ingest or decode work.
+
+Request body:
+- `manifest` — playback clip JSON object from `GET /api/dev/playback-export` or UI export
+
+Response includes `valid`, `import_status`, refreshed `readiness_summary`, `problem_frames`, batch `suggested_commands`, and normalized `manifest` (range, loop, frames).
+
+Example:
+```bash
+curl -X POST http://127.0.0.1:8000/api/dev/clip-import \
+  -H 'Content-Type: application/json' \
+  -d '{"manifest": {"export_kind":"playback_clip_manifest","range_start":"2026-06-28T13:00:00Z","range_end":"2026-06-28T13:26:38Z","frames":[]}}'
+make clip-import ARGS="--file data/dev/playback_export_latest.json"
+```
+
