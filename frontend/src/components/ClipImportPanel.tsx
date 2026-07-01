@@ -1,5 +1,7 @@
 import type { ClipImportHookState } from '../hooks/useClipImport';
 import {
+  buildApplyPayload,
+  formatApplyPreview,
   formatImportSummary,
   importStatusLabel,
   problemFrameLabel,
@@ -47,6 +49,8 @@ export default function ClipImportPanel({
   };
 
   const canApply = Boolean(report?.valid && report.manifest);
+  const applyPayload = report?.valid && report.manifest ? buildApplyPayload(report) : null;
+  const applyPreview = applyPayload ? formatApplyPreview(applyPayload) : null;
 
   return (
     <div className="clip-import" aria-label="Playback clip import">
@@ -62,8 +66,8 @@ export default function ClipImportPanel({
         </button>
       </div>
       <p className="clip-import-intro">
-        Load a saved clip manifest from Export clip — restore range, loop suggestion, and frame
-        readiness. Status only; no ingest or decode work.
+        Load a saved clip manifest from Export clip — restore frame sequence, range, loop suggestion,
+        and readiness. Status only; no ingest or decode work.
       </p>
       <label className="clip-import-field">
         <span>Clip JSON</span>
@@ -122,6 +126,9 @@ export default function ClipImportPanel({
                     <li key={warning}>{warning}</li>
                   ))}
                 </ul>
+              ) : null}
+              {applyPreview ? (
+                <p className="clip-import-meta clip-import-apply-preview">{applyPreview}</p>
               ) : null}
               <div className="clip-import-buttons">
                 <button

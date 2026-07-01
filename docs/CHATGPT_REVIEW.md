@@ -11,11 +11,11 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 126
-- Latest phase: Phase 126 — Imported clip batch remediation plan
-- Latest commit: `12ad3bb` — phase 126: imported clip batch remediation plan
-- Latest tag: `phase-126-imported-clip-batch-remediation`
-- Push status: pushed to `origin/main` with tag
+- Completed through phase: 127
+- Latest phase: Phase 127 — Import clip frame list sync
+- Latest commit: (pending — phase 127 commit)
+- Latest tag: `phase-127-import-clip-frame-list-sync`
+- Push status: pending
 - Final git status: clean except untracked `data/dev/agent_logs/` (not committed)
 
 ## Safety state
@@ -28,24 +28,24 @@ Do not treat this file as verified MRMS proof or production authorization.
 
 ## Latest phase summary
 
-- Phase: **126**
-- Purpose: From imported clip problem frames, generate a bounded warm/decode command plan (copy-ready checklist) in replay UI and CLI without auto-running ingest or decode.
-- CLI? **Yes** — `make clip-remediation` reads import report or manifest; writes plan under `data/dev/` (gitignored)
-- API? **Yes** — `POST /api/dev/clip-remediation`; `POST /api/dev/clip-import` includes `remediation_plan`
-- UI? **Yes** — Import clip panel **Remediation plan** section with grouped summary and copy-ready command block
-- Checks: problem frame grouping (cold/missing/failed), bounded commands (max 8 default), explicit not-auto-run note
-- Tests: backend `test_clip_remediation.py`; frontend `clipRemediation.test.ts`
+- Phase: **127**
+- Purpose: When applying an imported clip, sync playback timestamp list from manifest frames (not just range endpoints) so replay matches the exported clip sequence.
+- CLI? **No new CLI** — uses existing `make clip-import`
+- API? **Backend helper only** — `extract_apply_frame_timestamps` in clip import service (no new endpoint)
+- UI? **Yes** — apply preview (“Will restore N frames” vs range-only fallback); apply merges clip frame list into playback timeline
+- Checks: bounded to `MAX_CLIP_FRAMES` (200); range/loop still applied; no auto warm/decode
+- Tests: backend `test_clip_import.py` (apply timestamp helper); frontend `clipImport.test.ts`, `ClipImportPanel.test.tsx`
 
 ## Current focus
 
-Operators can import a clip, inspect problem frames, and copy a structured warm/decode remediation checklist. Next: sync playback timestamp list when applying imported clip (not just range endpoints).
+Applying an imported clip now restores the exported frame sequence into replay (when manifest includes frames), with a clear apply preview. Next: show playback position within the applied clip sequence.
 
 ## Next recommended phase
 
-- Phase number: **127**
-- Phase title: Import clip frame list sync
-- Goal: When applying an imported clip, restore manifest frame timestamps to playback (not just range/loop).
-- Why this is next: Remediation closes the fix loop; frame list sync makes apply match the exported clip sequence for replay.
+- Phase number: **128**
+- Phase title: Applied clip sequence position
+- Goal: After applying an imported clip frame list, show current position within the clip sequence in replay UI (e.g. “Clip frame 4/26”) and warn when the selected frame is outside the applied sequence.
+- Why this is next: Frame list sync makes apply match export; operators need visible feedback on where they are in the restored clip.
 - Safety boundaries:
   - local dev / prototype only
   - no silent real MRMS download
@@ -55,8 +55,8 @@ Operators can import a clip, inspect problem frames, and copy a structured warm/
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 127 only.
-Sync playback timestamp list when applying imported clip manifest frames.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 128 only.
+Show applied clip sequence position in replay UI.
 ```
 
 ## Key docs (read order for new work)

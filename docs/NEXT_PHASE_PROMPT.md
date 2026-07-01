@@ -13,29 +13,29 @@ Required docs to read first:
 8. docs/API_SPEC.md, if API schemas or endpoint contracts are touched
 9. docs/ARCHITECTURE.md, only if architecture changes
 Current completed phase and latest commit/tag/push status from docs/CHATGPT_REVIEW.md:
-* Completed through phase: 126
-* Latest phase: Phase 126 — Imported clip batch remediation plan
+* Completed through phase: 127
+* Latest phase: Phase 127 — Import clip frame list sync
 * Latest commit: (see CHATGPT_REVIEW.md)
-* Latest tag: phase-126-imported-clip-batch-remediation
+* Latest tag: phase-127-import-clip-frame-list-sync
 * Push status: see CHATGPT_REVIEW.md
 Important direction:
 This is for my own local use right now. I want meaningful, visible progress toward a usable historical radar replay app. Do not make this a tiny safety-wrapper phase. Keep the safety boundaries, but work aggressively inside the local-dev/prototype lane.
 Implement the next phase only:
-Phase 127 — Import clip frame list sync
-Short name: import-clip-frame-list-sync
+Phase 128 — Applied clip sequence position
+Short name: applied-clip-sequence-position
 Goal:
-When applying an imported clip, sync the playback timestamp list from manifest frames (not just range endpoints) so replay matches the exported clip frame sequence.
+After applying an imported clip frame list, show current position within the clip sequence in replay UI (e.g. “Clip frame 4/26”) and warn when the selected frame is outside the applied sequence.
 Current project state relevant to this phase:
-* Phase 126 added bounded remediation plan from import problem frames (API, CLI, UI)
-* Phase 125 added clip manifest import replay (apply range/loop only today)
-* Phase 123 added playback export clip with per-frame list in manifest
-* Existing apply flow: `ClipImportPanel` → `buildApplyPayload` → range start/end + loop suggestion
+* Phase 127 added clip frame list sync on apply (`clipImportTimes` in App.tsx, apply preview in Import clip panel)
+* Phase 125 added clip manifest import replay (range/loop + readiness)
+* Existing replay position UI: range position label in ReplayRangeControls, TimeSlider, PlaybackControls
 Required implementation work:
-1. Extend clip apply payload to include manifest frame timestamps (bounded, same max as export).
-2. Wire apply handler in replay UI to set playback timestamp list from imported frames when present.
-3. Show apply preview: “Will restore N frames” vs range-only fallback.
-4. Add/update backend tests if apply validation helpers added; frontend tests for apply payload and UI preview.
-5. Update docs:
+1. Track applied clip frame sequence in replay state (clip id + ordered timestamps) separate from generic playback merge.
+2. Show clip sequence position in Range & loop panel when an applied clip sequence is active (e.g. “Clip frame 4/26 · clip_…”).
+3. Warn when selected frame is outside the applied clip sequence or not yet in catalog.
+4. Clear clip sequence indicator when range is cleared or a new clip is applied.
+5. Add frontend tests for position helpers and UI labels.
+6. Update docs:
    * docs/CHATGPT_REVIEW.md
    * docs/PROJECT_STATE.md
    * docs/NEXT_STEPS.md
@@ -43,7 +43,7 @@ Required implementation work:
    * docs/NEXT_PHASE_PROMPT.md — write the next self-contained phase prompt when this phase completes
 Things to avoid:
 * Do not silently run real MRMS downloads
-* Do not auto-execute warm/decode from apply
+* Do not auto-execute warm/decode
 * Do not add cloud workers, auth, billing, alerts, or new weather layers
 * Do not mutate catalog/render gates or claim verified MRMS
 * Do not commit generated data/dev artifacts
@@ -71,8 +71,8 @@ Before committing:
 * do not stage data/dev runtime artifacts
 Then:
 * git add .
-* git commit -m "phase 127: import clip frame list sync"
-* git tag phase-127-import-clip-frame-list-sync
+* git commit -m "phase 128: applied clip sequence position"
+* git tag phase-128-applied-clip-sequence-position
 * git push origin main --tags
 End-of-phase requirements:
 * update docs/CHATGPT_REVIEW.md with completion state, commit, tag, push status, safety state, and next recommended phase

@@ -40,6 +40,7 @@ import { useFrameCatalog } from './hooks/useFrameCatalog';
 import { useFrameQuality } from './hooks/useFrameQuality';
 import { usePlaybackExport } from './hooks/usePlaybackExport';
 import { useClipImport } from './hooks/useClipImport';
+import { buildApplyNotice } from './components/clipImport';
 import { useReplayRange } from './hooks/useReplayRange';
 import { usePlayback } from './hooks/usePlayback';
 import { useFrameOverlay } from './hooks/useFrameOverlay';
@@ -67,6 +68,7 @@ export default function App() {
   const [fitBoundsToken, setFitBoundsToken] = useState(0);
   const [ingestForm, setIngestForm] = useState<IngestWindowFormState>(DEFAULT_INGEST_WINDOW_STATE);
   const [inspectTimestamp, setInspectTimestamp] = useState('');
+  const [clipImportTimes, setClipImportTimes] = useState<string[]>([]);
 
   const replayBookmarks = useReplayBookmarks();
   const localReplayReady = useLocalReplayReady(loadState === 'ready');
@@ -100,9 +102,9 @@ export default function App() {
   );
 
   const playbackTimes = useMemo(() => {
-    const merged = [...new Set([...times, ...processedTimes])].sort();
+    const merged = [...new Set([...times, ...processedTimes, ...clipImportTimes])].sort();
     return merged.length > 0 ? merged : [];
-  }, [times, processedTimes]);
+  }, [times, processedTimes, clipImportTimes]);
 
   const replayRange = useReplayRange(playbackTimes, selectedTime);
 
@@ -175,12 +177,16 @@ export default function App() {
       rangeEnd: payload.rangeEnd,
       loopRange: payload.loopSuggested,
     });
-    clipImport.markApplied(
-      payload.loopSuggested
-        ? 'Clip range and loop suggestion applied to replay.'
-        : 'Clip range applied to replay.',
-    );
-  }, [clipImport, replayRange]);
+    if (payload.applyMode === 'frame_list') {
+      setClipImportTimes(payload.frameTimestamps);
+      const startFrame = payload.frameTimestamps[0];
+      if (startFrame) {
+        setSelectedTime(startFrame);
+      }
+      setPlaying(false);
+    }
+    clipImport.markApplied(buildApplyNotice(payload));
+  }, [clipImport, replayRange, setPlaying]);
 
   useEffect(() => {
     let cancelled = false;

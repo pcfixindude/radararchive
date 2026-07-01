@@ -59,10 +59,18 @@ export type ClipImportState = {
   markApplied: (message?: string) => void;
 };
 
+/** Same bound as playback export (`MAX_CLIP_FRAMES` in backend). */
+export const MAX_CLIP_FRAMES = 200;
+
+export type ClipImportApplyMode = 'frame_list' | 'range_only';
+
 export type ClipImportApplyPayload = {
   rangeStart: string;
   rangeEnd: string;
   loopSuggested: boolean;
+  frameTimestamps: string[];
+  applyMode: ClipImportApplyMode;
+  frameListTruncated: boolean;
 };
 
 export function parseClipManifestJson(raw: string): { manifest: unknown; error: string | null } {
@@ -107,15 +115,59 @@ export function formatImportSummary(report: ClipImportReport): string {
   return `${summary.frame_count} frames · ${cacheLabel} · ${decodeLabel} · ${summary.problem_count} need attention`;
 }
 
+export function extractApplyFrameTimestamps(manifest: PlaybackExportManifest): {
+  frameTimestamps: string[];
+  frameListTruncated: boolean;
+} {
+  const seen = new Set<string>();
+  const frameTimestamps: string[] = [];
+  for (const frame of manifest.frames) {
+    const ts = frame.timestamp?.trim();
+    if (!ts || seen.has(ts)) {
+      continue;
+    }
+    seen.add(ts);
+    frameTimestamps.push(ts);
+  }
+
+  const frameListTruncated = frameTimestamps.length > MAX_CLIP_FRAMES;
+  return {
+    frameTimestamps: frameListTruncated
+      ? frameTimestamps.slice(0, MAX_CLIP_FRAMES)
+      : frameTimestamps,
+    frameListTruncated,
+  };
+}
+
 export function buildApplyPayload(report: ClipImportReport): ClipImportApplyPayload | null {
   if (!report.valid || !report.manifest) {
     return null;
   }
+  const { frameTimestamps, frameListTruncated } = extractApplyFrameTimestamps(report.manifest);
   return {
     rangeStart: report.manifest.range_start,
     rangeEnd: report.manifest.range_end,
     loopSuggested: report.manifest.loop_suggested,
+    frameTimestamps,
+    applyMode: frameTimestamps.length > 0 ? 'frame_list' : 'range_only',
+    frameListTruncated,
   };
+}
+
+export function formatApplyPreview(payload: ClipImportApplyPayload): string {
+  if (payload.applyMode === 'frame_list') {
+    const truncatedNote = payload.frameListTruncated ? ' (bounded to export limit)' : '';
+    return `Will restore ${payload.frameTimestamps.length} frames from clip sequence${truncatedNote}`;
+  }
+  return 'Will restore range endpoints only — no frame list in manifest';
+}
+
+export function buildApplyNotice(payload: ClipImportApplyPayload): string {
+  const loopNote = payload.loopSuggested ? ' and loop suggestion' : '';
+  if (payload.applyMode === 'frame_list') {
+    return `Clip range${loopNote} and ${payload.frameTimestamps.length}-frame sequence applied to replay.`;
+  }
+  return `Clip range${loopNote} applied to replay (range endpoints only).`;
 }
 
 export function importStatusLabel(status: string): string {

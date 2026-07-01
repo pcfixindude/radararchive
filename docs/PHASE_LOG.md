@@ -4086,3 +4086,40 @@ make frontend
 - No auto warm/decode from UI
 - `verified_mrms` remains false
 
+## Phase 127 - Import clip frame list sync
+
+When applying an imported clip, sync playback timestamp list from manifest frames (not just range endpoints) so replay matches the exported clip sequence.
+
+### Backend
+- `extract_apply_frame_timestamps` in `backend/app/services/clip_import.py` — ordered unique frame timestamps bounded to `MAX_CLIP_FRAMES` (200)
+
+### Frontend
+- `ClipImportApplyPayload` extended with `frameTimestamps`, `applyMode`, `frameListTruncated`
+- `buildApplyPayload`, `formatApplyPreview`, `buildApplyNotice`, `extractApplyFrameTimestamps` in `clipImport.ts`
+- Apply handler in `App.tsx` merges clip frame list into playback timeline via `clipImportTimes` state
+- Import clip panel shows apply preview before **Apply to replay** button
+
+### Tests
+- `test_clip_import.py` — apply timestamp extraction and bounding
+- `clipImport.test.ts`, `ClipImportPanel.test.tsx` — apply payload, preview, and UI text
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make playback-export ARGS="--start 2026-06-28T13:00:00Z --end 2026-06-28T13:26:38Z --timestamps 2026-06-28T13:00:00Z,2026-06-28T13:26:38Z"
+make clip-import ARGS="--file data/dev/playback_export_latest.json"
+make backend
+make frontend
+```
+
+### Known limitations
+- Clip frame list persists in session until page reload; not saved to bookmarks yet
+- Frames not in catalog still appear in timeline but may lack tiles until warm/decode
+- Range-only fallback when manifest has no `frames` list
+
+### Safety notes
+- Apply does not run warm/decode or ingest
+- `verified_mrms` remains false
+

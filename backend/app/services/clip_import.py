@@ -69,6 +69,28 @@ def _coerce_manifest_dict(data: Any) -> tuple[Optional[dict[str, Any]], list[str
     return data, []
 
 
+def extract_apply_frame_timestamps(manifest: dict[str, Any]) -> list[str]:
+    """Return ordered unique frame timestamps for clip apply, bounded to MAX_CLIP_FRAMES."""
+    frames = manifest.get("frames")
+    if not isinstance(frames, list) or not frames:
+        return []
+
+    timestamps: list[str] = []
+    seen: set[str] = set()
+    for frame in frames:
+        if not isinstance(frame, dict):
+            continue
+        ts = normalize_timestamp_iso(str(frame.get("timestamp") or ""))
+        if not ts or ts in seen:
+            continue
+        seen.add(ts)
+        timestamps.append(ts)
+
+    if len(timestamps) > MAX_CLIP_FRAMES:
+        timestamps = timestamps[:MAX_CLIP_FRAMES]
+    return timestamps
+
+
 def validate_clip_manifest(data: Any) -> tuple[Optional[dict[str, Any]], list[str], list[str]]:
     """Parse and validate exported clip manifest shape.
 

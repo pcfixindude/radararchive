@@ -10,9 +10,10 @@ from backend.app.services.clip_import import (
     IMPORT_STATUS_PARTIAL,
     IMPORT_STATUS_READY,
     build_clip_import_report,
+    extract_apply_frame_timestamps,
     validate_clip_manifest,
 )
-from backend.app.services.playback_export import EXPORT_KIND, build_playback_export
+from backend.app.services.playback_export import EXPORT_KIND, MAX_CLIP_FRAMES, build_playback_export
 from backend.app.services.selected_frame_decode import FRAME_STATUS_MATCHED, save_frame_cache
 from backend.app.services.tile_service import generate_placeholder_tile_png
 
@@ -128,6 +129,36 @@ def test_validate_clip_manifest_normalizes_timestamps():
     assert normalized["loop_suggested"] is True
     assert len(normalized["frames"]) == 2
     assert warnings
+
+
+def test_extract_apply_frame_timestamps_returns_ordered_unique_list():
+    manifest = _sample_export_manifest("2026-06-28T13:00:00Z", "2026-06-28T13:26:38Z")
+    timestamps = extract_apply_frame_timestamps(manifest)
+    assert timestamps == ["2026-06-28T13:00:00Z", "2026-06-28T13:26:38Z"]
+
+
+def test_extract_apply_frame_timestamps_bounds_to_max_clip_frames():
+    manifest = _sample_export_manifest("2026-06-28T13:00:00Z", "2026-06-28T13:26:38Z")
+    manifest["frames"] = [
+        {
+            "timestamp": f"2026-06-28T{index // 60:02d}:{index % 60:02d}:00Z",
+            "index": index,
+            "cache_state": "ready",
+            "cache_ready": True,
+            "decode_ready": False,
+            "preview_paths": [],
+            "preview_path_count": 0,
+        }
+        for index in range(MAX_CLIP_FRAMES + 3)
+    ]
+    timestamps = extract_apply_frame_timestamps(manifest)
+    assert len(timestamps) == MAX_CLIP_FRAMES
+
+
+def test_extract_apply_frame_timestamps_returns_empty_without_frames():
+    manifest = _sample_export_manifest("2026-06-28T13:00:00Z", "2026-06-28T13:26:38Z")
+    manifest["frames"] = []
+    assert extract_apply_frame_timestamps(manifest) == []
 
 
 def test_build_clip_import_report_refreshes_readiness(db_session, storage, monkeypatch):

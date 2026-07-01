@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildApplyNotice,
   buildApplyPayload,
   CLIP_EXPORT_KIND,
+  extractApplyFrameTimestamps,
+  formatApplyPreview,
   formatImportSummary,
   importStatusLabel,
+  MAX_CLIP_FRAMES,
   parseClipManifestJson,
   problemFrameLabel,
   validateClipManifestShape,
@@ -182,17 +186,90 @@ describe('formatImportSummary', () => {
   });
 });
 
+describe('extractApplyFrameTimestamps', () => {
+  it('returns ordered unique timestamps from manifest frames', () => {
+    const result = extractApplyFrameTimestamps(sampleManifest);
+    expect(result.frameTimestamps).toEqual([
+      '2026-06-28T13:00:00Z',
+      '2026-06-28T13:26:38Z',
+    ]);
+    expect(result.frameListTruncated).toBe(false);
+  });
+
+  it('bounds frame list to export maximum', () => {
+    const frames = Array.from({ length: MAX_CLIP_FRAMES + 5 }, (_, index) => ({
+      timestamp: `2026-06-28T${String(Math.floor(index / 60)).padStart(2, '0')}:${String(index % 60).padStart(2, '0')}:00Z`,
+      index,
+      cache_state: 'ready',
+      cache_ready: true,
+      decode_ready: false,
+      preview_paths: [],
+      preview_path_count: 0,
+    }));
+    const result = extractApplyFrameTimestamps({ ...sampleManifest, frames });
+    expect(result.frameTimestamps).toHaveLength(MAX_CLIP_FRAMES);
+    expect(result.frameListTruncated).toBe(true);
+  });
+});
+
 describe('buildApplyPayload', () => {
-  it('returns range and loop from valid report', () => {
+  it('returns range, loop, and frame list from valid report', () => {
     expect(buildApplyPayload(sampleReport)).toEqual({
       rangeStart: '2026-06-28T13:00:00Z',
       rangeEnd: '2026-06-28T13:26:38Z',
       loopSuggested: true,
+      frameTimestamps: ['2026-06-28T13:00:00Z', '2026-06-28T13:26:38Z'],
+      applyMode: 'frame_list',
+      frameListTruncated: false,
+    });
+  });
+
+  it('falls back to range-only when manifest has no frames', () => {
+    const reportWithoutFrames: ClipImportReport = {
+      ...sampleReport,
+      manifest: { ...sampleManifest, frames: [], frame_count: 0 },
+    };
+    expect(buildApplyPayload(reportWithoutFrames)).toEqual({
+      rangeStart: '2026-06-28T13:00:00Z',
+      rangeEnd: '2026-06-28T13:26:38Z',
+      loopSuggested: true,
+      frameTimestamps: [],
+      applyMode: 'range_only',
+      frameListTruncated: false,
     });
   });
 
   it('returns null for invalid report', () => {
     expect(buildApplyPayload({ ...sampleReport, valid: false, manifest: null })).toBeNull();
+  });
+});
+
+describe('formatApplyPreview', () => {
+  it('shows frame count when manifest includes frame list', () => {
+    const payload = buildApplyPayload(sampleReport);
+    expect(payload).not.toBeNull();
+    expect(formatApplyPreview(payload!)).toBe('Will restore 2 frames from clip sequence');
+  });
+
+  it('shows range-only fallback when no frame list', () => {
+    const payload = buildApplyPayload({
+      ...sampleReport,
+      manifest: { ...sampleManifest, frames: [], frame_count: 0 },
+    });
+    expect(payload).not.toBeNull();
+    expect(formatApplyPreview(payload!)).toBe(
+      'Will restore range endpoints only — no frame list in manifest',
+    );
+  });
+});
+
+describe('buildApplyNotice', () => {
+  it('mentions frame sequence when frame list is applied', () => {
+    const payload = buildApplyPayload(sampleReport);
+    expect(payload).not.toBeNull();
+    expect(buildApplyNotice(payload!)).toBe(
+      'Clip range and loop suggestion and 2-frame sequence applied to replay.',
+    );
   });
 });
 
