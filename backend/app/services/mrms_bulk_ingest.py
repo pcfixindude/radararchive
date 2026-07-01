@@ -9,10 +9,27 @@ from typing import Any, Callable, Optional
 from sqlalchemy.orm import Session
 
 from backend.app.config import MRMS_SOURCE_MODE_REAL, MRMS_SOURCE_MODE_STUB, settings
+from backend.app.models import RadarFile
+from backend.app.services.ingest_file_health import classify_row_raw_file
+from backend.app.services.ingest_report import (
+    INGEST_DISCOVERY_FAILED,
+    INGEST_INVALID_MODE,
+    INGEST_NO_FRAMES_AVAILABLE,
+    INGEST_PARTIAL_SUCCESS,
+    INGEST_SUCCESS,
+    build_next_commands,
+    failure_record,
+    resolve_ingest_status,
+)
+from backend.app.services.ingest_retry import (
+    DEFAULT_MAX_RETRIES,
+    DEFAULT_RETRY_DELAY_SEC,
+    download_row_with_retry,
+    is_transient_download_error,
+)
 from backend.app.services.mrms_discovery import register_discovered_files
 from backend.app.services.mrms_downloader import (
     DownloadResult,
-    MrmsDownloadError,
     download_mrms_row,
     is_local_mrms_raw_path,
 )
@@ -76,10 +93,8 @@ def plan_ingest_window(
 def _catalog_rows_for_discoveries(
     session: Session,
     discoveries: list[MrmsDiscoveredFile],
-) -> list:
-    from backend.app.models import RadarFile
-
-    rows = []
+) -> list[RadarFile]:
+    rows: list[RadarFile] = []
     for item in discoveries:
         row = (
             session.query(RadarFile)
@@ -94,6 +109,38 @@ def _catalog_rows_for_discoveries(
     return rows
 
 
+def _catalog_rows_for_timestamps(session: Session, timestamps: list[str]) -> list[RadarFile]:
+    rows: list[RadarFile] = []
+    for ts in timestamps:
+        normalized = normalize_timestamp_iso(ts)
+        if not normalized:
+            continue
+        row = (
+            session.query(RadarFile)
+            .filter(
+                RadarFile.source == MRMS_CATALOG_SOURCE,
+                RadarFile.timestamp == normalized,
+            )
+            .one_or_none()
+        )
+        if row is not None:
+            rows.append(row)
+    return rows
+
+
+def _failed_timestamps(report: Optional[dict[str, Any]]) -> list[str]:
+    if not report:
+        return []
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for item in report.get("failures") or []:
+        normalized = normalize_timestamp_iso(item.get("timestamp"))
+        if normalized and normalized not in seen:
+            seen.add(normalized)
+            ordered.append(normalized)
+    return ordered
+
+
 def run_bulk_local_ingest(
     session: Session,
     storage: LocalStorage,
@@ -104,6 +151,11 @@ def run_bulk_local_ingest(
     end_time: Optional[str] = None,
     limit: int = DEFAULT_LIMIT,
     force: bool = False,
+    repair: bool = False,
+    retry_failed: bool = False,
+    missing_only: bool = False,
+    max_retries: int = DEFAULT_MAX_RETRIES,
+    retry_delay_sec: float = DEFAULT_RETRY_DELAY_SEC,
     discover_fn: Optional[Callable[..., list[MrmsDiscoveredFile]]] = None,
     download_fn: Optional[Callable] = None,
 ) -> dict[str, Any]:
@@ -114,7 +166,7 @@ def run_bulk_local_ingest(
             storage,
             {
                 "ran_at": _utc_now(),
-                "ingest_status": "invalid_mode",
+                "ingest_status": INGEST_INVALID_MODE,
                 "mode": mode,
                 "errors": [f"Unsupported mode '{mode}'. Use --real for network ingest."],
                 "suggested_command": SUGGESTED_COMMAND,
@@ -128,65 +180,167 @@ def run_bulk_local_ingest(
         "end_time": normalize_timestamp_iso(end_time) if end_time else None,
         "limit": bounded_limit,
         "product": product,
+        "repair": repair,
+        "retry_failed": retry_failed,
+        "missing_only": missing_only,
+        "max_retries": max(1, min(max_retries, 10)),
+        "retry_delay_sec": max(0.0, retry_delay_sec),
     }
 
-    discover = discover_fn or discover_latest_mrms
-    discovery_limit = min(MAX_DISCOVERY_LIMIT, max(bounded_limit * 2, bounded_limit))
+    previous_report = load_bulk_ingest_report(storage)
+    row_downloader = download_fn or download_mrms_row
+    discovered: list[MrmsDiscoveredFile] = []
+    selected: list[MrmsDiscoveredFile] = []
+    catalog_rows: list[RadarFile] = []
+    frames_registered_created = 0
+    frames_registered_skipped = 0
+    discovered_count = 0
+    selected_count = 0
 
-    try:
-        discovered = discover(product, limit=discovery_limit, mode=resolved_mode)
-    except MrmsDiscoveryError as exc:
-        return save_bulk_ingest_report(
-            storage,
-            {
-                "ran_at": _utc_now(),
-                "ingest_status": "discovery_failed",
-                "mode": resolved_mode,
-                "requested_window": requested_window,
-                "errors": [str(exc)],
-                "suggested_command": SUGGESTED_COMMAND,
-                **_safety_fields(),
-            },
+    if retry_failed:
+        failed_ts = _failed_timestamps(previous_report)
+        if not failed_ts:
+            return save_bulk_ingest_report(
+                storage,
+                {
+                    "ran_at": _utc_now(),
+                    "ingest_status": INGEST_SUCCESS,
+                    "mode": resolved_mode,
+                    "requested_window": requested_window,
+                    "frames_discovered": previous_report.get("frames_discovered", 0) if previous_report else 0,
+                    "frames_selected": 0,
+                    "frames_registered_created": 0,
+                    "frames_registered_skipped": 0,
+                    "frames_downloaded": 0,
+                    "frames_already_present": 0,
+                    "frames_repaired": 0,
+                    "frames_failed": 0,
+                    "frames_skipped": 0,
+                    "retry_attempts": 0,
+                    "registered_timestamps": [],
+                    "downloaded_timestamps": [],
+                    "already_present_timestamps": [],
+                    "repaired_timestamps": [],
+                    "skipped_timestamps": [],
+                    "raw_paths": [],
+                    "failures": [],
+                    "errors": [],
+                    "recovery_mode": "retry_failed",
+                    "next_commands": [NEXT_CACHE_WARM_COMMAND, NEXT_DECODE_COMMAND],
+                    "suggested_command": SUGGESTED_COMMAND,
+                    **_safety_fields(),
+                },
+            )
+        catalog_rows = _catalog_rows_for_timestamps(session, failed_ts)
+        discovered_count = previous_report.get("frames_discovered", len(failed_ts)) if previous_report else len(failed_ts)
+        selected_count = len(catalog_rows)
+        frames_registered_skipped = len(catalog_rows)
+    else:
+        discover = discover_fn or discover_latest_mrms
+        discovery_limit = min(MAX_DISCOVERY_LIMIT, max(bounded_limit * 2, bounded_limit))
+
+        try:
+            discovered = discover(product, limit=discovery_limit, mode=resolved_mode)
+        except MrmsDiscoveryError as exc:
+            return save_bulk_ingest_report(
+                storage,
+                {
+                    "ran_at": _utc_now(),
+                    "ingest_status": INGEST_DISCOVERY_FAILED,
+                    "mode": resolved_mode,
+                    "requested_window": requested_window,
+                    "errors": [str(exc)],
+                    "suggested_command": SUGGESTED_COMMAND,
+                    **_safety_fields(),
+                },
+            )
+
+        selected = plan_ingest_window(
+            discovered,
+            start_time=start_time,
+            end_time=end_time,
+            limit=bounded_limit,
         )
-
-    selected = plan_ingest_window(
-        discovered,
-        start_time=start_time,
-        end_time=end_time,
-        limit=bounded_limit,
-    )
-
-    registration = register_discovered_files(session, selected)
-    catalog_rows = _catalog_rows_for_discoveries(session, selected)
+        registration = register_discovered_files(session, selected)
+        catalog_rows = _catalog_rows_for_discoveries(session, selected)
+        discovered_count = len(discovered)
+        selected_count = len(selected)
+        frames_registered_created = registration.created
+        frames_registered_skipped = registration.skipped
 
     downloaded: list[DownloadResult] = []
     already_present: list[str] = []
-    failures: list[dict[str, str]] = []
-    row_downloader = download_fn or download_mrms_row
+    repaired: list[str] = []
+    skipped: list[str] = []
+    failures: list[dict[str, Any]] = []
+    retry_attempts = 0
 
     for row in catalog_rows:
-        try:
-            result = row_downloader(
-                session,
-                storage,
-                row,
-                force=force,
-                mode=resolved_mode,
+        classification = classify_row_raw_file(storage, row, repair=repair, force=force)
+
+        if missing_only and classification["action"] == "already_present":
+            skipped.append(row.timestamp)
+            already_present.append(row.timestamp)
+            continue
+
+        if classification["action"] == "already_present":
+            already_present.append(row.timestamp)
+            continue
+
+        if classification["action"] == "bad_file":
+            failures.append(
+                failure_record(
+                    radar_file_id=str(row.id),
+                    timestamp=row.timestamp,
+                    error=classification["reason"],
+                    attempts=0,
+                    retryable=repair or force,
+                    health=classification.get("health"),
+                )
             )
-            if result.created:
+            continue
+
+        row_force = force or classification["action"] == "repair"
+        result, attempts, error = download_row_with_retry(
+            session,
+            storage,
+            row,
+            force=row_force,
+            mode=resolved_mode,
+            download_fn=row_downloader,
+            max_retries=max_retries,
+            retry_delay_sec=retry_delay_sec,
+        )
+        retry_attempts += attempts
+
+        if result is not None:
+            if classification["action"] == "repair":
+                repaired.append(result.timestamp)
+            elif result.created:
                 downloaded.append(result)
             else:
                 already_present.append(result.timestamp)
-        except MrmsDownloadError as exc:
-            failures.append(
-                {
-                    "radar_file_id": str(row.id),
-                    "timestamp": row.timestamp,
-                    "error": str(exc),
-                }
-            )
+            continue
 
-    registered_timestamps = sorted({item.timestamp for item in selected})
+        assert error is not None
+        failures.append(
+            failure_record(
+                radar_file_id=str(row.id),
+                timestamp=row.timestamp,
+                error=error,
+                attempts=attempts,
+                retryable=is_transient_download_error(error),
+            )
+        )
+
+    registered_timestamps = sorted(
+        {
+            normalize_timestamp_iso(row.timestamp)
+            for row in catalog_rows
+            if normalize_timestamp_iso(row.timestamp)
+        }
+    )
+
     downloaded_timestamps = sorted({item.timestamp for item in downloaded})
     raw_paths = [item.raw_path for item in downloaded]
     raw_paths.extend(
@@ -194,41 +348,58 @@ def run_bulk_local_ingest(
         for row in catalog_rows
         if row.raw_path
         and is_local_mrms_raw_path(row.raw_path)
-        and row.timestamp in already_present
+        and row.timestamp in already_present + repaired
     )
 
-    ingest_status = "ok"
-    if failures and downloaded:
-        ingest_status = "partial"
-    elif failures and not downloaded and not already_present:
-        ingest_status = "failed"
-    elif not selected:
-        ingest_status = "no_frames"
+    ingest_status = resolve_ingest_status(
+        selected_count=selected_count,
+        downloaded_count=len(downloaded),
+        already_present_count=len(already_present),
+        repaired_count=len(repaired),
+        failure_count=len(failures),
+    )
+
+    if not retry_failed and selected_count == 0:
+        ingest_status = INGEST_NO_FRAMES_AVAILABLE
 
     report = {
         "ran_at": _utc_now(),
         "ingest_status": ingest_status,
         "mode": resolved_mode,
         "requested_window": requested_window,
-        "frames_discovered": len(discovered),
-        "frames_selected": len(selected),
-        "frames_registered_created": registration.created,
-        "frames_registered_skipped": registration.skipped,
+        "frames_discovered": discovered_count,
+        "frames_selected": selected_count,
+        "frames_registered_created": frames_registered_created,
+        "frames_registered_skipped": frames_registered_skipped,
         "frames_downloaded": len(downloaded),
         "frames_already_present": len(already_present),
+        "frames_repaired": len(repaired),
         "frames_failed": len(failures),
+        "frames_skipped": len(skipped),
+        "retry_attempts": retry_attempts,
         "registered_timestamps": registered_timestamps,
         "downloaded_timestamps": downloaded_timestamps,
-        "already_present_timestamps": sorted(already_present),
+        "already_present_timestamps": sorted(set(already_present)),
+        "repaired_timestamps": sorted(set(repaired)),
+        "skipped_timestamps": sorted(set(skipped)),
         "raw_paths": raw_paths,
         "failures": failures,
         "errors": [item["error"] for item in failures],
-        "next_commands": [
-            NEXT_CACHE_WARM_COMMAND,
-            NEXT_CACHE_WARM_INGEST_COMMAND,
-            NEXT_DECODE_COMMAND,
-            NEXT_PLAYBACK_COMMAND,
-        ],
+        "recovery_mode": (
+            "retry_failed"
+            if retry_failed
+            else "missing_only"
+            if missing_only
+            else "full_window"
+        ),
+        "next_commands": build_next_commands(
+            ingest_status=ingest_status,
+            has_failures=bool(failures),
+            warm_cache_command=NEXT_CACHE_WARM_COMMAND,
+            warm_ingest_command=NEXT_CACHE_WARM_INGEST_COMMAND,
+            decode_command=NEXT_DECODE_COMMAND,
+            playback_command=NEXT_PLAYBACK_COMMAND,
+        ),
         "suggested_command": SUGGESTED_COMMAND,
         **_safety_fields(),
     }
@@ -244,11 +415,13 @@ def build_ingest_markdown(report: dict[str, Any]) -> str:
         "",
         f"- Ran at: {report.get('ran_at')}",
         f"- Status: **{report.get('ingest_status')}**",
+        f"- Recovery mode: {report.get('recovery_mode', 'full_window')}",
         f"- Mode: {report.get('mode')}",
         f"- Product: {window.get('product')}",
         f"- Window limit: {window.get('limit')}",
         f"- Start: {window.get('start_time') or '—'}",
         f"- End: {window.get('end_time') or '—'}",
+        f"- Max retries: {window.get('max_retries', '—')}",
         "",
         "## Counts",
         "",
@@ -258,7 +431,10 @@ def build_ingest_markdown(report: dict[str, Any]) -> str:
         f"- Registered (skipped): {report.get('frames_registered_skipped')}",
         f"- Downloaded: {report.get('frames_downloaded')}",
         f"- Already present: {report.get('frames_already_present')}",
+        f"- Repaired: {report.get('frames_repaired', 0)}",
+        f"- Skipped: {report.get('frames_skipped', 0)}",
         f"- Failed: {report.get('frames_failed')}",
+        f"- Retry attempts: {report.get('retry_attempts', 0)}",
         "",
         "## Timestamps",
         "",
@@ -268,7 +444,10 @@ def build_ingest_markdown(report: dict[str, Any]) -> str:
     if report.get("failures"):
         lines.extend(["", "## Failures", ""])
         for item in report["failures"]:
-            lines.append(f"- {item.get('timestamp')}: {item.get('error')}")
+            attempts = item.get("attempts", 1)
+            lines.append(
+                f"- {item.get('timestamp')}: {item.get('error')} (attempts={attempts})"
+            )
     lines.extend(["", "## Next", ""])
     for cmd in report.get("next_commands") or []:
         lines.append(f"- `{cmd}`")

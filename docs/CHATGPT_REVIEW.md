@@ -9,11 +9,11 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 112
-- Latest phase: Phase 112 — Playback polish and cache status UI
-- Latest commit: `c77004c`
-- Latest tag: `phase-112-playback-polish-and-cache-status-ui`
-- Push status: pushed to `origin/main` with tag
+- Completed through phase: 113
+- Latest phase: Phase 113 — Ingestion robustness
+- Latest commit: (pending)
+- Latest tag: `phase-113-ingestion-robustness`
+- Push status: pending
 - Final git status: source committed; local `data/dev/` runtime artifacts not committed
 
 ## Safety state
@@ -26,42 +26,33 @@ Do not treat this file as verified MRMS proof or production authorization.
 
 ## Latest phase summary
 
-- Phase: **112**
-- Purpose: Make warm-vs-cold cache state obvious during playback; per-frame readiness on slider; smoother overlay transitions; optional post-ingest warm.
-- Per-frame cache status indicators exist? **Yes** — colored dots on `TimeSlider` (ready / cold / missing / failed / stub)
-- Playback transition flicker improved? **Yes** — `useFrameOverlay` holds previous `displayOverlay` while decoding; `WeatherMap` shows “Loading next frame…” and skips overlay removal during transition
-- Auto-warm or post-ingest warm hint exists? **Yes** — `make mrms-bulk-local-ingest ARGS='--real --limit 8 --warm-cache'` (optional); ingest report also hints `make mrms-warm-frame-cache`
-- Backend route changes:
-  - `GET /api/dev/decoded-overlay/cache-status?timestamps=...` — window counts + per-frame `cache_state`
-  - `backend/app/services/playback_cache_status.py` — `build_playback_cache_status()`, `resolve_frame_cache_state()`
-- Frontend component changes:
-  - `TimeSlider` — per-frame cache dots + summary line
-  - `PlaybackControls` — window cache counts + warm hint
-  - `DecodedOverlayPanel` — window/frame cache status + cold-cache command
-  - `usePlaybackCacheStatus` — fetches cache-status API
-  - `useFrameOverlay` — `displayOverlay` hold during decode
-  - `WeatherMap` — uses `displayOverlay`; transition badge
-  - `framePlayback.ts` — `cacheStateLabel()`, `cacheStateClass()`
-- Commands:
-  - `make mrms-warm-frame-cache`
-  - `make mrms-bulk-local-ingest ARGS='--real --limit 8 --warm-cache'` (optional bounded auto-warm)
-- Report/cache paths:
-  - `data/dev/mrms_cache_warm_latest.json`
-  - `data/dev/mrms_cache_warm_latest.md`
-  - `data/dev/mrms_frame_cache/{timestamp_token}/`
+- Phase: **113**
+- Purpose: Harden bulk MRMS ingest retries, failure reporting, and partial-window recovery.
+- Retry logic exists? **Yes** — bounded `download_row_with_retry()` with transient vs permanent error detection (`ingest_retry.py`)
+- Partial-window recovery works? **Yes** — `partial_success` status preserves successful frames; `--retry-failed` and `--missing-only` recovery modes
+- Bad/already-present files handled? **Yes** — `ingest_file_health.py` validates non-empty usable files; `--repair` re-downloads empty/checksum-mismatched files; `--force` re-downloads all
+- Command changes:
+  - `make mrms-bulk-local-ingest ARGS='--real --limit 8'` (unchanged default)
+  - Optional: `--retry-failed`, `--repair`, `--max-retries`, `--retry-delay`, `--missing-only`
+  - Warm cache still works: `make mrms-bulk-local-ingest ARGS='--real --limit 8 --warm-cache'`
+- Report paths:
   - `data/dev/mrms_bulk_ingest_latest.json`
-- Tests: backend 1202 passed; frontend 16 passed; `npm run build` ok
+  - `data/dev/mrms_bulk_ingest_latest.md`
+- Final ingest statuses: `success`, `partial_success`, `no_frames_available`, `failed` (+ `discovery_failed`, `invalid_mode`)
+- Report fields: discovered/selected/downloaded/already-present/registered/repaired/skipped/failed counts, `retry_attempts`, per-failure `attempts` + exact `error`, `next_commands` including retry hints
+- Backend modules: `ingest_retry.py`, `ingest_file_health.py`, `ingest_report.py`, updated `mrms_bulk_ingest.py`
+- Tests: backend 1212 passed; frontend unchanged
 
 ## Current focus
 
-Playback cache state is visible in UI; transitions hold previous frame during decode. Next: ingestion robustness, georef improvement, or frame quality checks.
+Bulk ingest failures are clearer and recoverable without re-downloading the full window. Next: georef improvement, frame quality checks, or cache hardening.
 
 ## Next recommended phase
 
-- Phase number: **113**
-- Phase title: Ingestion robustness
-- Goal: Harden bulk ingest retries, failure reporting, and partial-window recovery without changing verification gates.
-- Why this is next: Cache warming and playback polish assume reliable ingest; failures should be clearer and recoverable.
+- Phase number: **114**
+- Phase title: Georef improvement
+- Goal: Improve decoded overlay geographic placement accuracy for local prototype playback.
+- Why this is next: Ingest + cache + playback polish are in place; overlay alignment is the next playback quality lever.
 - Safety boundaries:
   - local dev / prototype only
   - keep production tile serving off
@@ -71,8 +62,8 @@ Playback cache state is visible in UI; transitions hold previous frame during de
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 113 only.
-Harden bulk MRMS ingest retries and partial-window recovery.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 114 only.
+Improve georef placement for local decoded overlay playback.
 ```
 
 ## Key docs (read order for new work)

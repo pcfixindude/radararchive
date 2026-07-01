@@ -3586,3 +3586,31 @@ make frontend
 - Auto-warm is optional and bounded (same limit as ingest)
 - Does not verify MRMS or enable production tile serving
 
+## Phase 113 - Ingestion Robustness
+
+Harden bulk MRMS ingest retries, failure reporting, and partial-window recovery.
+
+### Backend
+- `ingest_retry.py` — bounded `download_row_with_retry()`, transient vs permanent errors
+- `ingest_file_health.py` — raw file validity (empty, checksum, missing)
+- `ingest_report.py` — final status + next-command helpers
+- `mrms_bulk_ingest.py` — partial success, recovery modes, richer reports
+- `scripts/mrms_bulk_local_ingest.py` — `--retry-failed`, `--repair`, `--max-retries`, `--retry-delay`, `--missing-only`
+
+### Reports
+- `data/dev/mrms_bulk_ingest_latest.json`
+- `data/dev/mrms_bulk_ingest_latest.md`
+
+### Run commands
+
+```bash
+make test
+make mrms-bulk-local-ingest ARGS='--real --limit 8'
+make mrms-bulk-local-ingest ARGS='--real --retry-failed'
+make mrms-bulk-local-ingest ARGS='--real --limit 8 --warm-cache'
+```
+
+### Known limitations
+- Retries and recovery are local-dev only — bounded by default
+- Does not verify MRMS or enable production tile serving
+

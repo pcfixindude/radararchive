@@ -10,6 +10,15 @@ from backend.app.config import MRMS_SOURCE_MODE_REAL, settings
 from backend.app.database import get_session_factory, init_db
 from backend.app.demo.seed import catalog_is_empty, seed_demo_catalog
 from backend.app.services.frame_cache_warmer import run_cache_warm
+from backend.app.services.ingest_report import (
+    INGEST_DISCOVERY_FAILED,
+    INGEST_FAILED,
+    INGEST_INVALID_MODE,
+    INGEST_NO_FRAMES_AVAILABLE,
+    INGEST_PARTIAL_SUCCESS,
+    INGEST_SUCCESS,
+)
+from backend.app.services.ingest_retry import DEFAULT_MAX_RETRIES, DEFAULT_RETRY_DELAY_SEC
 from backend.app.services.mrms_bulk_ingest import (
     DEFAULT_LIMIT,
     MAX_LIMIT,
@@ -54,6 +63,33 @@ def main() -> None:
         help="Re-download even when local raw file already exists",
     )
     parser.add_argument(
+        "--repair",
+        action="store_true",
+        help="Re-download empty or checksum-mismatched local raw files",
+    )
+    parser.add_argument(
+        "--retry-failed",
+        action="store_true",
+        help="Retry only frames that failed in the latest bulk ingest report",
+    )
+    parser.add_argument(
+        "--missing-only",
+        action="store_true",
+        help="Skip frames that already have valid local raw files in the window",
+    )
+    parser.add_argument(
+        "--max-retries",
+        type=int,
+        default=DEFAULT_MAX_RETRIES,
+        help=f"Bounded download retries for transient failures (default {DEFAULT_MAX_RETRIES})",
+    )
+    parser.add_argument(
+        "--retry-delay",
+        type=float,
+        default=DEFAULT_RETRY_DELAY_SEC,
+        help=f"Seconds between download retries (default {DEFAULT_RETRY_DELAY_SEC})",
+    )
+    parser.add_argument(
         "--warm-cache",
         action="store_true",
         help="After ingest, run bounded frame cache warm (optional, slower)",
@@ -91,8 +127,13 @@ def main() -> None:
             end_time=args.end,
             limit=args.limit,
             force=args.force,
+            repair=args.repair,
+            retry_failed=args.retry_failed,
+            missing_only=args.missing_only,
+            max_retries=args.max_retries,
+            retry_delay_sec=args.retry_delay,
         )
-        if args.warm_cache and report.get("ingest_status") in {"ok", "partial"}:
+        if args.warm_cache and report.get("ingest_status") in {INGEST_SUCCESS, INGEST_PARTIAL_SUCCESS}:
             warm_report = run_cache_warm(
                 session,
                 storage,
@@ -120,6 +161,7 @@ def main() -> None:
 
     print("MRMS bulk local ingest (prototype only — NOT verified MRMS):")
     print(f"  ingest_status: {report.get('ingest_status')}")
+    print(f"  recovery_mode: {report.get('recovery_mode')}")
     print(f"  mode: {report.get('mode')}")
     window = report.get("requested_window") or {}
     print(f"  window_limit: {window.get('limit')}")
@@ -129,13 +171,19 @@ def main() -> None:
     print(f"  frames_registered_skipped: {report.get('frames_registered_skipped')}")
     print(f"  frames_downloaded: {report.get('frames_downloaded')}")
     print(f"  frames_already_present: {report.get('frames_already_present')}")
+    print(f"  frames_repaired: {report.get('frames_repaired')}")
+    print(f"  frames_skipped: {report.get('frames_skipped')}")
     print(f"  frames_failed: {report.get('frames_failed')}")
+    print(f"  retry_attempts: {report.get('retry_attempts')}")
     for ts in report.get("registered_timestamps") or []:
         print(f"  registered: {ts}")
     for path in report.get("raw_paths") or []:
         print(f"  raw_path: {path}")
     for item in report.get("failures") or []:
-        print(f"  failure: {item.get('timestamp')} — {item.get('error')}")
+        print(
+            f"  failure: {item.get('timestamp')} — {item.get('error')} "
+            f"(attempts={item.get('attempts', 1)})"
+        )
     for cmd in report.get("next_commands") or []:
         print(f"  next: {cmd}")
     auto_warm = report.get("auto_cache_warm") or {}
@@ -146,7 +194,12 @@ def main() -> None:
     print(f"  json_path: {report.get('json_path')}")
     print(f"  markdown_path: {report.get('markdown_path')}")
 
-    if report.get("ingest_status") in {"failed", "discovery_failed", "invalid_mode", "no_frames"}:
+    if report.get("ingest_status") in {
+        INGEST_FAILED,
+        INGEST_DISCOVERY_FAILED,
+        INGEST_INVALID_MODE,
+        INGEST_NO_FRAMES_AVAILABLE,
+    }:
         raise SystemExit(1)
 
 
