@@ -150,3 +150,4 @@ data/dev/frame_quality_latest.json
 data/dev/frame_quality/
 data/dev/clip_import_latest.json
 data/dev/clip_remediation_latest.json
+data/dev/agent_logs/

@@ -4,15 +4,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 PROMPT_FILE="docs/NEXT_PHASE_PROMPT.md"
-LOG_DIR="data/dev/agent_logs"
-mkdir -p "$LOG_DIR"
-
-START_TS="$(date +%Y%m%d-%H%M%S)"
-LOG_FILE="$LOG_DIR/auto_phase_${START_TS}.log"
 
 echo "RadarArchive - Full Auto Phase"
 echo "Repo: $(pwd)"
-echo "Log: $LOG_FILE"
 echo
 
 if [ ! -f "$PROMPT_FILE" ]; then
@@ -44,7 +38,14 @@ if [ -n "$(git status --short)" ]; then
   exit 1
 fi
 
+LOG_DIR="data/dev/agent_logs"
+mkdir -p "$LOG_DIR"
+
+START_TS="$(date +%Y%m%d-%H%M%S)"
+LOG_FILE="$LOG_DIR/auto_phase_${START_TS}.log"
+
 echo "Repo is clean."
+echo "Log: $LOG_FILE"
 echo
 
 echo "Running Cursor Agent in full auto force mode..."
