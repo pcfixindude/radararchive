@@ -11,9 +11,9 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 117
 - Latest phase: Phase 117 — Local replay session workflow
-- Latest commit: (pending — see end-of-phase report)
+- Latest commit: `f8371fa`
 - Latest tag: `phase-117-local-replay-session-workflow`
-- Push status: (pending — see end-of-phase report)
+- Push status: pushed to `origin/main` with tag
 - Final git status: source committed; local `data/dev/` runtime artifacts not committed
 
 ## Safety state
