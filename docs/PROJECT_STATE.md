@@ -1,29 +1,28 @@
 # Project State
 
-Current phase: Phase 114 complete
+Current phase: Phase 115 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
-- **Georef improvement** — rasterio WGS84 bounds for decoded overlay; map bounds outline
-- **Ingestion robustness** — bounded retries, partial success, `--retry-failed`, `--repair`
+- **Frame quality checks** — diagnostic status on decoded overlay API and panel
+- **Georef improvement** — rasterio WGS84 bounds for decoded overlay
+- **Ingestion robustness** — bounded retries, partial success, `--retry-failed`
 - **Playback cache status UI** — per-frame dots on time slider
-- **Frame cache warming** — `make mrms-warm-frame-cache`
 - **Bulk MRMS ingest** — `make mrms-bulk-local-ingest ARGS='--real --limit 8'`
 - **Default tile serving: placeholder** (production off)
 - Not verified real MRMS
 
-## Operator workflow (Phase 114)
+## Operator workflow (Phase 115)
 
 ```bash
 make mrms-bulk-local-ingest ARGS='--real --limit 8'
-make mrms-warm-frame-cache
 make decode-retry
 make backend
 make frontend
 ```
 
-Decoded overlay uses WGS84 bounds from `geo_metadata.json` when rasterio enriches decode output. `geo_accurate` remains **false**.
+Decoded overlay response includes `frame_quality` with overall status and per-check messages. Playback is not blocked by warnings.
 
 ## Verified MRMS
 

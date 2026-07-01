@@ -85,6 +85,17 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
 .slider-cache--failed { background: #ef4444; }
 .slider-cache--stub { background: #a78bfa; }
 .decoded-overlay-georef-note { color: #94a3b8; font-size: 0.78rem; }
+.slider-cache-summary { margin: 0.25rem 0 0; color: #94a3b8; font-size: 0.8rem; }
+.frame-quality-panel { margin-top: 0.5rem; padding-top: 0.35rem; border-top: 1px solid #334155; }
+.frame-quality-summary { margin: 0.25rem 0; font-size: 0.85rem; }
+.frame-quality--ok { color: #86efac; }
+.frame-quality--warning { color: #fde68a; }
+.frame-quality--error { color: #fca5a5; }
+.frame-quality--unavailable { color: #94a3b8; }
+.frame-quality-checks { margin: 0.35rem 0 0; padding-left: 1.1rem; font-size: 0.78rem; color: #cbd5e1; }
+.frame-quality-checks li { margin: 0.2rem 0; }
+.frame-quality-check--warning { color: #fde68a; }
+.frame-quality-check--error { color: #fca5a5; }
 .plan-note, .plan-meta, .plan-upgrade { margin: 0.35rem 0 0; color: #cbd5e1; font-size: 0.85rem; }
 .plan-upgrade { color: #fde68a; }
 .plan-panel select { width: 100%; margin-top: 0.35rem; }

@@ -1,5 +1,22 @@
-import type { DecodedOverlayInfo, PlaybackCacheStatus } from '../api/client';
+import type { DecodedOverlayInfo, FrameQualityStatus, PlaybackCacheStatus } from '../api/client';
 import { cacheStateLabel, playbackStatusLabel, type PlaybackFrameStatus } from '../hooks/framePlayback';
+
+function qualityStatusClass(status?: string): string {
+  switch (status) {
+    case 'ok':
+      return 'frame-quality--ok';
+    case 'warning':
+      return 'frame-quality--warning';
+    case 'error':
+      return 'frame-quality--error';
+    default:
+      return 'frame-quality--unavailable';
+  }
+}
+
+function qualityCheckClass(status: string): string {
+  return `frame-quality-check--${status}`;
+}
 
 function statusClass(status: string): string {
   if (status === 'decoded_prototype') {
@@ -42,6 +59,7 @@ export default function DecodedOverlayPanel({
   const status = overlay?.overlay_status ?? 'missing';
   const syncStatus = overlay?.sync_status ?? 'no_selection';
   const selectedCacheState = cacheStatus?.frames.find((frame) => frame.timestamp === selectedTime)?.cache_state;
+  const frameQuality: FrameQualityStatus | null | undefined = overlay?.frame_quality;
 
   return (
     <section className="decoded-overlay-panel" aria-label="Decoded preview overlay">
@@ -151,6 +169,29 @@ export default function DecodedOverlayPanel({
       ) : null}
       {overlay?.georef_notes?.length ? (
         <p className="decoded-overlay-meta decoded-overlay-georef-note">{overlay.georef_notes[0]}</p>
+      ) : null}
+      {frameQuality ? (
+        <div className="frame-quality-panel" aria-label="Frame quality checks">
+          <p className={`frame-quality-summary ${qualityStatusClass(frameQuality.status)}`}>
+            Frame quality: <code>{frameQuality.status}</code>
+            {frameQuality.diagnostic_only ? ' (diagnostic)' : ''}
+          </p>
+          {frameQuality.measured?.manifest_width != null && frameQuality.measured?.manifest_height != null ? (
+            <p className="decoded-overlay-meta">
+              Grid: <code>{String(frameQuality.measured.manifest_width)}×{String(frameQuality.measured.manifest_height)}</code>
+              {frameQuality.measured.manifest_value_min != null ? (
+                <> min/max <code>{String(frameQuality.measured.manifest_value_min)} / {String(frameQuality.measured.manifest_value_max)}</code></>
+              ) : null}
+            </p>
+          ) : null}
+          <ul className="frame-quality-checks">
+            {frameQuality.checks.map((check) => (
+              <li key={check.name} className={qualityCheckClass(check.status)}>
+                <code>{check.name}</code>: {check.message}
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
       {overlay?.sync_message ? <p className="decoded-overlay-warn">{overlay.sync_message}</p> : null}
       {overlay?.stale_hint && overlay.sync_status !== 'mismatch' && overlay.sync_status !== 'matched' ? (

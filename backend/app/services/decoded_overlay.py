@@ -11,6 +11,7 @@ from backend.app.config import settings
 from backend.app.services.color_scale import COLOR_SCALE_MODE
 from backend.app.services.decode_retry import load_decode_retry_report
 from backend.app.services.frame_cache_warmer import compact_cache_warm_status
+from backend.app.services.frame_quality import assess_frame_quality
 from backend.app.services.georef_overlay import resolve_georef_overlay
 from backend.app.services.mrms_local_render_pipeline import (
     PREVIEW_DIR,
@@ -259,6 +260,15 @@ def _build_from_frame_report(
 
     color_scale_mode = tile_fields.get("color_scale_mode")
     action_commands = list(frame_report.get("action_commands") or SUGGESTED_REFRESH_COMMANDS)
+    frame_quality = assess_frame_quality(
+        storage,
+        decode_output_dir=decode_output_dir,
+        preview_path=preview_path,
+        georef=georef,
+        tile_preview=frame_report.get("tile_preview"),
+        overlay_visible=overlay_visible,
+        frame_report=frame_report,
+    )
 
     return {
         "available": artifact_available and overlay_visible,
@@ -294,6 +304,7 @@ def _build_from_frame_report(
             sync_status=sync_status,
         ),
         "refresh_commands": action_commands,
+        "frame_quality": frame_quality,
         **tile_fields,
         **compact_cache_warm_status(storage),
         **_safety_fields(),
@@ -372,6 +383,14 @@ def build_decoded_overlay(
     available = artifact_available and overlay_visible
 
     color_scale_mode = tile_fields.get("color_scale_mode")
+    frame_quality = assess_frame_quality(
+        storage,
+        decode_output_dir=decode_output_dir,
+        preview_path=preview_path,
+        georef=georef,
+        tile_preview=(pipeline or {}).get("tile_preview"),
+        overlay_visible=overlay_visible,
+    )
     return {
         "available": available,
         "artifact_available": artifact_available,
@@ -405,6 +424,7 @@ def build_decoded_overlay(
             sync_status=str(sync["sync_status"]),
         ),
         "refresh_commands": list(SUGGESTED_REFRESH_COMMANDS),
+        "frame_quality": frame_quality,
         **tile_fields,
         **compact_cache_warm_status(storage),
         **_safety_fields(),

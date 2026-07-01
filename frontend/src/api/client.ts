@@ -4247,6 +4247,23 @@ export async function tileBlockedByPlan(layer: string, timestamp: string, plan: 
   }
 }
 
+export type FrameQualityCheckItem = {
+  name: string;
+  status: string;
+  message: string;
+  details?: Record<string, unknown>;
+};
+
+export type FrameQualityStatus = {
+  status: string;
+  checks: FrameQualityCheckItem[];
+  measured?: Record<string, unknown>;
+  diagnostic_only?: boolean;
+  verified_mrms?: boolean;
+  local_dev_only?: boolean;
+  prototype?: boolean;
+};
+
 export type DecodedOverlayInfo = {
   available: boolean;
   overlay_status: string;
@@ -4282,6 +4299,7 @@ export type DecodedOverlayInfo = {
   georef_quality?: string;
   georef_notes?: string[];
   bounds_source?: string | null;
+  frame_quality?: FrameQualityStatus | null;
   cache_warm_available?: boolean;
   cache_warm_status?: string | null;
   cache_warm_matched?: number;

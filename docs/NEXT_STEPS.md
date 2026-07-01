@@ -1,43 +1,43 @@
 # Next Steps
 
-## Phase 115 - Frame quality checks (Draft)
+## Phase 116 - Georef UI controls (Draft)
 
-Goal: Local-dev sanity checks for decoded frames (value range, dimensions, empty grid).
-
-```bash
-make test
-make decode-retry
-```
-
-## Phase 114 verification commands
+Goal: Toggle bounds outline, fit-to-bounds, and georef debug details during local playback.
 
 ```bash
 make test
 cd frontend && npm test && npm run build
-make mrms-bulk-local-ingest ARGS='--real --limit 8'
-make mrms-warm-frame-cache
+make backend
+make frontend
+```
+
+## Phase 115 verification commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
 make decode-retry
 make backend
 make frontend
 ```
 
-Local result after Phase 114:
+Local result after Phase 115:
 
-- Overlay bounds from rasterio WGS84 affine or reprojected bounds
-- Map shows dashed bounds outline when overlay active
-- Panel shows `bounds_source`, bounds values, prototype georef warning
-- `geo_accurate` remains false
+- `GET /api/dev/decoded-overlay` includes `frame_quality` object
+- Panel shows overall quality status and individual check messages
+- Grid dimensions and min/max shown when available in measured fields
+- Quality checks are advisory only
+
+## Phase 114 verification commands
+
+```bash
+make test
+make decode-retry
+```
 
 ## Phase 113 verification commands
 
 ```bash
 make test
 make mrms-bulk-local-ingest ARGS='--real --retry-failed'
-```
-
-## Phase 112 verification commands
-
-```bash
-make test
-cd frontend && npm test && npm run build
 ```

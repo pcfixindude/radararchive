@@ -1,8 +1,27 @@
 """Schemas for local dev decoded map overlay (prototype only)."""
 
+from __future__ import annotations
+
 from typing import Optional
 
 from pydantic import BaseModel, Field
+
+
+class FrameQualityCheckItem(BaseModel):
+    name: str
+    status: str
+    message: str
+    details: dict = Field(default_factory=dict)
+
+
+class FrameQualityStatus(BaseModel):
+    status: str = "unavailable"
+    checks: list[FrameQualityCheckItem] = Field(default_factory=list)
+    measured: dict = Field(default_factory=dict)
+    diagnostic_only: bool = True
+    verified_mrms: bool = False
+    local_dev_only: bool = True
+    prototype: bool = True
 
 
 class DecodedOverlayResponse(BaseModel):
@@ -40,6 +59,7 @@ class DecodedOverlayResponse(BaseModel):
     georef_quality: str = "prototype_bounds"
     georef_notes: list[str] = Field(default_factory=list)
     bounds_source: Optional[str] = None
+    frame_quality: Optional[FrameQualityStatus] = None
     cache_warm_available: bool = False
     cache_warm_status: Optional[str] = None
     cache_warm_matched: int = 0

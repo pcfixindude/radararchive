@@ -3643,3 +3643,31 @@ make frontend
 - Requires rasterio for improved bounds (optional decoder dependency)
 - Does not verify MRMS or enable production tile serving
 
+## Phase 115 - Frame Quality Checks
+
+Local-dev diagnostic checks for decoded MRMS playback frames.
+
+### Backend
+- `frame_quality.py` — `assess_frame_quality()` with artifacts, manifest, grid, dimensions, georef, tile checks
+- `decoded_overlay.py` — optional `frame_quality` on overlay response
+- `dev_overlay.py` — `FrameQualityStatus` schema
+
+### Frontend
+- `DecodedOverlayPanel.tsx` — quality summary and per-check list
+- `frameQualityDisplay.ts` — small status helper
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make decode-retry
+make backend
+make frontend
+```
+
+### Known limitations
+- Diagnostic only — does not block playback or claim verified MRMS
+- Raster value checks degrade to manifest-only without rasterio/numpy
+- Does not verify MRMS or enable production tile serving
+

@@ -9,11 +9,11 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Project: RadarArchive
 - Repo: pcfixindude/radararchive
 - Local path: ~/Projects/radararchive
-- Completed through phase: 114
-- Latest phase: Phase 114 — Georef improvement
-- Latest commit: `72c2562`
-- Latest tag: `phase-114-georef-improvement`
-- Push status: pushed to `origin/main` with tag
+- Completed through phase: 115
+- Latest phase: Phase 115 — Frame quality checks
+- Latest commit: (pending)
+- Latest tag: `phase-115-frame-quality-checks`
+- Push status: pending
 - Final git status: source committed; local `data/dev/` runtime artifacts not committed
 
 ## Safety state
@@ -26,40 +26,29 @@ Do not treat this file as verified MRMS proof or production authorization.
 
 ## Latest phase summary
 
-- Phase: **114**
-- Purpose: Improve geographic placement for local decoded MRMS overlay playback.
-- WGS84/rasterio bounds improved? **Yes** — `georef_bounds.py` computes WGS84 bounds via rasterio affine (`array_bounds`) or `transform_bounds` reprojection to EPSG:4326
-- Overlay uses improved bounds? **Yes** — `decoded_overlay` API returns improved bounds; `WeatherMap` image/tile overlays and fitBounds use them; dashed bounds outline on map
-- `geo_accurate` remains false? **Yes** — no production verification criteria met; notes state prototype-only placement
-- Backend files changed:
-  - `georef_bounds.py` (new) — WGS84 bounds extraction
-  - `georef_overlay.py` — quality/source resolution
-  - `render_metadata.py` — rasterio enrichment via georef_bounds
-  - `grib2_decoder.py` — bounds/georef_quality in decode manifest
-  - `selected_frame_decode.py` — georef fields in frame_manifest
-  - `decoded_overlay.py`, `dev_overlay.py` schema — `bounds_source` field
-- Frontend files changed:
-  - `WeatherMap.tsx` — bounds outline layer
-  - `DecodedOverlayPanel.tsx` — bounds source, values, prototype warning
-  - `mapConfig.ts`, `client.ts`, `app.css`
-- Debug UI / metadata fields:
-  - `bounds_source` (e.g. `rasterio_affine_wgs84`, `rasterio_transform_wgs84`, `prototype_fallback`)
-  - `georef_quality` (`rasterio_wgs84_affine`, `rasterio_wgs84_bounds`, `prototype_bounds`)
-  - `georef_notes` with prototype disclaimer
-  - Map dashed cyan bounds outline
-- Artifacts: `geo_metadata.json`, `decode_manifest.json`, `frame_manifest.json` include bounds + georef_quality when rasterio enriches
-- Tests: backend 1222 passed; frontend 16 passed; `npm run build` ok
+- Phase: **115**
+- Purpose: Local-dev diagnostic quality checks for decoded MRMS playback frames.
+- Frame quality checks exist? **Yes** — `frame_quality.py` with artifacts, manifest, grid values, dimensions, georef bounds, tile preview checks
+- Overall statuses: `ok`, `warning`, `error`, `unavailable` (advisory only — does not block playback)
+- API integration: optional `frame_quality` on `GET /api/dev/decoded-overlay`
+- Frontend: `DecodedOverlayPanel` shows overall status, per-check messages, measured grid/min-max
+- Backend files:
+  - `frame_quality.py` (new)
+  - `decoded_overlay.py`, `dev_overlay.py` schema
+- Frontend files:
+  - `DecodedOverlayPanel.tsx`, `client.ts`, `frameQualityDisplay.ts`, `app.css`
+- Tests: backend 1229 passed; frontend 17 passed; `npm run build` ok
 
 ## Current focus
 
-Overlay placement uses rasterio-derived WGS84 bounds when available. Next: frame quality checks, georef UI controls, or tile/projection hardening.
+Decoded overlay panel surfaces frame quality diagnostics. Next: georef UI controls, tile/projection hardening, or playback polish.
 
 ## Next recommended phase
 
-- Phase number: **115**
-- Phase title: Frame quality checks
-- Goal: Add local-dev checks for decoded frame sanity (empty grid, value range, dimension mismatch) surfaced in overlay panel.
-- Why this is next: Georef improved; quality signals help catch bad decodes before playback.
+- Phase number: **116**
+- Phase title: Georef UI controls
+- Goal: Add compact UI controls for toggling bounds outline, fit-to-bounds, and georef debug visibility during local playback.
+- Why this is next: Quality + georef metadata exist; operators need lightweight map controls without new verification gates.
 - Safety boundaries:
   - local dev / prototype only
   - keep production tile serving off
@@ -69,8 +58,8 @@ Overlay placement uses rasterio-derived WGS84 bounds when available. Next: frame
 
 ```text
 Follow docs/CURSOR_RULES.md and docs/PHASE_WORKFLOW_RULES.md.
-Read docs/CHATGPT_REVIEW.md first and implement Phase 115 only.
-Add local frame quality checks for decoded MRMS playback.
+Read docs/CHATGPT_REVIEW.md first and implement Phase 116 only.
+Add georef UI controls for local playback debug.
 ```
 
 ## Key docs (read order for new work)
