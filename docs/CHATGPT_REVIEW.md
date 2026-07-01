@@ -13,10 +13,10 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 126
 - Latest phase: Phase 126 — Imported clip batch remediation plan
-- Latest commit: `(pending commit — run git commit after tests pass)`
+- Latest commit: `12ad3bb` — phase 126: imported clip batch remediation plan
 - Latest tag: `phase-126-imported-clip-batch-remediation`
-- Push status: pending push to `origin/main` with tag
-- Final git status: source ready; local `data/dev/` runtime artifacts not committed
+- Push status: pushed to `origin/main` with tag
+- Final git status: clean except untracked `data/dev/agent_logs/` (not committed)
 
 ## Safety state
 
