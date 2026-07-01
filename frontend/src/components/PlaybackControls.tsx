@@ -66,7 +66,9 @@ export default function PlaybackControls({
         Frame {times.length === 0 ? 0 : index + 1} of {times.length}
       </p>
       <p className={`playback-meta playback-status playback-status--${playbackFrameStatus}`}>
-        Overlay: {playbackStatusLabel(playbackFrameStatus)}
+        Frame: {playbackStatusLabel(playbackFrameStatus)}
+        {playbackFrameStatus === 'decoding' ? ' — keep playing; overlay holds last frame' : ''}
+        {playbackFrameStatus === 'frame_missing' ? ' — ingest or decode may be needed' : ''}
       </p>
       {cacheStatus ? (
         <p className="playback-meta">

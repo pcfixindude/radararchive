@@ -3671,3 +3671,27 @@ make frontend
 - Raster value checks degrade to manifest-only without rasterio/numpy
 - Does not verify MRMS or enable production tile serving
 
+## Phase 116 - Usable Local Radar Replay
+
+Practical local replay controls and operator feedback for decoded overlay playback.
+
+### Frontend
+- `ReplayMapControls.tsx` — overlay/bounds/debug toggles + fit-to-bounds
+- `replayDisplay.ts` — selected frame summary, next-command hints
+- `WeatherMap.tsx` — respects toggles; explicit fit only (no auto-jump on frame change)
+- `DecodedOverlayPanel.tsx` — summary line, collapsible georef/quality via toggles
+- `PlaybackControls.tsx` — clearer frame status text during decode/missing
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make backend
+make frontend
+```
+
+### Known limitations
+- UI preferences are session-only (not persisted)
+- Does not verify MRMS or enable production tile serving
+

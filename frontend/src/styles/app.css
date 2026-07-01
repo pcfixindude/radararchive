@@ -96,6 +96,30 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
 .frame-quality-checks li { margin: 0.2rem 0; }
 .frame-quality-check--warning { color: #fde68a; }
 .frame-quality-check--error { color: #fca5a5; }
+.replay-map-controls .replay-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.35rem 0;
+  font-size: 0.85rem;
+}
+.replay-fit-bounds {
+  margin-top: 0.5rem;
+  width: 100%;
+}
+.replay-control-hint {
+  margin: 0.25rem 0 0;
+  color: #94a3b8;
+  font-size: 0.78rem;
+}
+.selected-frame-summary {
+  margin: 0.35rem 0 0.5rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+  font-size: 0.85rem;
+}
 .plan-note, .plan-meta, .plan-upgrade { margin: 0.35rem 0 0; color: #cbd5e1; font-size: 0.85rem; }
 .plan-upgrade { color: #fde68a; }
 .plan-panel select { width: 100%; margin-top: 0.35rem; }

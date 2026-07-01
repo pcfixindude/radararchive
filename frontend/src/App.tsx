@@ -22,6 +22,8 @@ import TimestampDisplay from './components/TimestampDisplay';
 import PlanSelector from './components/PlanSelector';
 import ValidationStatusPanel from './components/ValidationStatusPanel';
 import DecodedOverlayPanel from './components/DecodedOverlayPanel';
+import ReplayMapControls from './components/ReplayMapControls';
+import { DEFAULT_REPLAY_DISPLAY, overlayReadyForMap, type ReplayDisplayState } from './components/replayDisplay';
 import { usePlayback } from './hooks/usePlayback';
 import { useFrameOverlay } from './hooks/useFrameOverlay';
 import { usePlaybackCacheStatus } from './hooks/usePlaybackCacheStatus';
@@ -44,6 +46,8 @@ export default function App() {
   const [renderJobHint, setRenderJobHint] = useState('');
   const [validationSummary, setValidationSummary] = useState<ValidationSummary | null>(null);
   const [validationRefreshing, setValidationRefreshing] = useState(false);
+  const [replayDisplay, setReplayDisplay] = useState<ReplayDisplayState>(DEFAULT_REPLAY_DISPLAY);
+  const [fitBoundsToken, setFitBoundsToken] = useState(0);
 
   const refreshValidationSummary = async () => {
     setValidationRefreshing(true);
@@ -258,6 +262,7 @@ export default function App() {
     loadState === 'ready' && Boolean(selectedTime) && processedTimes.length > 0 && !processedTimes.includes(selectedTime);
   const selectedOutsidePlan =
     loadState === 'ready' && Boolean(selectedTime) && times.length > 0 && !times.includes(selectedTime);
+  const overlayMapReady = overlayReadyForMap(displayOverlay ?? decodedOverlay);
 
   return (
     <div className="app-shell">
@@ -285,6 +290,9 @@ export default function App() {
           decodedOverlay={displayOverlay}
           overlayTransitioning={decodedOverlayRefreshing && playbackFrameStatus === 'decoding'}
           playbackFrameStatus={playbackFrameStatus}
+          showDecodedOverlay={replayDisplay.showDecodedOverlay}
+          showBoundsOutline={replayDisplay.showBoundsOutline}
+          fitBoundsToken={fitBoundsToken}
         />
         <aside className="app-controls">
           {loadState === 'backend_down' ? (
@@ -303,11 +311,20 @@ export default function App() {
             <p className="warn-banner">Selected timestamp is not processed yet. Choose a processed frame or run process-once.</p>
           ) : null}
           <PlanSelector plan={selectedPlan} accessInfo={accessInfo} onChange={setSelectedPlan} />
+          <ReplayMapControls
+            display={replayDisplay}
+            onChange={(patch) => setReplayDisplay((current) => ({ ...current, ...patch }))}
+            overlayBounds={displayOverlay?.bounds ?? decodedOverlay?.bounds}
+            overlayAvailable={overlayMapReady}
+            onFitToBounds={() => setFitBoundsToken((token) => token + 1)}
+          />
           <DecodedOverlayPanel
             overlay={decodedOverlay}
             selectedTime={selectedTime}
             playbackFrameStatus={playbackFrameStatus}
             cacheStatus={cacheStatus}
+            showGeorefDebug={replayDisplay.showGeorefDebug}
+            showFrameQualityDetails={replayDisplay.showFrameQualityDetails}
             onRefresh={async () => {
               await refreshDecodedOverlay();
               refetchCacheStatus();

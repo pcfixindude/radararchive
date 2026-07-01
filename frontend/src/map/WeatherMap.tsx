@@ -35,6 +35,9 @@ export default function WeatherMap({
   decodedOverlay,
   overlayTransitioning = false,
   playbackFrameStatus = 'idle',
+  showDecodedOverlay = true,
+  showBoundsOutline = true,
+  fitBoundsToken = 0,
 }: {
   selectedTime: string;
   selectedLayer: string;
@@ -50,6 +53,9 @@ export default function WeatherMap({
   decodedOverlay: DecodedOverlayInfo | null;
   overlayTransitioning?: boolean;
   playbackFrameStatus?: PlaybackFrameStatus;
+  showDecodedOverlay?: boolean;
+  showBoundsOutline?: boolean;
+  fitBoundsToken?: number;
 }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -62,8 +68,9 @@ export default function WeatherMap({
   const minzoom = layerMeta?.minzoom ?? undefined;
   const maxzoom = layerMeta?.maxzoom ?? undefined;
 
-  const overlayActive =
+  const overlayDataReady =
     Boolean(decodedOverlay?.overlay_visible && decodedOverlay.bounds?.length === 4);
+  const overlayActive = overlayDataReady && showDecodedOverlay;
   const overlayTileTemplate = decodedOverlay ? decodedOverlayTileUrlTemplate(decodedOverlay) : null;
   const useOverlayTiles = Boolean(overlayActive && overlayTileTemplate);
   const overlayStatus = decodedOverlay?.overlay_status ?? 'missing';
@@ -234,33 +241,35 @@ export default function WeatherMap({
           'raster-opacity': Math.min(1, opacity + 0.1),
         },
       });
-      map.addSource(GEOREF_BOUNDS_SOURCE_ID, {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          properties: {},
-          geometry: {
-            type: 'LineString',
-            coordinates: [
-              [west, north],
-              [east, north],
-              [east, south],
-              [west, south],
-              [west, north],
-            ],
+      if (showBoundsOutline) {
+        map.addSource(GEOREF_BOUNDS_SOURCE_ID, {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'LineString',
+              coordinates: [
+                [west, north],
+                [east, north],
+                [east, south],
+                [west, south],
+                [west, north],
+              ],
+            },
           },
-        },
-      });
-      map.addLayer({
-        id: GEOREF_BOUNDS_LAYER_ID,
-        type: 'line',
-        source: GEOREF_BOUNDS_SOURCE_ID,
-        paint: {
-          'line-color': '#38bdf8',
-          'line-width': 2,
-          'line-dasharray': [2, 2],
-        },
-      });
+        });
+        map.addLayer({
+          id: GEOREF_BOUNDS_LAYER_ID,
+          type: 'line',
+          source: GEOREF_BOUNDS_SOURCE_ID,
+          paint: {
+            'line-color': '#38bdf8',
+            'line-width': 2,
+            'line-dasharray': [2, 2],
+          },
+        });
+      }
       return;
     }
 
@@ -288,49 +297,63 @@ export default function WeatherMap({
       },
     });
 
-    map.addSource(GEOREF_BOUNDS_SOURCE_ID, {
-      type: 'geojson',
-      data: {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'LineString',
-          coordinates: [
-            [west, north],
-            [east, north],
-            [east, south],
-            [west, south],
-            [west, north],
-          ],
+    if (showBoundsOutline) {
+      map.addSource(GEOREF_BOUNDS_SOURCE_ID, {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: [
+              [west, north],
+              [east, north],
+              [east, south],
+              [west, south],
+              [west, north],
+            ],
+          },
         },
-      },
-    });
-    map.addLayer({
-      id: GEOREF_BOUNDS_LAYER_ID,
-      type: 'line',
-      source: GEOREF_BOUNDS_SOURCE_ID,
-      paint: {
-        'line-color': '#38bdf8',
-        'line-width': 2,
-        'line-dasharray': [2, 2],
-      },
-    });
-  }, [mapReady, overlayActive, useOverlayTiles, overlayTileTemplate, decodedOverlay, opacity, overlayTransitioning]);
+      });
+      map.addLayer({
+        id: GEOREF_BOUNDS_LAYER_ID,
+        type: 'line',
+        source: GEOREF_BOUNDS_SOURCE_ID,
+        paint: {
+          'line-color': '#38bdf8',
+          'line-width': 2,
+          'line-dasharray': [2, 2],
+        },
+      });
+    }
+  }, [
+    mapReady,
+    overlayActive,
+    useOverlayTiles,
+    overlayTileTemplate,
+    decodedOverlay,
+    opacity,
+    overlayTransitioning,
+    showBoundsOutline,
+  ]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapReady || !decodedOverlay?.bounds?.length) {
+    if (!map || !mapReady || !fitBoundsToken || !decodedOverlay?.bounds?.length) {
       return;
     }
     const [west, south, east, north] = decodedOverlay.bounds;
+    if (west >= east || south >= north) {
+      return;
+    }
     map.fitBounds(
       [
         [west, south],
         [east, north],
       ],
-      { padding: 24, duration: 0 },
+      { padding: 24, duration: 500 },
     );
-  }, [mapReady, decodedOverlay?.bounds]);
+  }, [mapReady, fitBoundsToken, decodedOverlay?.bounds]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -378,7 +401,9 @@ export default function WeatherMap({
       : playbackFrameStatus === 'decoding'
         ? 'Decoding selected frame…'
         : decodedOverlay?.sync_status === 'matched'
-      ? useOverlayTiles
+      ? !showDecodedOverlay
+        ? 'Decoded overlay hidden (toggle in Map & overlay)'
+        : useOverlayTiles
         ? 'Decoded color tiles synced — local dev only'
         : 'Decoded color overlay synced — local dev only'
       : decodedOverlay?.sync_status === 'mismatch'
