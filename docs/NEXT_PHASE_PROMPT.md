@@ -13,34 +13,35 @@ Required docs to read first:
 8. docs/API_SPEC.md, if API schemas or endpoint contracts are touched
 9. docs/ARCHITECTURE.md, only if architecture changes
 Current completed phase and latest commit/tag/push status from docs/CHATGPT_REVIEW.md:
-* Completed through phase: 123
-* Latest phase: Phase 123 — Playback export clip
+* Completed through phase: 124
+* Latest phase: Phase 124 — Frame quality drill-down
 * Latest commit: (see CHATGPT_REVIEW.md)
-* Latest tag: phase-123-playback-export-clip
+* Latest tag: phase-124-frame-quality-drilldown
 * Push status: see CHATGPT_REVIEW.md
 Important direction:
 This is for my own local use right now. I want meaningful, visible progress toward a usable historical radar replay app. Do not make this a tiny safety-wrapper phase. Keep the safety boundaries, but work aggressively inside the local-dev/prototype lane.
 Implement the next phase only:
-Phase 124 — Frame quality drill-down
-Short name: frame-quality-drilldown
+Phase 125 — Clip manifest import replay
+Short name: clip-manifest-import-replay
 Goal:
-Show per-frame quality/readiness detail in the replay UI for a selected catalog or clip frame — decode status, cache path hints, preview availability, and suggested remediation commands — without running new ingest or decode in the request.
+Load a saved playback clip JSON (from Phase 123 export) to restore replay range, loop suggestion, and frame list in the replay UI — with clip-level readiness summary and batch remediation hints — without running ingest or decode.
 Current project state relevant to this phase:
+* Phase 124 added frame quality drill-down (API, CLI, UI)
 * Phase 123 added playback export clip (API, CLI, UI)
 * Phase 122 added frame catalog browser with jump-to-frame
-* Phase 121 added one-shot local replay setup
 * Existing APIs/services to reuse where possible:
-  * `build_frame_catalog` / frame cache manifests
-  * `frame_quality.py` or similar quality helpers if present
-  * decode retry / local render pipeline suggested commands
+  * `build_playback_export` / clip manifest schema
+  * `build_frame_quality_report` for batch readiness
+  * replay range/loop state in frontend (`useReplayRange`)
 Required implementation work:
-1. Add or extend a dev-oriented quality API if needed, e.g. `GET /api/dev/frame-quality` for one or more timestamps — status/plan only.
-2. Add optional CLI `make frame-quality` writing report JSON under `data/dev/` (gitignored).
-3. Add **Frame detail** drill-down in replay UI (frame catalog or export summary):
-   * select a frame to inspect
-   * show decode/cache/quality breakdown
-   * show suggested next commands for cold/missing/failed frames
-4. Add/update tests for backend quality payload and frontend drill-down UX.
+1. Add clip import validation helper (backend or shared) if needed, e.g. parse/validate exported clip JSON shape.
+2. Add optional CLI `make clip-import` to validate a manifest file and print readiness summary (writes report under `data/dev/`, gitignored).
+3. Add **Import clip** in Range & loop panel:
+   * paste JSON or upload file from Phase 123 export
+   * restore range start/end and loop suggestion
+   * show clip readiness summary (cache/decode counts, cold/missing frames)
+   * link to frame detail inspect for problem frames
+4. Add/update tests for import validation and frontend import UX.
 5. Update docs:
    * docs/CHATGPT_REVIEW.md
    * docs/PROJECT_STATE.md
@@ -68,6 +69,7 @@ Phase-relevant local run commands:
 make backend
 make frontend
 make playback-export ARGS="--start ... --end ..."
+make frame-quality ARGS="--timestamps ..."
 Git requirements:
 Before committing:
 * git status --short
@@ -76,8 +78,8 @@ Before committing:
 * do not stage data/dev runtime artifacts
 Then:
 * git add .
-* git commit -m "phase 124: frame quality drill-down"
-* git tag phase-124-frame-quality-drilldown
+* git commit -m "phase 125: clip manifest import replay"
+* git tag phase-125-clip-manifest-import-replay
 * git push origin main --tags
 End-of-phase requirements:
 * update docs/CHATGPT_REVIEW.md with completion state, commit, tag, push status, safety state, and next recommended phase

@@ -146,3 +146,5 @@ data/dev/mrms_visual_review_sample_bootstrap_latest.json
 data/dev/mrms_visual_review_sample_bootstrap_latest.md
 data/dev/playback_export_latest.json
 data/dev/playback_export/
+data/dev/frame_quality_latest.json
+data/dev/frame_quality/

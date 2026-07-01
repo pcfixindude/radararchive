@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type MouseEvent } from 'react';
 import {
   filterFrameCatalog,
   formatFrameTimestamp,
@@ -15,6 +15,8 @@ export default function FrameCatalogPanel({
   error = '',
   selectedTime,
   onSelectFrame,
+  onInspectFrame,
+  inspectTimestamp,
   onRefresh,
 }: {
   disabled?: boolean;
@@ -23,6 +25,8 @@ export default function FrameCatalogPanel({
   error?: string;
   selectedTime: string;
   onSelectFrame: (timestamp: string) => void;
+  onInspectFrame?: (timestamp: string) => void;
+  inspectTimestamp?: string;
   onRefresh?: () => void;
 }) {
   const [filterText, setFilterText] = useState('');
@@ -37,6 +41,14 @@ export default function FrameCatalogPanel({
       return;
     }
     onSelectFrame(frame.timestamp);
+  };
+
+  const handleInspect = (frame: FrameCatalogItem, event: MouseEvent) => {
+    event.stopPropagation();
+    if (disabled || !onInspectFrame) {
+      return;
+    }
+    onInspectFrame(frame.timestamp);
   };
 
   return (
@@ -79,17 +91,34 @@ export default function FrameCatalogPanel({
             <ul className="frame-catalog-list">
               {visibleFrames.map((frame) => {
                 const selected = frame.timestamp === selectedTime;
+                const inspecting = frame.timestamp === inspectTimestamp;
                 return (
                   <li key={frame.timestamp}>
                     <button
                       type="button"
-                      className={`frame-catalog-row ${frameReadinessClass(frame)}${selected ? ' frame-catalog-row--selected' : ''}`}
+                      className={`frame-catalog-row ${frameReadinessClass(frame)}${selected ? ' frame-catalog-row--selected' : ''}${inspecting ? ' frame-catalog-row--inspecting' : ''}`}
                       disabled={disabled}
                       onClick={() => handleJump(frame)}
                       aria-current={selected ? 'true' : undefined}
                     >
                       <span className="frame-catalog-time">{formatFrameTimestamp(frame.timestamp)}</span>
                       <span className="frame-catalog-status">{frameReadinessLabel(frame)}</span>
+                      {onInspectFrame ? (
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          className="frame-catalog-detail"
+                          onClick={(event) => handleInspect(frame, event)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault();
+                              handleInspect(frame, event as unknown as MouseEvent);
+                            }
+                          }}
+                        >
+                          {inspecting ? 'detail ✓' : 'detail'}
+                        </span>
+                      ) : null}
                       <span className="frame-catalog-jump">{selected ? 'current' : 'jump'}</span>
                     </button>
                   </li>

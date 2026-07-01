@@ -8,10 +8,14 @@ export default function ReplayRangeControls({
   disabled = false,
   range,
   exportState,
+  inspectTimestamp,
+  onInspectFrame,
 }: {
   disabled?: boolean;
   range: ReplayRangeState;
   exportState: PlaybackExportState;
+  inspectTimestamp?: string;
+  onInspectFrame?: (timestamp: string) => void;
 }) {
   const loopDisabled = disabled || !range.hasCompleteRange;
 
@@ -74,6 +78,8 @@ export default function ReplayRangeControls({
         hasCompleteRange={range.hasCompleteRange}
         rangeLabel={range.rangeLabel}
         exportState={exportState}
+        inspectTimestamp={inspectTimestamp}
+        onInspectFrame={onInspectFrame}
       />
     </section>
   );

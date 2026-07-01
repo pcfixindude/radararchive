@@ -454,7 +454,7 @@ Example:
 curl -I "http://127.0.0.1:8000/tiles/mrms_reflectivity/2026-06-27T20:00:00Z/0/0/0.png"
 ```
 
-## Local replay dev APIs (Phase 121–122 — prototype only)
+## Local replay dev APIs (Phase 121–124 — prototype only)
 
 All endpoints below are local-dev/prototype only. `verified_mrms: false`. No silent ingest or decode work in request handlers.
 
@@ -496,5 +496,22 @@ Example:
 ```bash
 curl "http://127.0.0.1:8000/api/dev/playback-export?range_start=2026-06-28T13:00:00Z&range_end=2026-06-28T13:26:38Z&timestamps=2026-06-28T13:00:00Z,2026-06-28T13:13:00Z,2026-06-28T13:26:38Z"
 make playback-export ARGS="--start 2026-06-28T13:00:00Z --end 2026-06-28T13:26:38Z --timestamps 2026-06-28T13:00:00Z,2026-06-28T13:26:38Z"
+```
+
+### GET /api/dev/frame-quality
+
+Per-frame cache/decode/quality drill-down for one or more timestamps. Status/plan only — no ingest or decode work.
+
+Query parameters:
+- `timestamps` — required comma-separated UTC ISO timestamps
+- `layer` — catalog layer id (default `mrms_reflectivity`)
+- `limit` — max frames to return (default 50, max 50)
+
+Response includes per-frame `readiness_summary`, `path_hints` (cache dir, manifest, decode output, raw path, preview paths), `frame_quality` checks, and `suggested_commands` for cold/missing/failed frames.
+
+Example:
+```bash
+curl "http://127.0.0.1:8000/api/dev/frame-quality?timestamps=2026-06-28T13:00:00Z,2026-06-28T13:26:38Z"
+make frame-quality ARGS="--timestamps 2026-06-28T13:00:00Z,2026-06-28T13:26:38Z"
 ```
 

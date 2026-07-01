@@ -4443,6 +4443,59 @@ export async function fetchFrameCatalog(
   return response.json() as Promise<FrameCatalogStatus>;
 }
 
+export type FrameQualityPathHints = {
+  cache_dir?: string | null;
+  manifest_path?: string | null;
+  manifest_present?: boolean;
+  decode_output_dir?: string | null;
+  raw_path?: string | null;
+  preview_paths?: string[];
+  preview_available?: boolean;
+  preview_path_count?: number;
+  tile_root?: string | null;
+};
+
+export type FrameQualityDetail = {
+  timestamp: string;
+  valid: boolean;
+  cache_state: string;
+  cache_ready: boolean;
+  decode_ready: boolean;
+  decode_status?: string | null;
+  frame_status?: string | null;
+  readiness_summary: string;
+  sync_message?: string | null;
+  path_hints: FrameQualityPathHints;
+  frame_quality: FrameQualityStatus;
+  suggested_commands: string[];
+};
+
+export type FrameQualityReport = {
+  layer_id: string;
+  frame_count: number;
+  ready_count: number;
+  partial_count: number;
+  cold_count: number;
+  missing_count: number;
+  failed_count: number;
+  stub_count: number;
+  frames: FrameQualityDetail[];
+  verified_mrms: boolean;
+  local_dev_only: boolean;
+  prototype: boolean;
+  status_only: boolean;
+  does_not_run_decode: boolean;
+};
+
+export async function fetchFrameQuality(timestamps: string[]): Promise<FrameQualityReport> {
+  const params = new URLSearchParams({ timestamps: timestamps.join(',') });
+  const response = await fetch(`${API_BASE}/api/dev/frame-quality?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error(`Frame quality failed with ${response.status}`);
+  }
+  return response.json() as Promise<FrameQualityReport>;
+}
+
 export type PlaybackExportFrame = {
   timestamp: string;
   index: number;

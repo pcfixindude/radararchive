@@ -10,11 +10,15 @@ export default function PlaybackExportPanel({
   hasCompleteRange,
   rangeLabel,
   exportState,
+  inspectTimestamp,
+  onInspectFrame,
 }: {
   disabled?: boolean;
   hasCompleteRange: boolean;
   rangeLabel: string | null;
   exportState: PlaybackExportState;
+  inspectTimestamp?: string;
+  onInspectFrame?: (timestamp: string) => void;
 }) {
   const { manifest, loading, error, copyNotice, exportClip, clearExport, markCopied } = exportState;
 
@@ -90,6 +94,27 @@ export default function PlaybackExportPanel({
             <p className="playback-export-notice" role="status">
               {copyNotice}
             </p>
+          ) : null}
+          {manifest.frames.length > 0 && onInspectFrame ? (
+            <div className="playback-export-frames">
+              <h4>Clip frames</h4>
+              <ul>
+                {manifest.frames.map((frame) => (
+                  <li key={frame.timestamp}>
+                    <button
+                      type="button"
+                      className={`playback-export-frame${frame.timestamp === inspectTimestamp ? ' playback-export-frame--inspecting' : ''}`}
+                      disabled={disabled}
+                      onClick={() => onInspectFrame(frame.timestamp)}
+                    >
+                      <code>{frame.timestamp}</code>
+                      <span>{frame.cache_state}</span>
+                      <span>{frame.decode_ready ? 'decoded' : 'not decoded'}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ) : null}
         </div>
       ) : null}

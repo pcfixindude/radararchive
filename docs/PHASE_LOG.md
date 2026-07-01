@@ -3962,3 +3962,45 @@ make frontend
 - `verified_mrms` remains false
 - `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
 
+## Phase 124 - Frame Quality Drill-Down
+
+Per-frame cache/decode/quality detail in replay UI with remediation command hints.
+
+### Backend
+- `frame_quality_report.py` service — `build_frame_quality_detail()`, `build_frame_quality_report()`
+- Reuses `assess_frame_quality`, frame cache manifests, playback cache state, local MRMS candidate lookup
+- `GET /api/dev/frame-quality` — status/plan only; requires `timestamps`; max 50 frames
+
+### CLI
+- `scripts/frame_quality.py`, `make frame-quality`
+- Writes `data/dev/frame_quality_latest.json` (gitignored)
+
+### Frontend
+- `FrameDetailPanel.tsx` — path hints, quality checks, suggested commands
+- `FrameCatalogPanel.tsx` — **detail** link per row to inspect without jumping
+- `PlaybackExportPanel.tsx` — clip frame list with inspect buttons
+- `useFrameQuality.ts`, `frameDetail.ts` helpers
+
+### Tests
+- `test_frame_quality_report.py`, `frameDetail.test.ts`
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make frame-quality ARGS="--timestamps 2026-06-28T13:00:00Z,2026-06-28T13:26:38Z"
+make backend
+make frontend
+```
+
+### Known limitations
+- Quality checks advisory only — does not block playback
+- Does not trigger decode, cache warm, or ingest on request
+- Inspect timestamp follows playback selection unless user picks detail on another frame
+
+### Safety notes
+- Status-only API/CLI — no silent downloads or unbounded ingest
+- `verified_mrms` remains false
+- `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
+

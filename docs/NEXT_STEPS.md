@@ -1,8 +1,8 @@
 # Next Steps
 
-## Phase 124 - Frame quality drill-down (Draft)
+## Phase 125 - Clip manifest import replay (Draft)
 
-Goal: Per-frame quality/readiness detail in replay UI for catalog or clip frames — decode status, cache hints, remediation commands.
+Goal: Load saved playback clip JSON to restore range, loop, and frame list in replay UI with clip-level readiness summary.
 
 ```bash
 make test
@@ -10,6 +10,23 @@ cd frontend && npm test && npm run build
 make backend
 make frontend
 ```
+
+## Phase 124 verification commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make backend
+make frontend
+make frame-quality ARGS="--timestamps 2026-06-28T13:00:00Z,2026-06-28T13:26:38Z"
+```
+
+Local result after Phase 124:
+
+- `GET /api/dev/frame-quality` returns per-frame cache/decode/quality detail (status only)
+- `make frame-quality` writes `data/dev/frame_quality_latest.json` (gitignored)
+- Frame detail panel shows path hints, quality checks, suggested remediation commands
+- Frame catalog **detail** link and export clip frame list open inspect without jumping playback
 
 ## Phase 123 verification commands
 

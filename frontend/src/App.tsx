@@ -28,6 +28,7 @@ import IngestWindowPanel from './components/IngestWindowPanel';
 import ReplayBookmarksPanel from './components/ReplayBookmarksPanel';
 import ReplaySessionPanel from './components/ReplaySessionPanel';
 import FrameCatalogPanel from './components/FrameCatalogPanel';
+import FrameDetailPanel from './components/FrameDetailPanel';
 import { DEFAULT_INGEST_WINDOW_STATE, type IngestWindowFormState } from './components/ingestWindow';
 import { buildReplaySessionSummary } from './components/replaySessionSummary';
 import { DEFAULT_REPLAY_DISPLAY, overlayReadyForMap, type ReplayDisplayState } from './components/replayDisplay';
@@ -36,6 +37,7 @@ import { useReplayKeyboardShortcuts } from './hooks/useReplayKeyboardShortcuts';
 import { useReplayBookmarks } from './hooks/useReplayBookmarks';
 import { useLocalReplayReady } from './hooks/useLocalReplayReady';
 import { useFrameCatalog } from './hooks/useFrameCatalog';
+import { useFrameQuality } from './hooks/useFrameQuality';
 import { usePlaybackExport } from './hooks/usePlaybackExport';
 import { useReplayRange } from './hooks/useReplayRange';
 import { usePlayback } from './hooks/usePlayback';
@@ -63,6 +65,7 @@ export default function App() {
   const [replayDisplay, setReplayDisplay] = useState<ReplayDisplayState>(DEFAULT_REPLAY_DISPLAY);
   const [fitBoundsToken, setFitBoundsToken] = useState(0);
   const [ingestForm, setIngestForm] = useState<IngestWindowFormState>(DEFAULT_INGEST_WINDOW_STATE);
+  const [inspectTimestamp, setInspectTimestamp] = useState('');
 
   const replayBookmarks = useReplayBookmarks();
   const localReplayReady = useLocalReplayReady(loadState === 'ready');
@@ -134,7 +137,14 @@ export default function App() {
   );
 
   const frameCatalog = useFrameCatalog(playbackTimes, loadState === 'ready');
+  const frameQuality = useFrameQuality(inspectTimestamp, loadState === 'ready' && Boolean(inspectTimestamp));
   const playbackExport = usePlaybackExport();
+
+  useEffect(() => {
+    if (selectedTime) {
+      setInspectTimestamp(selectedTime);
+    }
+  }, [selectedTime]);
 
   const handleExportClip = useCallback(async () => {
     if (!replayRange.resolvedRange) {
@@ -519,11 +529,21 @@ export default function App() {
             loading={frameCatalog.loading}
             error={frameCatalog.error}
             selectedTime={selectedTime}
+            inspectTimestamp={inspectTimestamp}
             onSelectFrame={(time) => {
               setPlaying(false);
               setSelectedTime(time);
             }}
+            onInspectFrame={setInspectTimestamp}
             onRefresh={frameCatalog.refresh}
+          />
+          <FrameDetailPanel
+            disabled={controlsDisabled}
+            inspectTimestamp={inspectTimestamp}
+            report={frameQuality.report}
+            loading={frameQuality.loading}
+            error={frameQuality.error}
+            onRefresh={frameQuality.refresh}
           />
           <ReplayBookmarksPanel
             disabled={controlsDisabled}
@@ -546,6 +566,8 @@ export default function App() {
           <ReplayRangeControls
             disabled={controlsDisabled}
             range={replayRange}
+            inspectTimestamp={inspectTimestamp}
+            onInspectFrame={setInspectTimestamp}
             exportState={{
               manifest: playbackExport.manifest,
               loading: playbackExport.loading,
