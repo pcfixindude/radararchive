@@ -1,10 +1,11 @@
 # Project State
 
-Current phase: Phase 117 complete
+Current phase: Phase 118 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
+- **Playback range and loop** — set start/end frames, loop storm segments, range highlights on time slider
 - **Local replay session workflow** — replay session panel, readiness badge, next-command hints, keyboard shortcuts
 - **Usable local radar replay** — map/overlay toggles, fit-to-bounds, selected-frame summary
 - **Frame quality checks** — diagnostic status on decoded overlay API and panel
@@ -15,7 +16,7 @@ Current status:
 - **Default tile serving: placeholder** (production off)
 - Not verified real MRMS
 
-## Operator workflow (Phase 117)
+## Operator workflow (Phase 118)
 
 ```bash
 make mrms-bulk-local-ingest ARGS='--real --limit 8'
@@ -26,9 +27,10 @@ make frontend
 ```
 
 In the UI:
-- **Replay session** panel shows frame readiness, cache/quality/bounds status, and the next command to run
-- **Keyboard shortcuts**: Space play/pause, ←/→ step, O toggle overlay, B toggle bounds, F fit map to bounds
-- **Map & overlay** toggles decoded overlay, bounds outline, debug sections, and fit map to overlay bounds on demand
+- **Range & loop** — Set start / Set end on current frame, toggle loop, clear range
+- **Keyboard shortcuts**: `[` / `]` set range, `L` loop range, `Esc` clear range; plus Space/←/→/O/B/F from Phase 117
+- **Replay session** panel shows readiness and next command
+- **Map & overlay** toggles decoded overlay, bounds outline, debug sections, fit map on demand
 
 ## Verified MRMS
 

@@ -23,11 +23,13 @@ import PlanSelector from './components/PlanSelector';
 import ValidationStatusPanel from './components/ValidationStatusPanel';
 import DecodedOverlayPanel from './components/DecodedOverlayPanel';
 import ReplayMapControls from './components/ReplayMapControls';
+import ReplayRangeControls from './components/ReplayRangeControls';
 import ReplaySessionPanel from './components/ReplaySessionPanel';
 import { buildReplaySessionSummary } from './components/replaySessionSummary';
 import { DEFAULT_REPLAY_DISPLAY, overlayReadyForMap, type ReplayDisplayState } from './components/replayDisplay';
 import type { ReplayShortcutAction } from './hooks/keyboardShortcuts';
 import { useReplayKeyboardShortcuts } from './hooks/useReplayKeyboardShortcuts';
+import { useReplayRange } from './hooks/useReplayRange';
 import { usePlayback } from './hooks/usePlayback';
 import { useFrameOverlay } from './hooks/useFrameOverlay';
 import { usePlaybackCacheStatus } from './hooks/usePlaybackCacheStatus';
@@ -86,6 +88,8 @@ export default function App() {
     return merged.length > 0 ? merged : [];
   }, [times, processedTimes]);
 
+  const replayRange = useReplayRange(playbackTimes, selectedTime);
+
   const {
     playing,
     speed,
@@ -95,7 +99,13 @@ export default function App() {
     stepForward,
     jumpToLatest,
     setPlaying,
-  } = usePlayback(playbackTimes, selectedTime, setSelectedTime);
+  } = usePlayback(
+    playbackTimes,
+    selectedTime,
+    setSelectedTime,
+    replayRange.resolvedRange,
+    replayRange.loopActive,
+  );
 
   const {
     decodedOverlay,
@@ -326,6 +336,26 @@ export default function App() {
             setFitBoundsToken((token) => token + 1);
           }
           break;
+        case 'setRangeStart':
+          if (!controlsDisabled && selectedTime) {
+            replayRange.setStartFromSelected();
+          }
+          break;
+        case 'setRangeEnd':
+          if (!controlsDisabled && selectedTime) {
+            replayRange.setEndFromSelected();
+          }
+          break;
+        case 'toggleLoopRange':
+          if (!controlsDisabled) {
+            replayRange.toggleLoopRange();
+          }
+          break;
+        case 'clearRange':
+          if (replayRange.rangeStart || replayRange.rangeEnd) {
+            replayRange.clearRange();
+          }
+          break;
         default:
           break;
       }
@@ -339,6 +369,8 @@ export default function App() {
       stepForward,
       overlayMapReady,
       canFitBounds,
+      selectedTime,
+      replayRange,
     ],
   );
 
@@ -396,6 +428,7 @@ export default function App() {
             <p className="warn-banner">Selected timestamp is not processed yet. Choose a processed frame or run process-once.</p>
           ) : null}
           <ReplaySessionPanel summary={sessionSummary} />
+          <ReplayRangeControls disabled={controlsDisabled} range={replayRange} />
           <PlanSelector plan={selectedPlan} accessInfo={accessInfo} onChange={setSelectedPlan} />
           <ReplayMapControls
             display={replayDisplay}
@@ -432,6 +465,8 @@ export default function App() {
             times={playbackTimes}
             selectedTime={selectedTime}
             cacheStatus={cacheStatus}
+            rangeStartIndex={replayRange.resolvedRange?.startIndex ?? null}
+            rangeEndIndex={replayRange.resolvedRange?.endIndex ?? null}
             onSelect={(time) => {
               setPlaying(false);
               setSelectedTime(time);
@@ -446,6 +481,7 @@ export default function App() {
             speed={speed}
             playbackFrameStatus={playbackFrameStatus}
             cacheStatus={cacheStatus}
+            range={replayRange}
             onTogglePlay={togglePlay}
             onStepBackward={() => {
               setPlaying(false);

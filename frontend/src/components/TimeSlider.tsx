@@ -7,12 +7,16 @@ export default function TimeSlider({
   onSelect,
   disabled = false,
   cacheStatus = null,
+  rangeStartIndex = null,
+  rangeEndIndex = null,
 }: {
   times: string[];
   selectedTime: string;
   onSelect: (time: string) => void;
   disabled?: boolean;
   cacheStatus?: PlaybackCacheStatus | null;
+  rangeStartIndex?: number | null;
+  rangeEndIndex?: number | null;
 }) {
   const index = Math.max(0, times.indexOf(selectedTime));
   const stateByTime = new Map(
@@ -32,13 +36,18 @@ export default function TimeSlider({
       />
       {times.length > 0 ? (
         <div className="slider-cache-track" aria-label="Frame cache status">
-          {times.map((time) => {
+          {times.map((time, frameIndex) => {
             const state = stateByTime.get(time) ?? 'missing_raw';
             const selected = time === selectedTime;
+            const inRange =
+              rangeStartIndex !== null &&
+              rangeEndIndex !== null &&
+              frameIndex >= rangeStartIndex &&
+              frameIndex <= rangeEndIndex;
             return (
               <span
                 key={time}
-                className={`slider-cache-dot ${cacheStateClass(state)}${selected ? ' slider-cache-dot--selected' : ''}`}
+                className={`slider-cache-dot ${cacheStateClass(state)}${selected ? ' slider-cache-dot--selected' : ''}${inRange ? ' slider-cache-dot--in-range' : ''}`}
                 title={`${time}: ${cacheStateLabel(state)}`}
               />
             );

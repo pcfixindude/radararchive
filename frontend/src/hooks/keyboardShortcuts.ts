@@ -4,7 +4,11 @@ export type ReplayShortcutAction =
   | 'stepForward'
   | 'toggleOverlay'
   | 'toggleBounds'
-  | 'fitBounds';
+  | 'fitBounds'
+  | 'setRangeStart'
+  | 'setRangeEnd'
+  | 'toggleLoopRange'
+  | 'clearRange';
 
 export type ReplayShortcut = {
   keys: string;
@@ -15,6 +19,10 @@ export type ReplayShortcut = {
 export const REPLAY_SHORTCUTS: ReplayShortcut[] = [
   { keys: 'Space', action: 'togglePlay', description: 'Play / pause' },
   { keys: '← / →', action: 'stepBackward', description: 'Previous / next frame' },
+  { keys: '[', action: 'setRangeStart', description: 'Set range start to current frame' },
+  { keys: ']', action: 'setRangeEnd', description: 'Set range end to current frame' },
+  { keys: 'L', action: 'toggleLoopRange', description: 'Toggle loop range' },
+  { keys: 'Esc', action: 'clearRange', description: 'Clear playback range' },
   { keys: 'O', action: 'toggleOverlay', description: 'Toggle decoded overlay' },
   { keys: 'B', action: 'toggleBounds', description: 'Toggle bounds outline' },
   { keys: 'F', action: 'fitBounds', description: 'Fit map to overlay bounds' },
@@ -53,9 +61,26 @@ export function resolveShortcutAction(event: KeyboardEvent): ReplayShortcutActio
   if (event.key === 'f' || event.key === 'F') {
     return 'fitBounds';
   }
+  if (event.key === '[') {
+    return 'setRangeStart';
+  }
+  if (event.key === ']') {
+    return 'setRangeEnd';
+  }
+  if (event.key === 'l' || event.key === 'L') {
+    return 'toggleLoopRange';
+  }
+  if (event.key === 'Escape') {
+    return 'clearRange';
+  }
   return null;
 }
 
 export function shouldPreventDefault(action: ReplayShortcutAction): boolean {
-  return action === 'togglePlay' || action === 'stepBackward' || action === 'stepForward';
+  return (
+    action === 'togglePlay' ||
+    action === 'stepBackward' ||
+    action === 'stepForward' ||
+    action === 'clearRange'
+  );
 }

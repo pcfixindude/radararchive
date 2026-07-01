@@ -1,6 +1,8 @@
 import { PLAYBACK_SPEEDS } from '../hooks/usePlayback';
+import { playbackStatusWithRange } from '../hooks/loopPlayback';
 import { playbackStatusLabel, type PlaybackFrameStatus } from '../hooks/framePlayback';
 import type { PlaybackCacheStatus } from '../api/client';
+import type { ReplayRangeState } from '../hooks/useReplayRange';
 
 export default function PlaybackControls({
   times,
@@ -10,6 +12,7 @@ export default function PlaybackControls({
   speed,
   playbackFrameStatus = 'idle',
   cacheStatus = null,
+  range = null,
   onTogglePlay,
   onStepBackward,
   onStepForward,
@@ -23,6 +26,7 @@ export default function PlaybackControls({
   speed: number;
   playbackFrameStatus?: PlaybackFrameStatus;
   cacheStatus?: PlaybackCacheStatus | null;
+  range?: ReplayRangeState | null;
   onTogglePlay: () => void;
   onStepBackward: () => void;
   onStepForward: () => void;
@@ -30,6 +34,12 @@ export default function PlaybackControls({
   onSpeedChange: (speed: number) => void;
 }) {
   const index = times.indexOf(selectedTime);
+  const playbackLabel = playbackStatusWithRange(
+    playing,
+    Boolean(range?.loopActive),
+    Boolean(range?.hasCompleteRange),
+    range?.selectedInRange ?? null,
+  );
 
   return (
     <section className="panel playback-panel">
@@ -45,7 +55,7 @@ export default function PlaybackControls({
           ▶
         </button>
         <button type="button" disabled={disabled} onClick={onJumpLatest}>
-          Latest
+          {range?.hasCompleteRange ? 'Range end' : 'Latest'}
         </button>
       </div>
       <label className="speed-label">
@@ -64,9 +74,13 @@ export default function PlaybackControls({
       </label>
       <p className="playback-meta">
         Frame {times.length === 0 ? 0 : index + 1} of {times.length}
+        {range?.hasCompleteRange && range.positionLabel ? (
+          <> · {range.positionLabel}</>
+        ) : null}
       </p>
+      <p className="playback-meta playback-playback-state">{playbackLabel}</p>
       <p className={`playback-meta playback-status playback-status--${playbackFrameStatus}`}>
-        Frame: {playbackStatusLabel(playbackFrameStatus)}
+        Overlay: {playbackStatusLabel(playbackFrameStatus)}
         {playbackFrameStatus === 'decoding' ? ' — keep playing; overlay holds last frame' : ''}
         {playbackFrameStatus === 'frame_missing' ? ' — ingest or decode may be needed' : ''}
       </p>

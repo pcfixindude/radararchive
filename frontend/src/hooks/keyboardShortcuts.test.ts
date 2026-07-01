@@ -26,6 +26,13 @@ describe('resolveShortcutAction', () => {
     expect(resolveShortcutAction(new KeyboardEvent('keydown', { key: 'f' }))).toBe('fitBounds');
   });
 
+  it('maps range and loop shortcuts', () => {
+    expect(resolveShortcutAction(new KeyboardEvent('keydown', { key: '[' }))).toBe('setRangeStart');
+    expect(resolveShortcutAction(new KeyboardEvent('keydown', { key: ']' }))).toBe('setRangeEnd');
+    expect(resolveShortcutAction(new KeyboardEvent('keydown', { key: 'l' }))).toBe('toggleLoopRange');
+    expect(resolveShortcutAction(new KeyboardEvent('keydown', { key: 'Escape' }))).toBe('clearRange');
+  });
+
   it('ignores shortcuts while typing in inputs', () => {
     const input = document.createElement('input');
     const event = new KeyboardEvent('keydown', { key: ' ', code: 'Space' });

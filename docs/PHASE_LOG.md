@@ -3732,3 +3732,41 @@ make frontend
 - `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
 - Decoded overlays remain local-dev/prototype only
 
+## Phase 118 - Playback Range and Loop
+
+Storm-segment range selection and loop playback for local replay.
+
+### Frontend
+- `replayRange.ts`, `loopPlayback.ts` — range normalization, wrap/pause logic, position labels
+- `useReplayRange.ts`, `ReplayRangeControls.tsx` — range state and operator UI
+- `usePlayback.ts` — range-aware auto-advance, step, and jump-to-range-end
+- `PlaybackControls.tsx`, `TimeSlider.tsx` — range position text and slider highlight
+- `keyboardShortcuts.ts` — `[` / `]` / `L` / `Esc` range shortcuts
+- `App.tsx` — wires range hook into playback and shortcuts
+
+### Backend
+- No changes
+
+### Tests
+- `replayRange.test.ts`, `loopPlayback.test.ts`, updated `keyboardShortcuts.test.ts`
+- Backend 1229 passed; frontend 51 passed; `npm run build` ok
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make backend
+make frontend
+```
+
+### Known limitations
+- Range is session-only (not persisted across reloads)
+- No range export or clip rendering
+- Does not verify MRMS or enable production tile serving
+
+### Safety notes
+- `verified_mrms` remains false
+- `ENABLE_PRODUCTION_RADAR_TILES` remains false by default
+- Decoded overlays remain local-dev/prototype only
+

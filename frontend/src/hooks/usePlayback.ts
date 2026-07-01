@@ -1,4 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  advancePlaybackIndex,
+  stepBackwardIndex,
+  stepForwardIndex,
+} from './loopPlayback';
+import type { ResolvedReplayRange } from './replayRange';
 
 export const PLAYBACK_SPEEDS = [
   { label: '0.5x', value: 0.5 },
@@ -13,6 +19,8 @@ export function usePlayback(
   times: string[],
   selectedTime: string,
   onSelect: (time: string) => void,
+  range: ResolvedReplayRange | null = null,
+  loopRange = false,
 ) {
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -29,16 +37,16 @@ export function usePlayback(
 
     const intervalMs = BASE_INTERVAL_MS / speed;
     const timer = window.setInterval(() => {
-      const nextIndex = indexRef.current + 1;
-      if (nextIndex >= times.length) {
-        onSelect(times[0]);
-      } else {
-        onSelect(times[nextIndex]);
+      const currentIndex = indexRef.current;
+      const result = advancePlaybackIndex(currentIndex, times.length, range, loopRange);
+      onSelect(times[result.nextIndex] ?? selectedTime);
+      if (result.pause) {
+        setPlaying(false);
       }
     }, intervalMs);
 
     return () => window.clearInterval(timer);
-  }, [playing, times, speed, onSelect]);
+  }, [playing, times, speed, onSelect, range, loopRange, selectedTime]);
 
   useEffect(() => {
     if (times.length === 0) {
@@ -48,17 +56,31 @@ export function usePlayback(
 
   const stepBackward = useCallback(() => {
     const index = Math.max(0, times.indexOf(selectedTime));
-    onSelect(times[Math.max(0, index - 1)] ?? selectedTime);
-  }, [onSelect, selectedTime, times]);
+    const nextIndex = stepBackwardIndex(index, times.length, range, loopRange);
+    onSelect(times[nextIndex] ?? selectedTime);
+  }, [onSelect, selectedTime, times, range, loopRange]);
 
   const stepForward = useCallback(() => {
-    const index = times.indexOf(selectedTime);
-    onSelect(times[Math.min(times.length - 1, index + 1)] ?? selectedTime);
-  }, [onSelect, selectedTime, times]);
+    const index = Math.max(0, times.indexOf(selectedTime));
+    const nextIndex = stepForwardIndex(index, times.length, range, loopRange);
+    onSelect(times[nextIndex] ?? selectedTime);
+  }, [onSelect, selectedTime, times, range, loopRange]);
 
   const jumpToLatest = useCallback(() => {
+    if (range) {
+      onSelect(range.end);
+      return;
+    }
     onSelect(times[times.length - 1] ?? '');
-  }, [onSelect, times]);
+  }, [onSelect, times, range]);
+
+  const jumpToRangeStart = useCallback(() => {
+    if (range) {
+      onSelect(range.start);
+      return;
+    }
+    onSelect(times[0] ?? '');
+  }, [onSelect, times, range]);
 
   const togglePlay = useCallback(() => {
     setPlaying((current) => !current);
@@ -72,6 +94,7 @@ export function usePlayback(
     stepBackward,
     stepForward,
     jumpToLatest,
+    jumpToRangeStart,
     setPlaying,
   };
 }
