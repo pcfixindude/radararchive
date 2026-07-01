@@ -40,6 +40,7 @@ class GeoRenderMetadata:
     transform: Optional[list[float]] = None
     geo_accurate: bool = False
     production_rendering: bool = False
+    georef_quality: Optional[str] = None
     notes: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -60,6 +61,7 @@ class GeoRenderMetadata:
             transform=payload.get("transform"),
             geo_accurate=bool(payload.get("geo_accurate", False)),
             production_rendering=bool(payload.get("production_rendering", False)),
+            georef_quality=payload.get("georef_quality"),
             notes=list(payload.get("notes", [])),
         )
 
@@ -121,31 +123,36 @@ def enrich_geo_metadata_from_rasterio(
     metadata: GeoRenderMetadata,
 ) -> GeoRenderMetadata:
     """Optional enrichment when rasterio is installed (not required)."""
-    try:
-        import rasterio
-    except ImportError:
-        metadata.notes.append("rasterio not available — CRS/bounds enrichment skipped.")
+    from backend.app.services.georef_bounds import (
+        ENRICHMENT_NOTE_PREFIX,
+        GEOREF_METHOD_PROTOTYPE,
+        extract_wgs84_bounds_from_raster_path,
+    )
+
+    enriched = extract_wgs84_bounds_from_raster_path(storage.absolute_path(raster_path))
+    if enriched is None:
+        try:
+            import rasterio  # noqa: F401
+        except ImportError:
+            metadata.notes.append("rasterio not available — CRS/bounds enrichment skipped.")
+            return metadata
+        metadata.notes.append("rasterio open failed — using manifest defaults.")
         return metadata
 
-    try:
-        with rasterio.open(storage.absolute_path(raster_path)) as dataset:
-            if dataset.crs:
-                metadata.source_crs = str(dataset.crs)
-            if dataset.bounds:
-                metadata.bounds = [
-                    float(dataset.bounds.left),
-                    float(dataset.bounds.bottom),
-                    float(dataset.bounds.right),
-                    float(dataset.bounds.top),
-                ]
-            if dataset.transform:
-                metadata.transform = list(dataset.transform)[:6]
-            if dataset.res:
-                metadata.pixel_size_x = float(dataset.res[0])
-                metadata.pixel_size_y = float(dataset.res[1])
-            metadata.notes.append("Enriched from rasterio (optional).")
-    except OSError:
-        metadata.notes.append("rasterio open failed — using manifest defaults.")
+    metadata.bounds = enriched["bounds"]
+    metadata.source_crs = enriched.get("source_crs")
+    if enriched.get("transform"):
+        metadata.transform = enriched["transform"]
+    if enriched.get("pixel_size_x") is not None:
+        metadata.pixel_size_x = enriched["pixel_size_x"]
+    if enriched.get("pixel_size_y") is not None:
+        metadata.pixel_size_y = enriched["pixel_size_y"]
+    metadata.georef_quality = enriched.get("georef_quality")
+    for note in enriched.get("notes") or []:
+        if note not in metadata.notes:
+            metadata.notes.append(note)
+    if metadata.georef_quality == GEOREF_METHOD_PROTOTYPE:
+        metadata.notes.append(f"{ENRICHMENT_NOTE_PREFIX} fallback to prototype bounds")
     return metadata
 
 

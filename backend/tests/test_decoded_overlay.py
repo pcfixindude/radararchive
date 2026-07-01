@@ -73,7 +73,8 @@ def test_build_decoded_overlay_with_preview(storage, monkeypatch):
         grid_width=100,
         grid_height=50,
         geo_accurate=False,
-        notes=["Enriched from rasterio (optional)."],
+        georef_quality="rasterio_wgs84_bounds",
+        notes=["georef_bounds: dataset.bounds in WGS84"],
     )
     write_geo_metadata(storage, decode_dir, geo)
 
@@ -97,7 +98,9 @@ def test_build_decoded_overlay_with_preview(storage, monkeypatch):
     assert overlay["sync_status"] == "no_selection"
     assert overlay["preview_url"] is None
     assert overlay["bounds"] == [-100.0, 30.0, -90.0, 40.0]
-    assert overlay["georef_quality"] == "rasterio_bounds"
+    assert overlay["georef_quality"] == "rasterio_wgs84_bounds"
+    assert overlay["bounds_source"] == "rasterio_transform_wgs84"
+    assert overlay["geo_accurate"] is False
     assert "NOT verified MRMS" in overlay["labels"][1]
 
 

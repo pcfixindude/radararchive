@@ -10,6 +10,8 @@ import {
   DECODED_OVERLAY_SOURCE_ID,
   DECODED_OVERLAY_TILE_LAYER_ID,
   DECODED_OVERLAY_TILE_SOURCE_ID,
+  GEOREF_BOUNDS_LAYER_ID,
+  GEOREF_BOUNDS_SOURCE_ID,
   DEFAULT_CENTER,
   DEFAULT_ZOOM,
   RADAR_LAYER_ID,
@@ -185,12 +187,20 @@ export default function WeatherMap({
     }
 
     const removeOverlay = () => {
-      for (const layerId of [DECODED_OVERLAY_LAYER_ID, DECODED_OVERLAY_TILE_LAYER_ID]) {
+      for (const layerId of [
+        DECODED_OVERLAY_LAYER_ID,
+        DECODED_OVERLAY_TILE_LAYER_ID,
+        GEOREF_BOUNDS_LAYER_ID,
+      ]) {
         if (map.getLayer(layerId)) {
           map.removeLayer(layerId);
         }
       }
-      for (const sourceId of [DECODED_OVERLAY_SOURCE_ID, DECODED_OVERLAY_TILE_SOURCE_ID]) {
+      for (const sourceId of [
+        DECODED_OVERLAY_SOURCE_ID,
+        DECODED_OVERLAY_TILE_SOURCE_ID,
+        GEOREF_BOUNDS_SOURCE_ID,
+      ]) {
         if (map.getSource(sourceId)) {
           map.removeSource(sourceId);
         }
@@ -224,6 +234,33 @@ export default function WeatherMap({
           'raster-opacity': Math.min(1, opacity + 0.1),
         },
       });
+      map.addSource(GEOREF_BOUNDS_SOURCE_ID, {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: [
+              [west, north],
+              [east, north],
+              [east, south],
+              [west, south],
+              [west, north],
+            ],
+          },
+        },
+      });
+      map.addLayer({
+        id: GEOREF_BOUNDS_LAYER_ID,
+        type: 'line',
+        source: GEOREF_BOUNDS_SOURCE_ID,
+        paint: {
+          'line-color': '#38bdf8',
+          'line-width': 2,
+          'line-dasharray': [2, 2],
+        },
+      });
       return;
     }
 
@@ -248,6 +285,34 @@ export default function WeatherMap({
       source: DECODED_OVERLAY_SOURCE_ID,
       paint: {
         'raster-opacity': Math.min(1, opacity + 0.1),
+      },
+    });
+
+    map.addSource(GEOREF_BOUNDS_SOURCE_ID, {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'LineString',
+          coordinates: [
+            [west, north],
+            [east, north],
+            [east, south],
+            [west, south],
+            [west, north],
+          ],
+        },
+      },
+    });
+    map.addLayer({
+      id: GEOREF_BOUNDS_LAYER_ID,
+      type: 'line',
+      source: GEOREF_BOUNDS_SOURCE_ID,
+      paint: {
+        'line-color': '#38bdf8',
+        'line-width': 2,
+        'line-dasharray': [2, 2],
       },
     });
   }, [mapReady, overlayActive, useOverlayTiles, overlayTileTemplate, decodedOverlay, opacity, overlayTransitioning]);

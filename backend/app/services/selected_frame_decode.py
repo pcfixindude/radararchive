@@ -19,6 +19,7 @@ from backend.app.services.decoded_tile_cache import (
 )
 from backend.app.services.decoder_setup import SUGGESTED_DECODE_RETRY_COMMAND, SUGGESTED_INSTALL_COMMAND
 from backend.app.services.grib2_decoder import build_decode_output_dir, decode_grib2_file
+from backend.app.services.georef_overlay import resolve_georef_overlay
 from backend.app.services.grib2_inspector import detect_decoder_availability
 from backend.app.services.overlay_sync import (
     extract_timestamp_from_raw_path,
@@ -462,6 +463,8 @@ def resolve_selected_frame(
             },
         )
 
+    georef = resolve_georef_overlay(storage, output_dir)
+
     return save_frame_cache(
         storage,
         selected,
@@ -480,6 +483,12 @@ def resolve_selected_frame(
             "tile_root": preview_build["tile_root"],
             "render_mode": preview_build["render_mode"],
             "pipeline_status": "preview_ok",
+            "bounds": georef["bounds"],
+            "georef_mode": georef["georef_mode"],
+            "georef_quality": georef["georef_quality"],
+            "georef_notes": georef.get("georef_notes") or [],
+            "bounds_source": georef.get("bounds_source"),
+            "geo_accurate": georef["geo_accurate"],
             "sync_message": "Selected frame decoded and cached for local overlay.",
             "action_commands": [SUGGESTED_DECODE_RETRY_COMMAND],
             "fallback_latest_available": False,

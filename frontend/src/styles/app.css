@@ -84,7 +84,7 @@ button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
 .slider-cache--missing_raw { background: #64748b; }
 .slider-cache--failed { background: #ef4444; }
 .slider-cache--stub { background: #a78bfa; }
-.slider-cache-summary { margin: 0.25rem 0 0; color: #94a3b8; font-size: 0.8rem; }
+.decoded-overlay-georef-note { color: #94a3b8; font-size: 0.78rem; }
 .plan-note, .plan-meta, .plan-upgrade { margin: 0.35rem 0 0; color: #cbd5e1; font-size: 0.85rem; }
 .plan-upgrade { color: #fde68a; }
 .plan-panel select { width: 100%; margin-top: 0.35rem; }

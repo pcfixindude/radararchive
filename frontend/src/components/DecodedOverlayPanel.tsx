@@ -133,6 +133,25 @@ export default function DecodedOverlayPanel({
           {overlay.geo_accurate ? ' (geo-accurate)' : ' (prototype placement)'}
         </p>
       ) : null}
+      {overlay?.bounds_source ? (
+        <p className="decoded-overlay-meta">
+          Bounds source: <code>{overlay.bounds_source}</code>
+        </p>
+      ) : null}
+      {overlay?.bounds?.length === 4 ? (
+        <p className="decoded-overlay-meta">
+          Bounds:{' '}
+          <code>
+            {overlay.bounds.map((value) => value.toFixed(2)).join(', ')}
+          </code>
+        </p>
+      ) : null}
+      {!overlay?.geo_accurate ? (
+        <p className="decoded-overlay-warn">Prototype georef — not verified MRMS alignment.</p>
+      ) : null}
+      {overlay?.georef_notes?.length ? (
+        <p className="decoded-overlay-meta decoded-overlay-georef-note">{overlay.georef_notes[0]}</p>
+      ) : null}
       {overlay?.sync_message ? <p className="decoded-overlay-warn">{overlay.sync_message}</p> : null}
       {overlay?.stale_hint && overlay.sync_status !== 'mismatch' && overlay.sync_status !== 'matched' ? (
         <p className="decoded-overlay-warn">{overlay.stale_hint}</p>

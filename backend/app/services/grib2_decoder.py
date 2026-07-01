@@ -274,6 +274,18 @@ def decode_grib2_file(
         result.error = str(exc)
         return result
 
+    geo = build_geo_metadata_for_decode(
+        grid_width=int(decode_info.get("width") or 0),
+        grid_height=int(decode_info.get("height") or 0),
+        valid_timestamp=extract_timestamp_from_raw_path(raw_path),
+    )
+    raster_repo_for_geo = None
+    raster_name = decode_info.get("raster_path")
+    if raster_name:
+        raster_repo_for_geo = storage.normalize_path(output_repo_dir, str(raster_name))
+        geo = enrich_geo_metadata_from_rasterio(storage, raster_repo_for_geo, geo)
+    geo_repo_path = write_geo_metadata(storage, output_repo_dir, geo)
+
     manifest_payload = {
         "prototype": True,
         "production_rendering": False,
@@ -286,21 +298,12 @@ def decode_grib2_file(
         "value_min": decode_info.get("value_min"),
         "value_max": decode_info.get("value_max"),
         "raster_path": decode_info.get("raster_path"),
+        "bounds": geo.bounds,
+        "source_crs": geo.source_crs,
+        "georef_quality": geo.georef_quality,
         "note": "Prototype decode artifact only. /tiles still serves placeholders.",
     }
     manifest_abs = _write_manifest(output_abs_dir, manifest_payload)
-
-    geo = build_geo_metadata_for_decode(
-        grid_width=int(decode_info.get("width") or 0),
-        grid_height=int(decode_info.get("height") or 0),
-        valid_timestamp=extract_timestamp_from_raw_path(raw_path),
-    )
-    raster_repo_for_geo = None
-    raster_name = decode_info.get("raster_path")
-    if raster_name:
-        raster_repo_for_geo = storage.normalize_path(output_repo_dir, str(raster_name))
-        geo = enrich_geo_metadata_from_rasterio(storage, raster_repo_for_geo, geo)
-    geo_repo_path = write_geo_metadata(storage, output_repo_dir, geo)
 
     result.success = True
     result.decoder_used = str(decode_info.get("decoder"))

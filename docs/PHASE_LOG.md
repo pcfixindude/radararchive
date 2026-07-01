@@ -3614,3 +3614,32 @@ make mrms-bulk-local-ingest ARGS='--real --limit 8 --warm-cache'
 - Retries and recovery are local-dev only — bounded by default
 - Does not verify MRMS or enable production tile serving
 
+## Phase 114 - Georef Improvement
+
+Improve WGS84 overlay bounds for local decoded MRMS playback.
+
+### Backend
+- `georef_bounds.py` — rasterio affine + `transform_bounds` to EPSG:4326
+- `georef_overlay.py` — bounds_source and quality resolution
+- `render_metadata.py` — enrichment writes georef_quality to geo_metadata.json
+- `grib2_decoder.py`, `selected_frame_decode.py` — bounds in manifests
+
+### Frontend
+- `WeatherMap.tsx` — dashed bounds outline; improved bounds for image/tile overlay
+- `DecodedOverlayPanel.tsx` — bounds source, values, prototype warning
+
+### Run commands
+
+```bash
+make test
+cd frontend && npm test && npm run build
+make decode-retry
+make backend
+make frontend
+```
+
+### Known limitations
+- geo_accurate remains false — prototype placement only
+- Requires rasterio for improved bounds (optional decoder dependency)
+- Does not verify MRMS or enable production tile serving
+

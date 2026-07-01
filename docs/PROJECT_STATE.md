@@ -1,40 +1,29 @@
 # Project State
 
-Current phase: Phase 113 complete
+Current phase: Phase 114 complete
 
 Project goal: Build a cloud-first historical weather replay app focused on radar history.
 
 Current status:
+- **Georef improvement** — rasterio WGS84 bounds for decoded overlay; map bounds outline
 - **Ingestion robustness** — bounded retries, partial success, `--retry-failed`, `--repair`
-- **Playback cache status UI** — per-frame dots on time slider; window counts in panels
+- **Playback cache status UI** — per-frame dots on time slider
 - **Frame cache warming** — `make mrms-warm-frame-cache`
-- **Optional auto-warm after ingest** — `--warm-cache` flag on bulk ingest
 - **Bulk MRMS ingest** — `make mrms-bulk-local-ingest ARGS='--real --limit 8'`
-- **Multi-frame playback** — hold previous overlay during decode; display overlay for map
 - **Default tile serving: placeholder** (production off)
 - Not verified real MRMS
 
-## Operator workflow (Phase 113)
+## Operator workflow (Phase 114)
 
 ```bash
 make mrms-bulk-local-ingest ARGS='--real --limit 8'
-# partial failure recovery:
-make mrms-bulk-local-ingest ARGS='--real --retry-failed'
-# or skip already-valid frames:
-make mrms-bulk-local-ingest ARGS='--real --missing-only --limit 8'
-# repair bad zero-byte files:
-make mrms-bulk-local-ingest ARGS='--real --repair --limit 8'
 make mrms-warm-frame-cache
+make decode-retry
+make backend
+make frontend
 ```
 
-Reports:
-
-- `data/dev/mrms_bulk_ingest_latest.json`
-- `data/dev/mrms_cache_warm_latest.json`
-
-Raw files:
-
-- `data/raw/mrms/reflectivity/`
+Decoded overlay uses WGS84 bounds from `geo_metadata.json` when rasterio enriches decode output. `geo_accurate` remains **false**.
 
 ## Verified MRMS
 

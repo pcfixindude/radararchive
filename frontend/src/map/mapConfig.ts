@@ -11,3 +11,5 @@ export const DECODED_OVERLAY_SOURCE_ID = 'decoded-overlay';
 export const DECODED_OVERLAY_LAYER_ID = 'decoded-overlay-layer';
 export const DECODED_OVERLAY_TILE_SOURCE_ID = 'decoded-overlay-tiles';
 export const DECODED_OVERLAY_TILE_LAYER_ID = 'decoded-overlay-tiles-layer';
+export const GEOREF_BOUNDS_SOURCE_ID = 'georef-bounds-outline';
+export const GEOREF_BOUNDS_LAYER_ID = 'georef-bounds-outline-layer';
