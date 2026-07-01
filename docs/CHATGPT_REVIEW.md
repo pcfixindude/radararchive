@@ -11,7 +11,7 @@ Do not treat this file as verified MRMS proof or production authorization.
 - Local path: ~/Projects/radararchive
 - Completed through phase: 119
 - Latest phase: Phase 119 — Ingest date window UX
-- Latest commit: (see end-of-phase report)
+- Latest commit: `5457808`
 - Latest tag: `phase-119-ingest-date-window-ux`
 - Push status: pushed to `origin/main` with tag
 - Final git status: source committed; local `data/dev/` runtime artifacts not committed
